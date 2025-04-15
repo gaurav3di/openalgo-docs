@@ -14,13 +14,13 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 [https://github.com/marketcalls/openalgo-node](https://github.com/marketcalls/openalgo-node)
 
 📊 **Excel Add-in**\
-https://github.com/marketcalls/OpenAlgo-Excel
+[https://github.com/marketcalls/OpenAlgo-Excel](https://github.com/marketcalls/OpenAlgo-Excel)
 
 🧩 **Chrome Plugin**\
 [https://github.com/marketcalls/openalgo-chrome](https://github.com/marketcalls/openalgo-chrome)
 
 ⚡️ **Fast Scalper (Rust + Tauri)**\
-https://github.com/marketcalls/fastscalper-tauri
+[https://github.com/marketcalls/fastscalper-tauri](https://github.com/marketcalls/fastscalper-tauri)
 
 🌐 **Web Portal (NextJS + ShadcnUI)**\
 [https://github.com/marketcalls/openalgo-webpage](https://github.com/marketcalls/openalgo-webpage)
