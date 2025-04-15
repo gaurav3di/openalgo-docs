@@ -4,6 +4,7 @@
 * [OpenAlgo Architecture](openalgo-architecture.md)
 * [Mini FOSS Universe](mini-foss-universe.md)
 * [Community Support](community-support.md)
+* [OpenAlgo GPT](openalgo-gpt.md)
 * [New Features](new-features/README.md)
   * [Fast Scalper](new-features/fast-scalper.md)
   * [API Analyzer](new-features/api-analyzer.md)
