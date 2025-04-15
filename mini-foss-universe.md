@@ -25,4 +25,7 @@ https://github.com/marketcalls/fastscalper-tauri
 🌐 **Web Portal (NextJS + ShadcnUI)**\
 [https://github.com/marketcalls/openalgo-webpage](https://github.com/marketcalls/openalgo-webpage)
 
+🧩 **Documentation (Gitbook)**\
+[https://github.com/marketcalls/openalgo-docs](https://github.com/marketcalls/openalgo-docs)
+
 🛠 Dive in, fork it, build with it. Let’s make algo trading more accessible, powerful, and open for everyone.
