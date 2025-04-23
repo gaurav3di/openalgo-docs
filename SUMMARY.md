@@ -102,6 +102,7 @@
 ***
 
 * [Symbol Format](symbol-format.md)
+* [MCP](mcp.md)
 
 ## Trading Platform
 
