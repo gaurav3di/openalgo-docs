@@ -4,154 +4,350 @@ description: OpenAlgo - Model Context Protocol
 
 # MCP
 
-1. **User:** Interacts via the terminal with the MCP Client.
-2. **User Prompt:** Types a command in natural language (e.g., "Get my positions").
-3. **MCP Client (Trading Agent):**
-   * Uses Agno AGI and an LLM to parse the prompt and determine the intent (e.g., `get_position_book` tool).
-   * Extracts parameters if needed.
-   * Sends a structured MCP request to the MCP Server.
-4. **MCP Server:**
-   * Receives the MCP request.
-   * Calls the corresponding OpenAlgo API endpoint (e.g., `/positions`).
-   * Receives the response from OpenAlgo.
-   * Formats the response according to MCP and sends it back to the MCP Client.
-5. **MCP Client (Trading Agent):**
-   * Receives the MCP response.
-   * Optionally uses the LLM again to format the response naturally for the user.
-   * Displays the result to the User.
-6. **OpenAlgo:** The core OpenAlgo application handles the actual API logic and communication with the broker.
-7. **Broker/Exchange:** Executes the trade or provides the requested data.
+## OpenAlgo MCP - AI Trading Assistant
 
-<figure><img src=".gitbook/assets/image (106).png" alt=""><figcaption></figcaption></figure>
 
-### Core Technologies
 
-* **OpenAlgo:** The underlying trading platform providing the core API.
-* **Model Context Protocol (MCP):** Communication standard for AI agents and tools.
-* **Agno AGI:** Agent framework for building the trading assistant client.
-* **Python:** Primary programming language.
-* **FastAPI/Starlette:** Web framework for the MCP Server.
-* **LLM APIs:** Connectors for various Large Language Models (e.g., OpenAI Python library).
+An AI-powered trading assistant platform for OpenAlgo, leveraging Machine Conversation Protocol (MCP) and Large Language Models to provide intelligent trading capabilities.
 
-### Available Tools / Capabilities (Examples)
+### Overview
 
-The Trading Agent can typically perform actions corresponding to OpenAlgo API endpoints, such as:
+OpenAlgo MCP integrates the powerful OpenAlgo trading platform with advanced AI capabilities through:
 
-* `get_funds()`: Retrieve available cash and margin details.
-* `get_holdings()`: Get list of holdings.
-* `get_position_book()`: Get current open positions.
-* `get_order_book()`: Get status of today's orders.
-* `get_trade_book()`: Get list of executed trades for the day.
-* `get_quote(symbol, exchange)`: Get LTP, bid/ask for a symbol. Supports multiple symbols.
-* `get_history(symbol, exchange, interval, start_date, end_date)`: Get historical candle data.
-* `place_order(symbol, exchange, quantity, transaction_type, order_type, product_type, price, trigger_price)`: Place a buy or sell order.
-* `place_basket_order(orders)`: Place multiple orders simultaneously.
-* `modify_order(order_id, ...)`: Modify a pending order.
-* `cancel_order(order_id)`: Cancel a pending order.
-* `get_symbol_metadata(...)`
-* `get_all_tickers()`
+1. An MCP server that exposes OpenAlgo API functions as tools for AI interaction
+2. An intelligent client application providing a conversational interface for trading
 
-_(Refer to the specific implementation in `server/server.py` or similar within the repository for the exact list and parameters)._
+This bridge between OpenAlgo's trading capabilities and AI allows for a natural language interface to complex trading operations, making algorithmic trading more accessible to users of all technical backgrounds.
 
-### Setup and Installation
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
 
-1. **Prerequisites:**
-   * Python 3.8+ installed.
-   * Git installed.
-   * A running instance of the core OpenAlgo application.
-2.  **Clone the Repository:**
+### Key Features
 
-    ```bash
-    git clone https://github.com/marketcalls/openalgo-mcp.git
-    cd openalgo-mcp
+#### Comprehensive Trading Capabilities
+
+
+
+* **Order Management**: Place, modify, and cancel orders with support for various order types (market, limit, stop-loss)
+* **Advanced Order Types**: Basket orders, split orders, and smart orders with position sizing
+* **Market Data Access**: Real-time quotes, market depth, and historical data
+* **Portfolio Management**: Track holdings, positions, order books, and trade history
+* **Account Information**: Monitor funds, margins, and trading limits
+
+{% embed url="https://www.youtube.com/watch?v=6J8wYZYVUs4" %}
+
+#### Intelligent Symbol Format Handling
+
+
+
+* Smart parsing and formatting of instrument symbols across exchanges
+* Support for equity, futures, and options symbology
+* Built-in knowledge of common indices and exchange-specific formats
+
+#### AI-Powered Trading Assistant
+
+
+
+* Natural language interface for all trading operations
+* Contextual understanding of trading terminology and concepts
+* Guided assistance for complex trading operations
+* Real-time data presentation in human-readable formats
+
+### Project Structure
+
+
+
+```
+openalgo-mcp/
+├── .env                 # Common environment configuration
+├── .env.example         # Example configuration template
+├── requirements.txt     # Common dependencies for both client and server
+├── LICENSE              # MIT License
+├── server/              # MCP Server implementation
+│   ├── server.py        # OpenAlgo MCP server code
+└── client/              # Client implementation
+    ├── trading_agent.py # AI assistant client code
+```
+
+### Installation Guide
+
+
+
+#### Prerequisites
+
+
+
+* Python 3.9+ installed
+* OpenAlgo platform installed and configured
+* OpenAI API key (for the client component)
+
+#### Step 1: Clone the Repository
+
+
+
+```
+git clone https://github.com/marketcalls/openalgo-mcp.git
+cd openalgo-mcp/mcpserver
+```
+
+#### Step 2: Set Up Environment
+
+
+
+```
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+#### Step 3: Configure Environment Variables
+
+
+
+```
+# Copy example environment file
+cp .env.example .env
+
+# Edit the .env file with your API keys and settings
+# vim .env or use any text editor
+```
+
+### Usage
+
+
+
+#### Starting the MCP Server
+
+
+
+```
+cd server
+python server.py
+```
+
+The server supports the following options:
+
+* `--api-key`: OpenAlgo API key (alternative to setting in .env)
+* `--host`: OpenAlgo API host URL (default: [http://127.0.0.1:5000](http://127.0.0.1:5000/))
+* `--port`: Server port (default: 8001)
+* `--mode`: Server transport mode - 'stdio' or 'sse' (default: sse)
+
+#### Starting the Trading Assistant Client
+
+
+
+```
+cd client
+python trading_agent.py
+```
+
+The client supports these options:
+
+* `--host`: MCP server host (default: from .env)
+* `--port`: MCP server port (default: from .env)
+* `--model`: OpenAI model to use (default: from .env)
+
+### Configuration
+
+
+
+The project uses a unified configuration approach with environment variables:
+
+1. Common configuration is stored in the root `.env` file
+2. Component-specific configuration can be set in `server/.env` or `client/.env`
+3. Common settings will be loaded first, then possibly overridden by component-specific settings
+
+#### Required API Keys
+
+
+
+1. **OpenAlgo API Key** - Set in `.env` as `OPENALGO_API_KEY`
+   * Required for accessing the OpenAlgo trading platform
+   * Obtain from your OpenAlgo account dashboard
+2. **OpenAI API Key** - Set in `.env` as `OPENAI_API_KEY` (for the client only)
+   * Required for the AI assistant capabilities
+   * Obtain from [OpenAI Platform](https://platform.openai.com/)
+
+### Technical Capabilities
+
+
+
+The OpenAlgo MCP implementation provides comprehensive API coverage including:
+
+1. **Order Management**:
+   * `place_order`: Standard order placement
+   * `modify_order`: Order modification with parameter validation
+   * `cancel_order`: Order cancellation by ID
+2. **Advanced Order Types**:
+   * `place_basket_order`: Place multiple orders simultaneously
+   * `place_split_order`: Split large orders into smaller chunks
+   * `place_smart_order`: Position-aware order placement
+3. **Market Data**:
+   * `get_quote`: Latest market quotes
+   * `get_depth`: Order book depth data
+   * `get_history`: Historical price data with various timeframes
+4. **Account Information**:
+   * `get_funds`: Available funds and margin
+   * `get_holdings`: Portfolio holdings
+   * `get_position_book`, `get_order_book`, `get_trade_book`: Trading records
+5. **Symbol Information**:
+   * `get_symbol_metadata`: Detailed symbol information
+   * `get_all_tickers`: Available trading symbols
+   * `get_intervals`: Supported timeframes for historical data
+
+The implementation uses FastMCP with SSE (Server-Sent Events) transport for real-time communication and includes proper error handling, logging, and parameter validation.
+
+### Server Implementation Details
+
+
+
+The OpenAlgo MCP Server is built using the FastMCP library and exposes OpenAlgo trading functionality through a comprehensive set of tools. It uses Server-Sent Events (SSE) as the primary transport mechanism for real-time communication.
+
+#### Server Architecture
+
+
+
+* **Framework**: Uses FastMCP with Starlette for the web server
+* **Transport**: Server-Sent Events (SSE) for real-time bidirectional communication
+* **API Client**: Wraps the OpenAlgo API with appropriate error handling and logging
+* **Configuration**: Uses environment variables with command-line override capabilities
+
+#### Available API Tools
+
+
+
+The server exposes over 15 trading-related tools, including:
+
+* **Order Management**: place\_order, modify\_order, cancel\_order, get\_order\_status
+* **Advanced Orders**: place\_basket\_order, place\_split\_order, place\_smart\_order
+* **Market Data**: get\_quote, get\_depth, get\_history, get\_intervals
+* **Account Information**: get\_funds, get\_holdings, get\_position\_book, get\_order\_book, get\_trade\_book
+* **Symbol Information**: get\_symbol\_metadata, get\_all\_tickers
+
+### Client Implementation Details
+
+
+
+The Trading Assistant client provides a user-friendly interface to interact with the OpenAlgo platform through natural language. It uses OpenAI's language models to interpret user commands and invoke the appropriate trading functions.
+
+#### Client Architecture
+
+
+
+* **Framework**: Uses Agno agent framework with OpenAI Chat models
+* **UI**: Rich console interface with custom styling for an enhanced terminal experience
+* **Symbol Helper**: Built-in utilities for correct symbol formatting across exchanges
+* **Error Handling**: Comprehensive exception handling with user-friendly feedback
+
+#### Trading Assistant Capabilities
+
+
+
+* **Natural Language Interface**: Understands trading terminology and concepts
+* **Symbol Format Assistance**: Helps construct proper symbol formats for equities, futures, and options
+* **Data Presentation**: Formats market data in clean, readable formats
+* **Contextual Awareness**: Maintains conversation history to provide contextual responses
+
+### Troubleshooting Guide
+
+
+
+#### Common Issues
+
+
+
+**Connection Issues**
+
+
+
+If you're having trouble connecting to the MCP server:
+
+1.  **Verify the server is running**:
+
     ```
-3.  **Set up Virtual Environment (Recommended):**
-
-    ```bash
-    python -m venv venv
-    # Activate the environment
-    # Windows:
-    .\venv\Scripts\activate
-    # macOS/Linux:
-    source venv/bin/activate
+    cd server
+    python server.py
     ```
-4. **Install Dependencies:**
-   *   Install requirements for both server and client:
 
-       ```bash
-       pip install -r server/requirements.txt
-       pip install -r client/requirements.txt
-       ```
-   * _(Note: Check the repository structure; requirements might be combined or located differently)_
-5. **Configure Environment Variables:**
-   * Create a `.env` file in the root directory of the cloned project (or potentially separate ones in `server` and `client` directories if structured that way).
-   *   Add the following required variables:
+    You should see output indicating the server is running on the configured port.
+2. **Check environment variables**:
+   * Ensure `MCP_HOST` and `MCP_PORT` in `.env` match the server's configuration
+   * Verify that `SERVER_PORT` is the same as `MCP_PORT`
+3. **Test local connectivity**:
+   * Try accessing `http://localhost:8001/sse` in your browser (replace 8001 with your configured port)
+   * You should see a message indicating the endpoint is for SSE connections
 
-       ```dotenv
-       # .env file
+**API Authentication Issues**
 
-       # For the MCP Client (Agno AGI) - Connects to the LLM
-       OPENAI_API_KEY="sk-YourOpenAISecretKey" # Replace with your actual key
-       # Add other LLM keys if using different providers (e.g., GOOGLE_API_KEY)
 
-       # For the MCP Server - Connects to your OpenAlgo Instance
-       OPENALGO_API_HOST="http://127.0.0.1:5000" # Or your OpenAlgo host URL
-       OPENALGO_API_KEY="YourOpenAlgoApiKey"     # Replace with your OpenAlgo API Key
-       ```
-   * _Ensure the `OPENALGO_API_KEY` has the necessary permissions (order placement, data retrieval) enabled in your core OpenAlgo settings._
 
-### Running the Application
+If you see 403 Forbidden or authentication errors:
 
-You need to run **three** separate processes, ideally in different terminal windows:
+1. **Check your API key**:
+   * Verify your OpenAlgo API key in the `.env` file is correct and active
+   * Ensure the API key has the necessary permissions for the operations you're trying to perform
+2. **Verify API host**:
+   * Make sure `OPENALGO_API_HOST` points to the correct endpoint
+   * For testing, the default value `http://127.0.0.1:5000` should work if you're running OpenAlgo locally
 
-1. **Start OpenAlgo Core Application:**
-   * Navigate to your main OpenAlgo installation directory.
-   * Start it as you normally would (e.g., `python app.py`).
-   * Ensure it's running and accessible at the `OPENALGO_API_HOST` specified in the `.env` file.
-2. **Start the MCP Server:**
-   * Open a new terminal.
-   * Navigate to the `openalgo-mcp/server` directory (or wherever `server.py` is).
-   * Activate the virtual environment (`source venv/bin/activate` or `.\venv\Scripts\activate`).
-   *   Run the server:
+**Client Issues**
 
-       ```bash
-       python server.py
-       # Or potentially: uvicorn server:app --reload --port 8001 (Check repository instructions)
-       ```
-   * Keep this terminal open. It usually runs on a port like `8001`.
-3. **Start the MCP Client (Trading Agent):**
-   * Open a _third_ terminal.
-   * Navigate to the `openalgo-mcp/client` directory (or wherever `trading_agent.py` is).
-   * Activate the virtual environment (`source venv/bin/activate` or `.\venv\Scripts\activate`).
-   *   Run the client:
 
-       ```bash
-       python trading_agent.py
-       ```
-   * This terminal will now show the chat prompt `Enter your query: (or 'quit' to exit):`.
 
-### Usage Examples
+1. **Silent failures in the client**:
+   * The client uses a SilentFilter for logging to provide a clean interface
+   * If you suspect issues, temporarily modify the logging configuration in `trading_agent.py`
+   * Check that the OpenAI API key is valid if you experience model generation failures
 
-Once the client is running, you can type natural language commands:
+### Acknowledgements and Credits
 
-* `Hi who are you`
-* `get the funds details`
-* `get the quotes of SBIN`
-* `get the quotes of SBIN & TCS, RELIANCE in table format`
-* `place order in YESBANK 10 shares in MIS`
-* `buy 10 shares in NHPC and 5 shares in ZEEL in MIS`
-* `get the positionbook in table format`
-* `show me my orders`
-* `cancel order <order_id>`
 
-Type `quit` to exit the client application.
 
-### Inspiration and Acknowledgements
+This project is made possible by the following open-source projects and tools:
 
-* This project was inspired by the work done by **Amit Wani** on the [zerodha-mcp](https://github.com/mtwn105/zerodha-mcp) project, which pioneered the MCP concept for Zerodha Kiteconnect.
-* Thanks to the **OpenAlgo** team for the core trading platform.
-* Thanks to the developers of the **Agno AGI** framework.
+#### Core Technologies
+
+
+
+* [**OpenAlgo**](https://github.com/marketcalls/openalgo): The powerful trading platform that powers all trading operations in this project
+* [**Model Context Protocol (MCP)**](https://modelcontextprotocol.io/): The communication protocol that enables AI agents to use tools and APIs
+* [**Agno**](https://github.com/agno-agi/agno): The agent framework used for building the trading assistant client
+
+#### Inspiration
+
+
+
+This project was inspired by [Zerodha MCP](https://github.com/mtwn105/zerodha-mcp), which pioneered the use of Machine Conversation Protocol for trading applications. The OpenAlgo MCP project adapts and extends this concept for the OpenAlgo trading platform, with a focus on enhanced symbol handling, comprehensive trading operations, and a more user-friendly interface.
+
+**Symbol Formatting Issues**
+
+
+
+If your symbol-related requests are failing:
+
+1. **Follow format guidelines**:
+   * Equity symbols: Simple uppercase symbol (e.g., `INFY`, `SBIN`)
+   * Futures: `[BaseSymbol][Year][Month][Date]FUT` (e.g., `BANKNIFTY24APR24FUT`)
+   * Options: `[BaseSymbol][Date][Month][Year][Strike][OptionType]` (e.g., `NIFTY28MAR2420800CE`)
+2. **Use the SymbolHelper class**:
+   * The client includes formatting assistance methods that can help construct proper symbols
+
+#### Debugging Mode
+
+
+
+For more detailed logging, enable debugging in the `.env` file:
+
+```
+SERVER_DEBUG=true
+```
+
+This will output additional information to help diagnose connection and API issues.
 
 ### License
 
-This project is licensed under the **Apache 2.0 License**. See the LICENSE file for details.
+
+
+This project is licensed under the Apache-2.0 license - see the [LICENSE](https://github.com/marketcalls/openalgo-mcp/blob/master/LICENSE) file for details.
