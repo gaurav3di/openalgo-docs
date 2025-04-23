@@ -8,7 +8,7 @@ description: OpenAlgo - Model Context Protocol
 
 
 
-An AI-powered trading assistant platform for OpenAlgo, leveraging Machine Conversation Protocol (MCP) and Large Language Models to provide intelligent trading capabilities.
+An AI-powered trading assistant platform for OpenAlgo, leveraging Model Context Protocol (MCP) and Large Language Models to provide intelligent trading capabilities.
 
 ### Overview
 
@@ -319,7 +319,7 @@ This project is made possible by the following open-source projects and tools:
 
 
 
-This project was inspired by [Zerodha MCP](https://github.com/mtwn105/zerodha-mcp), which pioneered the use of Machine Conversation Protocol for trading applications. The OpenAlgo MCP project adapts and extends this concept for the OpenAlgo trading platform, with a focus on enhanced symbol handling, comprehensive trading operations, and a more user-friendly interface.
+This project was inspired by [Zerodha MCP](https://github.com/mtwn105/zerodha-mcp), which pioneered the use of Model Context Protocol for trading applications. The OpenAlgo MCP project adapts and extends this concept for the OpenAlgo trading platform, with a focus on enhanced symbol handling, comprehensive trading operations, and a more user-friendly interface.
 
 **Symbol Formatting Issues**
 
