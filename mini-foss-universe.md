@@ -16,6 +16,9 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 📊 **Excel Add-in**\
 [https://github.com/marketcalls/OpenAlgo-Excel](https://github.com/marketcalls/OpenAlgo-Excel)
 
+🔑 **Model Context Protocol + AI Agents Integration**\
+[https://github.com/marketcalls/openalgo-mcp](https://github.com/marketcalls/openalgo-mcp)
+
 🧩 **Chrome Plugin**\
 [https://github.com/marketcalls/openalgo-chrome](https://github.com/marketcalls/openalgo-chrome)
 
