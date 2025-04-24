@@ -1,7 +1,5 @@
 # Pocketful
 
-Perfect. Here's the **OpenAlgo Pocketful Integration Documentation** written in **the exact structure and tone of the AngelOne guide** you provided—clean, technical, and without any icons or extra embellishments:
-
 ***
 
 ### Pocketful
