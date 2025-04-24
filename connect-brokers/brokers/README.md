@@ -19,8 +19,9 @@ List of OpenAlgo Supported Brokers
 13. Jainam Dealer (XTS)
 14. Kotak Securities
 15. Paytm
-16. Shoonya
-17. Upstox
-18. Wisdom Capital
-19. Zebu&#x20;
-20. Zerodha
+16. Pocketful
+17. Shoonya
+18. Upstox
+19. Wisdom Capital
+20. Zebu&#x20;
+21. Zerodha

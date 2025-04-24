@@ -30,6 +30,7 @@
   * [Jainam Dealer (XTS)](connect-brokers/brokers/jainam-dealer-xts.md)
   * [Kotak Securities](connect-brokers/brokers/kotak-securities.md)
   * [Paytm](connect-brokers/brokers/paytm.md)
+  * [Pocketful](connect-brokers/brokers/pocketful.md)
   * [Shoonya](connect-brokers/brokers/shoonya.md)
   * [Upstox](connect-brokers/brokers/upstox.md)
   * [Wisdom Capital](connect-brokers/brokers/wisdom-capital.md)
