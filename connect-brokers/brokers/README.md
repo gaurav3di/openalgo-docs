@@ -14,15 +14,14 @@ List of OpenAlgo Supported Brokers
 8. Flattrade
 9. Fyers
 10. Groww
-11. ICICI Direct
-12. IIFL (XTS)
-13. Jainam Retail (XTS)
-14. Jainam Dealer (XTS)
-15. Kotak Securities
-16. Paytm
-17. Pocketful
-18. Shoonya
-19. Upstox
-20. Wisdom Capital
-21. Zebu&#x20;
-22. Zerodha
+11. IIFL (XTS)
+12. Jainam Retail (XTS)
+13. Jainam Dealer (XTS)
+14. Kotak Securities
+15. Paytm
+16. Pocketful
+17. Shoonya
+18. Upstox
+19. Wisdom Capital
+20. Zebu&#x20;
+21. Zerodha

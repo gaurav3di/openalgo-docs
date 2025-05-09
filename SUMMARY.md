@@ -25,7 +25,6 @@
   * [FlatTrade](connect-brokers/brokers/flattrade.md)
   * [Fyers](connect-brokers/brokers/fyers.md)
   * [Groww](connect-brokers/brokers/groww.md)
-  * [ICICI Direct](connect-brokers/brokers/icici-direct.md)
   * [IIFL (XTS)](connect-brokers/brokers/iifl-xts.md)
   * [Jainam Retail (XTS)](connect-brokers/brokers/jainam-retail-xts.md)
   * [Jainam Dealer (XTS)](connect-brokers/brokers/jainam-dealer-xts.md)
