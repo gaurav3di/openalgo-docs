@@ -2,11 +2,13 @@
 
 > **Disclaimer**
 >
-> OpenAlgo is an open-source platform designed to facilitate automated trading by enabling users to connect with supported brokerage APIs, including ICICI Direct’s Breeze API. OpenAlgo is not affiliated with, endorsed by, or in any formal partnership with ICICI Securities Limited ("ICICI Direct"). The inclusion of ICICI Direct in our documentation indicates API compatibility only and does not imply any official agreement or association.
+> OpenAlgo is an open-source algorithmic trading platform (https://www.openalgo.in/) designed to facilitate individual traders in automating their trading by providing open-source code that interacts with supported brokerage APIs, including ICICI Direct’s Breeze API. OpenAlgo is not affiliated with, endorsed by, or in any formal partnership with ICICI Securities Limited ("ICICI Direct"). The inclusion of ICICI Direct in our documentation indicates API compatibility only and does not imply any official agreement or association.
 >
-> OpenAlgo does not collect, store, or process any user data, including personal or sensitive information such as login IDs, passwords, or OTPs. All interactions with ICICI Direct’s Breeze API occur directly through ICICI Direct’s official portal, and users are responsible for entering their credentials securely within ICICI Direct’s system. Users must comply with ICICI Direct’s terms of service, API usage policies, and all applicable laws, including the Digital Personal Data Protection Act, 2023.
+> OpenAlgo.in does not host the application or any trading infrastructure. Individual traders are responsible for downloading, deploying, and managing the open-source code on their own local machines. All user data, including personal or sensitive information such as login IDs, passwords, or OTPs, is hosted exclusively on the user’s machine, and OpenAlgo does not collect, store, or process any such data. All interactions with ICICI Direct’s Breeze API occur directly through ICICI Direct’s official portal, where users enter their credentials securely within ICICI Direct’s system.
 >
-> By using OpenAlgo to connect with ICICI Direct’s Breeze API, users acknowledge that they do so at their own risk and are solely responsible for ensuring compliance with ICICI Direct’s policies and any associated risks of automated trading.
+> OpenAlgo does not provide trading strategies, signals, or investment advice. The platform is intended solely to enable individual users to develop and execute their own automated trading strategies using the open-source code, which is publicly available for audit (https://github.com/OpenAlgo). Users must comply with ICICI Direct’s terms of service, API usage policies, and all applicable laws, including the Digital Personal Data Protection Act, 2023.
+>
+> By using OpenAlgo to interact with ICICI Direct’s Breeze API, users acknowledge that they do so at their own risk and are solely responsible for managing their infrastructure, ensuring compliance with ICICI Direct’s policies, and addressing any risks associated with automated trading.
 
 
 
