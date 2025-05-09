@@ -1,5 +1,15 @@
 # ICICI Direct
 
+> **Disclaimer**
+>
+> OpenAlgo is an open-source platform designed to facilitate automated trading by enabling users to connect with supported brokerage APIs, including ICICI Direct’s Breeze API. OpenAlgo is not affiliated with, endorsed by, or in any formal partnership with ICICI Securities Limited ("ICICI Direct"). The inclusion of ICICI Direct in our documentation indicates API compatibility only and does not imply any official agreement or association.
+>
+> OpenAlgo does not collect, store, or process any user data, including personal or sensitive information such as login IDs, passwords, or OTPs. All interactions with ICICI Direct’s Breeze API occur directly through ICICI Direct’s official portal, and users are responsible for entering their credentials securely within ICICI Direct’s system. Users must comply with ICICI Direct’s terms of service, API usage policies, and all applicable laws, including the Digital Personal Data Protection Act, 2023.
+>
+> By using OpenAlgo to connect with ICICI Direct’s Breeze API, users acknowledge that they do so at their own risk and are solely responsible for ensuring compliance with ICICI Direct’s policies and any associated risks of automated trading.
+
+
+
 ICICIDirect is a premier trading platform in India offering a comprehensive suite of investment products, including equity, derivatives, mutual funds, and more. The ICICIDirect Breeze API allows developers to build and integrate trading applications, automate trading strategies, and access market data seamlessly.
 
 In this guide, we will walk you through the steps to obtain your API credentials, including the API Key and API Secret, necessary for integrating ICICIDirect Breeze API with OpenAlgo.
