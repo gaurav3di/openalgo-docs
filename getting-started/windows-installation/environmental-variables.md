@@ -301,6 +301,8 @@ CORS_MAX_AGE=86400
 
 > 🧠 **CORS does not affect Postman, curl, TradingView, or server-side requests.** It's enforced only by browsers.
 
+<figure><img src="../../.gitbook/assets/image (108).png" alt=""><figcaption></figcaption></figure>
+
 ***
 
 ### 🔐 CSP Configuration (Content Security Policy)
