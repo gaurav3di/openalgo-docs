@@ -4,7 +4,7 @@ Groww is currently the #1 stockbroker in India by active clients, offering a sea
 
 ### How to Get Groww API Key and Secret?
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (109).png" alt=""><figcaption></figcaption></figure>
 
 To integrate OpenAlgo with Groww, follow the steps below to generate your API key (access token):
 
