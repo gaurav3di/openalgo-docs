@@ -32,6 +32,7 @@
   * [Paytm](connect-brokers/brokers/paytm.md)
   * [Pocketful](connect-brokers/brokers/pocketful.md)
   * [Shoonya](connect-brokers/brokers/shoonya.md)
+  * [Tradejini](connect-brokers/brokers/tradejini.md)
   * [Upstox](connect-brokers/brokers/upstox.md)
   * [Wisdom Capital](connect-brokers/brokers/wisdom-capital.md)
   * [Zebu](connect-brokers/brokers/zebu.md)
