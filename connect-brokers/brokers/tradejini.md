@@ -1,6 +1,6 @@
 # Tradejini
 
-## TradeJini
+TradeJini
 
 TradeJini is a progressive brokerage firm known for its reliable execution, low-cost trading, and developer-friendly CubePlus API platform. Designed to support modern algo trading systems, TradeJini provides a robust infrastructure for both retail and institutional traders. Whether you're an individual trader or building advanced trading automation, TradeJini offers the right tools to seamlessly integrate market data and trading functionalities.
 
@@ -35,7 +35,9 @@ After logging in:
 * Click **Submit** to register your app.
 * An **API Key** will be created for authenticated API usage
 
-<figure><img src="../../.gitbook/assets/2 (1).JPG" alt=""><figcaption></figcaption></figure>
+
+
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
