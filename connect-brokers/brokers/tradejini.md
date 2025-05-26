@@ -7,7 +7,7 @@ TradeJini is a progressive brokerage firm known for its reliable execution, low-
 #### 1. Log in to the TradeJini Developer Portal
 
 Start by accessing the CubePlus Developer Portal at\
-https://api.tradejini.com/developer-portal/main
+🔗 https://api.tradejini.com/developer-portal/main
 
 <figure><img src="../../.gitbook/assets/1 (1).JPG" alt=""><figcaption></figcaption></figure>
 
@@ -46,7 +46,7 @@ After generating the API Key:
 Here is how you would typically set up your environment variables in a `.env` file for TradeJini:
 
 ```bash
-bashCopyEditBROKER_API_KEY = 'your_tradejini_clientcode_here'
+BROKER_API_KEY = 'your_tradejini_clientcode_here'
 BROKER_API_SECRET = 'your_tradejini_apikey_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/tradejini/callback'
 ```
