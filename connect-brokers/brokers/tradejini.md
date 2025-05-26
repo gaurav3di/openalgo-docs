@@ -7,7 +7,7 @@ TradeJini is a progressive brokerage firm known for its reliable execution, low-
 #### 1. Log in to the TradeJini Developer Portal
 
 Start by accessing the CubePlus Developer Portal at\
-🔗 https://api.tradejini.com/developer-portal/main
+[ https://api.tradejini.com/developer-portal/main](https://api.tradejini.com/developer-portal/main)
 
 <figure><img src="../../.gitbook/assets/1 (1).JPG" alt=""><figcaption></figcaption></figure>
 
