@@ -2,8 +2,6 @@
 
 TradeJini is a progressive brokerage firm known for its reliable execution, low-cost trading, and developer-friendly CubePlus API platform. Designed to support modern algo trading systems, TradeJini provides a robust infrastructure for both retail and institutional traders. Whether you're an individual trader or building advanced trading automation, TradeJini offers the right tools to seamlessly integrate market data and trading functionalities.
 
-***
-
 ### Steps for Integration:
 
 #### 1. Log in to the TradeJini Developer Portal
@@ -14,15 +12,12 @@ https://api.tradejini.com/developer-portal/main
 <figure><img src="../../.gitbook/assets/1 (1).JPG" alt=""><figcaption></figcaption></figure>
 
 * Click on **Login**.
-* You can log in using either:
-  * Your **email address and password**, or
-  * By clicking the **TradeJini** logo for broker login.
+*   You can log in using either:
 
-> If you don’t have an account yet, click **SignUp** to register.
->
-> ![](../../.gitbook/assets/4.JPG)
+    * Your **email address and password**, or
+    * By clicking the **TradeJini** logo for broker login.
 
-***
+    <figure><img src="../../.gitbook/assets/4.JPG" alt=""><figcaption></figcaption></figure>
 
 #### 2. Create a New App
 
@@ -37,8 +32,6 @@ After logging in:
 
 <figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
-***
-
 #### 3. Retrieve API Credentials
 
 After generating the API Key:
@@ -47,8 +40,6 @@ After generating the API Key:
 * **API Key** from the app will serve as your `api_secret`.
 
 <figure><img src="../../.gitbook/assets/3.JPG" alt=""><figcaption></figcaption></figure>
-
-***
 
 ### Configuration:
 
@@ -61,8 +52,6 @@ REDIRECT_URL = 'http://127.0.0.1:5000/tradejini/callback'
 ```
 
 These credentials will be used by OpenAlgo to authenticate, fetch session tokens, and access market feeds or place orders.
-
-***
 
 ### Integration Benefits
 
