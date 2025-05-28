@@ -675,7 +675,7 @@ print(response)
 
 **PositionBook Response**
 
-```
+```json
 {
   "status": "success",
   "data": [
@@ -758,5 +758,116 @@ Holdings Response
     }
   }
 }
+
+```
+
+### LTP Data (Streaming Websocket)
+
+```python
+from openalgo import api
+import time
+
+# Initialize OpenAlgo client
+client = api(
+    api_key="your_api_key",                  # Replace with your actual OpenAlgo API key
+    host="http://127.0.0.1:5000",            # REST API host
+    ws_url="ws://127.0.0.1:8765"             # WebSocket host
+)
+
+# Define instruments to subscribe for LTP
+instruments = [
+    {"exchange": "NSE", "symbol": "RELIANCE"},
+    {"exchange": "NSE", "symbol": "INFY"}
+]
+
+# Callback function for LTP updates
+def on_ltp(data):
+    print("LTP Update Received:")
+    print(data)
+
+# Connect and subscribe
+client.connect()
+client.subscribe_ltp(instruments, on_data_received=on_ltp)
+
+# Run for a few seconds to receive data
+try:
+    time.sleep(10)
+finally:
+    client.unsubscribe_ltp(instruments)
+    client.disconnect()
+
+```
+
+### Quotes (Streaming Websocket)
+
+```python
+from openalgo import api
+import time
+
+# Initialize OpenAlgo client
+client = api(
+    api_key="your_api_key",                  # Replace with your actual OpenAlgo API key
+    host="http://127.0.0.1:5000",            # REST API host
+    ws_url="ws://127.0.0.1:8765"             # WebSocket host
+)
+
+# Instruments list
+instruments = [
+    {"exchange": "NSE", "symbol": "RELIANCE"},
+    {"exchange": "NSE", "symbol": "INFY"}
+]
+
+# Callback for Quote updates
+def on_quote(data):
+    print("Quote Update Received:")
+    print(data)
+
+# Connect and subscribe to quote stream
+client.connect()
+client.subscribe_quote(instruments, on_data_received=on_quote)
+
+# Keep the script running to receive data
+try:
+    time.sleep(10)
+finally:
+    client.unsubscribe_quote(instruments)
+    client.disconnect()
+
+```
+
+### Depth (Streaming Websocket)
+
+```python
+from openalgo import api
+import time
+
+# Initialize OpenAlgo client
+client = api(
+    api_key="your_api_key",                  # Replace with your actual OpenAlgo API key
+    host="http://127.0.0.1:5000",            # REST API host
+    ws_url="ws://127.0.0.1:8765"             # WebSocket host
+)
+
+# Instruments list for depth
+instruments = [
+    {"exchange": "NSE", "symbol": "RELIANCE"},
+    {"exchange": "NSE", "symbol": "INFY"}
+]
+
+# Callback for market depth updates
+def on_depth(data):
+    print("Market Depth Update Received:")
+    print(data)
+
+# Connect and subscribe to depth stream
+client.connect()
+client.subscribe_depth(instruments, on_data_received=on_depth)
+
+# Run for a few seconds to collect data
+try:
+    time.sleep(10)
+finally:
+    client.unsubscribe_depth(instruments)
+    client.disconnect()
 
 ```
