@@ -97,6 +97,7 @@
     * [Intervals](api-documentation/v1/data-api/intervals.md)
     * [Symbol](api-documentation/v1/data-api/symbol.md)
     * [Ticker](api-documentation/v1/data-api/ticker.md)
+  * [Websockets](api-documentation/v1/websockets.md)
   * [Order Constants](api-documentation/v1/order-constants.md)
   * [HTTP Status Codes](api-documentation/v1/http-status-codes.md)
   * [Rate Limiting](api-documentation/v1/rate-limiting.md)
