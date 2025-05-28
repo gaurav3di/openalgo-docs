@@ -129,6 +129,7 @@
 * [Python](trading-platform/python/README.md)
   * [Strategy Management](trading-platform/python/strategy-management.md)
   * [EMA Crossover Strategy](trading-platform/python/ema-crossover-strategy.md)
+  * [EMA Crossover Strategy with Stoploss and Target](trading-platform/python/ema-crossover-strategy-with-stoploss-and-target.md)
   * [Supertrend Strategy](trading-platform/python/supertrend-strategy.md)
   * [Supertrend Strategy with yfinance data](trading-platform/python/supertrend-strategy-with-yfinance-data.md)
   * [Voice Based Orders](trading-platform/python/voice-based-orders.md)
