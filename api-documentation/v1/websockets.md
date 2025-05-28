@@ -1,117 +1,210 @@
 # Websockets
 
-**WebSockets in OpenAlgo – Technical Overview**
+## OpenAlgo WebSocket Protocol Documentation
 
-OpenAlgo supports real-time market data streaming through WebSocket connections. This interface is designed for low-latency delivery of tick-level information across multiple asset classes.
+### Overview
 
-**WebSocket URL**
+The OpenAlgo WebSocket protocol allows clients to receive **real-time market data** using a standardized and broker-agnostic interface. It supports data streaming for **LTP (Last Traded Price)**, **Quotes (OHLC + Volume)**, and **Market Depth** (up to 50 levels depending on broker capability).
 
-To initiate a WebSocket connection with an OpenAlgo server, use:
+The protocol ensures efficient, scalable, and secure communication between client applications (such as trading bots, dashboards, or analytics tools) and the OpenAlgo platform. Authentication is handled using the OpenAlgo API key, and subscriptions are maintained per session.
+
+### Version
+
+* Protocol Version: 1.0
+* Last Updated: May 28, 2025
+* Platform: OpenAlgo Trading Framework
+
+### WebSocket URL
 
 ```
 ws://<host>:8765
 ```
 
-For local development, the host is typically `127.0.0.1`. This URL is separate from the REST API endpoint.
+Replace `<host>` with the IP/domain of your OpenAlgo instance. For local development setups, use thee hostname as`127.0.0.1`
 
-**Authentication**
+```
+ws://127.0.0.1:8765
+```
 
-Immediately after establishing a WebSocket connection, the client must authenticate by sending the API key. Successful authentication is confirmed by a JSON response indicating status.
+for production server setups consider using
 
-**Data Modes**
+```
+wss://127.0.0.1:8765
+```
 
-OpenAlgo WebSocket supports multiple data modes, each serving different trading and monitoring needs. The client specifies the desired mode during subscription.
+### Authentication
 
-| Mode | Data Type | Description                           |
-| ---- | --------- | ------------------------------------- |
-| 1    | LTP       | Last Traded Price only                |
-| 2    | Quotes    | OHLC (Open, High, Low, Close) and LTP |
-| 3    | Depth     | Top 5 market depth (bid and ask book) |
+All WebSocket sessions must begin with API key authentication:
 
-**Data Formats by Mode**
+```json
+{
+  "action": "authenticate", 
+  "api_key": "YOUR_OPENALGO_API_KEY"
+}
+```
 
-All streaming updates follow a consistent structure with the following top-level keys:
+On success, the server confirms authentication. On failure, the connection is closed or an error message is returned.
 
-* `type`: Always "market\_data"
-* `symbol`: OpenAlgo-compliant symbol
-* `exchange`: Exchange code (e.g., NSE, BSE, NFO, BFO, MCX, CDS)
-* `mode`: Data mode (1, 2, or 3)
-* `data`: Payload specific to the selected mode
+### Data Modes
 
-**Mode 1: LTP Format**
+Clients can subscribe to different types of market data using the `mode` parameter. Each mode corresponds to a specific level of detail:
+
+| Mode | Description    | Details                                    |
+| ---- | -------------- | ------------------------------------------ |
+| 1    | **LTP Mode**   | Last traded price and timestamp only       |
+| 2    | **Quote Mode** | Includes OHLC, LTP, volume, change, etc.   |
+| 4    | **Depth Mode** | Includes buy/sell order book (5–50 levels) |
+
+> Note: Mode `4` supports optional parameter `depth_level` to define the number of depth levels requested (e.g., 5, 20, 30, 50). Actual support depends on the broker.
+
+### Subscription Format
+
+#### Basic Subscription
+
+```json
+{
+  "action": "subscribe",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "mode": 1
+}
+```
+
+#### Depth Subscription (with levels)
+
+```json
+{
+  "action": "subscribe",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "mode": 4,
+  "depth_level": 5
+}
+```
+
+### Unsubscription
+
+To unsubscribe from a stream:
+
+```json
+{
+  "action": "unsubscribe",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "mode": 2
+}
+```
+
+### Error Handling
+
+If a client requests a depth level not supported by their broker:
+
+```json
+{
+  "type": "error",
+  "code": "UNSUPPORTED_DEPTH_LEVEL",
+  "message": "Depth level 50 is not supported by broker Angel for exchange NSE",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "requested_mode": 4,
+  "requested_depth": 50,
+  "supported_depths": [5, 20]
+}
+```
+
+### Market Data Format
+
+#### LTP (Mode 1)
 
 ```json
 {
   "type": "market_data",
-  "symbol": "RELIANCE",
-  "exchange": "NSE",
   "mode": 1,
+  "topic": "RELIANCE.NSE",
   "data": {
+    "symbol": "RELIANCE",
+    "exchange": "NSE",
     "ltp": 1424.0,
-    "timestamp": 1748353658856,
-    "ltt": 1748353658000
+    "timestamp": "2025-05-28T10:30:45.123Z"
   }
 }
 ```
 
-**Mode 2: Quotes Format**
+#### Quote (Mode 2)
 
 ```json
 {
   "type": "market_data",
-  "symbol": "RELIANCE",
-  "exchange": "NSE",
   "mode": 2,
+  "topic": "RELIANCE.NSE",
   "data": {
+    "symbol": "RELIANCE",
+    "exchange": "NSE",
+    "ltp": 1424.0,
+    "change": 6.0,
+    "change_percent": 0.42,
+    "volume": 100000,
     "open": 1415.0,
     "high": 1432.5,
     "low": 1408.0,
     "close": 1418.0,
-    "ltp": 1424.0,
-    "timestamp": 1748353824355
+    "last_trade_quantity": 50,
+    "avg_trade_price": 1419.35,
+    "timestamp": "2025-05-28T10:30:45.123Z"
   }
 }
 ```
 
-**Mode 3: Market Depth Format**
+#### Depth (Mode 4 with depth\_level = 5)
 
 ```json
 {
   "type": "market_data",
-  "symbol": "RELIANCE",
-  "exchange": "NSE",
-  "mode": 3,
+  "mode": 4,
+  "depth_level": 5,
+  "topic": "RELIANCE.NSE",
   "data": {
-    "bids": [
-      { "price": 1423.9, "quantity": 50 },
-      { "price": 1423.5, "quantity": 35 },
-      { "price": 1423.0, "quantity": 42 },
-      { "price": 1422.5, "quantity": 28 },
-      { "price": 1422.0, "quantity": 33 }
-    ],
-    "asks": [
-      { "price": 1424.1, "quantity": 47 },
-      { "price": 1424.5, "quantity": 39 },
-      { "price": 1425.0, "quantity": 41 },
-      { "price": 1425.5, "quantity": 32 },
-      { "price": 1426.0, "quantity": 30 }
-    ],
-    "timestamp": 1748353658493
+    "symbol": "RELIANCE",
+    "exchange": "NSE",
+    "ltp": 1424.0,
+    "depth": {
+      "buy": [
+        {"price": 1423.9, "quantity": 50, "orders": 3},
+        {"price": 1423.5, "quantity": 35, "orders": 2},
+        {"price": 1423.0, "quantity": 42, "orders": 4},
+        {"price": 1422.5, "quantity": 28, "orders": 1},
+        {"price": 1422.0, "quantity": 33, "orders": 5}
+      ],
+      "sell": [
+        {"price": 1424.1, "quantity": 47, "orders": 2},
+        {"price": 1424.5, "quantity": 39, "orders": 3},
+        {"price": 1425.0, "quantity": 41, "orders": 4},
+        {"price": 1425.5, "quantity": 32, "orders": 2},
+        {"price": 1426.0, "quantity": 30, "orders": 1}
+      ]
+    },
+    "timestamp": "2025-05-28T10:30:45.123Z",
+    "broker_supported": true
   }
 }
-
 ```
 
-**Subscription and Polling**
+### Heartbeat and Reconnection
 
-Subscriptions must specify both the symbol and exchange. The client receives push updates as and when market events occur. In addition, the client may periodically poll using built-in methods like `get_ltp()`, `get_quotes()`, or `get_depth()` for the latest cached values.
+* Server sends `ping` messages every 30 seconds.
+* Clients must respond with `pong` or will be disconnected.
+* Upon reconnection, clients must re-authenticate and re-subscribe to streams.
+* Proxy may automatically restore prior subscriptions if supported by broker.
 
-**Use Cases**
+### Security & Compliance
 
-* Mode 1 is suitable for lightweight streaming where only LTP is needed.
-* Mode 2 is useful for trading dashboards, signal generation, or OHLC analytics.
-* Mode 3 is necessary for order book visualization or depth-based strategy decisions.
+* All clients must authenticate with an API key.
+* Unauthorized or malformed requests are rejected.
+* Rate limits may apply to prevent abuse.
+* TLS encryption recommended for production deployments.
 
-**Conclusion**
+
+
+
 
 The OpenAlgo WebSocket feed provides a reliable and structured method for receiving real-time trading data. Proper mode selection and parsing allow efficient integration into trading algorithms and monitoring systems.
