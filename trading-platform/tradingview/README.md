@@ -26,12 +26,12 @@ Login to the OpenAlgo Application and go to the tab **Tradingview**. The page co
 
 Enter the valid trading **symbol**, select the **product** type, and press the **Generate JSON** Button
 
-<figure><img src="../.gitbook/assets/image (27).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (27).png" alt=""><figcaption></figcaption></figure>
 
 Copy the Webhook URL and the Alert Message for a Tradingview Strategy and configure the same in your tradingview strategy
 
-<figure><img src="../.gitbook/assets/image (28).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (28).png" alt=""><figcaption></figcaption></figure>
 
 Enter the Webhook URL
 
-<figure><img src="../.gitbook/assets/image (29).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (29).png" alt=""><figcaption></figcaption></figure>
