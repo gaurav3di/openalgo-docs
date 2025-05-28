@@ -2,7 +2,9 @@
 
 The "Futures to Options Execution Module" is a highly modular and extensible Pine Script™ template designed for advanced TradingView users, particularly those interested in automating options trading based on futures signals. Here’s a concise overview of the template and how traders can build on it:
 
-#### Template Overview
+<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+#### Sample Template Overview
 
 This module is structured into 8 distinct blocks, each with a specific function:
 
@@ -396,6 +398,14 @@ table.cell_set_text(tLog, row = 1, column = 1, text = exittext )
 ////////////////////////Block 8 Module Ends ///////////////////////////////////////////////////////////////////////
 
 ```
+
+### Ensure Position Size is handled in the Properties Section
+
+<figure><img src="../../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+
+### Ensure Alert Message is Set
+
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 #### 💡 How Traders Can Use It
 

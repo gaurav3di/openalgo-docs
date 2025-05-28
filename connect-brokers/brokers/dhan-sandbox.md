@@ -26,7 +26,7 @@ Here’s how to register, access tokens, and start testing with OpenAlgo:
 
 You’ll land on a login screen where you can enter your email or mobile number.
 
-<figure><img src="../../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
@@ -40,7 +40,7 @@ If you’re a new user, click to register. Provide:
 
 Proceed to the next step.
 
-<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
@@ -53,7 +53,7 @@ You will receive two OTPs:
 
 Enter both to complete verification.
 
-<figure><img src="../../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
@@ -66,7 +66,7 @@ Once inside, go to the **Sandbox** tab. You’ll see:
 * **Client ID** (unique to your application)
 * API Playground and documentation links
 
-<figure><img src="../../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (3) (1).png" alt=""><figcaption></figcaption></figure>
 
 These credentials are what you will use inside OpenAlgo’s configuration or `.env` file to test trading orders programmatically.
 

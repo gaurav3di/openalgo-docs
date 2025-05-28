@@ -21,12 +21,12 @@ The integration begins with creating an app via the Pocketful Developer Portal. 
 **Step 1 – Visit the Developer Portal**\
 Go to [https://api.pocketful.in](https://api.pocketful.in/) and log in with your registered email ID or client ID.
 
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 **Step 2 – Navigate to 'Apps' and Create a New App**\
 Click on “+ Create App”.
 
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 **Step 3 – Fill App Details**
 
@@ -34,7 +34,7 @@ Click on “+ Create App”.
 * Redirect URL: `http://127.0.0.1:5000/pocketful/callback`
 * Accept the terms and conditions and click **Create App**
 
-<figure><img src="../../.gitbook/assets/image (2) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 Once created, the following credentials will be generated:
 

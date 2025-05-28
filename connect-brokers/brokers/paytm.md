@@ -16,10 +16,10 @@
     * ✅ **Trading API**
     * ✅ **Live Broadcast API** (optional, but recommended for real-time data)
 
-    <figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+    <figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 2. Click **Proceed**
 
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
@@ -34,7 +34,7 @@ Fill out the app details as shown below:
 * **Description:** `openalgo`
 * Upload a logo (optional)
 
-<figure><img src="../../.gitbook/assets/image (2) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 Click **Create App**
 
@@ -48,7 +48,7 @@ Once your app is in **Active** status:
 2. Locate your app (e.g., `openalgo`)
 3. Copy the **API Key** and **API Secret**
 
-<figure><img src="../../.gitbook/assets/image (3) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (3) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 Use these credentials in your OpenAlgo broker configuration.
 
