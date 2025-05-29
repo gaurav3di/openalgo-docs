@@ -1,5 +1,7 @@
 # Version 1.0.0.25 Launched
 
+29th May 2025
+
 **Major New Broker Addition & Enhancements:**
 
 * **Tradejini**
