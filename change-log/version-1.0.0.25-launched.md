@@ -74,7 +74,7 @@
   * Implemented/Updated CORS (Cross-Origin Resource Sharing) and CSP (Content Security Policy) configurations.
   * Updated Ubuntu server shell scripts and installation scripts, including improved support for UV.
 
-📄 **Documentation & DevOps Updates:**
+**Documentation & DevOps Updates:**
 
 * **New & Updated Docs:**
   * Comprehensive documentation for the new WebSocket implementation.
