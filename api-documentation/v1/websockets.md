@@ -26,10 +26,22 @@ Replace `<host>` with the IP/domain of your OpenAlgo instance. For local develop
 ws://127.0.0.1:8765
 ```
 
-for production server setups consider using
+
+
+In the production ubuntu server if your host is https://yourdomain.com then&#x20;
+
+WebSocket url will be
 
 ```
-wss://127.0.0.1:8765
+wss://yourdomain.com/ws
+```
+
+In the production ubuntu server if your host is https://sub.yourdomain.com then&#x20;
+
+WebSocket url will be
+
+```
+wss://sub.yourdomain.com/ws
 ```
 
 ### Authentication
