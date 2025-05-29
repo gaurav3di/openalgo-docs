@@ -42,6 +42,7 @@
 
 * **Tradejini (New)**
 * **Groww**
+* **Aliceblue**
 * Fyers
 * Dhan
 * Dhan(Sandbox)
@@ -52,6 +53,7 @@
 * AngelOne
 * Upstox
 * Paytm
+* Pocketful
 * Jainam (XTS API)
 * IIFL (XTS API)
 * Wisdom Capital (XTS API)
