@@ -7,6 +7,9 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 🧠 **OpenAlgo Core** **(Python Flask + Tailwind + DaisyUI)**\
 [https://github.com/marketcalls/openalgo](https://github.com/marketcalls/openalgo)
 
+🧠 **Historify** **(Full Stack Stock Market Data Management Platform)**\
+[https://github.com/marketcalls/openalgo](https://github.com/marketcalls/historify)
+
 🐍 **Python Library**\
 [https://github.com/marketcalls/openalgo-python-library](https://github.com/marketcalls/openalgo-python-library)
 
