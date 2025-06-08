@@ -36,9 +36,7 @@ OpenAlgo maintains a **Common Symbol Format**, so a strategy written using one b
 
 All REST APIs for placing orders, fetching positions, or getting quotes are **broker-agnostic**. That means the same API call works whether you're using Zerodha, AngelOne, Dhan, Upstox, or others. Build once, deploy across brokers with minimal change.
 
-#### MCP – Model Context Protocol
 
-OpenAlgo implements **MCP (Model Context Protocol)**, which standardizes the way trade signals are formatted and interpreted. It ensures that whether your signal comes from a Python bot or a TradingView alert, the structure remains consistent—enabling reliable routing, execution, and logging across sources and brokers.
 
 ***
 
