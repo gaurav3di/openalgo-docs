@@ -65,7 +65,7 @@ Clients can subscribe to different types of market data using the `mode` paramet
 | ---- | -------------- | ------------------------------------------ |
 | 1    | **LTP Mode**   | Last traded price and timestamp only       |
 | 2    | **Quote Mode** | Includes OHLC, LTP, volume, change, etc.   |
-| 4    | **Depth Mode** | Includes buy/sell order book (5–50 levels) |
+| 3    | **Depth Mode** | Includes buy/sell order book (5–50 levels) |
 
 > Note: Mode `4` supports optional parameter `depth_level` to define the number of depth levels requested (e.g., 5, 20, 30, 50). Actual support depends on the broker.
 
