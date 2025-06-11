@@ -67,7 +67,7 @@ Clients can subscribe to different types of market data using the `mode` paramet
 | 2    | **Quote Mode** | Includes OHLC, LTP, volume, change, etc.   |
 | 3    | **Depth Mode** | Includes buy/sell order book (5–50 levels) |
 
-> Note: Mode `4` supports optional parameter `depth_level` to define the number of depth levels requested (e.g., 5, 20, 30, 50). Actual support depends on the broker.
+> Note: Mode 3 supports optional parameter `depth_level` to define the number of depth levels requested (e.g., 5, 20, 30, 50). Actual support depends on the broker.
 
 ### Subscription Format
 
@@ -89,7 +89,7 @@ Clients can subscribe to different types of market data using the `mode` paramet
   "action": "subscribe",
   "symbol": "RELIANCE",
   "exchange": "NSE",
-  "mode": 4,
+  "mode": 3,
   "depth_level": 5
 }
 ```
@@ -118,7 +118,7 @@ If a client requests a depth level not supported by their broker:
   "message": "Depth level 50 is not supported by broker Angel for exchange NSE",
   "symbol": "RELIANCE",
   "exchange": "NSE",
-  "requested_mode": 4,
+  "requested_mode": 3,
   "requested_depth": 50,
   "supported_depths": [5, 20]
 }
@@ -167,12 +167,12 @@ If a client requests a depth level not supported by their broker:
 }
 ```
 
-#### Depth (Mode 4 with depth\_level = 5)
+#### Depth (Mode 3 with depth\_level = 5)
 
 ```json
 {
   "type": "market_data",
-  "mode": 4,
+  "mode": 3,
   "depth_level": 5,
   "topic": "RELIANCE.NSE",
   "data": {
