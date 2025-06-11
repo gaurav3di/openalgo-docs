@@ -17,7 +17,17 @@ cd openalgo
 git pull
 ```
 
-**4. Install Dependencies**
+### Update the .env files
+
+update your .env files from .sample.env (as some of the newer updates often has new enviromentatal variables. which is vital for the openalgo to function
+
+```
+cp .sample.env .env
+```
+
+and config the apikeys and apisecret as per the openalgo broker documentation
+
+**Install Dependencies**
 
 Install or update the required Python packages by running:
 
