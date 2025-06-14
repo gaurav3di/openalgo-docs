@@ -134,6 +134,7 @@
   * [EMA Crossover Strategy with Stoploss and Target](trading-platform/python/ema-crossover-strategy-with-stoploss-and-target.md)
   * [Supertrend Strategy](trading-platform/python/supertrend-strategy.md)
   * [Supertrend Strategy with yfinance data](trading-platform/python/supertrend-strategy-with-yfinance-data.md)
+  * [Intraday Rolling Straddles](trading-platform/python/intraday-rolling-straddles.md)
   * [Voice Based Orders](trading-platform/python/voice-based-orders.md)
 * [NodeJS](trading-platform/nodejs.md)
 * [Metatrader 5](trading-platform/metatrader-5/README.md)
