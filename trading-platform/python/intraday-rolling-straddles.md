@@ -21,7 +21,6 @@ This sample strategy implements an **intraday rolling short straddle** for NIFTY
 ### **Python Strategy**
 
 ```python
-import os
 import time as systime
 from datetime import datetime, time as dtime
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -31,13 +30,16 @@ import pytz
 print("🔁 OpenAlgo Python Bot is running.")
 
 # === USER PARAMETERS ===
+
 STRADDLE_ENTRY_HOUR = 10      # 10 for 10:00 AM
-STRADDLE_ENTRY_MINUTE = 00     # 0 for 10:00 AM
+STRADDLE_ENTRY_MINUTE = 0     # 0 for 10:00 AM
 
 SQUAREOFF_HOUR = 15           # 15 for 3:15 PM
 SQUAREOFF_MINUTE = 15         # 15 for 3:15 PM
 
-MAX_STRADDLES_PER_DAY = 3
+MAX_STRADDLES_PER_DAY = 3     # Daily limit on rolling straddles
+ROLLING_THRESHOLD_PCT = 0.4   # Threshold for rolling (in percent, e.g. 0.4 means 0.4%)
+
 LOT_SIZE = 75
 STRATEGY = "rolling_straddle"
 SYMBOL = "NIFTY"
@@ -46,7 +48,7 @@ EXCHANGE = "NSE_INDEX"
 OPTION_EXCHANGE = "NFO"
 STRIKE_INTERVAL = 50
 
-API_KEY = "your-openalgo-apikey"
+API_KEY = "YOU-OPENALGO-APIKEY"
 API_HOST = "http://127.0.0.1:5000"
 
 client = api(api_key=API_KEY, host=API_HOST)
@@ -110,9 +112,9 @@ def rolling_monitor():
     spot = get_spot()
     print(f"Spot: {spot}")
     print(f"Last Reference Spot: {last_reference_spot}")
-    threshold = last_reference_spot * 0.004
+    threshold = last_reference_spot * (ROLLING_THRESHOLD_PCT / 100.0)
     if abs(spot - last_reference_spot) >= threshold:
-        print(f"Rolling: Spot moved {spot} from ref {last_reference_spot}")
+        print(f"Rolling: Spot moved {spot} from ref {last_reference_spot} (Threshold: {threshold})")
         close_straddle()
         place_straddle()
 
@@ -130,9 +132,9 @@ scheduler.start()
 try:
     while True:
         now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
-        # Rolling monitor runs during straddle session only
         entry_start = dtime(STRADDLE_ENTRY_HOUR, STRADDLE_ENTRY_MINUTE)
         squareoff_time = dtime(SQUAREOFF_HOUR, SQUAREOFF_MINUTE)
+        # Rolling monitor runs during straddle session only
         if entry_start < now < squareoff_time and last_reference_spot:
             rolling_monitor()
         systime.sleep(5)
