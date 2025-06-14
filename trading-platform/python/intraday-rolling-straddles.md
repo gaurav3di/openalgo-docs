@@ -209,11 +209,4 @@ Orders are placed as:
 
 ***
 
-
-
-***
-
-**This sample provides a clear, hands-on base for implementing and experimenting with your own rolling straddle or intraday index option strategies on OpenAlgo.**\
-Let us know if you want this in markdown, PDF, or need advanced features!
-
 ***
