@@ -31,8 +31,8 @@ import pytz
 print("🔁 OpenAlgo Python Bot is running.")
 
 # === USER PARAMETERS ===
-STRADDLE_ENTRY_HOUR = 8      # 10 for 10:00 AM
-STRADDLE_ENTRY_MINUTE = 37     # 0 for 10:00 AM
+STRADDLE_ENTRY_HOUR = 10      # 10 for 10:00 AM
+STRADDLE_ENTRY_MINUTE = 00     # 0 for 10:00 AM
 
 SQUAREOFF_HOUR = 15           # 15 for 3:15 PM
 SQUAREOFF_MINUTE = 15         # 15 for 3:15 PM
@@ -46,7 +46,7 @@ EXCHANGE = "NSE_INDEX"
 OPTION_EXCHANGE = "NFO"
 STRIKE_INTERVAL = 50
 
-API_KEY = "bd1bda53f20f15cd0bb9c459a7e316163f8aca50e0fb782422d697d4d2d04074"
+API_KEY = "your-openalgo-apikey"
 API_HOST = "http://127.0.0.1:5000"
 
 client = api(api_key=API_KEY, host=API_HOST)
@@ -122,9 +122,9 @@ def eod_exit():
 
 # === Scheduler ===
 scheduler = BackgroundScheduler(timezone="Asia/Kolkata")
-scheduler.add_job(reset_daily_counter, 'cron', day_of_week='mon-sun', hour=STRADDLE_ENTRY_HOUR, minute=STRADDLE_ENTRY_MINUTE)
-scheduler.add_job(place_straddle, 'cron', day_of_week='mon-sun', hour=STRADDLE_ENTRY_HOUR, minute=STRADDLE_ENTRY_MINUTE)
-scheduler.add_job(eod_exit, 'cron', day_of_week='mon-sun', hour=SQUAREOFF_HOUR, minute=SQUAREOFF_MINUTE)
+scheduler.add_job(reset_daily_counter, 'cron', day_of_week='mon-fri', hour=STRADDLE_ENTRY_HOUR, minute=STRADDLE_ENTRY_MINUTE)
+scheduler.add_job(place_straddle, 'cron', day_of_week='mon-fri', hour=STRADDLE_ENTRY_HOUR, minute=STRADDLE_ENTRY_MINUTE)
+scheduler.add_job(eod_exit, 'cron', day_of_week='mon-fri', hour=SQUAREOFF_HOUR, minute=SQUAREOFF_MINUTE)
 scheduler.start()
 
 try:
