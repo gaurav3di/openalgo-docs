@@ -97,6 +97,7 @@
     * [History](api-documentation/v1/data-api/history.md)
     * [Intervals](api-documentation/v1/data-api/intervals.md)
     * [Symbol](api-documentation/v1/data-api/symbol.md)
+    * [Search](api-documentation/v1/data-api/search.md)
     * [Ticker](api-documentation/v1/data-api/ticker.md)
   * [Websockets](api-documentation/v1/websockets.md)
   * [Order Constants](api-documentation/v1/order-constants.md)
