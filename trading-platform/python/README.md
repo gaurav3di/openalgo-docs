@@ -552,12 +552,71 @@ print(response)
 }
 ```
 
+### Search Example
+
+```python
+response = client.search(query="NIFTY 25000 JUL CE",exchange="NFO")
+print(response)
+```
+
+**Search Response**
+
+```json
+{
+  "data": [
+    {
+      "brexchange": "NFO",
+      "brsymbol": "NIFTY17JUL2525000CE",
+      "exchange": "NFO",
+      "expiry": "17-JUL-25",
+      "instrumenttype": "OPTIDX",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 25000,
+      "symbol": "NIFTY17JUL2525000CE",
+      "tick_size": 0.05,
+      "token": "47275"
+    },
+    {
+      "brexchange": "NFO",
+      "brsymbol": "FINNIFTY31JUL2525000CE",
+      "exchange": "NFO",
+      "expiry": "31-JUL-25",
+      "instrumenttype": "OPTIDX",
+      "lotsize": 65,
+      "name": "FINNIFTY",
+      "strike": 25000,
+      "symbol": "FINNIFTY31JUL2525000CE",
+      "tick_size": 0.05,
+      "token": "54763"
+    },
+    {
+      "brexchange": "NFO",
+      "brsymbol": "NIFTY24JUL2525000CE",
+      "exchange": "NFO",
+      "expiry": "24-JUL-25",
+      "instrumenttype": "OPTIDX",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 25000,
+      "symbol": "NIFTY24JUL2525000CE",
+      "tick_size": 0.05,
+      "token": "49487"
+    }
+  ],
+  "message": "Found 6 matching symbols",
+  "status": "success"
+}
+```
+
 ### Funds Example
 
 ```python
 response = client.funds()
 print(response)
 ```
+
+
 
 **Funds Response**
 
