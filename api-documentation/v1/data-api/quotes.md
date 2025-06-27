@@ -17,8 +17,8 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/quotes
 ```json
 {
     "apikey": "<your_app_apikey>",
-    "symbol":"SBIN", 
-    "exchange":"NSE"     
+    "symbol": "WIPRO",
+    "exchange": "NSE"     
 }
 
 ```
@@ -30,14 +30,15 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/quotes
 ```json
 {
   "data": {
-    "ask": 863.65,
-    "bid": 0,
-    "high": 875.45,
-    "low": 857,
-    "ltp": 863.65,
-    "open": 865.25,
-    "prev_close": 863.65,
-    "volume": 14520568
+    "ask": 265.92,
+    "bid": 265.84,
+    "high": 270,
+    "low": 265.32,
+    "ltp": 265.93,
+    "oi": 106860000,
+    "open": 269,
+    "prev_close": 268.52,
+    "volume": 4214304
   },
   "status": "success"
 }
@@ -71,5 +72,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/quotes
 | high        | number | High price                   |
 | low         | number | Low price                    |
 | ltp         | number | Last traded price            |
+| oi          | number | Open Interest                |
 | prev\_close | number | Previous day's closing price |
 | volume      | number | Total traded volume          |

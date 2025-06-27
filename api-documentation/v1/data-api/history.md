@@ -17,11 +17,11 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/history
 ```json
 {
     "apikey": "<your_app_apikey>",
-    "symbol": "SBIN",
-    "exchange": "NSE",
+    "symbol": "NIFTY31JUL25FUT",
+    "exchange": "NFO",
     "interval": "1m",
-    "start_date": "2024-12-01",
-    "end_date": "2024-12-31"
+    "start_date": "2025-06-26",
+    "end_date": "2025-06-27",
   
 }
 
@@ -35,28 +35,31 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/history
 {
   "data": [
     {
-      "close": 836.4,
-      "high": 841.1,
-      "low": 836,
-      "open": 838.95,
-      "timestamp": 1733111100,
-      "volume": 121671
+      "close": 25292,
+      "high": 25302.1,
+      "low": 25272.3,
+      "oi": 5401650,
+      "open": 25302,
+      "timestamp": 1750909500,
+      "volume": 1042
     },
     {
-      "close": 835.75,
-      "high": 836.6,
-      "low": 835.1,
-      "open": 836.15,
-      "timestamp": 1733111160,
-      "volume": 40517
+      "close": 25298,
+      "high": 25301,
+      "low": 25287.6,
+      "oi": 5401650,
+      "open": 25288.9,
+      "timestamp": 1750909560,
+      "volume": 462
     },
     {
-      "close": 835.2,
-      "high": 836.15,
-      "low": 834.5,
-      "open": 835.75,
-      "timestamp": 1733111220,
-      "volume": 69600
+      "close": 25303,
+      "high": 25310.1,
+      "low": 25298.1,
+      "oi": 5401650,
+      "open": 25298.9,
+      "timestamp": 1750909620,
+      "volume": 429
     }
   ],
   "status": "success"
@@ -87,6 +90,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/history
 | timestamp | number | Unix epoch timestamp |
 | open      | number | Opening price        |
 | high      | number | High price           |
+| oi        | number | Open Interest        |
 | low       | number | Low price            |
 | close     | number | Closing price        |
 | volume    | number | Trading volume       |
