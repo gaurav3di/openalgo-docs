@@ -1,6 +1,6 @@
 # Nifty Open Interest
 
-## NIFTY Options Open Interest Profile Strategy
+## NIFTY Options Open Interest&#x20;
 
 ### Overview
 
