@@ -1,10 +1,8 @@
-# Nifty Open Interest
-
-## NIFTY Options Open Interest&#x20;
+# NIFTY Open Interest
 
 ### Overview
 
-This strategy fetches and visualizes the Open Interest (OI) profile for NIFTY options, helping traders identify support and resistance levels based on options market data.
+This python code fetches and visualizes  Open Interest (OI) profile for NIFTY options, helping traders identify support and resistance levels based on options market data.
 
 <figure><img src="../../.gitbook/assets/Nifty Open Interest.png" alt=""><figcaption></figcaption></figure>
 
