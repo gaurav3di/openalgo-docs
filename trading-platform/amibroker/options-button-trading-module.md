@@ -1,5 +1,7 @@
 # Options Button Trading Module
 
+This AFL script is an advanced interactive trading tool designed for AmiBroker, specifically to facilitate manual execution of options trades via a graphical interface connected to the OpenAlgo bridge API. It calculates key strike prices (ATM, ITM, OTM) for Call (CE) and Put (PE) options based on parameters such as the underlying spot, expiry, strike intervals, and offsets relative to the spot price (which can be based on previous open, close, or today’s open). It constructs standard option symbols for execution and visually displays the Algo status on the chart. The script also maintains static variables to track open trades and ensures strike recalculations align with user-selected inputs.
+
 ```clike
 //Rajandran R - Creator of OpenAlgo
 //website - openalgo.in / marketcalls.in
@@ -21,14 +23,14 @@ apikey = ParamStr("OpenAlgo API Key", "******");
 
 strategy = ParamStr("Strategy Name", "Test Strategy");
 
-spot = Paramlist("Spot Symbol","NIFTY|BANKNIFTY|FINNIFTY|SENSEX");
-expiry = ParamStr("Expiry Date","22AUG24");
+spot = Paramlist("Spot Symbol","NIFTY|BANKNIFTY|FINNIFTY|SENSEX|CRUDEOILM");  //OpenAlgo Underlying Symbol - used for Formulation of OpenAlgo Option Symbols
+expiry = ParamStr("Expiry Date","17JUL25");
 
 exchange = ParamList("Exchange","NFO|BFO|MCX",0); 
-Symbol = ParamStr("Underlying Symbol","NIFTY");
+Symbol = ParamStr("Underlying Symbol(Data Vendor Symbol)","NIFTY"); // Amibroker Symbol - Data Vendors Symbol
 iInterval= Param("Strike Interval",50,1,10000,1);
 StrikeCalculation = Paramlist("Strike Calculation","PREVOPEN|PREVCLOSE|TODAYSOPEN",0);
-LotSize = Param("Lot Size",25,1,10000,1);
+LotSize = Param("Lot Size",75,1,10000,1);
 
 ATMoffsetCE = Param("ATM CE Offset",0,-40,40,1);
 ITMoffsetCE = Param("ITM CE Offset",-2,-40,-1,1);
