@@ -114,7 +114,8 @@
 
 * [Amibroker](trading-platform/amibroker/README.md)
   * [AmiQuotes](trading-platform/amibroker/amiquotes.md)
-  * [Button Trading Module](trading-platform/amibroker/button-trading-module.md)
+  * [Button Trading Module (Old)](trading-platform/amibroker/button-trading-module-old.md)
+  * [Button Trading Module (Modern)](trading-platform/amibroker/button-trading-module-modern.md)
   * [Button Trading with Split Orders](trading-platform/amibroker/button-trading-with-split-orders.md)
   * [Button Trading with Stoploss](trading-platform/amibroker/button-trading-with-stoploss.md)
   * [SmartOrder Chart Module](trading-platform/amibroker/smartorder-chart-module.md)
