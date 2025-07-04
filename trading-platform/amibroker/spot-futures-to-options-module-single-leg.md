@@ -11,7 +11,6 @@ This tutorial provides instructions on how to utilize simple buy and sell tradin
 Internet Functions Method (Modern)
 
 ```clike
-
 /* 
 OpenAlgo - Modern Spot/Futures to Options Trading Module 
 Created By: Rajandran R (Founder - Marketcalls / Creator OpenAlgo) 
@@ -27,18 +26,18 @@ EnableTextOutput(False);
 
 apikey = ParamStr("OpenAlgo API Key", "******");
 strategy = ParamStr("Strategy Name", "Test Strategy");
-spot = ParamList("Spot Symbol", "NIFTY|BANKNIFTY|FINNIFTY|SENSEX");
-expiry = ParamStr("Expiry Date", "26DEC24");
+spot = ParamList("Spot Symbol", "NIFTY|BANKNIFTY|FINNIFTY|SENSEX|CRUDEOILM");
+expiry = ParamStr("Expiry Date", "17SEP25");
 exchange = ParamList("Exchange", "NFO|BFO|MCX", 0);
-symbol = ParamStr("Underlying Symbol", "NIFTY");
+symbol = ParamStr("Underlying Symbol", "NIFTY");   //Amibroker Symbols Spot/Futures (Calculation of Strike Price)
 iInterval = Param("Strike Interval", 50, 1, 10000, 1);
 StrikeCalculation = ParamList("Strike Calculation", "PREVOPEN|PREVCLOSE|TODAYSOPEN", 0);
-LotSize = Param("Lot Size", 25, 1, 10000, 1);
-offsetCE = Param("CE Offset", 0, -40, 40, 1);
+LotSize = Param("Lot Size", 75, 1, 10000, 1);
+offsetCE = Param("CE Offset", 0, -40, 40, 1);  //0 - ATM Options,  +4 - 4 strike OTM , -2 = 2 strike wide ITM options
 offsetPE = Param("PE Offset", 0, -40, 40, 1);
 pricetype = ParamList("Order Type", "MARKET", 0);
 product = ParamList("Product", "MIS|NRML", 1);
-tradetype = ParamList("Option Trade Type", "BUY|SELL", 0);
+tradetype = ParamList("Option Trade Type", "BUY|SELL", 0);  //Option Buyer - Option Seller
 quantity = Param("Quantity (Lot Size)", 1, 0, 10000) * LotSize;
 host = ParamStr("Host", "http://127.0.0.1:5000");
 ver = ParamStr("API Version", "v1");
@@ -195,10 +194,11 @@ function ExitOrder(action, optionType) {
                "\"exchange\": \"" + exchange + "\", " +
                "\"pricetype\": \"" + pricetype + "\", " +
                "\"product\": \"" + product + "\", " +
+               "\"position_size\": \"" + "0" + "\", " +
                "\"quantity\": \"0\"}";
     headers = "Content-Type: application/json\r\nAccept-Encoding: gzip, deflate\r\n";
     InternetSetHeaders(headers);
-    ih = InternetPostRequest(bridgeurl + "/placeorder", postData);
+    ih = InternetPostRequest(bridgeurl + "/placesmartorder", postData);
 
     if (ih) {
         response = "";
@@ -314,6 +314,7 @@ if (EnableAlgo != "Disable") {
 }
 
 _SECTION_END();
+
 
 ```
 
