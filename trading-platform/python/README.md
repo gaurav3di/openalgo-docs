@@ -609,6 +609,43 @@ print(response)
 }
 ```
 
+### Expiry Example
+
+```python
+response = client.expiry(
+    symbol="NIFTY",
+    exchange="NFO",
+    instrumenttype="options"
+)
+
+response
+```
+
+**Expiry Response**
+
+```
+{'data': ['10-JUL-25',
+  '17-JUL-25',
+  '24-JUL-25',
+  '31-JUL-25',
+  '07-AUG-25',
+  '28-AUG-25',
+  '25-SEP-25',
+  '24-DEC-25',
+  '26-MAR-26',
+  '25-JUN-26',
+  '31-DEC-26',
+  '24-JUN-27',
+  '30-DEC-27',
+  '29-JUN-28',
+  '28-DEC-28',
+  '28-JUN-29',
+  '27-DEC-29',
+  '25-JUN-30'],
+ 'message': 'Found 18 expiry dates for NIFTY options in NFO',
+ 'status': 'success'}
+```
+
 ### Funds Example
 
 ```python
