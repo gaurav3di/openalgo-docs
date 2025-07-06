@@ -40,6 +40,12 @@ http://xx.xx.xx.xx/flattrade/callback
 ssh user@your_server_ip
 ```
 
+**Open the Nano Editor**
+
+```
+nano install.sh
+```
+
 **Save this file under Install.sh**
 
 ```
@@ -429,6 +435,8 @@ log_message "4. Set up regular backups of $BASE_PATH/db" "$BLUE"
 
 log_message "\nLog saved to: $LOG_FILE" "$GREEN"
 ```
+
+####
 
 ### Installation Steps
 
