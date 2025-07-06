@@ -13,7 +13,7 @@
 
 
 * Ubuntu Server (22.04 LTS or later recommended)
-* Minimum 2GB RAM
+* Minimum 0.5GB RAM
 * Clean installation recommended
 
 #### Domain and DNS Setup (Required)
@@ -53,9 +53,9 @@
 * Prepare the Redirection URL as per your domain name and broker name&#x20;
 
 ```bash
-# Example - domain name is yourdomain.com and broker is icici
+# Example - domain name is yourdomain.com and broker is zerodha
 
-https://yourdomain.com/icici/callback
+https://yourdomain.com/zerodha/callback
 
 # Example - domain name is sub.yourdomain.com and broker is angel
 
