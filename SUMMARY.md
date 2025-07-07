@@ -119,6 +119,7 @@
   * [Button Trading Module (Old)](trading-platform/amibroker/button-trading-module-old.md)
   * [Button Trading Module (Modern)](trading-platform/amibroker/button-trading-module-modern.md)
   * [Button Trading with Split Orders](trading-platform/amibroker/button-trading-with-split-orders.md)
+  * [Button Trading with Spot Order (Options)](trading-platform/amibroker/button-trading-with-spot-order-options.md)
   * [Button Trading with Stoploss](trading-platform/amibroker/button-trading-with-stoploss.md)
   * [SmartOrder Chart Module](trading-platform/amibroker/smartorder-chart-module.md)
   * [Trailing Stoploss Execution Module](trading-platform/amibroker/trailing-stoploss-execution-module.md)
