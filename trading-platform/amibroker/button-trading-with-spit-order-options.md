@@ -1,4 +1,4 @@
-# Button Trading with Spot Order (Options)
+# Button Trading with Spit Order (Options)
 
 This OpenAlgo SplitOrder Trading Module for AmiBroker is designed to seamlessly integrate manual button-based trading into an algorithmic workflow. It allows traders to place orders on options (ATM, ITM, OTM for both Calls and Puts) directly from the AmiBroker chart interface by clicking visual buttons. Each button sends orders through the OpenAlgo Bridge using the `/splitorder` endpoint, which intelligently splits large orders into smaller chunks as per the configured split size. The system dynamically calculates the ATM, ITM, and OTM strikes based on live market data, user-defined offsets, and strike intervals, ensuring that the correct option symbols are generated for execution. A graphical dashboard embedded in the chart shows the current calculated strikes, internal memory for each option leg, cumulative quantities traded, and the current algo enable/disable status, providing traders with full visibility and control.
 
@@ -24,7 +24,7 @@ expiry     = ParamStr("Expiry Date","17JUL25");
 exchange   = ParamList("Exchange","NFO|BFO|MCX",0);
 Symbol     = ParamStr("Underlying Symbol(Data Vendor Symbol)","NIFTY");
 iInterval  = Param("Strike Interval",50,1,10000,1);
-StrikeCalculation = Paramlist("Strike Calculation","PREVOPEN|PREVCLOSE|TODAYSOPEN",0);
+StrikeCalculation = Paramlist("Strike Calculation","TODAYSOPEN",0);
 LotSize    = Param("Lot Size",75,1,10000,1);
 
 ATMoffsetCE = Param("ATM CE Offset",0,-40,40,1);
