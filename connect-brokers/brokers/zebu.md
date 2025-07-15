@@ -1,8 +1,6 @@
 # Zebu
 
-Zebu, a leading stock trading platform, offers robust API services for traders and developers looking to integrate algorithmic trading solutions into their platforms. The Zebu MYNT API enables access to real-time market data, portfolio management, and trade execution for stocks, commodities, and mutual funds.
-
-\
+Zebu, a leading stock trading platform, offers robust API services for traders and developers looking to integrate algorithmic trading solutions into their platforms. The Zebu MYNT API enables access to real-time market data, portfolio management, and trade execution for stocks, commodities, and mutual funds.\
 
 
 To integrate Zebu’s API, follow the steps below:
@@ -45,11 +43,11 @@ Click the Generate API Key button to generate both the API Key (Vendor Code) and
 
 <figure><img src="../../.gitbook/assets/image (60).png" alt=""><figcaption></figcaption></figure>
 
-Once generated, the API Key and API Secret will be provided for the app. These keys are essential for authenticating API requests. Here’s how your .env file might look:
+Once generated, the Vendor Code and APP Key will be provided for the app. These keys are essential for authenticating API requests. Here’s how your .env file might look:
 
 ```
-BROKER_API_KEY = 'your_api_key_here'
-BROKER_API_SECRET = 'your_api_secret_here'
+BROKER_API_KEY = 'your_vendor_code_here'
+BROKER_API_SECRET = 'your_appkey_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/zebu/callback'
 ```
 
