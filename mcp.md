@@ -74,6 +74,10 @@ Add the following configuration to your MCP client, replacing the placeholder pa
 * **Windsurf**: `%APPDATA%\Windsurf\mcp_config.json`
 * **Cursor**: `%APPDATA%\Cursor\User\settings.json`
 
+####
+
+{% embed url="https://www.youtube.com/watch?v=YTvcWxsRvPc" %}
+
 #### macOS
 
 **Example Configuration:**
