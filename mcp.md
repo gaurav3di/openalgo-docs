@@ -35,6 +35,8 @@ Ensure your OpenAlgo server is running and properly configured:
 2. **Nodejs** : Ensure NodeJS is installed
 3. **Broker Authentication**: Ensure your broker credentials are properly configured in OpenAlgo.
 
+{% embed url="https://www.youtube.com/watch?v=oczs8KOrxIo" %}
+
 #### 2. API Key
 
 To get your OpenAlgo API key:
