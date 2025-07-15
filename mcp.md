@@ -32,7 +32,7 @@ This is a Model Context Protocol (MCP) server that provides trading and market d
 Ensure your OpenAlgo server is running and properly configured:
 
 1. **Start OpenAlgo Server**: Your OpenAlgo server should be running (e.g., on `http://127.0.0.1:5000`)
-2. **Verify Connection**: Test that the server is accessible by visiting the web interface.
+2. **Nodejs** : Ensure NodeJS is installed
 3. **Broker Authentication**: Ensure your broker credentials are properly configured in OpenAlgo.
 
 #### 2. API Key
