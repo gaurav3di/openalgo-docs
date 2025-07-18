@@ -857,6 +857,38 @@ Holdings Response
 
 ```
 
+### Analyzer Status Example
+
+```python
+response  = client.analyzerstatus()
+print(response)
+```
+
+Analyzer Status Response
+
+```json
+{'data': {'analyze_mode': True, 'mode': 'analyze', 'total_logs': 2},
+ 'status': 'success'}
+```
+
+### Analyzer Toggle Example
+
+```python
+# Switch to analyze mode (simulated responses)
+response = client.analyzertoggle(mode=True)
+print(response)
+```
+
+Analyzer Toggle Response
+
+```
+{'data': {'analyze_mode': True,
+  'message': 'Analyzer mode switched to analyze',
+  'mode': 'analyze',
+  'total_logs': 2},
+ 'status': 'success'}
+```
+
 ### LTP Data (Streaming Websocket)
 
 ```python
