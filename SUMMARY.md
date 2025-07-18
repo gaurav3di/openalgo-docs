@@ -81,6 +81,8 @@
     * [Tradebook](api-documentation/v1/accounts-api/tradebook.md)
     * [PositionBook](api-documentation/v1/accounts-api/positionbook.md)
     * [Holdings](api-documentation/v1/accounts-api/holdings.md)
+    * [Analyzer Status](api-documentation/v1/accounts-api/analyzer-status.md)
+    * [Analyzer Toggle](api-documentation/v1/accounts-api/analyzer-toggle.md)
   * [Orders API](api-documentation/v1/orders-api/README.md)
     * [Placeorder](api-documentation/v1/orders-api/placeorder.md)
     * [PlaceSmartOrder](api-documentation/v1/orders-api/placesmartorder.md)
