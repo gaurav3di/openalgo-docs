@@ -10,18 +10,20 @@ To integrate OpenAlgo with Groww, follow the steps below to generate your API ke
 
 1. Visit the [Groww Trade API Portal](https://groww.in/trade-api) and click on **Getting Started**.
 2. Login using your Groww account credentials.
-3. Click the **Generate API Token** button to create your **access token**, which will serve as the `BROKER_API_KEY`.
+3. Click the **Generate API Token** button to create APIKey and APISecret
 
-> Note: Groww does not provide a persistent API secret. You may safely set `BROKER_API_SECRET` to `'dummy'` in your `.env` file.
+<figure><img src="../../.gitbook/assets/Screenshot 2025-07-21 at 5.16.32 PM.png" alt=""><figcaption></figcaption></figure>
 
+Click on the **Generate API Keys** button and Select API Key and Secret an Enter the Token Name as "OpenAlgo" or any name of your choice and press **Generate API Key** button
 
+<figure><img src="../../.gitbook/assets/Screenshot 2025-07-21 at 5.14.42 PM.png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+### Copy the generated Grow API Key and API Secret
+
+<figure><img src="../../.gitbook/assets/Screenshot 2025-07-21 at 5.15.17 PM.png" alt=""><figcaption></figcaption></figure>
 
 ### Important Points
 
-* All **Access Tokens reset daily at 6:00 AM IST**, and must be regenerated every day to use OpenAlgo.
-* You can maintain a **maximum of 5 active tokens at a time**.
 * Do **not share** your access token with untrusted third-party platforms or individuals.
 
 #### Configuration:
@@ -29,8 +31,8 @@ To integrate OpenAlgo with Groww, follow the steps below to generate your API ke
 Here is how you would typically set up your environment variables in a .env file for Groww's API:
 
 ```bash
-BROKER_API_KEY = 'your_groww_token_here'
-BROKER_API_SECRET = 'dummy'
+BROKER_API_KEY = 'your_groww_apikey_here'
+BROKER_API_SECRET = 'your_groww_apisecret_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/groww/callback'
 ```
 
