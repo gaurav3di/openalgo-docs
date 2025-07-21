@@ -2,11 +2,15 @@
 
 Zerodha is a leading name in the Indian financial services industry, acclaimed for its discount brokerage model and tech-centric approach to trading. Kite by Zerodha is their flagship trading platform, known for its intuitive user interface and powerful performance. Kite API is a set of REST-like APIs that exposes Zerodha's trading functionalities programmatically, allowing developers to harness the capabilities of the Kite platform within their own custom applications.
 
+{% embed url="https://www.youtube.com/watch?v=uZ6PD6UDxrg" %}
+
+
+
 The Kite API by Zerodha is particularly popular among algorithmic traders and fintech developers, as it provides real-time data feeds, order placement, portfolio management, and a host of other critical trading operations. The API ensures seamless integration with Zerodha's services, enabling the development of automated trading bots, analytical tools, and other innovative trading solutions.
 
-#### API Key and API Secret Creation Process
+<figure><img src="../../.gitbook/assets/image (111).png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../../.gitbook/assets/Zerodha Kite App Creation.png" alt=""><figcaption></figcaption></figure>
+#### API Key and API Secret Creation Process
 
 The process to create an API key and API secret for Zerodha's Kite API involves the following steps:
 
