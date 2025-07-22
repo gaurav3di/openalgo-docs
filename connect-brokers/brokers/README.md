@@ -16,8 +16,8 @@ List of OpenAlgo Supported Brokers
 10. Fyers
 11. Groww
 12. IIFL (XTS)
-13. Jainam Retail (XTS)
-14. Jainam Dealer (XTS)
+13. IndiaBulls
+14. IndMoney
 15. Kotak Securities
 16. Paytm
 17. Pocketful
