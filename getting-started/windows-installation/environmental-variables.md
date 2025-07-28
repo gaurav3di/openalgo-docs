@@ -11,6 +11,14 @@ Update the `.env` with your specific configurations as shown in the provided tem
 
 
 ```python
+# OpenAlgo Environment Configuration File
+# Version: 1.0.2
+# Last Updated: 2025-07-26
+# 
+# IMPORTANT: When updating OpenAlgo, compare this version with your .env file
+# If versions don't match, copy new variables from this file to your .env
+ENV_CONFIG_VERSION = '1.0.2'
+
 # Broker Configuration
 BROKER_API_KEY = 'YOUR_BROKER_API_KEY'
 BROKER_API_SECRET = 'YOUR_BROKER_API_SECRET'
@@ -23,7 +31,9 @@ BROKER_API_SECRET_MARKET = 'YOUR_BROKER_MARKET_API_SECRET'
 REDIRECT_URL = 'http://127.0.0.1:5000/<broker>/callback'  # Change if different
 
 # Valid Brokers Configuration
-VALID_BROKERS = 'fivepaisa,fivepaisaxts,aliceblue,angel,compositedge,dhan,firstock,flattrade,fyers,groww,iifl,kotak,jainam,jainampro,paytm,pocketful,shoonya,upstox,wisdom,zebu,zerodha'
+
+VALID_BROKERS = 'fivepaisa,fivepaisaxts,aliceblue,angel,compositedge,dhan,dhan_sandbox,firstock,flattrade,fyers,groww,ibulls,iifl,indmoney,kotak,paytm,pocketful,shoonya,tradejini,upstox,wisdom,zebu,zerodha'
+
 
 # Security Configuration
 # IMPORTANT: Generate new random values for both keys during setup!
@@ -40,7 +50,11 @@ APP_KEY = '3daa0403ce2501ee7432b75bf100048e3cf510d63d2754f952e93d88bf07ea84'
 API_KEY_PEPPER = 'a25d94718479b170c16278e321ea6c989358bf499a658fd20c90033cef8ce772'
 
 # OpenAlgo Database Configuration
-DATABASE_URL = 'sqlite:///db/openalgo.db' 
+DATABASE_URL = 'sqlite:///db/openalgo.db'
+
+# Additional Database Configuration
+LATENCY_DATABASE_URL = 'sqlite:///db/latency.db'  # Database for latency monitoring
+LOGS_DATABASE_URL = 'sqlite:///db/logs.db'        # Database for traffic logs 
 
 # OpenAlgo Ngrok Configuration
 NGROK_ALLOW = 'FALSE' 
@@ -53,14 +67,37 @@ HOST_SERVER = 'http://127.0.0.1:5000'
 # For 0.0.0.0 (accessible from other devices on the network)
 # Flask Environment - development or production
 FLASK_HOST_IP='127.0.0.1'  
-FLASK_PORT='5000'  
+FLASK_PORT='5000' 
 FLASK_DEBUG='False' 
 FLASK_ENV='development'
+
+# WebSocket Configuration
+WEBSOCKET_HOST='localhost'
+WEBSOCKET_PORT='8765'
+WEBSOCKET_URL='ws://localhost:8765'
+
+# ZeroMQ Configuration
+ZMQ_HOST='localhost'
+ZMQ_PORT='5555'
+
+# Logging configuration
+LOG_TO_FILE='False'           # If True, logs are also written to log files in LOG_DIR
+LOG_LEVEL='INFO'              # DEBUG, INFO, WARNING, ERROR, CRITICAL
+LOG_DIR='log'                 # Directory for log files (relative to project root)
+LOG_FORMAT='[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+LOG_RETENTION='14'            # Number of days to retain log files
+LOG_COLORS='True'             # Enable/disable colored console output (True/False)
+FORCE_COLOR='1'               # Force enable colored output even in non-TTY environments
+
 
 # OpenAlgo Rate Limit Settings
 LOGIN_RATE_LIMIT_MIN = "5 per minute" 
 LOGIN_RATE_LIMIT_HOUR = "25 per hour"
-API_RATE_LIMIT="10 per second"
+API_RATE_LIMIT="50 per second"
+ORDER_RATE_LIMIT="10 per second"
+SMART_ORDER_RATE_LIMIT="2 per second"
+WEBHOOK_RATE_LIMIT="100 per minute"
+STRATEGY_RATE_LIMIT="200 per minute"
 
 # OpenAlgo API Configuration
 
@@ -83,7 +120,7 @@ CORS_ALLOWED_ORIGINS = 'http://127.0.0.1:5000'
 
 # Comma-separated list of allowed HTTP methods
 # Default: GET,POST
-CORS_ALLOWED_METHODS = 'GET,POST'
+CORS_ALLOWED_METHODS = 'GET,POST,DELETE,PUT,PATCH'
 
 # Comma-separated list of allowed headers
 # Default Flask-CORS values will be used if not specified
@@ -161,6 +198,23 @@ CSP_UPGRADE_INSECURE_REQUESTS = 'FALSE'
 # URI to report CSP violations to (optional)
 # Example: /csp-report
 CSP_REPORT_URI = ''
+
+# CSRF (Cross-Site Request Forgery) Protection Configuration
+# Set to TRUE to enable CSRF protection, FALSE to disable
+CSRF_ENABLED = 'TRUE'
+
+# CSRF Token Time Limit (in seconds)
+# Leave empty for no time limit (tokens valid for entire session)
+# Example: 3600 = 1 hour, 86400 = 24 hours
+CSRF_TIME_LIMIT = ''
+
+# Cookie Names Configuration for Instance Isolation
+# Customize these when running multiple OpenAlgo instances to prevent cookie conflicts
+# Each instance should have unique cookie names
+# Examples: 'instance1_session', 'user1_session', 'app_session', etc.
+SESSION_COOKIE_NAME = 'session'
+CSRF_COOKIE_NAME = 'csrf_token'
+
 
 ```
 
