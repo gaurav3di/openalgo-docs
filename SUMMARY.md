@@ -173,6 +173,7 @@
 
 ## Change Log
 
+* [Version 1.0.0.28 Launched](change-log/version-1.0.0.28-launched.md)
 * [Version 1.0.0.27 Launched](change-log/version-1.0.0.27-launched.md)
 * [Version 1.0.0.26 Launched](change-log/version-1.0.0.26-launched.md)
 * [Version 1.0.0.25 Launched](change-log/version-1.0.0.25-launched.md)
