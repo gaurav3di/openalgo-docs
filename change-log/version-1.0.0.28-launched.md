@@ -46,6 +46,13 @@
 
 * Security audit completed using Google Gemini 2.5 Pro
 * DaisyUI and TailwindCSS stack upgraded to latest version
+* We've just rolled out critical security improvements to protect your trading infrastructure:&#x20;
+* **What's New:** •&#x20;
+  * **Webhook Protection** - 100 req/min (blocks external DoS attacks)&#x20;
+  * **Strategy Management** - 200 req/min (prevents system flooding)&#x20;
+  * **Order Operations** - 10 req/sec (stable order management)&#x20;
+  * **Smart Orders** - 2 req/sec (complex strategy protection)&#x20;
+  * **General APIs** - 50 req/sec (5x performance boost!)
 
 #### Fixes and Cleanup
 
