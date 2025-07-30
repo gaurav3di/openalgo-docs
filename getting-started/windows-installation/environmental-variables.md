@@ -12,12 +12,12 @@ Update the `.env` with your specific configurations as shown in the provided tem
 
 ```python
 # OpenAlgo Environment Configuration File
-# Version: 1.0.2
-# Last Updated: 2025-07-26
+# Version: 1.0.3
+# Last Updated: 2025-07-31
 # 
 # IMPORTANT: When updating OpenAlgo, compare this version with your .env file
 # If versions don't match, copy new variables from this file to your .env
-ENV_CONFIG_VERSION = '1.0.2'
+ENV_CONFIG_VERSION = '1.0.3'
 
 # Broker Configuration
 BROKER_API_KEY = 'YOUR_BROKER_API_KEY'
@@ -72,12 +72,14 @@ FLASK_DEBUG='False'
 FLASK_ENV='development'
 
 # WebSocket Configuration
-WEBSOCKET_HOST='localhost'
+# Use explicit IPv4 address for macOS compatibility
+WEBSOCKET_HOST='127.0.0.1'
 WEBSOCKET_PORT='8765'
-WEBSOCKET_URL='ws://localhost:8765'
+WEBSOCKET_URL='ws://127.0.0.1:8765'
 
 # ZeroMQ Configuration
-ZMQ_HOST='localhost'
+# Use explicit IPv4 address for macOS compatibility
+ZMQ_HOST='127.0.0.1'
 ZMQ_PORT='5555'
 
 # Logging configuration
@@ -93,6 +95,7 @@ FORCE_COLOR='1'               # Force enable colored output even in non-TTY envi
 # OpenAlgo Rate Limit Settings
 LOGIN_RATE_LIMIT_MIN = "5 per minute" 
 LOGIN_RATE_LIMIT_HOUR = "25 per hour"
+RESET_RATE_LIMIT = "15 per hour"
 API_RATE_LIMIT="50 per second"
 ORDER_RATE_LIMIT="10 per second"
 SMART_ORDER_RATE_LIMIT="2 per second"
@@ -214,6 +217,8 @@ CSRF_TIME_LIMIT = ''
 # Examples: 'instance1_session', 'user1_session', 'app_session', etc.
 SESSION_COOKIE_NAME = 'session'
 CSRF_COOKIE_NAME = 'csrf_token'
+
+
 
 
 ```
