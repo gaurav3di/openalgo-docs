@@ -2,6 +2,8 @@
 
 Follow these steps to upgrade your OpenAlgo application:
 
+## Option 1 : Regular Upgrade Method
+
 ### Backup the Database
 
 Navigate to your database folder and make a copy of the current database file for safekeeping.
@@ -52,6 +54,102 @@ cd..
 python app.py
 </code></pre>
 
+## Option 2 : UV Method (Modern)
+
+Here is a **separate and clean upgrade guide for the UV method** only:
+
+***
+
+#### 1️⃣ Backup the Database
+
+Before making any changes, **backup your database**:
+
+```bash
+# Example: Copy the existing DB file to a backup location
+cp db/openalgo.db db/openalgo_backup.db
+```
+
+***
+
+#### 2️⃣ Pull the Latest Application Code
+
+Update to the latest version of OpenAlgo:
+
+```bash
+cd openalgo
+git pull
+```
+
+***
+
+#### 3️⃣ Update `.env` File
+
+Copy the latest sample `.env` and edit with your API keys and secrets:
+
+```bash
+cp .sample.env .env
+```
+
+Then configure the required environment variables inside `.env` as per your broker and setup.
+
+***
+
+#### 4️⃣ Install or Update Dependencies
+
+Use `uv` to install/update packages:
+
+```bash
+uv pip install -r requirements.txt
+```
+
+***
+
+#### 5️⃣ Run the Migration Script
+
+Update the database schema:
+
+```bash
+cd upgrade
+uv run migrate_smtp_simple.py
+cd ..
+```
+
+***
+
+#### 6️⃣ Run OpenAlgo Using UV
+
+From the root OpenAlgo folder:
+
+```bash
+uv run app.py
+```
+
+You should see logs like:
+
+```
+✅ Configuration version check passed (1.0.3)
+[2025-07-31 01:45:12,486] INFO in base: Scheduler started
+[2025-07-31 01:45:12,587] INFO in base: Scheduler started
+[2025-07-31 01:45:12,589] INFO in market_data_service: MarketDataService initialized
+[2025-07-31 01:45:12,927] INFO in traffic_db: Initializing Traffic Logs DB at: sqlite:///db/logs.db
+[2025-07-31 01:45:12,939] INFO in latency_db: Initializing Latency DB at: sqlite:///db/latency.db
+[2025-07-31 01:45:13,024] INFO in auth_db: Initializing Auth DB
+[2025-07-31 01:45:13,025] INFO in user_db: Initializing User DB
+[2025-07-31 01:45:13,026] INFO in symbol: Initializing Master Contract DB
+[2025-07-31 01:45:13,026] INFO in apilog_db: Initializing API Log DB
+[2025-07-31 01:45:13,026] INFO in analyzer_db: Initializing Analyzer Table
+...
+```
+
+***
+
+#### Post-Upgrade Checklist
+
+* All databases initialize correctly
+* Scheduler, Websockets, ZeroMQ services are running
+* Broker modules are visible
+* API and strategy functions work normally
+
 
 
 ### Verify the Migration
@@ -65,7 +163,7 @@ After running the script, verify that the column was added successfully by:
 
 
 
-### Dependecies Check (Optional)
+### Dependencies Check (Optional)
 
 Ensure all installed dependencies are compatible with the new version:
 
