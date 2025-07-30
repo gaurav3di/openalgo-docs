@@ -4,13 +4,13 @@
 
 #### 1. **Can I deploy my algo on AWS or other cloud services without extra cost for IPs?**
 
-No. You’ll need to get and register a static IP even on cloud platforms. This is a mandatory part of the new compliance rules.
+No. You’ll need to get and register a static IP even on cloud platforms. This is a mandatory part of the new compliance rules. However VPS providers like Digitalocean, Vultr, OVH by default comes with static IP
 
 ***
 
 #### 2. **What if I travel often or work from different locations?**
 
-You can update your registered IP, but only once a week. So occasional changes are allowed, but daily switching isn’t feasible.
+You can update your registered IP, but only once a week at the Broker API Developer portal. So occasional changes are allowed, but daily switching isn’t feasible.
 
 ***
 
@@ -22,13 +22,13 @@ Yes, you can register both a primary and a backup IP per app. However, changing 
 
 #### 4. **Do I need a static IP if I’m just streaming market data?**
 
-No. If your app only receives data and doesn’t place or modify orders, you don’t need to register a static IP.
+No. If your app only receives data and doesn’t place or modify orders, you don’t need to register a static IP. Also check whether your broker supports such requirements at the API developer portal. It could be mostly broker dependent.
 
 ***
 
 #### 5. **Can I use an IP address from any country?**
 
-Yes, as long as the country is not on the restricted list. You can host from India or other approved regions.
+Yes, as long as the country is not on the restricted list. You can host from India , US , Europe or other approved regions.
 
 ***
 
@@ -40,7 +40,7 @@ If you're managing trades on behalf of others, you need to be officially registe
 
 #### 7. **Will I need to register if my app sends too many orders?**
 
-If your strategy consistently places over 10 orders per second, you may need to go through the formal registration process. Occasional spikes are okay if your code handles them.
+If your strategy consistently places over 10 orders per second, you may need to go through the formal registration process with the broker. Occasional spikes are okay if your code handles them.
 
 ***
 
