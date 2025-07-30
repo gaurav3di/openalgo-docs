@@ -70,6 +70,7 @@
   * [Docker Development](getting-started/docker-development.md)
   * [Testing OpenAlgo in Cloud](getting-started/testing-openalgo-in-cloud.md)
   * [Upgrade](getting-started/upgrade.md)
+* [Static IP](static-ip.md)
 * [Latency](latency.md)
 
 ## API Documentation
