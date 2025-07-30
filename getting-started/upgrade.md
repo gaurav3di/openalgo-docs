@@ -8,14 +8,17 @@ Follow these steps to upgrade your OpenAlgo application:
 
 Navigate to your database folder and make a copy of the current database file for safekeeping.
 
-
+```
+# Example: Copy the existing DB file to a backup location
+cd openalgo
+cp db/openalgo.db db/openalgo_backup.db
+```
 
 ### Update the Application Code
 
 Open your terminal and run the following command to pull the latest changes:
 
 ```bash
-cd openalgo
 git pull
 ```
 
@@ -66,6 +69,7 @@ Before making any changes, **backup your database**:
 
 ```bash
 # Example: Copy the existing DB file to a backup location
+cd openalgo
 cp db/openalgo.db db/openalgo_backup.db
 ```
 
@@ -76,7 +80,6 @@ cp db/openalgo.db db/openalgo_backup.db
 Update to the latest version of OpenAlgo:
 
 ```bash
-cd openalgo
 git pull
 ```
 
