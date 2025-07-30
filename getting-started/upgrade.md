@@ -43,8 +43,7 @@ Execute the migration script to add the `feed_token` column to your database:
 <strong>cd upgrade
 </strong>
 # Run the migration script
-python add_feed_token.py
-python add_user_id.py
+python migrate_smtp_simple.py
 
 # Get back to openalgo directory
 cd..
