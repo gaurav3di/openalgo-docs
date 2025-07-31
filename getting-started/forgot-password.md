@@ -299,7 +299,9 @@ Solution: Request new password reset
 
 #### When All Else Fails
 
-If you cannot access your OpenAlgo account through any method (TOTP broken, email not working, lost credentials), you can perform a complete database reset. **This will delete ALL data.**
+If you cannot access your OpenAlgo account through any method (TOTP broken, email not working, lost credentials), you can delete the openalgo.db database file form the /db folder. **This will delete ALL data.**
+
+<figure><img src="../.gitbook/assets/image (112).png" alt=""><figcaption></figcaption></figure>
 
 #### What You Will Lose
 
