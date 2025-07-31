@@ -299,7 +299,14 @@ Solution: Request new password reset
 
 #### When All Else Fails
 
-If you cannot access your OpenAlgo account through any method (TOTP broken, email not working, lost credentials), you can delete the openalgo.db database file form the /db folder. **This will delete ALL data.**
+If you cannot access your OpenAlgo account through any method (TOTP broken, email not working, lost credentials), \
+\
+1\)stop openalgo application \
+2\)Locate the file openalgo.db from the db folder\
+3\)delete the openalgo.db database file form the /db folder \
+4\)restart the openalgo application\
+5\)Start signup with openalgo fresh\
+6\)Ensure Gmail SMTP Settings or TOTP Authenticator is Configured
 
 <figure><img src="../.gitbook/assets/image (112).png" alt=""><figcaption></figcaption></figure>
 
@@ -315,8 +322,6 @@ If you cannot access your OpenAlgo account through any method (TOTP broken, emai
 * **Rate limiting history**
 * **System settings and preferences**
 * **Custom configurations**
-* **Latency monitoring data**
-* **Traffic monitoring logs**
 
 
 
