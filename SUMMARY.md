@@ -70,6 +70,7 @@
   * [Docker Development](getting-started/docker-development.md)
   * [Testing OpenAlgo in Cloud](getting-started/testing-openalgo-in-cloud.md)
   * [SMTP Settings](getting-started/smtp-settings.md)
+  * [TOTP Configuration](getting-started/totp-configuration.md)
   * [Forgot Password](getting-started/forgot-password.md)
   * [Upgrade](getting-started/upgrade.md)
 * [Static IP](static-ip.md)

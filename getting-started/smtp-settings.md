@@ -22,6 +22,8 @@ From Email: your-email@gmail.com
 HELO Hostname: smtp.gmail.com
 ```
 
+<figure><img src="../.gitbook/assets/image (115).png" alt=""><figcaption></figcaption></figure>
+
 #### Google Workspace (Business Gmail)
 
 For business domains (e.g., user@yourcompany.com):
@@ -87,6 +89,8 @@ HELO Hostname: smtp.gmail.com
 
 ### App Password Setup (Required for Both)
 
+<figure><img src="../.gitbook/assets/image (113).png" alt=""><figcaption></figcaption></figure>
+
 #### For Personal Gmail:
 
 1. Go to [Google Account Settings](https://myaccount.google.com/apppasswords)
@@ -95,6 +99,8 @@ HELO Hostname: smtp.gmail.com
 4. Choose **Mail** from dropdown
 5. Generate password and copy the 16-character code
 6. Use this password in OpenAlgo (NOT your regular password)
+
+<figure><img src="../.gitbook/assets/image (114).png" alt=""><figcaption></figcaption></figure>
 
 #### For Google Workspace:
 
@@ -198,6 +204,8 @@ SMTP Port: 587 (instead of 465)
 3. **Click "Send Test"** to send test email to yourself
 4. **Check your inbox** (and spam folder)
 5. **Try Password Reset** to test end-to-end functionality
+
+<figure><img src="../.gitbook/assets/image (116).png" alt=""><figcaption></figcaption></figure>
 
 #### Expected Test Results
 
