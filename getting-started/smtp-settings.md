@@ -6,6 +6,8 @@
 
 Choose the configuration that matches your Gmail setup:
 
+{% embed url="https://www.youtube.com/watch?v=-wDDMycJ7AM" %}
+
 #### Personal Gmail (Recommended)
 
 After migration, go to **Profile → SMTP Configuration** and use:
