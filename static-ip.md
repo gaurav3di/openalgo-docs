@@ -16,7 +16,7 @@ You can update your registered IP, but only once a week at the Broker API Develo
 
 #### 3. **Is it possible to register more than one static IP?**
 
-Yes, you can register both a primary and a backup IP per app. However, changing IPs frequently goes against the guidelines.
+Yes, you can register both a primary and a backup IP per app. However, changing IPs frequently goes against the brokers guidelines.
 
 ***
 
