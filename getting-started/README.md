@@ -12,6 +12,10 @@ description: This Sections help users to install openalgo
 * [Ubuntu Server with Custom Domain](ubuntu-server-installation.md)
 * [Docker Developement](docker-development.md)
 * [Testing OpenAlgo in the Cloud (Github Codespace / Google Colab)](testing-openalgo-in-cloud.md)
+* [SMTP Settings](smtp-settings.md)
+* [TOTP Configuration](totp-configuration.md)
+* [Forgot Password](forgot-password.md)
+* [Upgrade](upgrade.md)
 
 
 
