@@ -140,6 +140,7 @@
   * [Futures to Options Module](trading-platform/tradingview/futures-to-options-module.md)
 * [ChartInk](trading-platform/chartink.md)
 * [Python](trading-platform/python/README.md)
+  * [Indicators](trading-platform/python/indicators.md)
   * [Strategy Management](trading-platform/python/strategy-management.md)
   * [EMA Crossover Strategy](trading-platform/python/ema-crossover-strategy.md)
   * [EMA Crossover Strategy with Stoploss and Target](trading-platform/python/ema-crossover-strategy-with-stoploss-and-target.md)
