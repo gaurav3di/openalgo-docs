@@ -4,6 +4,12 @@
 
 OpenAlgo Technical Indicators is a high-performance Python library designed for comprehensive technical analysis with a focus on speed, accuracy, and ease of use. Built from the ground up with modern optimization techniques, it provides over 80 technical indicators across all major categories.
 
+### Import Statement
+
+```python
+from openalgo import ta
+```
+
 ### List of Supported Indicators
 
 ### Trend Indicators
