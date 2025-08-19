@@ -1,7 +1,5 @@
 # Nifty OI Profile
 
-## NIFTY Options OI Profile Documentation
-
 ### Overview
 
 This application generates a comprehensive Options Open Interest (OI) profile for NIFTY futures and options contracts, providing traders with real-time insights into market sentiment and positioning. The tool combines futures price action with options flow analysis to deliver actionable trading intelligence.

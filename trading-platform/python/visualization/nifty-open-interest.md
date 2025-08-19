@@ -33,7 +33,7 @@ from openalgo import api
 API_KEY  = os.getenv("OPENALGO_API_KEY",  "openalgo-api-key")
 API_HOST = os.getenv("OPENALGO_API_HOST", "http://127.0.0.1:5000")
 
-EXPIRY        = "31JUL25"      # ✅ option expiry
+EXPIRY        = "28AUG25"      # ✅ option expiry
 RADIUS        = 20             # ± strikes
 STEP          = 100            # ✅ 100-pt strikes (was 50)
 BATCH_SIZE    = 10             # ✅ broker cap per second
