@@ -28,8 +28,7 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 \
 [https://github.com/marketcalls/OpenAlgo-Excel](https://github.com/marketcalls/OpenAlgo-Excel)
 
-⚡️ **Openalgo-PineTS with Tradingview Indicators**\
-
+⚡️ **Openalgo-PineTS with Tradingview Indicators**
 
 [https://github.com/marketcalls/openalgo-pinets](https://github.com/marketcalls/openalgo-pinets)
 
