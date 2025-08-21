@@ -149,6 +149,7 @@
     * [Hybrid](trading-platform/python/indicators/hybrid.md)
     * [Utility](trading-platform/python/indicators/utility.md)
   * [Visualization](trading-platform/python/visualization/README.md)
+    * [Correlation Heatmap](trading-platform/python/visualization/correlation-heatmap.md)
     * [NIFTY Open Interest](trading-platform/python/visualization/nifty-open-interest.md)
     * [Nifty OI Profile](trading-platform/python/visualization/nifty-oi-profile.md)
   * [Strategy Management](trading-platform/python/strategy-management.md)
