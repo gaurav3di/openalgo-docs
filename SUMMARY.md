@@ -80,6 +80,7 @@
 
 * [V1](api-documentation/v1/README.md)
   * [Accounts API](api-documentation/v1/accounts-api/README.md)
+    * [Ping](api-documentation/v1/accounts-api/ping.md)
     * [Funds](api-documentation/v1/accounts-api/funds.md)
     * [Orderbook](api-documentation/v1/accounts-api/orderbook.md)
     * [Tradebook](api-documentation/v1/accounts-api/tradebook.md)
