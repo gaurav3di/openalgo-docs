@@ -5,9 +5,9 @@
 This API Function checks connectivity and validates the API key authentication with the OpenAlgo platform
 
 ```http
-Local Host   :  POST http://127.0.0.1:5000/api/v1/funds
-Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/funds
-Custom Domain:  POST https://<your-custom-domain>/api/v1/funds
+Local Host   :  POST http://127.0.0.1:5000/api/v1/ping
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/ping
+Custom Domain:  POST https://<your-custom-domain>/api/v1/ping
 ```
 
 ### Sample API Request
