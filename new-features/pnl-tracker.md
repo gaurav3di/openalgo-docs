@@ -4,6 +4,8 @@
 
 The PnL Tracker is a real-time profit and loss monitoring feature in OpenAlgo that provides visual insights into intraday trading performance. It displays MTM (Mark-to-Market) PnL curves and drawdown analysis using interactive charts powered by TradingView Lightweight Charts.
 
+<figure><img src="../.gitbook/assets/PNL.jpeg" alt=""><figcaption></figcaption></figure>
+
 ## PnL Tracker Documentation
 
 ### Overview
@@ -124,6 +126,15 @@ The system robustly handles different timestamp formats from various brokers:
 
 
 
+### Time Filtering
+
+* **Start Time**: 9:00 AM IST (market open)
+* **End Time**: Current time
+* **Frequency**: 1-minute intervals
+* **Timezone**: Asia/Kolkata (IST)
+
+
+
 ### Performance Optimization
 
 #### Manual Refresh Only
@@ -157,8 +168,6 @@ The system robustly handles different timestamp formats from various brokers:
 * **MCX/Commodities**: Special quantity calculation when trade\_value equals average\_price (1 lot)
 * **Different timestamp formats**: Automatic detection and conversion
 * **Missing data fields**: Graceful fallback to defaults
-
-
 
 ### Usage
 
@@ -195,3 +204,5 @@ The system robustly handles different timestamp formats from various brokers:
    * Verify lightweight-charts.js is loaded
    * Check browser console for errors
    * Try different theme or refresh page
+
+####
