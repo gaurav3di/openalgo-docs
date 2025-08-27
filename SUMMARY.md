@@ -9,6 +9,7 @@
 * [New Features](new-features/README.md)
   * [Fast Scalper](new-features/fast-scalper.md)
   * [API Analyzer](new-features/api-analyzer.md)
+  * [PNL Tracker](new-features/pnl-tracker.md)
   * [Traffic/Latency Monitor](new-features/traffic-latency-monitor.md)
   * [Chartink Integration](new-features/chartink-integration.md)
 * [Monetization](monetization.md)
