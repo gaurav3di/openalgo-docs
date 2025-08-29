@@ -28,15 +28,16 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/orderstatus
 {
   "data": {
     "action": "BUY",
+    "average_price": 18.95,
     "exchange": "NSE",
     "order_status": "complete",
-    "orderid": "24120900146469",
-    "price": 21.81,
+    "orderid": "250828000185002",
+    "price": 0,
     "pricetype": "MARKET",
-    "product": "CNC",
-    "quantity": 10,
+    "product": "MIS",
+    "quantity": "1",
     "symbol": "YESBANK",
-    "timestamp": "09-Dec-2024 10:53:31",
+    "timestamp": "28-Aug-2025 09:59:10",
     "trigger_price": 0
   },
   "status": "success"
