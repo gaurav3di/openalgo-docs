@@ -2,6 +2,8 @@
 
 This guide focuses on setting up a development environment for OpenAlgo  using Docker.
 
+{% embed url="https://www.youtube.com/watch?v=ixIJypG9oeg" %}
+
 ### Prerequisites
 
 
