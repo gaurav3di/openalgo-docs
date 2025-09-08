@@ -19,7 +19,7 @@ Before proceeding, ensure you have the following:
 
 <figure><img src="../../.gitbook/assets/one (1).png" alt=""><figcaption></figcaption></figure>
 
-* Complete TOTP authentication.
+* Complete with OTP authentication send to your registered mobile and email ID.
 
 <figure><img src="../../.gitbook/assets/two.png" alt=""><figcaption></figcaption></figure>
 
