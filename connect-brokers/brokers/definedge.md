@@ -1,13 +1,8 @@
----
-description: >-
-  Definedge Securities  OpenAlgo provides seamless integration with Definedge
-  Securities, enabling you to connect your trading strategies with Definedge’s
-  brokerage services. Follow this guide t
----
-
 # Definedge
 
-Prerequisites
+OpenAlgo provides seamless integration with Definedge Securities, enabling you to connect your trading strategies with Definedge’s brokerage services. Follow this guide to set up your Definedge broker account with OpenAlgo.
+
+**Prerequisites**
 
 Before proceeding, ensure you have the following:
 
@@ -44,17 +39,16 @@ The Definedge API Token is used as the API key and API Secrets as API Secret its
 
 \#Definedge Broker Configuration
 
-BROKER\_API\_KEY = 'your\_API\_Token\_here'
-
-BROKER\_API\_SECRET = 'your\_API\_Secret\_here'&#x20;
-
-REDIRECT\_URL = 'http://127.0.0.1:5000/definedge/callback' &#x20;
-
-Replace your\_client\_id with your AliceBlue login user ID and your\_api\_secret\_here with the generated API secret key.Definedge Broker Configuration
+```
+# Definedge Broker Configuration
+BROKER_API_KEY = 'your_API_Token_here'
+BROKER_API_SECRET = 'your_API_Secret_here' 
+REDIRECT_URL = 'http://127.0.0.1:5000/definedge/callback' 
+```
 
 **Important Notes**
 
-* Ensure that your **API Secret Key** is stored securely and is not shared publicly.
+* Ensure that your **API Secret Key and API Token** are stored securely and is not shared publicly.
 * The **REDIRECT\_URL** should match the one registered with your API application.
 
-Follow these steps to integrate AliceBlue with OpenAlgo successfully. If you encounter any issues, refer to the Definedge API documentation for further assistance.
+Follow these steps to integrate Definedge with OpenAlgo successfully. If you encounter any issues, refer to the Definedge API documentation for further assistance.
