@@ -41,7 +41,6 @@
   * [Wisdom Capital](connect-brokers/brokers/wisdom-capital.md)
   * [Zebu](connect-brokers/brokers/zebu.md)
   * [Zerodha](connect-brokers/brokers/zerodha.md)
-* [Page 1](connect-brokers/page-1.md)
 
 ## Installation Guidelines
 
