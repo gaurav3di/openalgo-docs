@@ -9,20 +9,21 @@ List of OpenAlgo Supported Brokers
 3. Aliceblue
 4. AngelOne
 5. Compositedge (XTS)
-6. Dhan
-7. Dhan(Sandbox)
-8. Firstock
-9. Flattrade
-10. Fyers
-11. Groww
-12. IIFL (XTS)
-13. IndiaBulls
-14. IndMoney
-15. Kotak Securities
-16. Paytm
-17. Pocketful
-18. Shoonya
-19. Upstox
-20. Wisdom Capital (XTS)
-21. Zebu&#x20;
-22. Zerodha
+6. Definedge Securities
+7. Dhan
+8. Dhan(Sandbox)
+9. Firstock
+10. Flattrade
+11. Fyers
+12. Groww
+13. IIFL (XTS)
+14. IndiaBulls
+15. IndMoney
+16. Kotak Securities
+17. Paytm
+18. Pocketful
+19. Shoonya
+20. Upstox
+21. Wisdom Capital (XTS)
+22. Zebu&#x20;
+23. Zerodha
