@@ -22,6 +22,7 @@
   * [AliceBlue](connect-brokers/brokers/aliceblue.md)
   * [AngelOne](connect-brokers/brokers/angelone.md)
   * [Compositedge](connect-brokers/brokers/compositedge.md)
+  * [Definedge](connect-brokers/brokers/definedge.md)
   * [Dhan](connect-brokers/brokers/dhan.md)
   * [Dhan(Sandbox)](connect-brokers/brokers/dhan-sandbox.md)
   * [Firstock](connect-brokers/brokers/firstock.md)
@@ -40,6 +41,7 @@
   * [Wisdom Capital](connect-brokers/brokers/wisdom-capital.md)
   * [Zebu](connect-brokers/brokers/zebu.md)
   * [Zerodha](connect-brokers/brokers/zerodha.md)
+* [Page 1](connect-brokers/page-1.md)
 
 ## Installation Guidelines
 
