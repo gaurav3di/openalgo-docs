@@ -1,72 +1,57 @@
 # EMA Crossover Strategy with Stoploss and Target
 
-#### Strategy Name
+### Strategy Type
 
-`EMA_Crossover_RELIANCE`
+**Test Strategy** – Purpose-built for functional validation of data flow, signal generation, order placement, and WebSocket-based exits. Tight SL/Target are kept intentional for testing.
 
-#### Strategy Type
+### Instrument Configuration
 
-**Positional Strategy** – This strategy does not impose any intraday entry/exit time limits. Positions may remain open across multiple trading sessions until stoploss or target conditions are met.
+* Exchange: **NSE**
+* Symbol: **NHPC**
+* Quantity: **1**
+* Product: **MIS**
+* Timeframe (bars): **5m**
+* Historical Lookback: **5 days**
+* Trade Direction Mode: **BOTH** (supports `LONG` / `SHORT` / `BOTH`)
 
-***
+> Note: Behavior is logic-driven; MIS is used only for convenience during tests.
 
-#### Instrument Configuration
+### Indicators Used
 
-| Parameter    | Value    |
-| ------------ | -------- |
-| Symbol       | RELIANCE |
-| Exchange     | NSE      |
-| Quantity     | 1        |
-| Order Type   | MARKET   |
-| Product Type | MIS      |
+* **EMA 2:** Exponential Moving Average over the last 2 closing prices (very short-term).
+* **EMA 4:** Exponential Moving Average over the last 4 closing prices (short-term).
 
-> Note: Even though MIS is used, positional behavior is controlled through logic, not by broker product type. This can be switched to CNC for true positional holding if desired.
+### Entry Conditions
 
-***
+* Fetch **5-minute** historical candle data approximately every **5 seconds**.
+* Calculate **EMA-2** and **EMA-4**.
+* Confirm crossover using the **last two closed candles** (not the current forming candle).
+* **Buy Signal:** Previous candle EMA-2 ≤ EMA-4 **and** last closed candle EMA-2 > EMA-4.
+* **Sell Signal:** Previous candle EMA-2 ≥ EMA-4 **and** last closed candle EMA-2 < EMA-4.
+* On confirmed signal:
+  * Place a **MARKET** order (**BUY** or **SELL**).
+  * Capture entry price and compute risk levels:
+    * **For BUY:** Stoploss = Entry − **₹0.10**, Target = Entry + **₹0.20**
+    * **For SELL:** Stoploss = Entry + **₹0.10**, Target = Entry − **₹0.20**
 
-#### Indicators Used
+### Exit Conditions
 
-* **EMA 5**: Exponential Moving Average over the last 5 closing prices (short-term trend).
-* **EMA 10**: Exponential Moving Average over the last 10 closing prices (medium-term trend).
+* Use **WebSocket** streaming to receive live **LTP** updates.
+* Continuously check if LTP hits the defined **stoploss** or **target**.
+* When triggered, **exit** via a **MARKET** order in the **opposite** direction.
 
-***
+### Strategy Architecture
 
-#### Entry Conditions
+* **Two threads:**
+  * **WebSocket Thread:** Listens to real-time LTP and checks SL/Target.
+  * **Strategy Thread:** Periodically fetches historical data, evaluates EMA signals, and initiates trades.
+* Uses `threading.Event()` for graceful shutdown via **CTRL+C**.
 
-* Fetch 1-minute historical candle data every 5 seconds.
-* Calculate EMA-5 and EMA-10.
-* Identify **confirmed** crossover using the last two closed candles (i.e., not the current forming candle).
-  * **Buy Signal**: Previous candle EMA-5 < EMA-10 and last closed candle EMA-5 > EMA-10.
-  * **Sell Signal**: Previous candle EMA-5 > EMA-10 and last closed candle EMA-5 < EMA-10.
-* When a signal is confirmed:
-  * Place a MARKET order (`BUY` or `SELL`).
-  * Capture entry price and calculate:
-    * Stoploss = Entry Price − 10.0
-    * Target = Entry Price + 20.0
+### Shutdown Behavior
 
-***
-
-#### Exit Conditions
-
-* Use WebSocket streaming to receive live LTP updates.
-* Continuously monitor whether LTP hits stoploss or target levels.
-* When triggered, exit the position by placing a MARKET order in the opposite direction.
-
-***
-
-#### Strategy Architecture
-
-* Two dedicated threads:
-  1. **WebSocket Thread**: Listens to real-time LTP and checks SL/Target.
-  2. **Strategy Thread**: Periodically fetches historical data, calculates EMA signals, and initiates trades.
-* Uses `threading.Event()` to handle graceful shutdown via `CTRL+C`.
-
-***
-
-#### Shutdown Behavior
-
-* On receiving a keyboard interrupt, both threads are safely stopped.
-* WebSocket subscription is removed, and connection is closed.
+* On keyboard interrupt, both threads are stopped safely.
+* WebSocket subscription is removed and the connection is closed.
+* If a position is open, the strategy attempts to **close it with a MARKET order** before exit.
 * The strategy exits cleanly and logs the shutdown.
 
 ***
@@ -74,180 +59,475 @@
 #### Complete Code
 
 ```python
+"""
+===============================================================================
+                EMA CROSSOVER WITH WEBSOCKET & DIRECTION CONTROL
+                            OpenAlgo Trading Bot
+===============================================================================
+"""
+
+from openalgo import api
+import pandas as pd
+from datetime import datetime, timedelta
 import threading
 import time
-import signal
-import pandas as pd
-import pandas_ta as ta
-from datetime import datetime, timedelta
-from openalgo import api
 
-# Initialize OpenAlgo client
-client = api(
-    api_key="openalgo-api-key",
-    host="http://127.0.0.1:5000",
-    ws_url="ws://127.0.0.1:8765"
-)
+# ===============================================================================
+# TRADING CONFIGURATION
+# ===============================================================================
 
-# Configuration
-STRATEGY_NAME = "EMA_Crossover_RELIANCE"
-SYMBOL = "RELIANCE"
-EXCHANGE = "NSE"
-QUANTITY = 1
-PRODUCT = "MIS"
-PRICE_TYPE = "MARKET"
-STOPLOSS_BUFFER = 10.0
-TARGET_BUFFER = 20.0
-instrument = [{"exchange": EXCHANGE, "symbol": SYMBOL}]
+# API Configuration
+API_KEY = "56c3dc6ba7d9c9df478e4f19ffc5d3e15e1dd91b5aa11e91c910f202c91eff9d"
+API_HOST = "http://127.0.0.1:5000"
+WS_URL = "ws://127.0.0.1:8765"
 
-# State Variables
-ltp = None
-in_position = False
-entry_price = None
-stoploss_price = None
-target_price = None
-current_position = None
-exit_signal = False
-stop_event = threading.Event()
+# Trade Settings
+SYMBOL = "NHPC"              # Stock to trade
+EXCHANGE = "NSE"             # Exchange (NSE, BSE, NFO, etc.)
+QUANTITY = 1                 # Number of shares
+PRODUCT = "MIS"              # MIS (Intraday) or CNC (Delivery)
 
-# WebSocket LTP Handler
-def on_data_received(data):
-    global ltp, exit_signal
-    if data.get("type") == "market_data" and data.get("symbol") == SYMBOL:
-        ltp = float(data["data"]["ltp"])
-        print(f"LTP Update {EXCHANGE}:{SYMBOL} => ₹{ltp}")
-        if in_position and not exit_signal:
-            if ltp <= stoploss_price or ltp >= target_price:
-                print(f"Exit Triggered: LTP ₹{ltp} hit stoploss or target.")
-                exit_signal = True
+HISTORICAL_DATA = 5          # 5 days of Historical data
 
-# WebSocket Thread
-def websocket_thread():
-    try:
-        client.connect()
-        client.subscribe_ltp(instrument, on_data_received=on_data_received)
-        print("WebSocket LTP thread started.")
-        while not stop_event.is_set():
-            time.sleep(1)
-    finally:
-        print("Shutting down WebSocket...")
-        client.unsubscribe_ltp(instrument)
-        client.disconnect()
-        print("WebSocket connection closed.")
+# Strategy Parameters
+FAST_EMA_PERIOD = 2          # Fast EMA (smaller number)
+SLOW_EMA_PERIOD = 4          # Slow EMA (larger number)
+CANDLE_TIMEFRAME = "5m"      # 1m, 5m, 15m, 30m, 1h, 1d
 
-# EMA Signal Logic
-def get_latest_signals():
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=3)
+# Risk Management
+STOPLOSS = 0.1               # Stoploss in Rupees
+TARGET = 0.2                 # Target in Rupees
 
-    df = client.history(
-        symbol=SYMBOL,
-        exchange=EXCHANGE,
-        interval="5m",
-        start_date=start_date.strftime("%Y-%m-%d"),
-        end_date=end_date.strftime("%Y-%m-%d")
-    )
+# ===============================================================================
+# DIRECTION CONTROL - Choose your trading direction
+# ===============================================================================
 
-    df.ta.ema(length=5, append=True)
-    df.ta.ema(length=10, append=True)
+# Options: "LONG", "SHORT", "BOTH"
+# LONG = Only take BUY trades
+# SHORT = Only take SELL trades  
+# BOTH = Take both BUY and SELL trades
 
-    if len(df) < 3:
-        print("Waiting for sufficient data...")
+TRADE_DIRECTION = "BOTH"     # Change this to "LONG", "SHORT", or "BOTH"
+
+# ===============================================================================
+# TRADING BOT WITH DIRECTION CONTROL
+# ===============================================================================
+
+class DirectionalEMABot:
+    def __init__(self):
+        """Initialize the trading bot with WebSocket and direction control"""
+        # Initialize API client
+        self.client = api(
+            api_key=API_KEY,
+            host=API_HOST,
+            ws_url=WS_URL
+        )
+        
+        # Position tracking
+        self.position = None
+        self.entry_price = 0
+        self.stoploss_price = 0
+        self.target_price = 0
+        
+        # Real-time price tracking
+        self.ltp = None
+        self.exit_signal = False
+        
+        # Thread control
+        self.running = True
+        self.stop_event = threading.Event()
+        
+        # Instrument for WebSocket
+        self.instrument = [{"exchange": EXCHANGE, "symbol": SYMBOL}]
+        
+        # Strategy name
+        self.strategy_name = f"EMA_{TRADE_DIRECTION}"
+        
+        print("[BOT] OpenAlgo Trading Bot Started")
+        print(f"[BOT] Direction Mode: {TRADE_DIRECTION}")
+        print(f"[BOT] Strategy: {FAST_EMA_PERIOD} EMA x {SLOW_EMA_PERIOD} EMA")
+    
+    # ===============================================================================
+    # WEBSOCKET HANDLERS
+    # ===============================================================================
+    
+    def on_ltp_update(self, data):
+        """Handle real-time LTP updates from WebSocket"""
+        if data.get("type") == "market_data" and data.get("symbol") == SYMBOL:
+            self.ltp = float(data["data"]["ltp"])
+            
+            # Display current status
+            current_time = datetime.now().strftime("%H:%M:%S")
+            
+            if self.position:
+                # Calculate real-time P&L
+                if self.position == "BUY":
+                    unrealized_pnl = (self.ltp - self.entry_price) * QUANTITY
+                else:
+                    unrealized_pnl = (self.entry_price - self.ltp) * QUANTITY
+                
+                pnl_sign = "+" if unrealized_pnl > 0 else "-"
+                print(f"\r[{current_time}] LTP: Rs.{self.ltp:.2f} | "
+                      f"{self.position} @ Rs.{self.entry_price:.2f} | "
+                      f"P&L: {pnl_sign}Rs.{abs(unrealized_pnl):.2f} | "
+                      f"SL: {self.stoploss_price:.2f} | TG: {self.target_price:.2f}    ", end="")
+                
+                # Check for SL/Target hit in real-time
+                if not self.exit_signal:
+                    if self.position == "BUY":
+                        if self.ltp <= self.stoploss_price:
+                            print(f"\n[ALERT] STOPLOSS HIT! LTP Rs.{self.ltp:.2f} <= SL Rs.{self.stoploss_price:.2f}")
+                            self.exit_signal = True
+                        elif self.ltp >= self.target_price:
+                            print(f"\n[ALERT] TARGET HIT! LTP Rs.{self.ltp:.2f} >= Target Rs.{self.target_price:.2f}")
+                            self.exit_signal = True
+                    
+                    elif self.position == "SELL":
+                        if self.ltp >= self.stoploss_price:
+                            print(f"\n[ALERT] STOPLOSS HIT! LTP Rs.{self.ltp:.2f} >= SL Rs.{self.stoploss_price:.2f}")
+                            self.exit_signal = True
+                        elif self.ltp <= self.target_price:
+                            print(f"\n[ALERT] TARGET HIT! LTP Rs.{self.ltp:.2f} <= Target Rs.{self.target_price:.2f}")
+                            self.exit_signal = True
+            else:
+                print(f"\r[{current_time}] LTP: Rs.{self.ltp:.2f} | No Position | Mode: {TRADE_DIRECTION}    ", end="")
+    
+    def websocket_thread(self):
+        """WebSocket thread for real-time price updates"""
+        try:
+            print("[WEBSOCKET] Connecting...")
+            self.client.connect()
+            
+            # Subscribe to LTP updates
+            self.client.subscribe_ltp(self.instrument, on_data_received=self.on_ltp_update)
+            print(f"[WEBSOCKET] Connected - Monitoring {SYMBOL} in real-time")
+            
+            # Keep thread alive
+            while not self.stop_event.is_set():
+                time.sleep(1)
+                
+        except Exception as e:
+            print(f"\n[ERROR] WebSocket error: {e}")
+        finally:
+            print("\n[WEBSOCKET] Closing connection...")
+            try:
+                self.client.unsubscribe_ltp(self.instrument)
+                self.client.disconnect()
+            except:
+                pass
+            print("[WEBSOCKET] Connection closed")
+    
+    # ===============================================================================
+    # TRADING FUNCTIONS
+    # ===============================================================================
+    
+    def get_historical_data(self):
+        """Fetch historical candle data"""
+        try:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=HISTORICAL_DATA)
+            
+            data = self.client.history(
+                symbol=SYMBOL,
+                exchange=EXCHANGE,
+                interval=CANDLE_TIMEFRAME,
+                start_date=start_date.strftime("%Y-%m-%d"),
+                end_date=end_date.strftime("%Y-%m-%d")
+            )
+            return data
+        except Exception as e:
+            print(f"\n[ERROR] Failed to fetch data: {e}")
+            return None
+    
+    def check_for_signal(self, data):
+        """Check for EMA crossover signals with direction filter"""
+        if data is None or len(data) < SLOW_EMA_PERIOD + 2:
+            return None
+        
+        # Calculate EMAs
+        data['fast_ema'] = data['close'].ewm(span=FAST_EMA_PERIOD, adjust=False).mean()
+        data['slow_ema'] = data['close'].ewm(span=SLOW_EMA_PERIOD, adjust=False).mean()
+        
+        # Get last two completed candles
+        prev = data.iloc[-3]
+        last = data.iloc[-2]
+        current = data.iloc[-1]
+        
+        # Display EMA values for debugging
+        print(f"\n[DEBUG] Fast EMA: {last['fast_ema']:.2f}, Slow EMA: {last['slow_ema']:.2f}, Close: {current['close']:.2f}")
+        
+        # Check for BUY signal (Fast EMA crosses above Slow EMA)
+        if prev['fast_ema'] <= prev['slow_ema'] and last['fast_ema'] > last['slow_ema']:
+            if TRADE_DIRECTION in ["LONG", "BOTH"]:
+                print(f"[SIGNAL] BUY - Fast EMA crossed above Slow EMA")
+                return "BUY"
+            else:
+                print(f"[SIGNAL] BUY signal detected but ignored (Mode: {TRADE_DIRECTION})")
+                return None
+        
+        # Check for SELL signal (Fast EMA crosses below Slow EMA)
+        if prev['fast_ema'] >= prev['slow_ema'] and last['fast_ema'] < last['slow_ema']:
+            if TRADE_DIRECTION in ["SHORT", "BOTH"]:
+                print(f"[SIGNAL] SELL - Fast EMA crossed below Slow EMA")
+                return "SELL"
+            else:
+                print(f"[SIGNAL] SELL signal detected but ignored (Mode: {TRADE_DIRECTION})")
+                return None
+        
         return None
+    
+    def get_executed_price(self, order_id):
+        """Get actual executed price from order status"""
+        max_attempts = 5
+        
+        for attempt in range(max_attempts):
+            time.sleep(2)
+            
+            try:
+                response = self.client.orderstatus(
+                    order_id=order_id,
+                    strategy=self.strategy_name
+                )
+                
+                if response.get("status") == "success":
+                    order_data = response.get("data", {})
+                    
+                    if order_data.get("order_status") == "complete":
+                        executed_price = float(order_data.get("average_price", 0))
+                        if executed_price > 0:
+                            return executed_price
+                    
+                    elif order_data.get("order_status") in ["rejected", "cancelled"]:
+                        print(f"[ERROR] Order {order_data.get('order_status')}")
+                        return None
+                    
+                    else:
+                        print(f"[WAITING] Order status: {order_data.get('order_status')}")
+                
+            except Exception as e:
+                print(f"[ERROR] Failed to get order status: {e}")
+        
+        return None
+    
+    def place_entry_order(self, signal):
+        """Place entry order based on direction filter"""
+        # Double-check direction filter
+        if signal == "BUY" and TRADE_DIRECTION == "SHORT":
+            print("[INFO] BUY signal ignored - SHORT only mode")
+            return False
+        
+        if signal == "SELL" and TRADE_DIRECTION == "LONG":
+            print("[INFO] SELL signal ignored - LONG only mode")
+            return False
+        
+        print(f"\n[ORDER] Placing {signal} order for {QUANTITY} shares of {SYMBOL}")
+        
+        try:
+            response = self.client.placeorder(
+                strategy=self.strategy_name,
+                symbol=SYMBOL,
+                exchange=EXCHANGE,
+                action=signal,
+                quantity=QUANTITY,
+                price_type="MARKET",
+                product=PRODUCT
+            )
+            
+            if response.get("status") == "success":
+                order_id = response.get("orderid")
+                print(f"[ORDER] Order placed. ID: {order_id}")
+                
+                # Get actual executed price
+                executed_price = self.get_executed_price(order_id)
+                
+                if executed_price:
+                    self.position = signal
+                    self.entry_price = executed_price
+                    
+                    # Set SL and Target
+                    if signal == "BUY":
+                        self.stoploss_price = round(self.entry_price - STOPLOSS, 2)
+                        self.target_price = round(self.entry_price + TARGET, 2)
+                    else:  # SELL
+                        self.stoploss_price = round(self.entry_price + STOPLOSS, 2)
+                        self.target_price = round(self.entry_price - TARGET, 2)
+                    
+                    print("\n" + "="*60)
+                    print(" TRADE EXECUTED")
+                    print("="*60)
+                    print(f" Direction Mode: {TRADE_DIRECTION}")
+                    print(f" Position: {signal}")
+                    print(f" Entry Price: Rs.{self.entry_price:.2f}")
+                    print(f" Quantity: {QUANTITY}")
+                    print(f" Stoploss: Rs.{self.stoploss_price:.2f}")
+                    print(f" Target: Rs.{self.target_price:.2f}")
+                    print("="*60)
+                    print("\n[INFO] WebSocket monitoring SL/Target in real-time...")
+                    
+                    return True
+                else:
+                    print("[ERROR] Could not get executed price")
+            else:
+                print(f"[ERROR] Order failed: {response}")
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to place order: {e}")
+        
+        return False
+    
+    def place_exit_order(self, reason="Manual"):
+        """Place exit order"""
+        if not self.position:
+            return
+        
+        exit_action = "SELL" if self.position == "BUY" else "BUY"
+        print(f"\n[EXIT] Closing {self.position} position - {reason}")
+        
+        try:
+            response = self.client.placeorder(
+                strategy=self.strategy_name,
+                symbol=SYMBOL,
+                exchange=EXCHANGE,
+                action=exit_action,
+                quantity=QUANTITY,
+                price_type="MARKET",
+                product=PRODUCT
+            )
+            
+            if response.get("status") == "success":
+                order_id = response.get("orderid")
+                exit_price = self.get_executed_price(order_id)
+                
+                if exit_price:
+                    # Calculate P&L
+                    if self.position == "BUY":
+                        pnl = (exit_price - self.entry_price) * QUANTITY
+                    else:
+                        pnl = (self.entry_price - exit_price) * QUANTITY
+                    
+                    print("\n" + "="*60)
+                    print(" POSITION CLOSED")
+                    print("="*60)
+                    print(f" Exit Price: Rs.{exit_price:.2f}")
+                    print(f" Entry Price: Rs.{self.entry_price:.2f}")
+                    print(f" P&L: Rs.{pnl:.2f} [{('PROFIT' if pnl > 0 else 'LOSS')}]")
+                    print("="*60)
+                
+                # Reset position
+                self.position = None
+                self.entry_price = 0
+                self.stoploss_price = 0
+                self.target_price = 0
+                self.exit_signal = False
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to exit: {e}")
+            self.exit_signal = False  # Reset to retry
+    
+    # ===============================================================================
+    # STRATEGY THREAD
+    # ===============================================================================
+    
+    def strategy_thread(self):
+        """Strategy thread for signal generation and exit management"""
+        print("[STRATEGY] Strategy thread started")
+        print(f"[STRATEGY] Direction: {TRADE_DIRECTION} trades only")
+        
+        while not self.stop_event.is_set():
+            try:
+                if not self.position:
+                    # Look for entry signals
+                    data = self.get_historical_data()
+                    if data is not None:
+                        signal = self.check_for_signal(data)
+                        if signal:
+                            self.place_entry_order(signal)
+                
+                elif self.exit_signal:
+                    # Exit if SL/Target hit (detected by WebSocket)
+                    self.place_exit_order("SL/Target Hit via WebSocket")
+                
+                # Check signals every 5 seconds
+                time.sleep(5)
+                
+            except Exception as e:
+                print(f"\n[ERROR] Strategy error: {e}")
+                time.sleep(10)
+    
+    # ===============================================================================
+    # MAIN RUN METHOD
+    # ===============================================================================
+    
+    def run(self):
+        """Main method to run the bot"""
+        print("="*60)
+        print(" EMA CROSSOVER WITH DIRECTION CONTROL")
+        print("="*60)
+        print(f" Symbol: {SYMBOL} | Exchange: {EXCHANGE}")
+        print(f" Strategy: {FAST_EMA_PERIOD} EMA x {SLOW_EMA_PERIOD} EMA")
+        print(f" Direction: {TRADE_DIRECTION} trades only")
+        print(f" Risk: SL Rs.{STOPLOSS} | Target Rs.{TARGET}")
+        print(f" Timeframe: {CANDLE_TIMEFRAME}")
+        print("="*60)
+        
+        # Display direction mode details
+        if TRADE_DIRECTION == "LONG":
+            print(" [MODE] LONG ONLY - Will only take BUY trades")
+        elif TRADE_DIRECTION == "SHORT":
+            print(" [MODE] SHORT ONLY - Will only take SELL trades")
+        else:
+            print(" [MODE] BOTH - Will take both BUY and SELL trades")
+        
+        print("="*60)
+        print("\nPress Ctrl+C to stop the bot\n")
+        
+        # Start WebSocket thread
+        ws_thread = threading.Thread(target=self.websocket_thread, daemon=True)
+        ws_thread.start()
+        
+        # Give WebSocket time to connect
+        time.sleep(2)
+        
+        # Start strategy thread
+        strat_thread = threading.Thread(target=self.strategy_thread, daemon=True)
+        strat_thread.start()
+        
+        try:
+            # Keep main thread alive
+            while self.running:
+                time.sleep(1)
+                
+        except KeyboardInterrupt:
+            print("\n\n[SHUTDOWN] Shutting down bot...")
+            self.running = False
+            self.stop_event.set()
+            
+            # Close any open position
+            if self.position:
+                print("[INFO] Closing open position before shutdown...")
+                self.place_exit_order("Bot Shutdown")
+            
+            # Wait for threads to finish
+            ws_thread.join(timeout=5)
+            strat_thread.join(timeout=5)
+            
+            print("[SUCCESS] Bot stopped successfully!")
 
-    prev = df.iloc[-3]
-    last = df.iloc[-2]
-
-    print(f"{datetime.now().strftime('%H:%M:%S')} | EMA5: {last['EMA_5']:.2f}, EMA10: {last['EMA_10']:.2f}")
-
-    if prev['EMA_5'] < prev['EMA_10'] and last['EMA_5'] > last['EMA_10']:
-        print("Confirmed BUY crossover.")
-        return "BUY"
-    elif prev['EMA_5'] > prev['EMA_10'] and last['EMA_5'] < last['EMA_10']:
-        print("Confirmed SELL crossover.")
-        return "SELL"
-    return None
-
-# Place Order
-def place_order(action):
-    global in_position, entry_price, stoploss_price, target_price, current_position
-
-    print(f"Placing {action} order for {SYMBOL}")
-    resp = client.placeorder(
-        strategy=STRATEGY_NAME,
-        symbol=SYMBOL,
-        exchange=EXCHANGE,
-        action=action,
-        price_type=PRICE_TYPE,
-        product=PRODUCT,
-        quantity=QUANTITY
-    )
-    print("Order Response:", resp)
-
-    if resp.get("status") == "success":
-        order_id = resp.get("orderid")
-        time.sleep(1)
-        status = client.orderstatus(order_id=order_id, strategy=STRATEGY_NAME)
-        data = status.get("data", {})
-        if data.get("order_status", "").lower() == "complete":
-            entry_price = float(data["price"])
-            stoploss_price = round(entry_price - STOPLOSS_BUFFER, 2)
-            target_price = round(entry_price + TARGET_BUFFER, 2)
-            current_position = action
-            in_position = True
-            print(f"Entry @ ₹{entry_price} | SL ₹{stoploss_price} | Target ₹{target_price}")
-
-# Exit Order
-def exit_trade():
-    global in_position, exit_signal
-    action = "SELL" if current_position == "BUY" else "BUY"
-    print(f"Exiting trade with {action}")
-    client.placeorder(
-        strategy=STRATEGY_NAME,
-        symbol=SYMBOL,
-        exchange=EXCHANGE,
-        action=action,
-        price_type=PRICE_TYPE,
-        product=PRODUCT,
-        quantity=QUANTITY
-    )
-    in_position = False
-    exit_signal = False
-
-# Strategy Thread
-def strategy_thread():
-    global exit_signal
-    while not stop_event.is_set():
-        if not in_position:
-            signal = get_latest_signals()
-            if signal:
-                place_order(signal)
-        elif exit_signal:
-            exit_trade()
-        time.sleep(5)
-
-# Main Execution
-def main():
-    print("EMA Crossover Strategy is running...")
-
-    ws_thread = threading.Thread(target=websocket_thread)
-    strat_thread = threading.Thread(target=strategy_thread)
-
-    ws_thread.start()
-    strat_thread.start()
-
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("KeyboardInterrupt received. Shutting down...")
-        stop_event.set()
-        ws_thread.join()
-        strat_thread.join()
-        print("Strategy shutdown complete.")
+# ===============================================================================
+# START THE BOT
+# ===============================================================================
 
 if __name__ == "__main__":
-    main()
+    print("\n" + "="*60)
+    print(" OPENALGO EMA STRATEGY WITH DIRECTION CONTROL")
+    print("="*60)
+    print(f" Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f" Mode: {TRADE_DIRECTION}")
+    print("="*60 + "\n")
+    
+    # Create and run the bot
+    bot = DirectionalEMABot()
+    bot.run()
 ```
 
 ***
