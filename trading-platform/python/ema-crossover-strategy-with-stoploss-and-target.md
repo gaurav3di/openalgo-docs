@@ -77,7 +77,7 @@ import time
 # ===============================================================================
 
 # API Configuration
-API_KEY = "56c3dc6ba7d9c9df478e4f19ffc5d3e15e1dd91b5aa11e91c910f202c91eff9d"
+API_KEY = "openalgo-apikey"
 API_HOST = "http://127.0.0.1:5000"
 WS_URL = "ws://127.0.0.1:8765"
 
