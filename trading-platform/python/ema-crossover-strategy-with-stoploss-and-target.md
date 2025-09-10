@@ -61,7 +61,7 @@
 ```python
 """
 ===============================================================================
-                EMA CROSSOVER WITH CONFIGURABLE LOOKBACK
+                EMA CROSSOVER WITH FIXED DATETIME HANDLING
                             OpenAlgo Trading Bot
 ===============================================================================
 """
@@ -77,7 +77,7 @@ import time
 # ===============================================================================
 
 # API Configuration
-API_KEY = "56c3dc6ba7d9c9df478e4f19ffc5d3e15e1dd91b5aa11e91c910f202c91eff9d"
+API_KEY = "openalgo-apikey"
 API_HOST = "http://127.0.0.1:5000"
 WS_URL = "ws://127.0.0.1:8765"
 
@@ -106,7 +106,7 @@ TRADE_DIRECTION = "BOTH"     # Options: "LONG", "SHORT", "BOTH"
 SIGNAL_CHECK_INTERVAL = 5    # Check for signals every X seconds
 
 # ===============================================================================
-# TRADING BOT WITH CONFIGURABLE PARAMETERS
+# TRADING BOT WITH FIXED DATETIME
 # ===============================================================================
 
 class ConfigurableEMABot:
@@ -244,12 +244,13 @@ class ConfigurableEMABot:
     # ===============================================================================
     
     def get_historical_data(self):
-        """Fetch historical candle data with configurable lookback"""
+        """Fetch historical candle data with configurable lookback - FIXED VERSION"""
         try:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=self.lookback_days)
             
             print(f"\n[DATA] Fetching {self.lookback_days} days of historical data...")
+            print(f"[DATA] From: {start_date.strftime('%Y-%m-%d')} To: {end_date.strftime('%Y-%m-%d')}")
             
             data = self.client.history(
                 symbol=SYMBOL,
@@ -260,48 +261,91 @@ class ConfigurableEMABot:
             )
             
             if data is not None and len(data) > 0:
-                print(f"[DATA] Received {len(data)} candles from {data.iloc[0]['datetime']} to {data.iloc[-1]['datetime']}")
+                # Handle datetime field properly
+                if 'datetime' in data.columns:
+                    # Get first and last datetime as strings
+                    first_time = str(data['datetime'].iloc[0])
+                    last_time = str(data['datetime'].iloc[-1])
+                    print(f"[DATA] Received {len(data)} candles from {first_time} to {last_time}")
+                elif 'date' in data.columns:
+                    first_date = str(data['date'].iloc[0])
+                    last_date = str(data['date'].iloc[-1])
+                    print(f"[DATA] Received {len(data)} candles from {first_date} to {last_date}")
+                else:
+                    print(f"[DATA] Received {len(data)} candles")
+            else:
+                print("[WARNING] No data received from API")
             
             return data
+            
         except Exception as e:
-            print(f"\n[ERROR] Failed to fetch data: {e}")
+            print(f"\n[ERROR] Failed to fetch data: {str(e)}")
+            print(f"[DEBUG] Error type: {type(e).__name__}")
+            
+            # Try alternative approach without datetime access
+            try:
+                end_date = datetime.now()
+                start_date = end_date - timedelta(days=self.lookback_days)
+                
+                data = self.client.history(
+                    symbol=SYMBOL,
+                    exchange=EXCHANGE,
+                    interval=CANDLE_TIMEFRAME,
+                    start_date=start_date.strftime("%Y-%m-%d"),
+                    end_date=end_date.strftime("%Y-%m-%d")
+                )
+                
+                if data is not None and len(data) > 0:
+                    print(f"[DATA] Successfully received {len(data)} candles (alternative method)")
+                    return data
+                    
+            except Exception as e2:
+                print(f"[ERROR] Alternative fetch also failed: {str(e2)}")
+            
             return None
     
     def check_for_signal(self, data):
         """Check for EMA crossover signals with direction filter"""
-        if data is None or len(data) < SLOW_EMA_PERIOD + 2:
-            print(f"[INFO] Insufficient data. Need at least {SLOW_EMA_PERIOD + 2} candles, have {len(data) if data is not None else 0}")
+        if data is None:
+            return None
+            
+        if len(data) < SLOW_EMA_PERIOD + 2:
+            print(f"[INFO] Insufficient data. Need at least {SLOW_EMA_PERIOD + 2} candles, have {len(data)}")
             return None
         
-        # Calculate EMAs
-        data['fast_ema'] = data['close'].ewm(span=FAST_EMA_PERIOD, adjust=False).mean()
-        data['slow_ema'] = data['close'].ewm(span=SLOW_EMA_PERIOD, adjust=False).mean()
-        
-        # Get last two completed candles
-        prev = data.iloc[-3]
-        last = data.iloc[-2]
-        current = data.iloc[-1]
-        
-        # Display EMA values for debugging
-        print(f"[DEBUG] Fast EMA: {last['fast_ema']:.2f}, Slow EMA: {last['slow_ema']:.2f}, Close: {current['close']:.2f}")
-        
-        # Check for BUY signal (Fast EMA crosses above Slow EMA)
-        if prev['fast_ema'] <= prev['slow_ema'] and last['fast_ema'] > last['slow_ema']:
-            if TRADE_DIRECTION in ["LONG", "BOTH"]:
-                print(f"[SIGNAL] BUY - Fast EMA crossed above Slow EMA")
-                return "BUY"
-            else:
-                print(f"[SIGNAL] BUY signal detected but ignored (Mode: {TRADE_DIRECTION})")
-                return None
-        
-        # Check for SELL signal (Fast EMA crosses below Slow EMA)
-        if prev['fast_ema'] >= prev['slow_ema'] and last['fast_ema'] < last['slow_ema']:
-            if TRADE_DIRECTION in ["SHORT", "BOTH"]:
-                print(f"[SIGNAL] SELL - Fast EMA crossed below Slow EMA")
-                return "SELL"
-            else:
-                print(f"[SIGNAL] SELL signal detected but ignored (Mode: {TRADE_DIRECTION})")
-                return None
+        try:
+            # Calculate EMAs
+            data['fast_ema'] = data['close'].ewm(span=FAST_EMA_PERIOD, adjust=False).mean()
+            data['slow_ema'] = data['close'].ewm(span=SLOW_EMA_PERIOD, adjust=False).mean()
+            
+            # Get last two completed candles
+            prev = data.iloc[-3]
+            last = data.iloc[-2]
+            current = data.iloc[-1]
+            
+            # Display EMA values for debugging
+            print(f"[DEBUG] Fast EMA: {last['fast_ema']:.2f}, Slow EMA: {last['slow_ema']:.2f}, Close: {current['close']:.2f}")
+            
+            # Check for BUY signal (Fast EMA crosses above Slow EMA)
+            if prev['fast_ema'] <= prev['slow_ema'] and last['fast_ema'] > last['slow_ema']:
+                if TRADE_DIRECTION in ["LONG", "BOTH"]:
+                    print(f"[SIGNAL] BUY - Fast EMA crossed above Slow EMA")
+                    return "BUY"
+                else:
+                    print(f"[SIGNAL] BUY signal detected but ignored (Mode: {TRADE_DIRECTION})")
+                    return None
+            
+            # Check for SELL signal (Fast EMA crosses below Slow EMA)
+            if prev['fast_ema'] >= prev['slow_ema'] and last['fast_ema'] < last['slow_ema']:
+                if TRADE_DIRECTION in ["SHORT", "BOTH"]:
+                    print(f"[SIGNAL] SELL - Fast EMA crossed below Slow EMA")
+                    return "SELL"
+                else:
+                    print(f"[SIGNAL] SELL signal detected but ignored (Mode: {TRADE_DIRECTION})")
+                    return None
+            
+        except Exception as e:
+            print(f"[ERROR] Error checking signal: {str(e)}")
         
         return None
     
@@ -495,7 +539,8 @@ class ConfigurableEMABot:
                         if signal:
                             self.place_entry_order(signal)
                     else:
-                        print("[WARNING] No historical data available")
+                        if not initial_data_fetched:
+                            print("[WARNING] Waiting for historical data...")
                 
                 # Check signals at configured interval
                 time.sleep(SIGNAL_CHECK_INTERVAL)
@@ -511,7 +556,7 @@ class ConfigurableEMABot:
     def run(self):
         """Main method to run the bot"""
         print("="*60)
-        print(" EMA CROSSOVER WITH CONFIGURABLE PARAMETERS")
+        print(" EMA CROSSOVER BOT - FIXED VERSION")
         print("="*60)
         print(f" Symbol: {SYMBOL} | Exchange: {EXCHANGE}")
         print(f" Strategy: {FAST_EMA_PERIOD} EMA x {SLOW_EMA_PERIOD} EMA")
@@ -529,25 +574,6 @@ class ConfigurableEMABot:
             print(" [MODE] SHORT ONLY - Will only take SELL trades")
         else:
             print(" [MODE] BOTH - Will take both BUY and SELL trades")
-        
-        print("="*60)
-        
-        # Calculate approximate candles
-        if CANDLE_TIMEFRAME == "1m":
-            candles_per_day = 375  # 6.25 hours * 60 minutes
-        elif CANDLE_TIMEFRAME == "5m":
-            candles_per_day = 75   # 6.25 hours * 12
-        elif CANDLE_TIMEFRAME == "15m":
-            candles_per_day = 25   # 6.25 hours * 4
-        elif CANDLE_TIMEFRAME == "30m":
-            candles_per_day = 13   # 6.25 hours * 2
-        elif CANDLE_TIMEFRAME == "1h":
-            candles_per_day = 7    # ~7 hourly candles
-        else:
-            candles_per_day = 1    # Daily
-        
-        expected_candles = candles_per_day * self.lookback_days
-        print(f" [INFO] Expecting approximately {expected_candles} candles")
         
         print("="*60)
         print("\nPress Ctrl+C to stop the bot\n")
@@ -590,7 +616,7 @@ class ConfigurableEMABot:
 
 if __name__ == "__main__":
     print("\n" + "="*60)
-    print(" OPENALGO EMA STRATEGY - CONFIGURABLE VERSION")
+    print(" OPENALGO EMA STRATEGY - READY TO RUN")
     print("="*60)
     print(f" Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f" Mode: {TRADE_DIRECTION}")
