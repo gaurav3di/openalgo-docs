@@ -61,7 +61,7 @@
 ```python
 """
 ===============================================================================
-                EMA CROSSOVER WITH WEBSOCKET & DIRECTION CONTROL
+                EMA CROSSOVER WITH CONFIGURABLE LOOKBACK
                             OpenAlgo Trading Bot
 ===============================================================================
 """
@@ -77,7 +77,7 @@ import time
 # ===============================================================================
 
 # API Configuration
-API_KEY = "openalgo-apikey"
+API_KEY = "56c3dc6ba7d9c9df478e4f19ffc5d3e15e1dd91b5aa11e91c910f202c91eff9d"
 API_HOST = "http://127.0.0.1:5000"
 WS_URL = "ws://127.0.0.1:8765"
 
@@ -87,35 +87,31 @@ EXCHANGE = "NSE"             # Exchange (NSE, BSE, NFO, etc.)
 QUANTITY = 1                 # Number of shares
 PRODUCT = "MIS"              # MIS (Intraday) or CNC (Delivery)
 
-HISTORICAL_DATA = 5          # 5 days of Historical data
-
 # Strategy Parameters
 FAST_EMA_PERIOD = 2          # Fast EMA (smaller number)
 SLOW_EMA_PERIOD = 4          # Slow EMA (larger number)
 CANDLE_TIMEFRAME = "5m"      # 1m, 5m, 15m, 30m, 1h, 1d
 
+# Historical Data Lookback
+LOOKBACK_DAYS = 3            # Number of days to fetch historical data (1-30)
+
 # Risk Management
 STOPLOSS = 0.1               # Stoploss in Rupees
 TARGET = 0.2                 # Target in Rupees
 
-# ===============================================================================
-# DIRECTION CONTROL - Choose your trading direction
-# ===============================================================================
+# Direction Control
+TRADE_DIRECTION = "BOTH"     # Options: "LONG", "SHORT", "BOTH"
 
-# Options: "LONG", "SHORT", "BOTH"
-# LONG = Only take BUY trades
-# SHORT = Only take SELL trades  
-# BOTH = Take both BUY and SELL trades
-
-TRADE_DIRECTION = "BOTH"     # Change this to "LONG", "SHORT", or "BOTH"
+# Signal Check Interval
+SIGNAL_CHECK_INTERVAL = 5    # Check for signals every X seconds
 
 # ===============================================================================
-# TRADING BOT WITH DIRECTION CONTROL
+# TRADING BOT WITH CONFIGURABLE PARAMETERS
 # ===============================================================================
 
-class DirectionalEMABot:
+class ConfigurableEMABot:
     def __init__(self):
-        """Initialize the trading bot with WebSocket and direction control"""
+        """Initialize the trading bot with configurable parameters"""
         # Initialize API client
         self.client = api(
             api_key=API_KEY,
@@ -131,7 +127,7 @@ class DirectionalEMABot:
         
         # Real-time price tracking
         self.ltp = None
-        self.exit_signal = False
+        self.exit_in_progress = False
         
         # Thread control
         self.running = True
@@ -143,23 +139,35 @@ class DirectionalEMABot:
         # Strategy name
         self.strategy_name = f"EMA_{TRADE_DIRECTION}"
         
+        # Validate lookback period
+        if LOOKBACK_DAYS < 1:
+            print("[WARNING] LOOKBACK_DAYS too small, setting to 1")
+            self.lookback_days = 1
+        elif LOOKBACK_DAYS > 30:
+            print("[WARNING] LOOKBACK_DAYS too large, setting to 30")
+            self.lookback_days = 30
+        else:
+            self.lookback_days = LOOKBACK_DAYS
+        
         print("[BOT] OpenAlgo Trading Bot Started")
         print(f"[BOT] Direction Mode: {TRADE_DIRECTION}")
         print(f"[BOT] Strategy: {FAST_EMA_PERIOD} EMA x {SLOW_EMA_PERIOD} EMA")
+        print(f"[BOT] Lookback Period: {self.lookback_days} days")
+        print(f"[BOT] Signal Check Interval: {SIGNAL_CHECK_INTERVAL} seconds")
     
     # ===============================================================================
-    # WEBSOCKET HANDLERS
+    # WEBSOCKET HANDLER WITH IMMEDIATE EXIT
     # ===============================================================================
     
     def on_ltp_update(self, data):
-        """Handle real-time LTP updates from WebSocket"""
+        """Handle real-time LTP updates and place exit orders immediately"""
         if data.get("type") == "market_data" and data.get("symbol") == SYMBOL:
             self.ltp = float(data["data"]["ltp"])
             
             # Display current status
             current_time = datetime.now().strftime("%H:%M:%S")
             
-            if self.position:
+            if self.position and not self.exit_in_progress:
                 # Calculate real-time P&L
                 if self.position == "BUY":
                     unrealized_pnl = (self.ltp - self.entry_price) * QUANTITY
@@ -172,25 +180,39 @@ class DirectionalEMABot:
                       f"P&L: {pnl_sign}Rs.{abs(unrealized_pnl):.2f} | "
                       f"SL: {self.stoploss_price:.2f} | TG: {self.target_price:.2f}    ", end="")
                 
-                # Check for SL/Target hit in real-time
-                if not self.exit_signal:
-                    if self.position == "BUY":
-                        if self.ltp <= self.stoploss_price:
-                            print(f"\n[ALERT] STOPLOSS HIT! LTP Rs.{self.ltp:.2f} <= SL Rs.{self.stoploss_price:.2f}")
-                            self.exit_signal = True
-                        elif self.ltp >= self.target_price:
-                            print(f"\n[ALERT] TARGET HIT! LTP Rs.{self.ltp:.2f} >= Target Rs.{self.target_price:.2f}")
-                            self.exit_signal = True
+                # Check and execute exit immediately
+                exit_reason = None
+                
+                if self.position == "BUY":
+                    if self.ltp <= self.stoploss_price:
+                        exit_reason = "STOPLOSS HIT"
+                        print(f"\n[ALERT] STOPLOSS HIT! LTP Rs.{self.ltp:.2f} <= SL Rs.{self.stoploss_price:.2f}")
+                    elif self.ltp >= self.target_price:
+                        exit_reason = "TARGET HIT"
+                        print(f"\n[ALERT] TARGET HIT! LTP Rs.{self.ltp:.2f} >= Target Rs.{self.target_price:.2f}")
+                
+                elif self.position == "SELL":
+                    if self.ltp >= self.stoploss_price:
+                        exit_reason = "STOPLOSS HIT"
+                        print(f"\n[ALERT] STOPLOSS HIT! LTP Rs.{self.ltp:.2f} >= SL Rs.{self.stoploss_price:.2f}")
+                    elif self.ltp <= self.target_price:
+                        exit_reason = "TARGET HIT"
+                        print(f"\n[ALERT] TARGET HIT! LTP Rs.{self.ltp:.2f} <= Target Rs.{self.target_price:.2f}")
+                
+                # Place exit order immediately if SL/Target hit
+                if exit_reason and not self.exit_in_progress:
+                    self.exit_in_progress = True
+                    print(f"[EXIT] Placing exit order immediately...")
                     
-                    elif self.position == "SELL":
-                        if self.ltp >= self.stoploss_price:
-                            print(f"\n[ALERT] STOPLOSS HIT! LTP Rs.{self.ltp:.2f} >= SL Rs.{self.stoploss_price:.2f}")
-                            self.exit_signal = True
-                        elif self.ltp <= self.target_price:
-                            print(f"\n[ALERT] TARGET HIT! LTP Rs.{self.ltp:.2f} <= Target Rs.{self.target_price:.2f}")
-                            self.exit_signal = True
-            else:
-                print(f"\r[{current_time}] LTP: Rs.{self.ltp:.2f} | No Position | Mode: {TRADE_DIRECTION}    ", end="")
+                    # Create a new thread for exit to avoid blocking WebSocket
+                    exit_thread = threading.Thread(
+                        target=self.place_exit_order,
+                        args=(exit_reason,)
+                    )
+                    exit_thread.start()
+            
+            elif not self.position:
+                print(f"\r[{current_time}] LTP: Rs.{self.ltp:.2f} | No Position | Mode: {TRADE_DIRECTION} | Lookback: {self.lookback_days}d    ", end="")
     
     def websocket_thread(self):
         """WebSocket thread for real-time price updates"""
@@ -222,10 +244,12 @@ class DirectionalEMABot:
     # ===============================================================================
     
     def get_historical_data(self):
-        """Fetch historical candle data"""
+        """Fetch historical candle data with configurable lookback"""
         try:
             end_date = datetime.now()
-            start_date = end_date - timedelta(days=HISTORICAL_DATA)
+            start_date = end_date - timedelta(days=self.lookback_days)
+            
+            print(f"\n[DATA] Fetching {self.lookback_days} days of historical data...")
             
             data = self.client.history(
                 symbol=SYMBOL,
@@ -234,6 +258,10 @@ class DirectionalEMABot:
                 start_date=start_date.strftime("%Y-%m-%d"),
                 end_date=end_date.strftime("%Y-%m-%d")
             )
+            
+            if data is not None and len(data) > 0:
+                print(f"[DATA] Received {len(data)} candles from {data.iloc[0]['datetime']} to {data.iloc[-1]['datetime']}")
+            
             return data
         except Exception as e:
             print(f"\n[ERROR] Failed to fetch data: {e}")
@@ -242,6 +270,7 @@ class DirectionalEMABot:
     def check_for_signal(self, data):
         """Check for EMA crossover signals with direction filter"""
         if data is None or len(data) < SLOW_EMA_PERIOD + 2:
+            print(f"[INFO] Insufficient data. Need at least {SLOW_EMA_PERIOD + 2} candles, have {len(data) if data is not None else 0}")
             return None
         
         # Calculate EMAs
@@ -254,7 +283,7 @@ class DirectionalEMABot:
         current = data.iloc[-1]
         
         # Display EMA values for debugging
-        print(f"\n[DEBUG] Fast EMA: {last['fast_ema']:.2f}, Slow EMA: {last['slow_ema']:.2f}, Close: {current['close']:.2f}")
+        print(f"[DEBUG] Fast EMA: {last['fast_ema']:.2f}, Slow EMA: {last['slow_ema']:.2f}, Close: {current['close']:.2f}")
         
         # Check for BUY signal (Fast EMA crosses above Slow EMA)
         if prev['fast_ema'] <= prev['slow_ema'] and last['fast_ema'] > last['slow_ema']:
@@ -364,6 +393,9 @@ class DirectionalEMABot:
                     print("="*60)
                     print("\n[INFO] WebSocket monitoring SL/Target in real-time...")
                     
+                    # Reset exit flag after successful entry
+                    self.exit_in_progress = False
+                    
                     return True
                 else:
                     print("[ERROR] Could not get executed price")
@@ -376,8 +408,9 @@ class DirectionalEMABot:
         return False
     
     def place_exit_order(self, reason="Manual"):
-        """Place exit order"""
+        """Place exit order - called immediately from WebSocket handler"""
         if not self.position:
+            self.exit_in_progress = False
             return
         
         exit_action = "SELL" if self.position == "BUY" else "BUY"
@@ -396,6 +429,8 @@ class DirectionalEMABot:
             
             if response.get("status") == "success":
                 order_id = response.get("orderid")
+                print(f"[EXIT] Exit order placed. ID: {order_id}")
+                
                 exit_price = self.get_executed_price(order_id)
                 
                 if exit_price:
@@ -408,47 +443,62 @@ class DirectionalEMABot:
                     print("\n" + "="*60)
                     print(" POSITION CLOSED")
                     print("="*60)
+                    print(f" Reason: {reason}")
                     print(f" Exit Price: Rs.{exit_price:.2f}")
                     print(f" Entry Price: Rs.{self.entry_price:.2f}")
                     print(f" P&L: Rs.{pnl:.2f} [{('PROFIT' if pnl > 0 else 'LOSS')}]")
                     print("="*60)
+                else:
+                    print("[WARNING] Exit order placed but could not confirm price")
                 
-                # Reset position
+                # Reset position regardless
                 self.position = None
                 self.entry_price = 0
                 self.stoploss_price = 0
                 self.target_price = 0
-                self.exit_signal = False
+                self.exit_in_progress = False
+                
+            else:
+                print(f"[ERROR] Exit order failed: {response}")
+                self.exit_in_progress = False  # Reset flag to allow retry
                 
         except Exception as e:
             print(f"[ERROR] Failed to exit: {e}")
-            self.exit_signal = False  # Reset to retry
+            self.exit_in_progress = False  # Reset flag to allow retry
     
     # ===============================================================================
     # STRATEGY THREAD
     # ===============================================================================
     
     def strategy_thread(self):
-        """Strategy thread for signal generation and exit management"""
+        """Strategy thread for signal generation only (exit handled by WebSocket)"""
         print("[STRATEGY] Strategy thread started")
         print(f"[STRATEGY] Direction: {TRADE_DIRECTION} trades only")
+        print(f"[STRATEGY] Checking signals every {SIGNAL_CHECK_INTERVAL} seconds")
+        print(f"[STRATEGY] Using {self.lookback_days} days of historical data")
+        
+        # Initial data fetch on startup
+        initial_data_fetched = False
         
         while not self.stop_event.is_set():
             try:
-                if not self.position:
-                    # Look for entry signals
+                # Only look for entry signals if not in position
+                if not self.position and not self.exit_in_progress:
                     data = self.get_historical_data()
+                    
                     if data is not None:
+                        if not initial_data_fetched:
+                            print(f"[STRATEGY] Initial data loaded: {len(data)} candles")
+                            initial_data_fetched = True
+                        
                         signal = self.check_for_signal(data)
                         if signal:
                             self.place_entry_order(signal)
+                    else:
+                        print("[WARNING] No historical data available")
                 
-                elif self.exit_signal:
-                    # Exit if SL/Target hit (detected by WebSocket)
-                    self.place_exit_order("SL/Target Hit via WebSocket")
-                
-                # Check signals every 5 seconds
-                time.sleep(5)
+                # Check signals at configured interval
+                time.sleep(SIGNAL_CHECK_INTERVAL)
                 
             except Exception as e:
                 print(f"\n[ERROR] Strategy error: {e}")
@@ -461,13 +511,15 @@ class DirectionalEMABot:
     def run(self):
         """Main method to run the bot"""
         print("="*60)
-        print(" EMA CROSSOVER WITH DIRECTION CONTROL")
+        print(" EMA CROSSOVER WITH CONFIGURABLE PARAMETERS")
         print("="*60)
         print(f" Symbol: {SYMBOL} | Exchange: {EXCHANGE}")
         print(f" Strategy: {FAST_EMA_PERIOD} EMA x {SLOW_EMA_PERIOD} EMA")
         print(f" Direction: {TRADE_DIRECTION} trades only")
         print(f" Risk: SL Rs.{STOPLOSS} | Target Rs.{TARGET}")
         print(f" Timeframe: {CANDLE_TIMEFRAME}")
+        print(f" Lookback: {self.lookback_days} days")
+        print(f" Signal Check: Every {SIGNAL_CHECK_INTERVAL} seconds")
         print("="*60)
         
         # Display direction mode details
@@ -477,6 +529,25 @@ class DirectionalEMABot:
             print(" [MODE] SHORT ONLY - Will only take SELL trades")
         else:
             print(" [MODE] BOTH - Will take both BUY and SELL trades")
+        
+        print("="*60)
+        
+        # Calculate approximate candles
+        if CANDLE_TIMEFRAME == "1m":
+            candles_per_day = 375  # 6.25 hours * 60 minutes
+        elif CANDLE_TIMEFRAME == "5m":
+            candles_per_day = 75   # 6.25 hours * 12
+        elif CANDLE_TIMEFRAME == "15m":
+            candles_per_day = 25   # 6.25 hours * 4
+        elif CANDLE_TIMEFRAME == "30m":
+            candles_per_day = 13   # 6.25 hours * 2
+        elif CANDLE_TIMEFRAME == "1h":
+            candles_per_day = 7    # ~7 hourly candles
+        else:
+            candles_per_day = 1    # Daily
+        
+        expected_candles = candles_per_day * self.lookback_days
+        print(f" [INFO] Expecting approximately {expected_candles} candles")
         
         print("="*60)
         print("\nPress Ctrl+C to stop the bot\n")
@@ -503,7 +574,7 @@ class DirectionalEMABot:
             self.stop_event.set()
             
             # Close any open position
-            if self.position:
+            if self.position and not self.exit_in_progress:
                 print("[INFO] Closing open position before shutdown...")
                 self.place_exit_order("Bot Shutdown")
             
@@ -519,14 +590,15 @@ class DirectionalEMABot:
 
 if __name__ == "__main__":
     print("\n" + "="*60)
-    print(" OPENALGO EMA STRATEGY WITH DIRECTION CONTROL")
+    print(" OPENALGO EMA STRATEGY - CONFIGURABLE VERSION")
     print("="*60)
     print(f" Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f" Mode: {TRADE_DIRECTION}")
+    print(f" Lookback: {LOOKBACK_DAYS} days")
     print("="*60 + "\n")
     
     # Create and run the bot
-    bot = DirectionalEMABot()
+    bot = ConfigurableEMABot()
     bot.run()
 ```
 
