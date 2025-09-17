@@ -2,6 +2,8 @@
 
 OpenAlgo provides seamless integration with AliceBlue, enabling you to connect your trading strategies with AliceBlue’s brokerage services. Follow this guide to set up your AliceBlue broker account with OpenAlgo.
 
+{% embed url="https://www.youtube.com/watch?v=Nam65PrfZvk" %}
+
 ### Prerequisites
 
 Before proceeding, ensure you have the following:
