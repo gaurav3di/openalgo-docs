@@ -163,6 +163,7 @@
   * [Intraday Rolling Straddles](trading-platform/python/intraday-rolling-straddles.md)
   * [Voice Based Orders](trading-platform/python/voice-based-orders.md)
 * [NodeJS](trading-platform/nodejs.md)
+* [GO](trading-platform/go.md)
 * [Metatrader 5](trading-platform/metatrader-5/README.md)
   * [Download & Install Library](trading-platform/metatrader-5/download-and-install-library.md)
   * [OpenAlgo MQL5 Functions](trading-platform/metatrader-5/openalgo-mql5-functions.md)
