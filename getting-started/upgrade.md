@@ -48,6 +48,7 @@ Execute the migration script to add the `feed_token` column to your database:
 <strong>cd upgrade
 </strong>
 # Run the migration script
+python migrate_telegram_bot.py
 python migrate_smtp_simple.py
 
 # Get back to openalgo directory
@@ -113,6 +114,7 @@ Update the database schema:
 
 ```bash
 cd upgrade
+uv run migrate_telegram_bot.py
 uv run migrate_smtp_simple.py
 cd ..
 ```

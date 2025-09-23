@@ -172,6 +172,7 @@
 * [Excel](trading-platform/excel.md)
 * [Google Spreadsheets](trading-platform/google-spreadsheets.md)
 * [N8N](trading-platform/n8n.md)
+* [Telegram](trading-platform/telegram.md)
 * [Chrome Extension](trading-platform/chrome-extension.md)
 
 ***
