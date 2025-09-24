@@ -320,7 +320,7 @@ To Get the Current OrderStatus
 
 ```python
 response = client.orderstatus(
-    order_id="250408000989443",
+    order_id="250828000185002",
     strategy="Test Strategy"
     )
 print(response)
