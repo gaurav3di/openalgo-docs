@@ -23,6 +23,7 @@ package main
 
 import (
     "github.com/marketcalls/openalgo-go/openalgo"
+    "encoding/json"
 )
 
 // Replace 'your_api_key_here' with your actual API key
@@ -43,6 +44,7 @@ client := openalgo.NewClient(
 ```go
 import (
     "fmt"
+    "encoding/json"
     "github.com/marketcalls/openalgo-go/openalgo"
 )
 
@@ -109,10 +111,11 @@ Check API connectivity:
 
 ```go
 response, err := client.Ping()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Ping Response**
@@ -141,10 +144,11 @@ response, err := client.PlaceOrder(
     "MIS",       // product
     1,           // quantity
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Place Market Order Response**
@@ -174,10 +178,11 @@ response, err := client.PlaceOrder(
         "disclosed_quantity": "0",
     },
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Place Limit Order Response**
@@ -205,10 +210,11 @@ response, err := client.PlaceSmartOrder(
     1,             // quantity
     5,             // position_size
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Place Smart Market Order Response**
@@ -245,10 +251,11 @@ basketOrders := []map[string]interface{}{
     },
 }
 response, err := client.BasketOrder("GO Strategy", basketOrders)
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Basket Order Response**
@@ -287,10 +294,11 @@ response, err := client.SplitOrder(
     "MARKET",    // price_type
     "MIS",       // product
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **SplitOrder Response**
@@ -336,10 +344,11 @@ response, err := client.ModifyOrder(
     "0",               // disclosed_quantity
     "0",               // trigger_price
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Modify Order Response**
@@ -361,10 +370,11 @@ response, err := client.CancelOrder(
     "250408001002736", // order_id
     "GO Strategy",     // strategy
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Cancelorder Response**
@@ -382,10 +392,11 @@ To cancel all open orders and trigger pending orders:
 
 ```go
 response, err := client.CancelAllOrder("GO Strategy")
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Cancelallorder Response**
@@ -408,10 +419,11 @@ To close all open positions across various exchanges:
 
 ```go
 response, err := client.ClosePosition("GO Strategy")
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **ClosePosition Response**
@@ -432,10 +444,11 @@ response, err := client.OrderStatus(
     "250408000989443", // order_id
     "GO Strategy",     // strategy
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Orderstatus Response**
@@ -471,10 +484,11 @@ response, err := client.OpenPosition(
     "NSE",           // exchange
     "MIS",           // product
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **OpenPosition Response**
@@ -491,10 +505,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.Quotes("RELIANCE", "NSE")
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Quotes response**
@@ -520,10 +535,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.Depth("SBIN", "NSE")
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Depth Response**
@@ -571,10 +587,11 @@ response, err := client.History(
     "2025-04-01", // start_date
     "2025-04-08", // end_date
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **History Response**
@@ -618,10 +635,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.Intervals()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Intervals response**
@@ -657,10 +675,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.Symbol("RELIANCE", "NSE")
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Symbols Response**
@@ -689,10 +708,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.Search("NIFTY 25000 JUL CE", "NFO")
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Search Response**
@@ -740,17 +760,18 @@ response, err := client.Expiry(
     "NFO",     // exchange
     "options", // instrument_type
 )
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Expiry Response**
 
 ```json
 {
-  "data": [
+  "da              ta": [
     "30-SEP-25",
     "07-OCT-25",
     "14-OCT-25",
@@ -779,10 +800,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.Funds()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Funds Response**
@@ -804,10 +826,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.OrderBook()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 ```json
@@ -883,10 +906,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.TradeBook()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **TradeBook Response**
@@ -947,10 +971,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.PositionBook()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **PositionBook Response**
@@ -985,10 +1010,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.Holdings()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Holdings Response**
@@ -1029,10 +1055,11 @@ fmt.Printf("%v\n", response)
 
 ```go
 response, err := client.AnalyzerStatus()
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Analyzer Status Response**
@@ -1053,10 +1080,11 @@ fmt.Printf("%v\n", response)
 ```go
 // Switch to analyze mode (simulated responses)
 response, err := client.AnalyzerToggle(true)
+jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
     log.Printf("Error: %v", err)
 }
-fmt.Printf("%v\n", response)
+fmt.Println(string(jsonBytes))
 ```
 
 **Analyzer Toggle Response**
@@ -1079,6 +1107,7 @@ fmt.Printf("%v\n", response)
 package main
 
 import (
+    "encoding/json"
     "fmt"
     "log"
     "time"
@@ -1132,6 +1161,7 @@ package main
 
 import (
     "fmt"
+    "encoding/json"
     "log"
     "time"
     "github.com/marketcalls/openalgo-go/openalgo"
@@ -1186,6 +1216,7 @@ import (
     "fmt"
     "log"
     "time"
+    "encoding/json"
     "github.com/marketcalls/openalgo-go/openalgo"
 )
 
