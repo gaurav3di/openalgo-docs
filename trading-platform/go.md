@@ -370,23 +370,8 @@ fmt.Printf("%v\n", response)
 
 **Orderstatus Response**
 
-```json
-{
-  "status": "success",
-  "data": {
-    "orderid": "250408000989443",
-    "symbol": "RELIANCE",
-    "exchange": "NSE",
-    "action": "BUY",
-    "order_status": "complete",
-    "quantity": "1",
-    "price": 1186.0,
-    "pricetype": "MARKET",
-    "trigger_price": 0.0,
-    "product": "MIS",
-    "timestamp": "08-Apr-2025 13:58:03"
-  }
-}
+```go
+map[data:map[action:BUY average_price:21.29 exchange:NSE order_status:complete orderid:25092400496406 price:0 pricetype:MARKET product:MIS quantity:1 symbol:YESBANK timestamp:14:14:26 24-09-2025 trigger_price:0] status:success]
 ```
 
 #### OpenPosition Example
@@ -408,8 +393,8 @@ fmt.Printf("%v\n", response)
 
 **OpenPosition Response**
 
-```json
-{"quantity": "-10", "status": "success"}
+```go
+map[quantity:-3 status:success]
 ```
 
 #### Quotes Example
@@ -424,20 +409,8 @@ fmt.Printf("%v\n", response)
 
 **Quotes response**
 
-```json
-{
-  "status": "success",
-  "data": {
-    "open": 1172.0,
-    "high": 1196.6,
-    "low": 1163.3,
-    "ltp": 1187.75,
-    "ask": 1188.0,
-    "bid": 1187.85,
-    "prev_close": 1165.7,
-    "volume": 14414545
-  }
-}
+```go
+map[data:map[ask:1392.8 bid:1392.6 high:1396 low:1383.2 ltp:1392.8 oi:0 open:1385.3 prev_close:1389.8 volume:2.477476e+06] status:success]
 ```
 
 #### Depth Example
@@ -452,66 +425,8 @@ fmt.Printf("%v\n", response)
 
 **Depth Response**
 
-```json
-{
-  "status": "success",
-  "data": {
-    "open": 760.0,
-    "high": 774.0,
-    "low": 758.15,
-    "ltp": 769.6,
-    "ltq": 205,
-    "prev_close": 746.9,
-    "volume": 9362799,
-    "oi": 161265750,
-    "totalbuyqty": 591351,
-    "totalsellqty": 835701,
-    "asks": [
-      {
-        "price": 769.6,
-        "quantity": 767
-      },
-      {
-        "price": 769.65,
-        "quantity": 115
-      },
-      {
-        "price": 769.7,
-        "quantity": 162
-      },
-      {
-        "price": 769.75,
-        "quantity": 1121
-      },
-      {
-        "price": 769.8,
-        "quantity": 430
-      }
-    ],
-    "bids": [
-      {
-        "price": 769.4,
-        "quantity": 886
-      },
-      {
-        "price": 769.35,
-        "quantity": 212
-      },
-      {
-        "price": 769.3,
-        "quantity": 351
-      },
-      {
-        "price": 769.25,
-        "quantity": 343
-      },
-      {
-        "price": 769.2,
-        "quantity": 399
-      }
-    ]
-  }
-}
+```go
+map[data:map[asks:[map[price:870.65 quantity:120] map[price:870.7 quantity:111] map[price:870.75 quantity:105] map[price:870.8 quantity:69] map[price:870.85 quantity:244]] bids:[map[price:870.35 quantity:36] map[price:870.3 quantity:70] map[price:870.2 quantity:345] map[price:870.15 quantity:575] map[price:870.1 quantity:611]] high:880.4 low:869.1 ltp:870.35 ltq:1 oi:0 open:875.2 prev_close:870.5 totalbuyqty:1637 totalsellqty:649 volume:313325] status:success]
 ```
 
 #### History Example
@@ -532,22 +447,8 @@ fmt.Printf("%v\n", response)
 
 **History Response**
 
-```json
-                            close    high     low    open  volume
-timestamp
-2025-04-01 09:15:00+05:30  772.50  774.00  763.20  766.50  318625
-2025-04-01 09:20:00+05:30  773.20  774.95  772.10  772.45  197189
-2025-04-01 09:25:00+05:30  775.15  775.60  772.60  773.20  227544
-2025-04-01 09:30:00+05:30  777.35  777.50  774.85  775.15  134596
-2025-04-01 09:35:00+05:30  778.00  778.00  776.25  777.50  145385
-...                           ...     ...     ...     ...     ...
-2025-04-08 14:00:00+05:30  768.25  770.70  767.85  768.50  142478
-2025-04-08 14:05:00+05:30  769.10  769.80  766.60  768.15  128283
-2025-04-08 14:10:00+05:30  769.05  769.85  768.40  769.10  119084
-2025-04-08 14:15:00+05:30  770.05  770.50  769.05  769.05  158299
-2025-04-08 14:20:00+05:30  769.95  770.50  769.40  770.05  125485
-
-[437 rows x 5 columns]
+```go
+map[data:[map[close:806 high:806.45 low:803.4 oi:0 open:803.4 timestamp:1.7566983e+09 volume:268668] map[close:807.4 high:807.85 low:805.35 oi:0 open:806.1 timestamp:1.7566986e+09 volume:205484] map[close:806.75 high:808.3 low:806.05 oi:0 open:807.5 timestamp:1.7566989e+09 volume:135774] map[close:805.85 high:807 low:805.5 oi:0 open:806.65 timestamp:1.7566992e+09 
 ```
 
 #### Intervals Example
@@ -562,18 +463,8 @@ fmt.Printf("%v\n", response)
 
 **Intervals response**
 
-```json
-{
-  "status": "success",
-  "data": {
-    "months": [],
-    "weeks": [],
-    "days": ["D"],
-    "hours": ["1h"],
-    "minutes": ["10m", "15m", "1m", "30m", "3m", "5m"],
-    "seconds": []
-  }
-}
+```go
+map[data:map[days:[D] hours:[1h 2h 4h] minutes:[1m 3m 5m 10m 15m 30m] months:[] seconds:[] weeks:[]] status:success]
 ```
 
 #### Symbol Example
@@ -588,24 +479,8 @@ fmt.Printf("%v\n", response)
 
 **Symbols Response**
 
-```json
-{
-  "status": "success",
-  "data": {
-    "id": 979,
-    "name": "RELIANCE",
-    "symbol": "RELIANCE",
-    "brsymbol": "RELIANCE-EQ",
-    "exchange": "NSE",
-    "brexchange": "NSE",
-    "instrumenttype": "",
-    "expiry": "",
-    "strike": -0.01,
-    "lotsize": 1,
-    "tick_size": 0.05,
-    "token": "2885"
-  }
-}
+```go
+map[data:map[brexchange:NSE brsymbol:RELIANCE-EQ exchange:NSE expiry: id:986 instrumenttype:EQ lotsize:1 name:RELIANCE strike:-1 symbol:RELIANCE tick_size:0.1 token:2885] status:success]
 ```
 
 #### Search Example
@@ -620,52 +495,8 @@ fmt.Printf("%v\n", response)
 
 **Search Response**
 
-```json
-{
-  "data": [
-    {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY17JUL2525000CE",
-      "exchange": "NFO",
-      "expiry": "17-JUL-25",
-      "instrumenttype": "OPTIDX",
-      "lotsize": 75,
-      "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY17JUL2525000CE",
-      "tick_size": 0.05,
-      "token": "47275"
-    },
-    {
-      "brexchange": "NFO",
-      "brsymbol": "FINNIFTY31JUL2525000CE",
-      "exchange": "NFO",
-      "expiry": "31-JUL-25",
-      "instrumenttype": "OPTIDX",
-      "lotsize": 65,
-      "name": "FINNIFTY",
-      "strike": 25000,
-      "symbol": "FINNIFTY31JUL2525000CE",
-      "tick_size": 0.05,
-      "token": "54763"
-    },
-    {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY24JUL2525000CE",
-      "exchange": "NFO",
-      "expiry": "24-JUL-25",
-      "instrumenttype": "OPTIDX",
-      "lotsize": 75,
-      "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY24JUL2525000CE",
-      "tick_size": 0.05,
-      "token": "49487"
-    }
-  ],
-  "message": "Found 6 matching symbols",
-  "status": "success"
-}
+```go
+map[data:[map[brexchange:NFO brsymbol:NIFTY28OCT25C25000 exchange:NFO expiry:28-OCT-25 instrumenttype:CE lotsize:75 name:NIFTY strike:25000 symbol:NIFTY28OCT2525000CE tick_size:0.05 token:58909] map[brexchange:NFO brsymbol:FINNIFTY28OCT25C25000 exchange:NFO expiry:28-OCT-25 instrumenttype:CE lotsize:65 name:FINNIFTY strike:25000 symbol:FINNIFTY28OCT2525000CE tick_size:0.05 token:57065] map[brexchange:NFO brsymbol:NIFTY20OCT25C25000 exchange:NFO expiry:20-OCT-25 instrumenttype:CE lotsize:75 name:NIFTY strike:25000 symbol:NIFTY20OCT2525000CE tick_size:0.05 token:45248] map[brexchange:NFO brsymbol:NIFTY14OCT25C25000 exchange:NFO expiry:14-OCT-25 instrumenttype:CE lotsize:75 name:NIFTY strike:25000 symbol:NIFTY14OCT2525000CE tick_size:0.05 token:42673] map[brexchange:NFO brsymbol:NIFTY07OCT25C25000 exchange:NFO expiry:07-OCT-25 instrumenttype:CE 
 ```
 
 #### Expiry Example
@@ -684,31 +515,8 @@ fmt.Printf("%v\n", response)
 
 **Expiry Response**
 
-```json
-{
-  "data": [
-    "10-JUL-25",
-    "17-JUL-25",
-    "24-JUL-25",
-    "31-JUL-25",
-    "07-AUG-25",
-    "28-AUG-25",
-    "25-SEP-25",
-    "24-DEC-25",
-    "26-MAR-26",
-    "25-JUN-26",
-    "31-DEC-26",
-    "24-JUN-27",
-    "30-DEC-27",
-    "29-JUN-28",
-    "28-DEC-28",
-    "28-JUN-29",
-    "27-DEC-29",
-    "25-JUN-30"
-  ],
-  "message": "Found 18 expiry dates for NIFTY options in NFO",
-  "status": "success"
-}
+```go
+map[data:[30-SEP-25 07-OCT-25 14-OCT-25 20-OCT-25 28-OCT-25 04-NOV-25 25-NOV-25 30-DEC-25 31-MAR-26 30-JUN-26 29-DEC-26 29-JUN-27 28-DEC-27 27-JUN-28 26-DEC-28 26-JUN-29 24-DEC-29 25-JUN-30] message:Found 18 expiry dates for NIFTY options in NFO status:success]
 ```
 
 #### Funds Example
@@ -723,17 +531,8 @@ fmt.Printf("%v\n", response)
 
 **Funds Response**
 
-```json
-{
-  "status": "success",
-  "data": {
-    "availablecash": "320.66",
-    "collateral": "0.00",
-    "m2mrealized": "3.27",
-    "m2munrealized": "-7.88",
-    "utiliseddebits": "679.34"
-  }
-}
+```go
+Funds: map[data:map[availablecash:180.62 collateral:0.00 m2mrealized:-0.00 m2munrealized:0.00 utiliseddebits:0.00] status:success]
 ```
 
 #### OrderBook Example
@@ -746,47 +545,8 @@ if err != nil {
 fmt.Printf("%v\n", response)
 ```
 
-```json
-{
-  "status": "success",
-  "data": {
-    "orders": [
-      {
-        "action": "BUY",
-        "symbol": "RELIANCE",
-        "exchange": "NSE",
-        "orderid": "250408000989443",
-        "product": "MIS",
-        "quantity": "1",
-        "price": 1186.0,
-        "pricetype": "MARKET",
-        "order_status": "complete",
-        "trigger_price": 0.0,
-        "timestamp": "08-Apr-2025 13:58:03"
-      },
-      {
-        "action": "BUY",
-        "symbol": "YESBANK",
-        "exchange": "NSE",
-        "orderid": "250408001002736",
-        "product": "MIS",
-        "quantity": "1",
-        "price": 16.5,
-        "pricetype": "LIMIT",
-        "order_status": "cancelled",
-        "trigger_price": 0.0,
-        "timestamp": "08-Apr-2025 14:13:45"
-      }
-    ],
-    "statistics": {
-      "total_buy_orders": 2.0,
-      "total_sell_orders": 0.0,
-      "total_completed_orders": 1.0,
-      "total_open_orders": 0.0,
-      "total_rejected_orders": 0.0
-    }
-  }
-}
+```go
+map[data:map[orders:[map[action:BUY exchange:NSE order_status:complete orderid:25092400504502 price:0 pricetype:MARKET product:MIS quantity:3 symbol:YESBANK timestamp:14:20:38 24-09-2025 trigger_price:0] map[action:SELL exchange:NSE order_status:complete orderid:25092400502096 price:0 pricetype:MARKET product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 24-09-2025 trigger_price:0] map[action:SELL exchange:NSE order_status:complete orderid:25092400502095 price:0 pricetype:MARKET product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 24-09-2025 trigger_price:0] map[action:BUY exchange:NSE order_status:complete orderid:25092400496407 price:0 pricetype:MARKET product:CNC quantity:1 symbol:NHPC timestamp:14:14:26 24-09-2025 trigger_price:0] map[action:BUY exchange:NSE order_status:complete orderid:25092400496406 price:0 pricetype:MARKET product:MIS quantity:1 symbol:YESBANK timestamp:14:14:26 24-09-2025 trigger_price:0] map[action:SELL exchange:NSE order_status:complete orderid:25092400492663 price:0 pricetype:MARKET product:MIS quantity:2 symbol:YESBANK timestamp:14:11:10 24-09-2025 trigger_price:0] map[action:BUY exchange:NSE order_status:canceled orderid:25092400490404 price:20.30 pricetype:LIMIT 
 ```
 
 #### TradeBook Example
@@ -801,34 +561,8 @@ fmt.Printf("%v\n", response)
 
 **TradeBook Response**
 
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "action": "BUY",
-      "symbol": "RELIANCE",
-      "exchange": "NSE",
-      "orderid": "250408000989443",
-      "product": "MIS",
-      "quantity": 0.0,
-      "average_price": 1180.1,
-      "timestamp": "13:58:03",
-      "trade_value": 1180.1
-    },
-    {
-      "action": "SELL",
-      "symbol": "NHPC",
-      "exchange": "NSE",
-      "orderid": "250408001086129",
-      "product": "MIS",
-      "quantity": 0.0,
-      "average_price": 83.74,
-      "timestamp": "14:28:49",
-      "trade_value": 83.74
-    }
-  ]
-}
+```go
+map[data:[map[action:BUY average_price:21.30 exchange:NSE orderid:25092400504502 product:MIS quantity:3 symbol:YESBANK timestamp:14:20:38 trade_value:63.9] map[action:SELL average_price:21.28 exchange:NSE orderid:25092400502096 product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 trade_value:42.56] map[action:SELL average_price:21.28 exchange:NSE orderid:25092400502095 product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 trade_value:42.56] map[action:BUY average_price:86.40 exchange:NSE orderid:25092400496407 product:CNC quantity:1 symbol:NHPC timestamp:14:14:26 trade_value:86.4] map[action:BUY 
 ```
 
 #### PositionBook Example
@@ -843,39 +577,8 @@ fmt.Printf("%v\n", response)
 
 **PositionBook Response**
 
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "symbol": "NHPC",
-      "exchange": "NSE",
-      "product": "MIS",
-      "quantity": "-1",
-      "average_price": "83.74",
-      "ltp": "83.72",
-      "pnl": "0.02"
-    },
-    {
-      "symbol": "RELIANCE",
-      "exchange": "NSE",
-      "product": "MIS",
-      "quantity": "0",
-      "average_price": "0.0",
-      "ltp": "1189.9",
-      "pnl": "5.90"
-    },
-    {
-      "symbol": "YESBANK",
-      "exchange": "NSE",
-      "product": "MIS",
-      "quantity": "-104",
-      "average_price": "17.2",
-      "ltp": "17.31",
-      "pnl": "-10.44"
-    }
-  ]
-}
+```go
+map[data:[map[average_price:0 exchange:NSE ltp:0 pnl:0 product:MIS quantity:0 symbol:YESBANK] map[average_price:86.4 exchange:NSE ltp:86.36 pnl:-0.04 product:CNC quantity:1 symbol:NHPC]] status:success]
 ```
 
 #### Holdings Example
@@ -890,44 +593,8 @@ fmt.Printf("%v\n", response)
 
 **Holdings Response**
 
-```json
-{
-  "status": "success",
-  "data": {
-    "holdings": [
-      {
-        "symbol": "RELIANCE",
-        "exchange": "NSE",
-        "product": "CNC",
-        "quantity": 1,
-        "pnl": -149.0,
-        "pnlpercent": -11.1
-      },
-      {
-        "symbol": "TATASTEEL",
-        "exchange": "NSE",
-        "product": "CNC",
-        "quantity": 1,
-        "pnl": -15.0,
-        "pnlpercent": -10.41
-      },
-      {
-        "symbol": "CANBK",
-        "exchange": "NSE",
-        "product": "CNC",
-        "quantity": 5,
-        "pnl": -69.0,
-        "pnlpercent": -13.43
-      }
-    ],
-    "statistics": {
-      "totalholdingvalue": 1768.0,
-      "totalinvvalue": 2001.0,
-      "totalprofitandloss": -233.15,
-      "totalpnlpercentage": -11.65
-    }
-  }
-}
+```go
+map[data:map[holdings:[map[exchange:NSE pnl:0 pnlpercent:0 product:CNC quantity:1 symbol:BHEL] map[exchange:NSE pnl:0 pnlpercent:0 product:CNC quantity:1 symbol:YESBANK]] statistics:map[totalholdingvalue:271.55 totalinvvalue:271.55 totalpnlpercentage:0 totalprofitandloss:0]] status:success]
 ```
 
 #### Analyzer Status Example
@@ -942,15 +609,8 @@ fmt.Printf("%v\n", response)
 
 **Analyzer Status Response**
 
-```json
-{
-  "data": {
-    "analyze_mode": true,
-    "mode": "analyze",
-    "total_logs": 2
-  },
-  "status": "success"
-}
+```go
+map[data:map[analyze_mode:true mode:analyze total_logs:1] status:success]
 ```
 
 #### Analyzer Toggle Example
@@ -966,16 +626,8 @@ fmt.Printf("%v\n", response)
 
 **Analyzer Toggle Response**
 
-```json
-{
-  "data": {
-    "analyze_mode": true,
-    "message": "Analyzer mode switched to analyze",
-    "mode": "analyze",
-    "total_logs": 2
-  },
-  "status": "success"
-}
+```go
+map[data:map[analyze_mode:true message:Analyzer mode switched to analyze mode:analyze total_logs:1] status:success]
 ```
 
 #### LTP Data (Streaming Websocket)
