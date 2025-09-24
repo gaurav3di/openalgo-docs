@@ -330,22 +330,22 @@ print(response)
 
 ```json
 {
-  "status": "success",
   "data": {
-    "orderid": "250408000989443",
-    "symbol": "RELIANCE",
-    "exchange": "NSE",
     "action": "BUY",
+    "average_price": 18.95,
+    "exchange": "NSE",
     "order_status": "complete",
-    "quantity": "1",
-    "price": 1186.0,
+    "orderid": "250828000185002",
+    "price": 0,
     "pricetype": "MARKET",
-    "trigger_price": 0.0,
     "product": "MIS",
-    "timestamp": "08-Apr-2025 13:58:03"
-  }
+    "quantity": "1",
+    "symbol": "YESBANK",
+    "timestamp": "28-Aug-2025 09:59:10",
+    "trigger_price": 0
+  },
+  "status": "success"
 }
-
 ```
 
 ### OpenPosition Example
