@@ -463,8 +463,31 @@ fmt.Printf("%v\n", response)
 
 **Intervals response**
 
-```go
-map[data:map[days:[D] hours:[1h 2h 4h] minutes:[1m 3m 5m 10m 15m 30m] months:[] seconds:[] weeks:[]] status:success]
+```jsonp
+{
+  "data": {
+    "days": [
+      "D"
+    ],
+    "hours": [
+      "1h",
+      "2h",
+      "4h"
+    ],
+    "minutes": [
+      "1m",
+      "3m",
+      "5m",
+      "10m",
+      "15m",
+      "30m"
+    ],
+    "months": [],
+    "seconds": [],
+    "weeks": []
+  },
+  "status": "success"
+}
 ```
 
 #### Symbol Example
@@ -479,8 +502,24 @@ fmt.Printf("%v\n", response)
 
 **Symbols Response**
 
-```go
-map[data:map[brexchange:NSE brsymbol:RELIANCE-EQ exchange:NSE expiry: id:986 instrumenttype:EQ lotsize:1 name:RELIANCE strike:-1 symbol:RELIANCE tick_size:0.1 token:2885] status:success]
+```json
+{
+  "data": {
+    "brexchange": "NSE",
+    "brsymbol": "RELIANCE-EQ",
+    "exchange": "NSE",
+    "expiry": "",
+    "id": 986,
+    "instrumenttype": "EQ",
+    "lotsize": 1,
+    "name": "RELIANCE",
+    "strike": -1,
+    "symbol": "RELIANCE",
+    "tick_size": 0.1,
+    "token": "2885"
+  },
+  "status": "success"
+}
 ```
 
 #### Search Example
@@ -495,8 +534,78 @@ fmt.Printf("%v\n", response)
 
 **Search Response**
 
-```go
-map[data:[map[brexchange:NFO brsymbol:NIFTY28OCT25C25000 exchange:NFO expiry:28-OCT-25 instrumenttype:CE lotsize:75 name:NIFTY strike:25000 symbol:NIFTY28OCT2525000CE tick_size:0.05 token:58909] map[brexchange:NFO brsymbol:FINNIFTY28OCT25C25000 exchange:NFO expiry:28-OCT-25 instrumenttype:CE lotsize:65 name:FINNIFTY strike:25000 symbol:FINNIFTY28OCT2525000CE tick_size:0.05 token:57065] map[brexchange:NFO brsymbol:NIFTY20OCT25C25000 exchange:NFO expiry:20-OCT-25 instrumenttype:CE lotsize:75 name:NIFTY strike:25000 symbol:NIFTY20OCT2525000CE tick_size:0.05 token:45248] map[brexchange:NFO brsymbol:NIFTY14OCT25C25000 exchange:NFO expiry:14-OCT-25 instrumenttype:CE lotsize:75 name:NIFTY strike:25000 symbol:NIFTY14OCT2525000CE tick_size:0.05 token:42673] map[brexchange:NFO brsymbol:NIFTY07OCT25C25000 exchange:NFO expiry:07-OCT-25 instrumenttype:CE 
+```json
+{
+  "data": [
+    {
+      "brexchange": "NFO",
+      "brsymbol": "NIFTY28OCT25C25000",
+      "exchange": "NFO",
+      "expiry": "28-OCT-25",
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 25000,
+      "symbol": "NIFTY28OCT2525000CE",
+      "tick_size": 0.05,
+      "token": "58909"
+    },
+    {
+      "brexchange": "NFO",
+      "brsymbol": "FINNIFTY28OCT25C25000",
+      "exchange": "NFO",
+      "expiry": "28-OCT-25",
+      "instrumenttype": "CE",
+      "lotsize": 65,
+      "name": "FINNIFTY",
+      "strike": 25000,
+      "symbol": "FINNIFTY28OCT2525000CE",
+      "tick_size": 0.05,
+      "token": "57065"
+    },
+    {
+      "brexchange": "NFO",
+      "brsymbol": "NIFTY20OCT25C25000",
+      "exchange": "NFO",
+      "expiry": "20-OCT-25",
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 25000,
+      "symbol": "NIFTY20OCT2525000CE",
+      "tick_size": 0.05,
+      "token": "45248"
+    },
+    {
+      "brexchange": "NFO",
+      "brsymbol": "NIFTY14OCT25C25000",
+      "exchange": "NFO",
+      "expiry": "14-OCT-25",
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 25000,
+      "symbol": "NIFTY14OCT2525000CE",
+      "tick_size": 0.05,
+      "token": "42673"
+    },
+    {
+      "brexchange": "NFO",
+      "brsymbol": "NIFTY07OCT25C25000",
+      "exchange": "NFO",
+      "expiry": "07-OCT-25",
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 25000,
+      "symbol": "NIFTY07OCT2525000CE",
+      "tick_size": 0.05,
+      "token": "38387"
+    }
+  ],
+  "message": "Found 5 matching symbols",
+  "status": "success"
+}
 ```
 
 #### Expiry Example
@@ -515,8 +624,31 @@ fmt.Printf("%v\n", response)
 
 **Expiry Response**
 
-```go
-map[data:[30-SEP-25 07-OCT-25 14-OCT-25 20-OCT-25 28-OCT-25 04-NOV-25 25-NOV-25 30-DEC-25 31-MAR-26 30-JUN-26 29-DEC-26 29-JUN-27 28-DEC-27 27-JUN-28 26-DEC-28 26-JUN-29 24-DEC-29 25-JUN-30] message:Found 18 expiry dates for NIFTY options in NFO status:success]
+```json
+{
+  "data": [
+    "30-SEP-25",
+    "07-OCT-25",
+    "14-OCT-25",
+    "20-OCT-25",
+    "28-OCT-25",
+    "04-NOV-25",
+    "25-NOV-25",
+    "30-DEC-25",
+    "31-MAR-26",
+    "30-JUN-26",
+    "29-DEC-26",
+    "29-JUN-27",
+    "28-DEC-27",
+    "27-JUN-28",
+    "26-DEC-28",
+    "26-JUN-29",
+    "24-DEC-29",
+    "25-JUN-30"
+  ],
+  "message": "Found 18 expiry dates for NIFTY options in NFO",
+  "status": "success"
+}
 ```
 
 #### Funds Example
