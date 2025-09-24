@@ -117,8 +117,14 @@ fmt.Printf("%v\n", response)
 
 **Ping Response**
 
-```go
-map[data:map[broker:shoonya message:pong] status:success]
+```json
+{
+  "data": {
+    "broker": "shoonya",
+    "message": "pong"
+  },
+  "status": "success"
+}
 ```
 
 #### PlaceOrder Example
@@ -143,8 +149,12 @@ fmt.Printf("%v\n", response)
 
 **Place Market Order Response**
 
-```go
-map[orderid:25092400475638 status:success]
+```json
+{
+  "orderid": "25092400475638",
+  "status": "success"
+}
+
 ```
 
 To place a new limit order:
@@ -172,8 +182,12 @@ fmt.Printf("%v\n", response)
 
 **Place Limit Order Response**
 
-```go
-map[orderid:25092400479260 status:success]
+```json
+{
+  "orderid": "25092400479260",
+  "status": "success"
+}
+
 ```
 
 #### PlaceSmartOrder Example
@@ -199,8 +213,12 @@ fmt.Printf("%v\n", response)
 
 **Place Smart Market Order Response**
 
-```go
-map[orderid:25092400482144 status:success]
+```json
+{
+  "orderid": "25092400479260",
+  "status": "success"
+}
+
 ```
 
 #### BasketOrder Example
@@ -235,8 +253,23 @@ fmt.Printf("%v\n", response)
 
 **Basket Order Response**
 
-```go
-map[results:[map[orderid:25092400496406 status:success symbol:YESBANK] map[orderid:25092400496407 status:success symbol:NHPC]] status:success]
+```json
+{
+  "status": "success",
+  "results": [
+    {
+      "orderid": "25092400496406",
+      "status": "success",
+      "symbol": "YESBANK"
+    },
+    {
+      "orderid": "25092400496407",
+      "status": "success",
+      "symbol": "NHPC"
+    }
+  ]
+}
+
 ```
 
 #### SplitOrder Example
@@ -262,8 +295,27 @@ fmt.Printf("%v\n", response)
 
 **SplitOrder Response**
 
-```go
-map[results:[map[order_num:1 orderid:25092400502095 quantity:2 status:success] map[order_num:2 orderid:25092400502096 quantity:2 status:success]] split_size:2 status:success total_quantity:4]
+```json
+{
+  "status": "success",
+  "split_size": 2,
+  "total_quantity": 4,
+  "results": [
+    {
+      "order_num": 1,
+      "orderid": "25092400502095",
+      "quantity": 2,
+      "status": "success"
+    },
+    {
+      "order_num": 2,
+      "orderid": "25092400502096",
+      "quantity": 2,
+      "status": "success"
+    }
+  ]
+}
+
 ```
 
 #### ModifyOrder Example
@@ -292,8 +344,12 @@ fmt.Printf("%v\n", response)
 
 **Modify Order Response**
 
-```go
-map[orderid:25092400479260 status:success]
+```json
+{
+  "orderid": "25092400479260",
+  "status": "success"
+}
+
 ```
 
 #### CancelOrder Example
@@ -313,8 +369,11 @@ fmt.Printf("%v\n", response)
 
 **Cancelorder Response**
 
-```go
-map[orderid:25092400479260 status:success]
+```json
+{
+  "orderid": "25092400479260",
+  "status": "success"
+}
 ```
 
 #### CancelAllOrder Example
@@ -331,8 +390,16 @@ fmt.Printf("%v\n", response)
 
 **Cancelallorder Response**
 
-```go
-map[canceled_orders:[25092400490404] failed_cancellations:[] message:Canceled 1 orders. Failed to cancel 0 orders. status:success]
+```json
+{
+  "status": "success",
+  "message": "Canceled 1 orders. Failed to cancel 0 orders.",
+  "canceled_orders": [
+    "25092400490404"
+  ],
+  "failed_cancellations": []
+}
+
 ```
 
 #### ClosePosition Example
@@ -349,8 +416,11 @@ fmt.Printf("%v\n", response)
 
 **ClosePosition Response**
 
-```go
-map[message:All Open Positions Squared Off status:success]
+```json
+{
+  "status": "success",
+  "message": "All Open Positions Squared Off"
+}
 ```
 
 #### OrderStatus Example
