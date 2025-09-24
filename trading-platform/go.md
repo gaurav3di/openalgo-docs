@@ -117,8 +117,8 @@ fmt.Printf("%v\n", response)
 
 **Ping Response**
 
-```json
-{"status": "success", "message": "pong"}
+```go
+map[data:map[broker:shoonya message:pong] status:success]
 ```
 
 #### PlaceOrder Example
