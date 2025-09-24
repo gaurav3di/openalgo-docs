@@ -727,7 +727,7 @@ fmt.Printf("%v\n", response)
       "token": "38387"
     }
   ],
-  "message": "Found 5 matching symbols",
+  "message": "Found 2 matching symbols",
   "status": "success"
 }
 ```
@@ -926,17 +926,6 @@ fmt.Printf("%v\n", response)
       "symbol": "YESBANK",
       "timestamp": "14:11:10",
       "trade_value": 42.58
-    },
-    {
-      "action": "BUY",
-      "average_price": "21.32",
-      "exchange": "NSE",
-      "orderid": "25092400482144",
-      "product": "MIS",
-      "quantity": "1",
-      "symbol": "YESBANK",
-      "timestamp": "14:03:23",
-      "trade_value": 21.32
     },
     {
       "action": "BUY",
