@@ -551,7 +551,13 @@ fmt.Printf("%v\n", response)
     "ltp": 870.35,
     "ltq": 1,
     "oi": 0,
-    "open":
+    "open": 875.2,
+    "prev_close": 870.5,
+    "totalbuyqty": 1637,
+    "totalsellqty": 649,
+    "volume": 313325
+  }
+}
 
 ```
 
@@ -603,78 +609,6 @@ fmt.Printf("%v\n", response)
       "timestamp": 1756791900,
       "volume": 415620
     },
-    {
-      "close": 808.1,
-      "high": 808.8,
-      "low": 807.2,
-      "oi": 0,
-      "open": 807.85,
-      "timestamp": 1756793700,
-      "volume": 361650
-    },
-    {
-      "close": 807.7,
-      "high": 808.9,
-      "low": 807.45,
-      "oi": 0,
-      "open": 808.35,
-      "timestamp": 1756795500,
-      "volume": 371490
-    },
-    {
-      "close": 806.9,
-      "high": 808,
-      "low": 806.5,
-      "oi": 0,
-      "open": 807.75,
-      "timestamp": 1756797300,
-      "volume": 253445
-    },
-    {
-      "close": 806.15,
-      "high": 806.95,
-      "low": 805.05,
-      "oi": 0,
-      "open": 806.85,
-      "timestamp": 1756799100,
-      "volume": 336244
-    },
-    {
-      "close": 803.95,
-      "high": 806.5,
-      "low": 802.7,
-      "oi": 0,
-      "open": 806,
-      "timestamp": 1756800900,
-      "volume": 442858
-    },
-    {
-      "close": 805.4,
-      "high": 805.75,
-      "low": 803.2,
-      "oi": 0,
-      "open": 803.8,
-      "timestamp": 1756802700,
-      "volume": 513582
-    },
-    {
-      "close": 803.9,
-      "high": 805.9,
-      "low": 803.5,
-      "oi": 0,
-      "open": 805.35,
-      "timestamp": 1756804500,
-      "volume": 647380
-    },
-    {
-      "close": 803.75,
-      "high": 804.5,
-      "low": 803.35,
-      "oi": 0,
-      "open": 803.85,
-      "timestamp": 1756806300,
-      "volume": 361737
-    }
   ],
   "status": "success"
 }
@@ -778,46 +712,7 @@ fmt.Printf("%v\n", response)
       "symbol": "NIFTY28OCT2525000CE",
       "tick_size": 0.05,
       "token": "58909"
-    },
-    {
-      "brexchange": "NFO",
-      "brsymbol": "FINNIFTY28OCT25C25000",
-      "exchange": "NFO",
-      "expiry": "28-OCT-25",
-      "instrumenttype": "CE",
-      "lotsize": 65,
-      "name": "FINNIFTY",
-      "strike": 25000,
-      "symbol": "FINNIFTY28OCT2525000CE",
-      "tick_size": 0.05,
-      "token": "57065"
-    },
-    {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY20OCT25C25000",
-      "exchange": "NFO",
-      "expiry": "20-OCT-25",
-      "instrumenttype": "CE",
-      "lotsize": 75,
-      "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY20OCT2525000CE",
-      "tick_size": 0.05,
-      "token": "45248"
-    },
-    {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY14OCT25C25000",
-      "exchange": "NFO",
-      "expiry": "14-OCT-25",
-      "instrumenttype": "CE",
-      "lotsize": 75,
-      "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY14OCT2525000CE",
-      "tick_size": 0.05,
-      "token": "42673"
-    },
+    }
     {
       "brexchange": "NFO",
       "brsymbol": "NIFTY07OCT25C25000",
@@ -1014,45 +909,12 @@ fmt.Printf("%v\n", response)
       "action": "SELL",
       "average_price": "21.28",
       "exchange": "NSE",
-      "orderid": "25092400502096",
-      "product": "MIS",
-      "quantity": "2",
-      "symbol": "YESBANK",
-      "timestamp": "14:18:50",
-      "trade_value": 42.56
-    },
-    {
-      "action": "SELL",
-      "average_price": "21.28",
-      "exchange": "NSE",
       "orderid": "25092400502095",
       "product": "MIS",
       "quantity": "2",
       "symbol": "YESBANK",
       "timestamp": "14:18:50",
       "trade_value": 42.56
-    },
-    {
-      "action": "BUY",
-      "average_price": "86.40",
-      "exchange": "NSE",
-      "orderid": "25092400496407",
-      "product": "CNC",
-      "quantity": "1",
-      "symbol": "NHPC",
-      "timestamp": "14:14:26",
-      "trade_value": 86.4
-    },
-    {
-      "action": "BUY",
-      "average_price": "21.29",
-      "exchange": "NSE",
-      "orderid": "25092400496406",
-      "product": "MIS",
-      "quantity": "1",
-      "symbol": "YESBANK",
-      "timestamp": "14:14:26",
-      "trade_value": 21.29
     },
     {
       "action": "SELL",
