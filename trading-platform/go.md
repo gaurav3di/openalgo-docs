@@ -531,8 +531,17 @@ fmt.Printf("%v\n", response)
 
 **Funds Response**
 
-```go
-Funds: map[data:map[availablecash:180.62 collateral:0.00 m2mrealized:-0.00 m2munrealized:0.00 utiliseddebits:0.00] status:success]
+```json
+{
+  "data": {
+    "availablecash": "93.81",
+    "collateral": "0.00",
+    "m2mrealized": "-0.13",
+    "m2munrealized": "0.00",
+    "utiliseddebits": "86.81"
+  },
+  "status": "success"
+}
 ```
 
 #### OrderBook Example
@@ -545,8 +554,73 @@ if err != nil {
 fmt.Printf("%v\n", response)
 ```
 
-```go
-map[data:map[orders:[map[action:BUY exchange:NSE order_status:complete orderid:25092400504502 price:0 pricetype:MARKET product:MIS quantity:3 symbol:YESBANK timestamp:14:20:38 24-09-2025 trigger_price:0] map[action:SELL exchange:NSE order_status:complete orderid:25092400502096 price:0 pricetype:MARKET product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 24-09-2025 trigger_price:0] map[action:SELL exchange:NSE order_status:complete orderid:25092400502095 price:0 pricetype:MARKET product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 24-09-2025 trigger_price:0] map[action:BUY exchange:NSE order_status:complete orderid:25092400496407 price:0 pricetype:MARKET product:CNC quantity:1 symbol:NHPC timestamp:14:14:26 24-09-2025 trigger_price:0] map[action:BUY exchange:NSE order_status:complete orderid:25092400496406 price:0 pricetype:MARKET product:MIS quantity:1 symbol:YESBANK timestamp:14:14:26 24-09-2025 trigger_price:0] map[action:SELL exchange:NSE order_status:complete orderid:25092400492663 price:0 pricetype:MARKET product:MIS quantity:2 symbol:YESBANK timestamp:14:11:10 24-09-2025 trigger_price:0] map[action:BUY exchange:NSE order_status:canceled orderid:25092400490404 price:20.30 pricetype:LIMIT 
+```json
+{
+  "data": {
+    "orders": [
+      {
+        "action": "BUY",
+        "exchange": "NSE",
+        "order_status": "canceled",
+        "orderid": "25092400516306",
+        "price": "20.30",
+        "pricetype": "LIMIT",
+        "product": "MIS",
+        "quantity": "1",
+        "symbol": "YESBANK",
+        "timestamp": "14:28:56 24-09-2025",
+        "trigger_price": 0
+      },
+      {
+        "action": "BUY",
+        "exchange": "NSE",
+        "order_status": "complete",
+        "orderid": "25092400496407",
+        "price": 0,
+        "pricetype": "MARKET",
+        "product": "CNC",
+        "quantity": "1",
+        "symbol": "NHPC",
+        "timestamp": "14:14:26 24-09-2025",
+        "trigger_price": 0
+      },
+      {
+        "action": "BUY",
+        "exchange": "NSE",
+        "order_status": "complete",
+        "orderid": "25092400496406",
+        "price": 0,
+        "pricetype": "MARKET",
+        "product": "MIS",
+        "quantity": "1",
+        "symbol": "YESBANK",
+        "timestamp": "14:14:26 24-09-2025",
+        "trigger_price": 0
+      },
+      {
+        "action": "SELL",
+        "exchange": "NSE",
+        "order_status": "complete",
+        "orderid": "25092400492663",
+        "price": 0,
+        "pricetype": "MARKET",
+        "product": "MIS",
+        "quantity": "2",
+        "symbol": "YESBANK",
+        "timestamp": "14:11:10 24-09-2025",
+        "trigger_price": 0
+      },
+    ],
+    "statistics": {
+      "total_buy_orders": 2,
+      "total_completed_orders": 3,
+      "total_open_orders": 0,
+      "total_rejected_orders": 0,
+      "total_sell_orders": 1
+    }
+  },
+  "status": "success"
+}
 ```
 
 #### TradeBook Example
@@ -561,8 +635,100 @@ fmt.Printf("%v\n", response)
 
 **TradeBook Response**
 
-```go
-map[data:[map[action:BUY average_price:21.30 exchange:NSE orderid:25092400504502 product:MIS quantity:3 symbol:YESBANK timestamp:14:20:38 trade_value:63.9] map[action:SELL average_price:21.28 exchange:NSE orderid:25092400502096 product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 trade_value:42.56] map[action:SELL average_price:21.28 exchange:NSE orderid:25092400502095 product:MIS quantity:2 symbol:YESBANK timestamp:14:18:50 trade_value:42.56] map[action:BUY average_price:86.40 exchange:NSE orderid:25092400496407 product:CNC quantity:1 symbol:NHPC timestamp:14:14:26 trade_value:86.4] map[action:BUY 
+```json
+{
+  "data": [
+    {
+      "action": "BUY",
+      "average_price": "21.30",
+      "exchange": "NSE",
+      "orderid": "25092400504502",
+      "product": "MIS",
+      "quantity": "3",
+      "symbol": "YESBANK",
+      "timestamp": "14:20:38",
+      "trade_value": 63.9
+    },
+    {
+      "action": "SELL",
+      "average_price": "21.28",
+      "exchange": "NSE",
+      "orderid": "25092400502096",
+      "product": "MIS",
+      "quantity": "2",
+      "symbol": "YESBANK",
+      "timestamp": "14:18:50",
+      "trade_value": 42.56
+    },
+    {
+      "action": "SELL",
+      "average_price": "21.28",
+      "exchange": "NSE",
+      "orderid": "25092400502095",
+      "product": "MIS",
+      "quantity": "2",
+      "symbol": "YESBANK",
+      "timestamp": "14:18:50",
+      "trade_value": 42.56
+    },
+    {
+      "action": "BUY",
+      "average_price": "86.40",
+      "exchange": "NSE",
+      "orderid": "25092400496407",
+      "product": "CNC",
+      "quantity": "1",
+      "symbol": "NHPC",
+      "timestamp": "14:14:26",
+      "trade_value": 86.4
+    },
+    {
+      "action": "BUY",
+      "average_price": "21.29",
+      "exchange": "NSE",
+      "orderid": "25092400496406",
+      "product": "MIS",
+      "quantity": "1",
+      "symbol": "YESBANK",
+      "timestamp": "14:14:26",
+      "trade_value": 21.29
+    },
+    {
+      "action": "SELL",
+      "average_price": "21.29",
+      "exchange": "NSE",
+      "orderid": "25092400492663",
+      "product": "MIS",
+      "quantity": "2",
+      "symbol": "YESBANK",
+      "timestamp": "14:11:10",
+      "trade_value": 42.58
+    },
+    {
+      "action": "BUY",
+      "average_price": "21.32",
+      "exchange": "NSE",
+      "orderid": "25092400482144",
+      "product": "MIS",
+      "quantity": "1",
+      "symbol": "YESBANK",
+      "timestamp": "14:03:23",
+      "trade_value": 21.32
+    },
+    {
+      "action": "BUY",
+      "average_price": "21.32",
+      "exchange": "NSE",
+      "orderid": "25092400475638",
+      "product": "MIS",
+      "quantity": "1",
+      "symbol": "YESBANK",
+      "timestamp": "13:58:19",
+      "trade_value": 21.32
+    }
+  ],
+  "status": "success"
+}
 ```
 
 #### PositionBook Example
@@ -577,8 +743,30 @@ fmt.Printf("%v\n", response)
 
 **PositionBook Response**
 
-```go
-map[data:[map[average_price:0 exchange:NSE ltp:0 pnl:0 product:MIS quantity:0 symbol:YESBANK] map[average_price:86.4 exchange:NSE ltp:86.36 pnl:-0.04 product:CNC quantity:1 symbol:NHPC]] status:success]
+```json
+{
+  "data": [
+    {
+      "average_price": 0,
+      "exchange": "NSE",
+      "ltp": 0,
+      "pnl": 0,
+      "product": "MIS",
+      "quantity": 0,
+      "symbol": "YESBANK"
+    },
+    {
+      "average_price": 86.4,
+      "exchange": "NSE",
+      "ltp": 86.29,
+      "pnl": -0.11,
+      "product": "CNC",
+      "quantity": 1,
+      "symbol": "NHPC"
+    }
+  ],
+  "status": "success"
+}
 ```
 
 #### Holdings Example
@@ -593,8 +781,36 @@ fmt.Printf("%v\n", response)
 
 **Holdings Response**
 
-```go
-map[data:map[holdings:[map[exchange:NSE pnl:0 pnlpercent:0 product:CNC quantity:1 symbol:BHEL] map[exchange:NSE pnl:0 pnlpercent:0 product:CNC quantity:1 symbol:YESBANK]] statistics:map[totalholdingvalue:271.55 totalinvvalue:271.55 totalpnlpercentage:0 totalprofitandloss:0]] status:success]
+```json
+{
+  "data": {
+    "holdings": [
+      {
+        "exchange": "NSE",
+        "pnl": 0,
+        "pnlpercent": 0,
+        "product": "CNC",
+        "quantity": 1,
+        "symbol": "BHEL"
+      },
+      {
+        "exchange": "NSE",
+        "pnl": 0,
+        "pnlpercent": 0,
+        "product": "CNC",
+        "quantity": 1,
+        "symbol": "YESBANK"
+      }
+    ],
+    "statistics": {
+      "totalholdingvalue": 271.55,
+      "totalinvvalue": 271.55,
+      "totalpnlpercentage": 0,
+      "totalprofitandloss": 0
+    }
+  },
+  "status": "success"
+}
 ```
 
 #### Analyzer Status Example
@@ -609,8 +825,15 @@ fmt.Printf("%v\n", response)
 
 **Analyzer Status Response**
 
-```go
-map[data:map[analyze_mode:true mode:analyze total_logs:1] status:success]
+```json
+{
+  "data": {
+    "analyze_mode": true,
+    "mode": "analyze",
+    "total_logs": 1
+  },
+  "status": "success"
+}
 ```
 
 #### Analyzer Toggle Example
@@ -626,8 +849,16 @@ fmt.Printf("%v\n", response)
 
 **Analyzer Toggle Response**
 
-```go
-map[data:map[analyze_mode:true message:Analyzer mode switched to analyze mode:analyze total_logs:1] status:success]
+```json
+{
+  "data": {
+    "analyze_mode": true,
+    "message": "Analyzer mode switched to analyze",
+    "mode": "analyze",
+    "total_logs": 1
+  },
+  "status": "success"
+}
 ```
 
 #### LTP Data (Streaming Websocket)
