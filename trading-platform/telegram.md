@@ -4,6 +4,8 @@
 
 The OpenAlgo Telegram Bot provides a convenient interface to access your trading data through Telegram. It offers read-only access to your trading account, allowing you to view positions, orders, holdings, P\&L, and generate charts directly from your Telegram app.
 
+{% embed url="https://www.youtube.com/watch?v=Z4nZbUiw54I" %}
+
 ### Features
 
 * **Account Linking**: Securely link your OpenAlgo account using API keys
