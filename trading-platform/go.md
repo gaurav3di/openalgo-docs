@@ -440,8 +440,24 @@ fmt.Printf("%v\n", response)
 
 **Orderstatus Response**
 
-```go
-map[data:map[action:BUY average_price:21.29 exchange:NSE order_status:complete orderid:25092400496406 price:0 pricetype:MARKET product:MIS quantity:1 symbol:YESBANK timestamp:14:14:26 24-09-2025 trigger_price:0] status:success]
+```json
+{
+  "data": {
+    "action": "SELL",
+    "average_price": 21.28,
+    "exchange": "NSE",
+    "order_status": "complete",
+    "orderid": "25092400502095",
+    "price": 0,
+    "pricetype": "MARKET",
+    "product": "MIS",
+    "quantity": "2",
+    "symbol": "YESBANK",
+    "timestamp": "14:18:50 24-09-2025",
+    "trigger_price": 0
+  },
+  "status": "success"
+}
 ```
 
 #### OpenPosition Example
@@ -463,8 +479,12 @@ fmt.Printf("%v\n", response)
 
 **OpenPosition Response**
 
-```go
-map[quantity:-3 status:success]
+```json
+{
+  "status": "success",
+  "quantity": -3
+}
+
 ```
 
 #### Quotes Example
@@ -479,8 +499,21 @@ fmt.Printf("%v\n", response)
 
 **Quotes response**
 
-```go
-map[data:map[ask:1392.8 bid:1392.6 high:1396 low:1383.2 ltp:1392.8 oi:0 open:1385.3 prev_close:1389.8 volume:2.477476e+06] status:success]
+```json
+{
+  "data": {
+    "ask": 1383,
+    "bid": 0,
+    "high": 1396,
+    "low": 1380.4,
+    "ltp": 1383,
+    "oi": 0,
+    "open": 1385.3,
+    "prev_close": 1389.8,
+    "volume": 5922759
+  },
+  "status": "success"
+}
 ```
 
 #### Depth Example
@@ -495,8 +528,31 @@ fmt.Printf("%v\n", response)
 
 **Depth Response**
 
-```go
-map[data:map[asks:[map[price:870.65 quantity:120] map[price:870.7 quantity:111] map[price:870.75 quantity:105] map[price:870.8 quantity:69] map[price:870.85 quantity:244]] bids:[map[price:870.35 quantity:36] map[price:870.3 quantity:70] map[price:870.2 quantity:345] map[price:870.15 quantity:575] map[price:870.1 quantity:611]] high:880.4 low:869.1 ltp:870.35 ltq:1 oi:0 open:875.2 prev_close:870.5 totalbuyqty:1637 totalsellqty:649 volume:313325] status:success]
+```json
+{
+  "status": "success",
+  "data": {
+    "asks": [
+      {"price": 870.65, "quantity": 120},
+      {"price": 870.7, "quantity": 111},
+      {"price": 870.75, "quantity": 105},
+      {"price": 870.8, "quantity": 69},
+      {"price": 870.85, "quantity": 244}
+    ],
+    "bids": [
+      {"price": 870.35, "quantity": 36},
+      {"price": 870.3, "quantity": 70},
+      {"price": 870.2, "quantity": 345},
+      {"price": 870.15, "quantity": 575},
+      {"price": 870.1, "quantity": 611}
+    ],
+    "high": 880.4,
+    "low": 869.1,
+    "ltp": 870.35,
+    "ltq": 1,
+    "oi": 0,
+    "open":
+
 ```
 
 #### History Example
@@ -517,8 +573,111 @@ fmt.Printf("%v\n", response)
 
 **History Response**
 
-```go
-map[data:[map[close:806 high:806.45 low:803.4 oi:0 open:803.4 timestamp:1.7566983e+09 volume:268668] map[close:807.4 high:807.85 low:805.35 oi:0 open:806.1 timestamp:1.7566986e+09 volume:205484] map[close:806.75 high:808.3 low:806.05 oi:0 open:807.5 timestamp:1.7566989e+09 volume:135774] map[close:805.85 high:807 low:805.5 oi:0 open:806.65 timestamp:1.7566992e+09 
+```json
+{
+  "data": [
+    {
+      "close": 806.4,
+      "high": 808.3,
+      "low": 803.4,
+      "oi": 0,
+      "open": 803.4,
+      "timestamp": 1756698300,
+      "volume": 825363
+    },
+    {
+      "close": 808.5,
+      "high": 809.95,
+      "low": 808.15,
+      "oi": 0,
+      "open": 808.65,
+      "timestamp": 1756790100,
+      "volume": 235913
+    },
+    {
+      "close": 807.9,
+      "high": 808.9,
+      "low": 807.6,
+      "oi": 0,
+      "open": 808.4,
+      "timestamp": 1756791900,
+      "volume": 415620
+    },
+    {
+      "close": 808.1,
+      "high": 808.8,
+      "low": 807.2,
+      "oi": 0,
+      "open": 807.85,
+      "timestamp": 1756793700,
+      "volume": 361650
+    },
+    {
+      "close": 807.7,
+      "high": 808.9,
+      "low": 807.45,
+      "oi": 0,
+      "open": 808.35,
+      "timestamp": 1756795500,
+      "volume": 371490
+    },
+    {
+      "close": 806.9,
+      "high": 808,
+      "low": 806.5,
+      "oi": 0,
+      "open": 807.75,
+      "timestamp": 1756797300,
+      "volume": 253445
+    },
+    {
+      "close": 806.15,
+      "high": 806.95,
+      "low": 805.05,
+      "oi": 0,
+      "open": 806.85,
+      "timestamp": 1756799100,
+      "volume": 336244
+    },
+    {
+      "close": 803.95,
+      "high": 806.5,
+      "low": 802.7,
+      "oi": 0,
+      "open": 806,
+      "timestamp": 1756800900,
+      "volume": 442858
+    },
+    {
+      "close": 805.4,
+      "high": 805.75,
+      "low": 803.2,
+      "oi": 0,
+      "open": 803.8,
+      "timestamp": 1756802700,
+      "volume": 513582
+    },
+    {
+      "close": 803.9,
+      "high": 805.9,
+      "low": 803.5,
+      "oi": 0,
+      "open": 805.35,
+      "timestamp": 1756804500,
+      "volume": 647380
+    },
+    {
+      "close": 803.75,
+      "high": 804.5,
+      "low": 803.35,
+      "oi": 0,
+      "open": 803.85,
+      "timestamp": 1756806300,
+      "volume": 361737
+    }
+  ],
+  "status": "success"
+}
 ```
 
 #### Intervals Example
