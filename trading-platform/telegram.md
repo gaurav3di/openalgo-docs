@@ -83,6 +83,86 @@ The OpenAlgo Telegram Bot provides a convenient interface to access your trading
 * `/menu` - Display interactive button menu
 * `/help` - Show help message with all commands
 
+### Order Alerts (Automatic Notifications)
+
+#### Overview
+
+The bot automatically sends real-time notifications for all order-related API activities. No additional commands are needed - alerts are sent automatically when orders are placed through the OpenAlgo API.
+
+#### Supported Order Types
+
+* **Place Order** - Regular order placement notifications
+* **Place Smart Order** - Smart orders with position sizing alerts
+* **Basket Order** - Multiple orders in one request notifications
+* **Split Order** - Large orders split into smaller chunks alerts
+* **Modify Order** - Order modification notifications
+* **Cancel Order** - Single order cancellation alerts
+* **Cancel All Orders** - Bulk order cancellation notifications
+* **Close Position** - Position closing alerts
+
+#### Alert Format
+
+Each alert includes:
+
+* **Mode Indicator**:
+  * 💰 **LIVE MODE** - Real orders executed with the broker
+  * 🔬 **ANALYZE MODE** - Simulated orders for testing/analysis
+* **Order Details**: Symbol, action, quantity, price, exchange, product type
+* **Status**: Success or failure with error messages if applicable
+* **Order ID**: Unique identifier for tracking
+* **Timestamp**: Time of order execution
+* **Strategy Name**: If provided in the API call
+
+#### Example Notifications
+
+**Live Order Placed:**
+
+```
+📈 Order Placed
+💰 LIVE MODE - Real Order
+─────────────────────
+Strategy: MyStrategy
+Symbol: RELIANCE
+Action: BUY
+Quantity: 10
+Price Type: MARKET
+Exchange: NSE
+Product: MIS
+Order ID: 250408000989443
+⏰ Time: 14:23:45
+```
+
+**Analyze Mode Order:**
+
+```
+📈 Order Placed
+🔬 ANALYZE MODE - No Real Order
+─────────────────────
+Strategy: TestStrategy
+Symbol: RELIANCE
+Action: BUY
+Quantity: 10
+Price Type: MARKET
+Exchange: NSE
+Product: MIS
+Order ID: ANALYZE123456
+⏰ Time: 14:23:45
+```
+
+#### Configuration
+
+* Alerts are **enabled by default** for all linked users
+* Users can enable/disable notifications in their preferences
+* Failed alerts are queued for retry when the bot comes online
+* Zero impact on order execution speed (asynchronous processing)
+
+#### Requirements for Receiving Alerts
+
+1. Telegram bot must be running (`/telegram/bot/start` in web interface)
+2. Your account must be linked via `/link` command
+3. Notifications must be enabled (default: enabled)
+4. Orders must be placed through the OpenAlgo API
+
 ### Chart Features
 
 #### Intraday Charts
