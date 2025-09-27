@@ -194,6 +194,7 @@
 
 ## Security
 
+* [Architecture](security/architecture.md)
 * [Ban IP](security/ban-ip.md)
 
 ## Change Log
