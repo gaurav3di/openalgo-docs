@@ -83,6 +83,12 @@ OpenAlgo contributors focus on building and maintaining **core features first**,
 
 The **goal is simplicity**: reduce the complexity of algo infrastructure so traders and coders can focus on strategy development instead of low-level implementation.
 
+### 10. Upgrade Discipline
+
+* **When to upgrade**: Upgrade only when you are ready to test new features or security patches. Do not upgrade blindly during trading hours.
+* **How to upgrade**: Always test upgrades first in a **safe environment** such as GitHub Codespaces, Docker test containers, or a staging server before applying changes to your live setup.
+* **Backup first**: Before every upgrade, take a full backup of your OpenAlgo directory. A simple method is to **zip the entire folder** and store it safely. This ensures you can roll back if something goes wrong.
+
 ***
 
 ### Final Note
