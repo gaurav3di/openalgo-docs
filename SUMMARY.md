@@ -12,6 +12,7 @@
   * [PNL Tracker](new-features/pnl-tracker.md)
   * [Traffic/Latency Monitor](new-features/traffic-latency-monitor.md)
   * [Chartink Integration](new-features/chartink-integration.md)
+* [Responsibilities](responsibilities.md)
 * [Monetization](monetization.md)
 
 ## Connect Brokers
