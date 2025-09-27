@@ -192,6 +192,10 @@
   * [Utilities](developers/design-documentation/utilities.md)
   * [Broker Integration Checklist](developers/design-documentation/broker-integration-checklist.md)
 
+## Security
+
+* [Ban IP](security/ban-ip.md)
+
 ## Change Log
 
 * [Version 1.0.0.33 Launched](change-log/version-1.0.0.33-launched.md)
