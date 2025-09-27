@@ -14,7 +14,7 @@ This section outlines the key responsibilities every user must understand before
 
 * **No hidden logic**: OpenAlgo is 100% transparent. All execution logic is visible and customizable.
 * **Comparison with paid platforms**: Many commercial algo platforms hide their execution rules or charge high fees for access, forcing users to trust them blindly.
-* **Freedom with risk**: In OpenAlgo, transparency means you control everything—but also bear responsibility for system design, testing, and reliability.
+* **Freedom with risk**: In OpenAlgo, transparency means you control everything—but also bear responsibility for testing, and reliability.
 
 ***
 
