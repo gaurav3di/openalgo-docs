@@ -50,6 +50,7 @@ Execute the migration script to add the `feed_token` column to your database:
 # Run the migration script
 python migrate_telegram_bot.py
 python migrate_smtp_simple.py
+python upgrade/migrate_security_columns.py
 
 # Get back to openalgo directory
 cd..
