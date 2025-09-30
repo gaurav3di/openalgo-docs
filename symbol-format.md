@@ -28,7 +28,7 @@ Below are the extended examples for various futures contracts:
 
 **BSE Futures:**
 
-* **Example:** For SENSEX futures expiring in April 2024, the symbol would be `SENSEX24APRFUT`.
+* **Example:** For SENSEX futures expiring in April 2024, the symbol would be `SENSEX24APR24FUT`.
 
 **Currency Futures:**
 
