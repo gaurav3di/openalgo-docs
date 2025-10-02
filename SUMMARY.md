@@ -199,6 +199,7 @@
 
 ## Change Log
 
+* [Version 1.0.0.34 Launched](change-log/version-1.0.0.34-launched.md)
 * [Version 1.0.0.33 Launched](change-log/version-1.0.0.33-launched.md)
 * [Version 1.0.0.32 Launched](change-log/version-1.0.0.32-launched.md)
 * [Version 1.0.0.31 Launched](change-log/version-1.0.0.31-launched.md)
