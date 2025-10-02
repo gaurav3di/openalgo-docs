@@ -50,7 +50,8 @@ Execute the migration script to add the `feed_token` column to your database:
 # Run the migration script
 python migrate_telegram_bot.py
 python migrate_smtp_simple.py
-python migrate_security_columns.py
+<strong>python migrate_security_columns.py
+</strong>python migrate_sandbox.py
 
 # Get back to openalgo directory
 cd..
@@ -118,6 +119,7 @@ cd upgrade
 uv run migrate_telegram_bot.py
 uv run migrate_smtp_simple.py
 uv run migrate_security_columns.py
+uv run migrate_sandbox.py
 cd ..
 ```
 
@@ -134,18 +136,24 @@ uv run app.py
 You should see logs like:
 
 ```
-✅ Configuration version check passed (1.0.3)
-[2025-07-31 01:45:12,486] INFO in base: Scheduler started
-[2025-07-31 01:45:12,587] INFO in base: Scheduler started
-[2025-07-31 01:45:12,589] INFO in market_data_service: MarketDataService initialized
-[2025-07-31 01:45:12,927] INFO in traffic_db: Initializing Traffic Logs DB at: sqlite:///db/logs.db
-[2025-07-31 01:45:12,939] INFO in latency_db: Initializing Latency DB at: sqlite:///db/latency.db
-[2025-07-31 01:45:13,024] INFO in auth_db: Initializing Auth DB
-[2025-07-31 01:45:13,025] INFO in user_db: Initializing User DB
-[2025-07-31 01:45:13,026] INFO in symbol: Initializing Master Contract DB
-[2025-07-31 01:45:13,026] INFO in apilog_db: Initializing API Log DB
-[2025-07-31 01:45:13,026] INFO in analyzer_db: Initializing Analyzer Table
-...
+✅ Configuration version check passed (1.0.4)
+[2025-10-02 16:20:51,027] INFO in telegram_db: Telegram database initialized successfully
+[2025-10-02 16:20:51,120] INFO in base: Scheduler started
+[2025-10-02 16:20:51,203] INFO in base: Scheduler started
+[2025-10-02 16:20:51,207] INFO in market_data_service: MarketDataService initialized
+[2025-10-02 16:20:51,436] INFO in python_strategy: Directories initialized on windows
+[2025-10-02 16:20:51,436] INFO in base: Scheduler started
+[2025-10-02 16:20:51,437] INFO in python_strategy: Scheduler initialized with IST timezone on windows 
+[2025-10-02 16:20:51,437] INFO in python_strategy: Python Strategy System initialized (basic) on windows
+[2025-10-02 16:20:51,934] INFO in socketio_error_handler: Socket.IO error handling initialized
+[2025-10-02 16:20:51,999] INFO in security_middleware: Security middleware initialized
+[2025-10-02 16:20:51,999] INFO in security_middleware: Security middleware initialized
+[2025-10-02 16:20:51,999] INFO in traffic_db: Initializing Traffic Logs DB at: sqlite:///db/logs.db   
+[2025-10-02 16:20:52,022] INFO in latency_db: Initializing Latency DB at: sqlite:///db/latency.db
+[2025-10-02 16:20:52,048] INFO in auth_db: Initializing Auth DB
+[2025-10-02 16:20:52,049] INFO in user_db: Initializing User DB
+[2025-10-02 16:20:52,049] INFO in symbol: Initializing Master Contract DB
+[2025-10-02 16:20:52,050] INFO in apilog_db: Initializing API Log DB
 ```
 
 ***

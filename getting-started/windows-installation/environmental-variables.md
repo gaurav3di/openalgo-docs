@@ -4,20 +4,16 @@ Rename the `.sample.env` file located in `openalgo` folder to `.env`
 
 Update the `.env` with your specific configurations as shown in the provided template.
 
-
-
 ### Sample Environmental File
-
-
 
 ```python
 # OpenAlgo Environment Configuration File
-# Version: 1.0.3
-# Last Updated: 2025-07-31
+# Version: 1.0.4
+# Last Updated: 2025-10-01
 # 
 # IMPORTANT: When updating OpenAlgo, compare this version with your .env file
 # If versions don't match, copy new variables from this file to your .env
-ENV_CONFIG_VERSION = '1.0.3'
+ENV_CONFIG_VERSION = '1.0.4'
 
 # Broker Configuration
 BROKER_API_KEY = 'YOUR_BROKER_API_KEY'
@@ -55,6 +51,7 @@ DATABASE_URL = 'sqlite:///db/openalgo.db'
 # Additional Database Configuration
 LATENCY_DATABASE_URL = 'sqlite:///db/latency.db'  # Database for latency monitoring
 LOGS_DATABASE_URL = 'sqlite:///db/logs.db'        # Database for traffic logs 
+SANDBOX_DATABASE_URL = 'sqlite:///db/sandbox.db'  # Database for sandbox/analyzer mode 
 
 # OpenAlgo Ngrok Configuration
 NGROK_ALLOW = 'FALSE' 
