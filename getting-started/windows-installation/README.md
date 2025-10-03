@@ -13,6 +13,4 @@ This section provides OpenAlgo Installation Guideline for Windows Users
 
 ## How to Upgrade OpenAlgo to Latest Version
 
-
-
-{% embed url="https://www.youtube.com/watch?v=FwlsviTQNRk" %}
+{% embed url="https://www.youtube.com/watch?v=GlbvnljYxGE" %}
