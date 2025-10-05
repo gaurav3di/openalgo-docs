@@ -45,8 +45,6 @@
 
 ## Installation Guidelines
 
-***
-
 * [Getting Started](getting-started/README.md)
   * [Windows Installation](getting-started/windows-installation/README.md)
     * [Pre-Requesites](getting-started/windows-installation/pre-requesites.md)
@@ -78,6 +76,7 @@
   * [Upgrade](getting-started/upgrade.md)
 * [Static IP](static-ip.md)
 * [Latency](latency.md)
+* [Themes](installation-guidelines/themes.md)
 
 ## API Documentation
 
