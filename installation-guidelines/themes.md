@@ -1,6 +1,8 @@
-# Themes
+---
+description: OpenAlgo Themes
+---
 
-## OpenAlgo Themes
+# Themes
 
 OpenAlgo features a sophisticated theming system powered by DaisyUI, offering 30 professionally designed themes that enhance your trading experience with beautiful, consistent, and accessible user interfaces.
 
