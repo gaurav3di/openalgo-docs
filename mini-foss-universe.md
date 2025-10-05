@@ -10,7 +10,7 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 
 📦 **Historify** **(Full Stack Stock Market Data Management Platform)**\
 \
-[https://github.com/marketcalls/openalgo](https://github.com/marketcalls/historify)
+[https://github.com/marketcalls/historify](https://github.com/marketcalls/historify)
 
 🐍 **Python SDK Library**\
 \
