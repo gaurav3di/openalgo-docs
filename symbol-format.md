@@ -4,6 +4,8 @@
 
 OpenAlgo standardizes financial instrument identification via a common symbol format across all exchanges and brokers, enhancing compatibility and simplifying automated trading. This uniform symbology eliminates the need for traders to adapt to varied broker-specific formats, streamlining algorithm development and execution. The format integrates key identifiers such as the base symbol, expiration date, and option type, ensuring consistent and error-free communication within trading systems. With OpenAlgo, developers can efficiently extend platform capabilities while traders focus on strategy, not syntax.
 
+{% embed url="https://www.youtube.com/watch?v=DcmDYpGYdJY" %}
+
 ### Equity Symbol Format
 
 In the context of OpenAlgo, equity symbols are constructed based on the base symbol of the stock.
