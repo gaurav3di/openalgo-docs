@@ -19,6 +19,8 @@ The OpenAlgo theming system provides:
 * **Responsive Design**: All themes are optimized for desktop, tablet, and mobile
 * **Accessibility**: WCAG-compliant color contrasts and ARIA-friendly components
 
+{% embed url="https://www.youtube.com/watch?v=ZXbwDik5NOI" %}
+
 ### Available Themes
 
 OpenAlgo includes 30 carefully crafted themes to suit every preference:
