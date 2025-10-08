@@ -1,38 +1,118 @@
 # Dhan
 
-Dhan is an innovative financial services provider focused on leveraging technology to offer a dynamic trading and investment platform. Recognized for its intuitive interface and powerful trading capabilities, Dhan strives to enhance the trading experiences of its users. The platform serves a diverse range of customers, from novice investors to seasoned traders, providing tools that support various investment strategies and trading styles.
+Dhan is a new-generation financial services platform that empowers traders and investors to build, automate, and execute their trading strategies. Through **DhanHQ APIs**, users can connect their Dhan account with tools like **OpenAlgo** and create their own trading automation setup — fully self-hosted and secure.
 
+***
 
+### Overview
 
-{% embed url="https://www.youtube.com/watch?v=EqCLLRUvtBg" %}
+Dhan provides two main types of APIs:
 
-For developers and algo traders looking to use the Dhan API, the integration process generally involves the following steps:
+| API Type         | Features                                                                                                    | Cost                                   |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| **Trading APIs** | Order Placement, Position Management, Portfolio & Funds, Order Postbacks, Statement Reports                 | **Free of Cost**                       |
+| **Data APIs**    | Real-time Prices, Historical Data (5 years), 20-Level Market Depth, Option Chain APIs, Expired Options Data | ₹499/month or ₹399/month (₹4,788/year) |
 
-#### Steps for Integration:
+***
 
-1. **Log into Dhan Web Portal**: Visit the Dhan Web Portal at [web.dhan.co](http://web.dhan.co/) to start the integration process.
-2. **Navigate to Profile**: Click on "DhanHQ Trading API's" under your profile options to access the API .![](<../../.gitbook/assets/image (36).png>)
-3.  **Generate API Token**:
+### Steps for Integration
 
-    * Under the "Trading APIs" tab, click on "Generate token".
-    * Enter "OpenAlgo" as the Application Name.
-    * Set the Token Validity for 30 days.
-    * Click on the "Generate Token" button to create your API token.
+#### **Step 1: Log in to Dhan Web Portal**
 
-    <figure><img src="../../.gitbook/assets/image (37).png" alt=""><figcaption></figcaption></figure>
-4. **Retrieve API Credentials**:
-   * Copy the generated token id, which will serve as your `apisecret`.
-   * Go back to your profile page by clicking "My Profile on Dhan".
-   * Copy the Client ID, which will be your `apikey`.
+Visit [web.dhan.co](https://web.dhan.co/) and sign in to your Dhan account.
 
-#### Configuration:
+***
 
-Here is how you would typically set up your environment variables in a .env file for Dhan's API:
+#### **Step 2: Access DhanHQ APIs**
 
-```
-BROKER_API_KEY = 'your_dhan_clientid_here'
-BROKER_API_SECRET = 'your_dhan_token_here'
+Click on your profile icon at the top-right and select **“Access DhanHQ APIs”**.
+
+From this page, you can:
+
+* Generate API Keys
+* Enable TOTP
+* Setup Static IP
+* Manage Trading & Data APIs
+
+***
+
+#### **Step 3: Switch to API Key Mode**
+
+By default, DhanHQ opens in **Access Token** mode.\
+Use the toggle on the top-right to switch to **API Key Mode**.
+
+***
+
+#### **Step 4: Generate a New API Key**
+
+1. Under **Generate new API Key**, enter:
+   * **Application Name** → e.g. `openalgo`
+   * **Redirect URL** → `http://127.0.0.1:5000/dhan/callback`
+   * (Optional) **Postback URL** if your system supports order postbacks
+2. Click **Generate API Key**.
+3. Copy your:
+   * **API Key**
+   * **API Secret**
+
+***
+
+#### **Step 5: Retrieve Client ID**
+
+1. From the same profile menu, select **“My Profile on Dhan.”**
+2. Scroll to **Profile Details** and copy your **Client ID**.\
+   This will be used as part of your API credentials.
+
+***
+
+#### **Step 6: Enable TOTP (Mandatory)**
+
+* Under **Optional Settings - down below the API Key section**, click **Set-up TOTP.**
+* Follow the instructions to configure two-factor authentication for API access.
+* This is **mandatory** for all Dhan API users.
+
+***
+
+#### **Step 7: Setup Static IP (Optional / Mandatory from Jan 2026)**
+
+* Click **Static IP Setting** under Optional Settings.
+* Add up to two IP addresses (e.g., your server or office IP).
+* You can update these every 7 days.
+* From **January 2026**, setting at least one **Static IP** will become mandatory.
+
+***
+
+### Environment Configuration
+
+Once your credentials are generated, configure them in your `.env` file:
+
+```env
+BROKER_API_KEY = 'your_dhan_clientid:::your_dhan_apikey'
+BROKER_API_SECRET = 'your_dhan_apisecret'
 REDIRECT_URL = 'http://127.0.0.1:5000/dhan/callback'
 ```
 
-Integrating with the Dhan API opens up new possibilities for implementing automated and algorithmic trading strategies. It provides developers and traders with a robust platform to access market opportunities efficiently and effectively. To fully leverage the capabilities of the Dhan API, it is essential to follow best practices for API integration. This includes careful management of API rate limits, secure handling of API keys, and thorough error handling and logging. These practices help ensure a dependable and optimal trading experience using Dhan's advanced technological infrastructure.
+***
+
+### API Costs Summary
+
+| API Type         | Description                                                       | Cost                                        |
+| ---------------- | ----------------------------------------------------------------- | ------------------------------------------- |
+| **Trading APIs** | Order, Position, Portfolio, Funds & Report APIs                   | ✅ **Free of Cost**                          |
+| **Data APIs**    | Real-time + Historical Data (5 years), Market Depth, Option Chain | 💸 ₹499/month (or ₹399/month billed yearly) |
+
+***
+
+### Best Practices
+
+* Keep your **API Key, Secret, and Client ID private**.
+* Do not share credentials with third-party applications.
+* Always enable **TOTP** for added security.
+* Use **Static IPs** when deploying in production environments.
+* **Daily login to OpenAlgo Portal is mandatory.**
+
+***
+
+Integrating with **DhanHQ APIs** unlocks the ability to automate strategies, execute trades, and analyze data directly within your own infrastructure.\
+When used with **OpenAlgo**, you can self-host and run your entire algo trading stack — with full control and zero vendor lock-in.
+
+***
