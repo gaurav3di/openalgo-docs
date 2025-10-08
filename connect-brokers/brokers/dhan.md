@@ -34,12 +34,16 @@ From this page, you can:
 * Setup Static IP
 * Manage Trading & Data APIs
 
+<figure><img src="../../.gitbook/assets/image (128).png" alt=""><figcaption></figcaption></figure>
+
 ***
 
 #### **Step 3: Switch to API Key Mode**
 
 By default, DhanHQ opens in **Access Token** mode.\
 Use the toggle on the top-right to switch to **API Key Mode**.
+
+<figure><img src="../../.gitbook/assets/image (129).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
@@ -54,6 +58,8 @@ Use the toggle on the top-right to switch to **API Key Mode**.
    * **API Key**
    * **API Secret**
 
+<figure><img src="../../.gitbook/assets/image (130).png" alt=""><figcaption></figcaption></figure>
+
 ***
 
 #### **Step 5: Retrieve Client ID**
@@ -61,6 +67,8 @@ Use the toggle on the top-right to switch to **API Key Mode**.
 1. From the same profile menu, select **“My Profile on Dhan.”**
 2. Scroll to **Profile Details** and copy your **Client ID**.\
    This will be used as part of your API credentials.
+
+<figure><img src="../../.gitbook/assets/image (131).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
@@ -78,6 +86,8 @@ Use the toggle on the top-right to switch to **API Key Mode**.
 * Add up to two IP addresses (e.g., your server or office IP).
 * You can update these every 7 days.
 * From **January 2026**, setting at least one **Static IP** will become mandatory.
+
+<figure><img src="../../.gitbook/assets/image (132).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
