@@ -18,6 +18,8 @@ Just pure **self-hosted freedom**.
 
 House of FOSS provides a platform to install and manage open-source software just like SaaS — but you **own everything**. It’s designed for developers, traders, and startups who want full control without worrying about backend infrastructure.
 
+{% embed url="https://www.youtube.com/watch?v=GgPPwX3M2FM" %}
+
 ***
 
 ### 1. What is House of FOSS?
