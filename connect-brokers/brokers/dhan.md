@@ -2,6 +2,8 @@
 
 Dhan is a new-generation financial services platform that empowers traders and investors to build, automate, and execute their trading strategies. Through **DhanHQ APIs**, users can connect their Dhan account with tools like **OpenAlgo** and create their own trading automation setup — fully self-hosted and secure.
 
+{% embed url="https://www.youtube.com/watch?v=Gs657PKGgcE" %}
+
 ***
 
 ### Overview
