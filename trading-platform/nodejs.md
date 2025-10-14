@@ -721,6 +721,186 @@ console.log(response);
 }
 ```
 
+**LTP Data (Streaming Websocket)**
+
+```python
+// test-websocket-ltp.js
+// Subscribe to real-time Last Traded Price (LTP) updates via WebSocket
+
+import WebSocket from 'ws';
+
+const API_KEY = 'your_api_key';
+const WS_URL = 'ws://127.0.0.1:8765';
+
+const instruments = [
+    { exchange: 'NSE', symbol: 'RELIANCE' },
+    { exchange: 'NSE', symbol: 'INFY' }
+];
+
+function onLTP(data) {
+    console.log('LTP Update:', data);
+}
+
+class OpenAlgoWS {
+    constructor(apiKey, wsUrl) {
+        this.ws = new WebSocket(wsUrl);
+        this.callback = null;
+
+        this.ws.on('open', () => {
+            this.ws.send(JSON.stringify({ action: 'authenticate', api_key: apiKey }));
+        });
+
+        this.ws.on('message', (msg) => {
+            const data = JSON.parse(msg);
+            if (data.type === 'market_data' && this.callback) this.callback(data);
+        });
+    }
+
+    subscribeLTP(instruments, callback) {
+        this.callback = callback;
+        instruments.forEach(i => {
+            this.ws.send(JSON.stringify({ action: 'subscribe', symbol: i.symbol, exchange: i.exchange, mode: 1, depth: 5 }));
+        });
+    }
+
+    unsubscribeLTP(instruments) {
+        instruments.forEach(i => {
+            this.ws.send(JSON.stringify({ action: 'unsubscribe', symbol: i.symbol, exchange: i.exchange, mode: 1 }));
+        });
+    }
+
+    disconnect() {
+        this.ws.close();
+    }
+}
+
+const client = new OpenAlgoWS(API_KEY, WS_URL);
+
+setTimeout(() => client.subscribeLTP(instruments, onLTP), 1000);
+setTimeout(() => { client.unsubscribeLTP(instruments); client.disconnect(); }, 11000);
+
+```
+
+**Quotes (Streaming Websocket)**
+
+```python
+// test-websocket-quote.js
+// Subscribe to real-time Quote updates via WebSocket
+
+import WebSocket from 'ws';
+
+const API_KEY = 'your_api_key';
+const WS_URL = 'ws://127.0.0.1:8765';
+
+const instruments = [
+    { exchange: 'NSE', symbol: 'RELIANCE' },
+    { exchange: 'NSE', symbol: 'INFY' }
+];
+
+function onQuote(data) {
+    console.log('Quote Update:', data);
+}
+
+class OpenAlgoWS {
+    constructor(apiKey, wsUrl) {
+        this.ws = new WebSocket(wsUrl);
+        this.callback = null;
+
+        this.ws.on('open', () => {
+            this.ws.send(JSON.stringify({ action: 'authenticate', api_key: apiKey }));
+        });
+
+        this.ws.on('message', (msg) => {
+            const data = JSON.parse(msg);
+            if (data.type === 'market_data' && this.callback) this.callback(data);
+        });
+    }
+
+    subscribeQuote(instruments, callback) {
+        this.callback = callback;
+        instruments.forEach(i => {
+            this.ws.send(JSON.stringify({ action: 'subscribe', symbol: i.symbol, exchange: i.exchange, mode: 2, depth: 5 }));
+        });
+    }
+
+    unsubscribeQuote(instruments) {
+        instruments.forEach(i => {
+            this.ws.send(JSON.stringify({ action: 'unsubscribe', symbol: i.symbol, exchange: i.exchange, mode: 2 }));
+        });
+    }
+
+    disconnect() {
+        this.ws.close();
+    }
+}
+
+const client = new OpenAlgoWS(API_KEY, WS_URL);
+
+setTimeout(() => client.subscribeQuote(instruments, onQuote), 1000);
+setTimeout(() => { client.unsubscribeQuote(instruments); client.disconnect(); }, 11000);
+
+```
+
+**Depth (Streaming Websocket)**
+
+```python
+// test-websocket-depth.js
+// Subscribe to real-time Market Depth updates via WebSocket
+
+import WebSocket from 'ws';
+
+const API_KEY = 'your_api_key';
+const WS_URL = 'ws://127.0.0.1:8765';
+
+const instruments = [
+    { exchange: 'NSE', symbol: 'RELIANCE' },
+    { exchange: 'NSE', symbol: 'INFY' }
+];
+
+function onDepth(data) {
+    console.log('Depth Update:', data);
+}
+
+class OpenAlgoWS {
+    constructor(apiKey, wsUrl) {
+        this.ws = new WebSocket(wsUrl);
+        this.callback = null;
+
+        this.ws.on('open', () => {
+            this.ws.send(JSON.stringify({ action: 'authenticate', api_key: apiKey }));
+        });
+
+        this.ws.on('message', (msg) => {
+            const data = JSON.parse(msg);
+            if (data.type === 'market_data' && this.callback) this.callback(data);
+        });
+    }
+
+    subscribeDepth(instruments, callback) {
+        this.callback = callback;
+        instruments.forEach(i => {
+            this.ws.send(JSON.stringify({ action: 'subscribe', symbol: i.symbol, exchange: i.exchange, mode: 3, depth: 5 }));
+        });
+    }
+
+    unsubscribeDepth(instruments) {
+        instruments.forEach(i => {
+            this.ws.send(JSON.stringify({ action: 'unsubscribe', symbol: i.symbol, exchange: i.exchange, mode: 3 }));
+        });
+    }
+
+    disconnect() {
+        this.ws.close();
+    }
+}
+
+const client = new OpenAlgoWS(API_KEY, WS_URL);
+
+setTimeout(() => client.subscribeDepth(instruments, onDepth), 1000);
+setTimeout(() => { client.unsubscribeDepth(instruments); client.disconnect(); }, 11000);
+
+```
+
 Please refer to the documentation and consult the API reference for details on optional parameters:
 
 * [API Documentation](https://docs.openalgo.in/api-documentation/v1)
