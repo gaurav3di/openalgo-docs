@@ -42,7 +42,7 @@ To place a new order:
 ```javascript
 const response = await openalgo.placeOrder({
     strategy: "NodeJS",
-    symbol: "RELIANCE", 
+    symbol: "NHPC", 
     action: "BUY",
     exchange: "NSE",
     pricetype: "MARKET",
@@ -90,7 +90,7 @@ To place a new basket order:
 ```javascript
 const basketOrders = [
     {
-        symbol: "RELIANCE",
+        symbol: "BHEL",
         exchange: "NSE",
         action: "BUY",
         quantity: 1,
@@ -98,7 +98,7 @@ const basketOrders = [
         product: "MIS"
     },
     {
-        symbol: "INFY",
+        symbol: "ZOMATO",
         exchange: "NSE",
         action: "SELL",
         quantity: 1,
@@ -119,7 +119,7 @@ console.log(response);
 ```json
 orders: [
     {
-      "symbol": "NHPC",
+      "symbol": "BHEL",
       "exchange": "NSE",
       "action": "BUY",
       "quantity": "1",
@@ -127,7 +127,7 @@ orders: [
       "product": "MIS"
     },
     {
-      "symbol": "YESBANK",
+      "symbol": "ZOMATO",
       "exchange": "NSE",
       "action": "SELL",
       "quantity": "1",
@@ -138,11 +138,11 @@ orders: [
 }
 {
   results: [
-    { orderid: '251014001197781', status: 'success', symbol: 'NHPC' },
+    { orderid: '251014001197781', status: 'success', symbol: 'BHEL' },
     {
       orderid: '251014001197784',
       status: 'success',
-      symbol: 'YESBANK'
+      symbol: 'ZOMATO'
     }
   ],
   status: 'success'
@@ -176,19 +176,43 @@ console.log(response);
     {
       order_num: 1,
       orderid: '251014001203073',
-      quantity: 2,
+      quantity: 20,
       status: 'success'
     },
     {
       order_num: 2,
       orderid: '251014001203066',
-      quantity: 1,
+      quantity: 20,
       status: 'success'
     }
+    {
+      order_num: 3,
+      orderid: '251014001203020',
+      quantity: 20,
+      status: 'success'
+    },
+    {
+      order_num: 4,
+      orderid: '251014001203038',
+      quantity: 20,
+      status: 'success'
+    },
+    {
+      order_num: 5,
+      orderid: '251014001203053',
+      quantity: 20,
+      status: 'success'
+    },
+    {
+      order_num: 6,
+      orderid: '251014001203071',
+      quantity: 5,
+      status: 'success'
+    },
   ],
-  split_size: 2,
+  split_size: 20,
   status: 'success',
-  total_quantity: 3
+  total_quantity: 105
 }
 
 ```
@@ -199,15 +223,15 @@ To modify an existing order:
 
 ```javascript
 const response = await openalgo.modifyOrder({
-    orderId: "123456789",
+    orderId: "251014001145296",
     strategy: "NodeJS",
-    symbol: "INFY",
-    action: "SELL",
+    symbol: "YESBANK",
+    action: "BUY",
     exchange: "NSE",
     pricetype: "LIMIT",
     product: "CNC",
     quantity: 2,
-    price: 1900
+    price: 22.5
 });
 console.log(response);
 ```
@@ -224,7 +248,7 @@ To cancel an existing order:
 
 ```javascript
 const response = await openalgo.cancelOrder({
-    orderId: "123456789",
+    orderId: "251014001145296",
     strategy: "NodeJS"
 });
 console.log(response);
@@ -281,7 +305,7 @@ To get the current order status:
 
 ```javascript
 const response = await openalgo.orderStatus({
-    orderId: "123456789",
+    orderId: "251014000831724",
     strategy: "NodeJS"
 });
 console.log(response);
@@ -318,7 +342,7 @@ const response = await openalgo.openPosition({
     strategy: "NodeJS",
     symbol: "YESBANK",
     exchange: "NSE",
-    product: "CNC"
+    product: "MIS"
 });
 console.log(response);
 ```
@@ -415,8 +439,8 @@ const response = await openalgo.history({
     symbol: "SBIN",
     exchange: "NSE",
     interval: "5m",
-    startDate: "2025-01-01",
-    endDate: "2025-01-05"
+    startDate: "2025-04-01",
+    endDate: "2025-04-08"
 });
 console.log(response);
 ```
