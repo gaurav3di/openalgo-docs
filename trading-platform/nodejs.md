@@ -871,6 +871,57 @@ console.log(response);
 }
 ```
 
+#### **Analyzer Status Example**
+
+```python
+const response = await axios.post(`http://127.0.0.1:5000/api/v1/analyzer`, {
+            apikey: API_KEY
+        });
+console.log(response.data);
+```
+
+**Analyzer Status Response**
+
+```json
+{
+  data: { analyze_mode: true, mode: 'analyze', total_logs: 64 },
+  status: 'success'
+}
+```
+
+#### **Analyzer Toggle Example**
+
+```python
+const response = await axios.post(`http://127.0.0.1:5000/api/v1/analyzer/toggle`, {
+            apikey: API_KEY,
+            mode: true
+        });
+console.log(response.data);
+```
+
+**Analyzer Toggle Response**
+
+```json
+{
+  data: {
+    analyze_mode: true,
+    message: 'Analyzer mode switched to analyze',
+    mode: 'analyze',
+    total_logs: 64
+  },
+  status: 'success'
+}
+{
+  data: {
+    analyze_mode: false,
+    message: 'Analyzer mode switched to live',
+    mode: 'live',
+    total_logs: 64
+  },
+  status: 'success'
+}
+```
+
 **LTP Data (Streaming Websocket)**
 
 ```python
