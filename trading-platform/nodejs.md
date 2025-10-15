@@ -447,6 +447,38 @@ console.log(response.data);
 }
 ```
 
+### **Expiry Example**
+
+```python
+const response = await axios.post(`http://127.0.0.1:5000/api/v1/expiry`, {
+            apikey: API_KEY,
+            symbol: "NIFTY",
+            exchange: "NFO",
+            instrumenttype: "options"
+        });
+console.log(response.data);
+```
+
+**Expiry Response**
+
+```json
+{
+  data: [
+    '20-OCT-25', '28-OCT-25',
+    '04-NOV-25', '11-NOV-25',
+    '18-NOV-25', '25-NOV-25',
+    '30-DEC-25', '31-MAR-26',
+    '30-JUN-26', '29-SEP-26',
+    '29-DEC-26', '29-JUN-27',
+    '28-DEC-27', '27-JUN-28',
+    '26-DEC-28', '26-JUN-29',
+    '24-DEC-29', '25-JUN-30'
+  ],
+  message: 'Found 18 expiry dates for NIFTY options in NFO',
+  status: 'success'
+}
+```
+
 ### Quotes Example
 
 To get real-time quotes:
