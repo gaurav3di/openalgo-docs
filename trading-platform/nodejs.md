@@ -889,7 +889,7 @@ console.log(response.data);
 }
 ```
 
-**LTP Data (Streaming Websocket)**
+### **LTP Data (Streaming Websocket)**
 
 ```python
 // test-websocket-ltp.js
@@ -949,7 +949,7 @@ setTimeout(() => { client.unsubscribeLTP(instruments); client.disconnect(); }, 1
 
 ```
 
-**Quotes (Streaming Websocket)**
+### **Quotes (Streaming Websocket)**
 
 ```python
 // test-websocket-quote.js
@@ -1009,7 +1009,7 @@ setTimeout(() => { client.unsubscribeQuote(instruments); client.disconnect(); },
 
 ```
 
-**Depth (Streaming Websocket)**
+### **Depth (Streaming Websocket)**
 
 ```python
 // test-websocket-depth.js
