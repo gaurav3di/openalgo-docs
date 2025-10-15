@@ -386,6 +386,67 @@ console.log(response);
 
 ```
 
+### **Search Example**
+
+```python
+const response = await axios.post(`http://127.0.0.1:5000/api/v1/search`, {
+            apikey: API_KEY,
+            query: "NIFTY 25000 OCT CE",
+            exchange: "NFO"
+        });
+console.log(response.data);
+```
+
+**Search Response**
+
+```json
+{
+  data: [
+    {
+      brexchange: 'NFO',
+      brsymbol: 'FINNIFTY28OCT2525000CE',
+      exchange: 'NFO',
+      expiry: '28-OCT-25',
+      instrumenttype: 'OPTIDX',
+      lotsize: 65,
+      name: 'FINNIFTY',
+      strike: 25000,
+      symbol: 'FINNIFTY28OCT2525000CE',
+      tick_size: 0.05,
+      token: '57065'
+    },
+    {
+      brexchange: 'NFO',
+      brsymbol: 'NIFTY28OCT2525000CE',
+      exchange: 'NFO',
+      expiry: '28-OCT-25',
+      instrumenttype: 'OPTIDX',
+      lotsize: 75,
+      name: 'NIFTY',
+      strike: 25000,
+      symbol: 'NIFTY28OCT2525000CE',
+      tick_size: 0.05,
+      token: '58909'
+    },
+    {
+      brexchange: 'NFO',
+      brsymbol: 'NIFTY20OCT2525000CE',
+      exchange: 'NFO',
+      expiry: '20-OCT-25',
+      instrumenttype: 'OPTIDX',
+      lotsize: 75,
+      name: 'NIFTY',
+      strike: 25000,
+      symbol: 'NIFTY20OCT2525000CE',
+      tick_size: 0.05,
+      token: '45248'
+    }
+  ],
+  message: 'Found 3 matching symbols',
+  status: 'success'
+}
+```
+
 ### Quotes Example
 
 To get real-time quotes:
