@@ -559,12 +559,11 @@ console.log(response);
 ### **Search Example**
 
 ```python
-const response = await axios.post(`http://127.0.0.1:5000/api/v1/search`, {
-            apikey: API_KEY,
-            query: "NIFTY 25000 OCT CE",
-            exchange: "NFO"
+const response = await client.search({
+            query: 'NIFTY 25000 OCT CE',
+            exchange: 'NFO'
         });
-console.log(response.data);
+console.log(response);
 ```
 
 **Search Response**
@@ -620,13 +619,12 @@ console.log(response.data);
 ### **Expiry Example**
 
 ```python
-const response = await axios.post(`http://127.0.0.1:5000/api/v1/expiry`, {
-            apikey: API_KEY,
-            symbol: "NIFTY",
-            exchange: "NFO",
-            instrumenttype: "options"
+const response = await client.expiry({
+            symbol: 'NIFTY',
+            exchange: 'NFO',
+            instrumenttype: 'options'
         });
-console.log(response.data);
+console.log(response);
 ```
 
 **Expiry Response**
@@ -841,10 +839,8 @@ console.log(response);
 ### **Analyzer Status Example**
 
 ```python
-const response = await axios.post(`http://127.0.0.1:5000/api/v1/analyzer`, {
-            apikey: API_KEY
-        });
-console.log(response.data);
+const response = await client.analyzerstatus();
+console.log(response);
 ```
 
 **Analyzer Status Response**
@@ -859,11 +855,8 @@ console.log(response.data);
 ### **Analyzer Toggle Example**
 
 ```python
-const response = await axios.post(`http://127.0.0.1:5000/api/v1/analyzer/toggle`, {
-            apikey: API_KEY,
-            mode: true
-        });
-console.log(response.data);
+const response = await client.analyzertoggle({ mode: false });
+console.log(response);
 ```
 
 **Analyzer Toggle Response**
