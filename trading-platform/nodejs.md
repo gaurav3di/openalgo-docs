@@ -353,6 +353,39 @@ console.log(response);
 { quantity: '1', status: 'success' }
 ```
 
+### Symbol Example
+
+```python
+const response = await openalgo.symbol({
+    symbol="RELIANCE",
+    exchange="NSE"
+});
+console.log(response);
+```
+
+**Symbol Response**
+
+```json
+{
+  data: {
+    brexchange: 'NSE',
+    brsymbol: 'RELIANCE-EQ',
+    exchange: 'NSE',
+    expiry: '',
+    id: 3645,
+    instrumenttype: '',
+    lotsize: 1,
+    name: 'RELIANCE',
+    strike: -0.01,
+    symbol: 'RELIANCE',
+    tick_size: 0.1,
+    token: '2885'
+  },
+  status: 'success'
+}
+
+```
+
 ### Quotes Example
 
 To get real-time quotes:
