@@ -929,7 +929,7 @@ async function runLTPTest() {
         // Unsubscribe and disconnect
         client.unsubscribe_ltp(instruments);
         client.disconnect();
-        console.log('\n✅ Test completed - Disconnected');
+        console.log('\n Test completed - Disconnected');
     }
 }
 
@@ -940,121 +940,101 @@ runLTPTest();
 ### **Quotes (Streaming Websocket)**
 
 ```python
-// test-websocket-quote.js
-// Subscribe to real-time Quote updates via WebSocket
+// Simple WebSocket LTP Test - Runs for 1 minute
 
-import WebSocket from 'ws';
+import OpenAlgo from 'openalgo';
 
-const API_KEY = 'your_api_key';
-const WS_URL = 'ws://127.0.0.1:8765';
+// Initialize OpenAlgo client
+const client = new OpenAlgo(
+    'your-openalgo-api-key',  // Replace with your actual OpenAlgo API key
+    'http://127.0.0.1:5000',      // REST API host
+    'v1',                          // API version
+    'ws://127.0.0.1:8765'         // WebSocket host
+);
 
+// Define instruments to subscribe for LTP
 const instruments = [
-    { exchange: 'NSE', symbol: 'RELIANCE' },
-    { exchange: 'NSE', symbol: 'INFY' }
+    { exchange: "NSE", symbol: "RELIANCE" },
+    { exchange: "NSE", symbol: "INFY" }
 ];
 
-function onQuote(data) {
-    console.log('Quote Update:', data);
+// Callback function for LTP updates
+function onLTP(data) {
+    console.log("LTP Update Received:");
+    console.log(data);
 }
 
-class OpenAlgoWS {
-    constructor(apiKey, wsUrl) {
-        this.ws = new WebSocket(wsUrl);
-        this.callback = null;
+async function runLTPTest() {
+    try {
+        // Connect and subscribe
+        await client.connect();
+        client.subscribe_ltp(instruments, onLTP);
 
-        this.ws.on('open', () => {
-            this.ws.send(JSON.stringify({ action: 'authenticate', api_key: apiKey }));
-        });
+        // Run for 10 seconds to receive data
+        console.log('Listening for 10 seconds...\n');
+        await new Promise(resolve => setTimeout(resolve, 10000));
 
-        this.ws.on('message', (msg) => {
-            const data = JSON.parse(msg);
-            if (data.type === 'market_data' && this.callback) this.callback(data);
-        });
-    }
-
-    subscribeQuote(instruments, callback) {
-        this.callback = callback;
-        instruments.forEach(i => {
-            this.ws.send(JSON.stringify({ action: 'subscribe', symbol: i.symbol, exchange: i.exchange, mode: 2, depth: 5 }));
-        });
-    }
-
-    unsubscribeQuote(instruments) {
-        instruments.forEach(i => {
-            this.ws.send(JSON.stringify({ action: 'unsubscribe', symbol: i.symbol, exchange: i.exchange, mode: 2 }));
-        });
-    }
-
-    disconnect() {
-        this.ws.close();
+    } finally {
+        // Unsubscribe and disconnect
+        client.unsubscribe_ltp(instruments);
+        client.disconnect();
+        console.log('\n Test completed - Disconnected');
     }
 }
 
-const client = new OpenAlgoWS(API_KEY, WS_URL);
-
-setTimeout(() => client.subscribeQuote(instruments, onQuote), 1000);
-setTimeout(() => { client.unsubscribeQuote(instruments); client.disconnect(); }, 11000);
+runLTPTest();
 
 ```
 
 ### **Depth (Streaming Websocket)**
 
-```python
-// test-websocket-depth.js
-// Subscribe to real-time Market Depth updates via WebSocket
+```javascript
+// Simple WebSocket Market Depth Test - Runs for 10 seconds
 
-import WebSocket from 'ws';
+import OpenAlgo from 'openalgo';
 
-const API_KEY = 'your_api_key';
-const WS_URL = 'ws://127.0.0.1:8765';
+// Initialize OpenAlgo client
+const client = new OpenAlgo(
+    'your-openalgo-api-key',  // Replace with your actual OpenAlgo API key
+    'http://127.0.0.1:5000',      // REST API host
+    'v1',                          // API version
+    'ws://127.0.0.1:8765'         // WebSocket host
+);
 
+// Define instruments to subscribe for Market Depth
 const instruments = [
-    { exchange: 'NSE', symbol: 'RELIANCE' },
-    { exchange: 'NSE', symbol: 'INFY' }
+    { exchange: "NSE", symbol: "HDFCBANK" }
 ];
 
+// Callback function for Market Depth updates
 function onDepth(data) {
-    console.log('Depth Update:', data);
+    console.log("Market Depth Update Received:");
+    console.log(data);
 }
 
-class OpenAlgoWS {
-    constructor(apiKey, wsUrl) {
-        this.ws = new WebSocket(wsUrl);
-        this.callback = null;
+async function runDepthTest() {
+    try {
+        // Connect and subscribe
+        await client.connect();
+        client.subscribe_depth(instruments, onDepth);
 
-        this.ws.on('open', () => {
-            this.ws.send(JSON.stringify({ action: 'authenticate', api_key: apiKey }));
-        });
+        // Run for 10 seconds to receive data
+        console.log('Listening for 10 seconds...\n');
+        await new Promise(resolve => setTimeout(resolve, 10000));
 
-        this.ws.on('message', (msg) => {
-            const data = JSON.parse(msg);
-            if (data.type === 'market_data' && this.callback) this.callback(data);
-        });
-    }
-
-    subscribeDepth(instruments, callback) {
-        this.callback = callback;
-        instruments.forEach(i => {
-            this.ws.send(JSON.stringify({ action: 'subscribe', symbol: i.symbol, exchange: i.exchange, mode: 3, depth: 5 }));
-        });
-    }
-
-    unsubscribeDepth(instruments) {
-        instruments.forEach(i => {
-            this.ws.send(JSON.stringify({ action: 'unsubscribe', symbol: i.symbol, exchange: i.exchange, mode: 3 }));
-        });
-    }
-
-    disconnect() {
-        this.ws.close();
+    } finally {
+        // Unsubscribe and disconnect
+        client.unsubscribe_depth(instruments);
+        client.disconnect();
+        console.log('\n Test completed - Disconnected');
     }
 }
 
-const client = new OpenAlgoWS(API_KEY, WS_URL);
+runDepthTest();
 
-setTimeout(() => client.subscribeDepth(instruments, onDepth), 1000);
-setTimeout(() => { client.unsubscribeDepth(instruments); client.disconnect(); }, 11000);
+```
 
+```python
 ```
 
 Please refer to the documentation and consult the API reference for details on optional parameters:
