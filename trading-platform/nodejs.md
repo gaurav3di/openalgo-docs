@@ -838,7 +838,7 @@ console.log(response);
 }
 ```
 
-#### **Analyzer Status Example**
+### **Analyzer Status Example**
 
 ```python
 const response = await axios.post(`http://127.0.0.1:5000/api/v1/analyzer`, {
@@ -856,7 +856,7 @@ console.log(response.data);
 }
 ```
 
-#### **Analyzer Toggle Example**
+### **Analyzer Toggle Example**
 
 ```python
 const response = await axios.post(`http://127.0.0.1:5000/api/v1/analyzer/toggle`, {
