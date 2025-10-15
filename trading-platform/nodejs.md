@@ -353,132 +353,6 @@ console.log(response);
 { quantity: '1', status: 'success' }
 ```
 
-### Symbol Example
-
-```python
-const response = await openalgo.symbol({
-    symbol="RELIANCE",
-    exchange="NSE"
-});
-console.log(response);
-```
-
-**Symbol Response**
-
-```json
-{
-  data: {
-    brexchange: 'NSE',
-    brsymbol: 'RELIANCE-EQ',
-    exchange: 'NSE',
-    expiry: '',
-    id: 3645,
-    instrumenttype: '',
-    lotsize: 1,
-    name: 'RELIANCE',
-    strike: -0.01,
-    symbol: 'RELIANCE',
-    tick_size: 0.1,
-    token: '2885'
-  },
-  status: 'success'
-}
-
-```
-
-### **Search Example**
-
-```python
-const response = await axios.post(`http://127.0.0.1:5000/api/v1/search`, {
-            apikey: API_KEY,
-            query: "NIFTY 25000 OCT CE",
-            exchange: "NFO"
-        });
-console.log(response.data);
-```
-
-**Search Response**
-
-```json
-{
-  data: [
-    {
-      brexchange: 'NFO',
-      brsymbol: 'FINNIFTY28OCT2525000CE',
-      exchange: 'NFO',
-      expiry: '28-OCT-25',
-      instrumenttype: 'OPTIDX',
-      lotsize: 65,
-      name: 'FINNIFTY',
-      strike: 25000,
-      symbol: 'FINNIFTY28OCT2525000CE',
-      tick_size: 0.05,
-      token: '57065'
-    },
-    {
-      brexchange: 'NFO',
-      brsymbol: 'NIFTY28OCT2525000CE',
-      exchange: 'NFO',
-      expiry: '28-OCT-25',
-      instrumenttype: 'OPTIDX',
-      lotsize: 75,
-      name: 'NIFTY',
-      strike: 25000,
-      symbol: 'NIFTY28OCT2525000CE',
-      tick_size: 0.05,
-      token: '58909'
-    },
-    {
-      brexchange: 'NFO',
-      brsymbol: 'NIFTY20OCT2525000CE',
-      exchange: 'NFO',
-      expiry: '20-OCT-25',
-      instrumenttype: 'OPTIDX',
-      lotsize: 75,
-      name: 'NIFTY',
-      strike: 25000,
-      symbol: 'NIFTY20OCT2525000CE',
-      tick_size: 0.05,
-      token: '45248'
-    }
-  ],
-  message: 'Found 3 matching symbols',
-  status: 'success'
-}
-```
-
-### **Expiry Example**
-
-```python
-const response = await axios.post(`http://127.0.0.1:5000/api/v1/expiry`, {
-            apikey: API_KEY,
-            symbol: "NIFTY",
-            exchange: "NFO",
-            instrumenttype: "options"
-        });
-console.log(response.data);
-```
-
-**Expiry Response**
-
-```json
-{
-  data: [
-    '20-OCT-25', '28-OCT-25',
-    '04-NOV-25', '11-NOV-25',
-    '18-NOV-25', '25-NOV-25',
-    '30-DEC-25', '31-MAR-26',
-    '30-JUN-26', '29-SEP-26',
-    '29-DEC-26', '29-JUN-27',
-    '28-DEC-27', '27-JUN-28',
-    '26-DEC-28', '26-JUN-29',
-    '24-DEC-29', '25-JUN-30'
-  ],
-  message: 'Found 18 expiry dates for NIFTY options in NFO',
-  status: 'success'
-}
-```
-
 ### Quotes Example
 
 To get real-time quotes:
@@ -678,6 +552,99 @@ console.log(response);
     tick_size: 0.1,
     token: '2885'
   },
+  status: 'success'
+}
+```
+
+### **Search Example**
+
+```python
+const response = await axios.post(`http://127.0.0.1:5000/api/v1/search`, {
+            apikey: API_KEY,
+            query: "NIFTY 25000 OCT CE",
+            exchange: "NFO"
+        });
+console.log(response.data);
+```
+
+**Search Response**
+
+```json
+{
+  data: [
+    {
+      brexchange: 'NFO',
+      brsymbol: 'FINNIFTY28OCT2525000CE',
+      exchange: 'NFO',
+      expiry: '28-OCT-25',
+      instrumenttype: 'OPTIDX',
+      lotsize: 65,
+      name: 'FINNIFTY',
+      strike: 25000,
+      symbol: 'FINNIFTY28OCT2525000CE',
+      tick_size: 0.05,
+      token: '57065'
+    },
+    {
+      brexchange: 'NFO',
+      brsymbol: 'NIFTY28OCT2525000CE',
+      exchange: 'NFO',
+      expiry: '28-OCT-25',
+      instrumenttype: 'OPTIDX',
+      lotsize: 75,
+      name: 'NIFTY',
+      strike: 25000,
+      symbol: 'NIFTY28OCT2525000CE',
+      tick_size: 0.05,
+      token: '58909'
+    },
+    {
+      brexchange: 'NFO',
+      brsymbol: 'NIFTY20OCT2525000CE',
+      exchange: 'NFO',
+      expiry: '20-OCT-25',
+      instrumenttype: 'OPTIDX',
+      lotsize: 75,
+      name: 'NIFTY',
+      strike: 25000,
+      symbol: 'NIFTY20OCT2525000CE',
+      tick_size: 0.05,
+      token: '45248'
+    }
+  ],
+  message: 'Found 3 matching symbols',
+  status: 'success'
+}
+```
+
+### **Expiry Example**
+
+```python
+const response = await axios.post(`http://127.0.0.1:5000/api/v1/expiry`, {
+            apikey: API_KEY,
+            symbol: "NIFTY",
+            exchange: "NFO",
+            instrumenttype: "options"
+        });
+console.log(response.data);
+```
+
+**Expiry Response**
+
+```json
+{
+  data: [
+    '20-OCT-25', '28-OCT-25',
+    '04-NOV-25', '11-NOV-25',
+    '18-NOV-25', '25-NOV-25',
+    '30-DEC-25', '31-MAR-26',
+    '30-JUN-26', '29-SEP-26',
+    '29-DEC-26', '29-JUN-27',
+    '28-DEC-27', '27-JUN-28',
+    '26-DEC-28', '26-JUN-29',
+    '24-DEC-29', '25-JUN-30'
+  ],
+  message: 'Found 18 expiry dates for NIFTY options in NFO',
   status: 'success'
 }
 ```
