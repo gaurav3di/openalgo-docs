@@ -12,6 +12,10 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 \
 [https://github.com/marketcalls/historify](https://github.com/marketcalls/historify)
 
+📊 **OpenQuest (Realtime Data Aggregation Platform using QuestDB)**\
+\
+[https://github.com/marketcalls/openquest](https://github.com/marketcalls/openquest)
+
 🐍 **Python SDK Library**\
 \
 [https://github.com/marketcalls/openalgo-python-library](https://github.com/marketcalls/openalgo-python-library)
@@ -23,6 +27,10 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 🟢 **Node.js Library**\
 \
 [https://github.com/marketcalls/openalgo-node](https://github.com/marketcalls/openalgo-node)
+
+🟢 **GO Library**\
+\
+[https://github.com/marketcalls/openalgo-go](https://github.com/marketcalls/openalgo-go)
 
 📊 **Excel Add-in**\
 \
@@ -43,8 +51,6 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 ⚡️ **Fast Scalper (Rust + Tauri)**\
 \
 [https://github.com/marketcalls/fastscalper-tauri](https://github.com/marketcalls/fastscalper-tauri)
-
-
 
 🌐 **Web Portal (NextJS + ShadcnUI)**\
 \
