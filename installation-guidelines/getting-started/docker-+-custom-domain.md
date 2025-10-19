@@ -19,6 +19,8 @@ wget https://raw.githubusercontent.com/marketcalls/openalgo/refs/heads/main/inst
 * Domain name pointed to your server IP
 * Server with at least 1GB RAM (2GB recommended)
 
+{% embed url="https://www.youtube.com/watch?v=cpD_QRKlq9o" %}
+
 #### Installation Steps
 
 **Option 1: As Non-Root User (Recommended)**
