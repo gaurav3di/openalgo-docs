@@ -69,6 +69,7 @@
   * [HouseOfFoss](installation-guidelines/getting-started/houseoffoss.md)
   * [Ubuntu (No Custom Domain)](getting-started/ubuntu-no-custom-domain.md)
   * [Ubuntu Server Installation](getting-started/ubuntu-server-installation.md)
+  * [Docker + Custom Domain](installation-guidelines/getting-started/docker-+-custom-domain.md)
   * [Docker Development](getting-started/docker-development.md)
   * [Testing OpenAlgo in Cloud](getting-started/testing-openalgo-in-cloud.md)
   * [SMTP Settings](getting-started/smtp-settings.md)
