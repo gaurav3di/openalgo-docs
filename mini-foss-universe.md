@@ -32,6 +32,10 @@ Explore the open-source ecosystem around OpenAlgo — built for traders, by trad
 \
 [https://github.com/marketcalls/openalgo-go](https://github.com/marketcalls/openalgo-go)
 
+🟢 Amibroker Data Plugin
+
+[https://github.com/marketcalls/OpenAlgoPlugin](https://github.com/marketcalls/OpenAlgoPlugin)
+
 📊 **Excel Add-in**\
 \
 [https://github.com/marketcalls/OpenAlgo-Excel](https://github.com/marketcalls/OpenAlgo-Excel)
