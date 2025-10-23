@@ -6,9 +6,25 @@ This guide will walk you through the installation and configuration of the OpenA
 
 ### Prerequisites
 
-* AmiBroker installed on your system
+* AmiBroker 6.0+ or higher installed on your system
 * OpenAlgo server running (ensure it's accessible at your configured host URL)
 * Your OpenAlgo API key
+
+
+
+{% embed url="https://www.youtube.com/watch?v=MaRM4eZHLJw" %}
+
+### Features
+
+-1-minute intraday data (last 30 days)\
+-Daily (EOD) data (up to 1 year)\
+-Intelligent backfill with gap detection\
+-Incremental updates (fetch only new data)\
+-Connects to all OpenAlgo-supported brokers providing historical data and live quotes\
+-Multi Exchange Coverage NSE, BSE, MCX, NFO, CDS\
+-symbol format INFY-NSE , CRUDEOIL19NOV25FUT-MCX, TCS-BSE (symbol : -OpenAlgo Symbol, Exchange - OpenAlgo Exchange format)\
+-Visual LED indicator in AmiBroker status bar\
+-Supports Mixed EOD Timeframe
 
 <figure><img src="../../.gitbook/assets/Amibroker Charts.png" alt=""><figcaption></figcaption></figure>
 
