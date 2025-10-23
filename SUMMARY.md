@@ -126,6 +126,7 @@
 ## Trading Platform
 
 * [Amibroker](trading-platform/amibroker/README.md)
+  * [Amibroker Plugin](trading-platform/amibroker/amibroker-plugin.md)
   * [AmiQuotes](trading-platform/amibroker/amiquotes.md)
   * [Button Trading Module (Old)](trading-platform/amibroker/button-trading-module-old.md)
   * [Button Trading Module (Modern)](trading-platform/amibroker/button-trading-module-modern.md)
