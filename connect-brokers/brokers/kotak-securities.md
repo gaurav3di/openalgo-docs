@@ -13,53 +13,68 @@ Ensure you have your Kotak Securities Trading User ID and Password ready.
 #### Step 2: Register for API Access
 
 1. Navigate to the [Kotak Securities API registration page.](https://www.kotaksecurities.com/trading-tools/kotak-neo-trading-platform/trading-api/)
-2. Enter your API credentials.
-3. Upon successful login, you will be presented with terms and conditions. Accept them to complete the registration.
-4. You will receive a new set of Username and Password via email, specifically for the API web portal.
+2. Navigate to: Invest → TradeAPI → API Dashboard
+3. Click "Create Application"
+4. Copy the token shown after creation
 
-<figure><img src="../../.gitbook/assets/image (54).png" alt=""><figcaption></figcaption></figure>
+&#x20;      **Token format example**: ec6a746c-e44b-455e-abf2-c13352b2fc45
 
-#### Step 3: Access the API Web Portal
+<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
 
-1. Using the credentials received via email, log in to the[ API web portal](https://napi.kotaksecurities.com/devportal/apis) through the link provided in the email.
+#### **Step 3: Register TOTP Authentication**
 
-<figure><img src="../../.gitbook/assets/image (49).png" alt=""><figcaption></figcaption></figure>
+Register for TOTP : [http://bit.ly/4h4LByx](http://bit.ly/4h4LByx)
 
-#### Step 4: Navigate to Applications
+**What is TOTP?** Time-based One-Time Password generates a new 6-digit code every 30 seconds in an authenticator app. This is your dynamic password for API login.
 
-1. Once logged in to the Kotak Developer Portal (API Manager), click on the "Applications" tab located on the top navigation bar.
+**Steps:**
 
-<figure><img src="../../.gitbook/assets/image (50).png" alt=""><figcaption></figcaption></figure>
+1. In API Dashboard, click **"TOTP Registration"**
+2. Verify with your mobile number and OTP
+3. Download **Google Authenticator** or **Microsoft Authenticator** from app store
+4. Scan the QR code displayed on screen
+5. Enter the 6-digit TOTP code shown in the authenticator app
+6. Confirm when you see "TOTP successfully registered"
 
-#### Step 5: Select the Default Application
+Example:
 
-1. Click on the "Default Application" that is already created. Do not create a new application.
+1. TOTP Registration screen: on verification of mobile number, otp and client code
 
-<figure><img src="../../.gitbook/assets/image (51).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
-#### Step 6: Generate OAuth2 Token
+2. Scan QR from authenticator app, Enter these 6 digits reflecting on authenticator app for Kotak-NEO, and click continue. You will get success toast which means registration of totp is complete.
 
-1. In the left-hand sidebar, click on "OAuth2 Token" under "Production Keys".
-2. Locate the fields for Consumer Key and Consumer Secret.&#x20;
+<figure><img src="../../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
+#### Step 4: Find Your UCC (Client Code)
 
+1. Go to NEO app/web Profile section
+2. Your UCC is displayed as "Client Code"
+3. Format: 5 characters (e.g., "AB123")
 
+<figure><img src="../../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
+#### Step 5 : Your 6-digit MPIN
 
-### Retrieve API Credentials:
+* This is your trading PIN used to authorize orders in NEO app
+* You use the same MPIN for API authentication
 
+**If you don't remember it:**
 
+* NEO app → Profile → Settings → Change MPIN
 
-* Copy the Consumer key , which will be your API Key.
-* Copy the Consumer Secret, which will serve as your API Secret
+#### &#x20;Retrieve API Credentials:
+
+* Copy the Unique Client Code as Format: 5 characters (e.g., "AB123") , which will be your API Key.
+* Copy the Token generated from step 2 as Token format example: ec6a746c-e44b-455e-abf2-c13352b2fc45, which will serve as your API Secret
 
 ### Configuration:
 
 Set up your environment variables in a `.env` file for Kotak's API:
 
 ```
-BROKER_API_KEY = 'your_kotak_consumer_key'
-BROKER_API_SECRET = 'your_kotak_consumer_secret'
+BROKER_API_KEY = 'your_kotak_unique_client_code'
+BROKER_API_SECRET = 'your_kotak_token_generated from step 2'
 REDIRECT_URL = 'http://127.0.0.1:5000/kotak/callback'
 ```
 
