@@ -110,6 +110,114 @@ Place Smart Market Order Response
 {'orderid': '250408000997543', 'status': 'success'}
 ```
 
+### OptionsOrder Example
+
+To place ATM options order
+
+```python
+response = client.optionsorder(
+      strategy="python",
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      expiry_date="28OCT25",
+      strike_int=50,
+      offset="ATM",
+      option_type="CE",
+      action="BUY",
+      quantity=75,
+      pricetype="MARKET",
+      product="NRML"
+  )
+
+print(response)
+```
+
+Place Options Order Response
+
+```json
+{
+  "exchange": "NFO",
+  "offset": "ATM",
+  "option_type": "CE",
+  "orderid": "25102800000006",
+  "status": "success",
+  "symbol": "NIFTY28OCT2525950CE",
+  "underlying": "NIFTY28OCT25FUT",
+  "underlying_ltp": 25966.05
+}
+```
+
+To place ITM options order
+
+```python
+response = client.optionsorder(
+      strategy="python",
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      expiry_date="28OCT25",
+      strike_int=50,
+      offset="ITM4",
+      option_type="PE",
+      action="BUY",
+      quantity=75,
+      pricetype="MARKET",
+      product="NRML"
+  )
+
+print(response)
+```
+
+Place Options Order Response
+
+```json
+{
+  "exchange": "NFO",
+  "offset": "ITM4",
+  "option_type": "PE",
+  "orderid": "25102800000007",
+  "status": "success",
+  "symbol": "NIFTY28OCT2526150PE",
+  "underlying": "NIFTY28OCT25FUT",
+  "underlying_ltp": 25966.05
+}
+```
+
+To place OTM options order
+
+```python
+response = client.optionsorder(
+      strategy="python",
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      expiry_date="28OCT25",
+      strike_int=50,
+      offset="OTM5",
+      option_type="CE",
+      action="BUY",
+      quantity=75,
+      pricetype="MARKET",
+      product="NRML"
+  )
+
+print(response)
+```
+
+Place Options Order Response
+
+```json
+{
+  "exchange": "NFO",
+  "mode": "analyze",
+  "offset": "OTM5",
+  "option_type": "CE",
+  "orderid": "25102800000008",
+  "status": "success",
+  "symbol": "NIFTY28OCT2526200CE",
+  "underlying": "NIFTY28OCT25FUT",
+  "underlying_ltp": 25966.05
+}
+```
+
 ### BasketOrder example
 
 To place a new basket order:
@@ -609,6 +717,130 @@ print(response)
 }
 ```
 
+### OptionSymbol Example
+
+ATM Option
+
+```python
+response = client.optionsymbol(
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      expiry_date="28OCT25",
+      strike_int=50,
+      offset="ATM",
+      option_type="CE"
+  )
+
+print(response)
+```
+
+**OptionSymbol Response**
+
+```json
+{
+  "status": "success",
+  "symbol": "NIFTY28OCT2525950CE",
+  "exchange": "NFO",
+  "lotsize": 75,
+  "tick_size": 0.05,
+  "underlying_ltp": 25966.05
+}
+```
+
+ITM Option
+
+```python
+response = client.optionsymbol(
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      expiry_date="28OCT25",
+      strike_int=50,
+      offset="ITM3",
+      option_type="PE"
+  )
+
+print(response)
+```
+
+**OptionSymbol Response**
+
+```json
+{
+  "status": "success",
+  "symbol": "NIFTY28OCT2526100PE",
+  "exchange": "NFO",
+  "lotsize": 75,
+  "tick_size": 0.05,
+  "underlying_ltp": 25966.05
+}
+```
+
+OTM Option
+
+```python
+response = client.optionsymbol(
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      expiry_date="28OCT25",
+      strike_int=50,
+      offset="OTM4",
+      option_type="CE"
+  )
+
+print(response)
+```
+
+**OptionSymbol Response**
+
+```json
+{
+  "status": "success",
+  "symbol": "NIFTY28OCT2526150CE",
+  "exchange": "NFO",
+  "lotsize": 75,
+  "tick_size": 0.05,
+  "underlying_ltp": 25966.05
+}
+```
+
+### OptionGreeks Example
+
+```python
+response = client.optiongreeks(
+      symbol="NIFTY25NOV2526000CE",
+      exchange="NFO",
+      interest_rate=0.00,
+      underlying_symbol="NIFTY",
+      underlying_exchange="NSE_INDEX"
+  )
+
+print(response)
+```
+
+OptionGreeks  **Response**
+
+```
+{
+'days_to_expiry': 28.5071,
+ 'exchange': 'NFO',
+ 'expiry_date': '25-Nov-2025',
+ 'greeks': {'delta': 0.4967,
+  'gamma': 0.000352,
+  'rho': 9.733994,
+  'theta': -7.919,
+  'vega': 28.9489},
+ 'implied_volatility': 15.6,
+ 'interest_rate': 0.0,
+ 'option_price': 435,
+ 'option_type': 'CE',
+ 'spot_price': 25966.05,
+ 'status': 'success',
+ 'strike': 26000.0,
+ 'symbol': 'NIFTY25NOV2526000CE',
+ 'underlying': 'NIFTY'
+}
+```
+
 ### Expiry Example
 
 ```python
@@ -644,6 +876,28 @@ response
   '25-JUN-30'],
  'message': 'Found 18 expiry dates for NIFTY options in NFO',
  'status': 'success'}
+```
+
+### Telegram Alert Example
+
+```python
+response = client.telegram(
+      username="<openalgo_loginid>",
+      message="NIFTY crossed 26000!"
+  )
+
+print(response)
+```
+
+
+
+**Telegram Alert Response**
+
+```json
+{
+  "message": "Notification sent successfully",
+  "status": "success"
+}
 ```
 
 ### Funds Example
