@@ -2,6 +2,8 @@
 
 Kotak Securities is a prominent Indian stock broker offering services on major Indian stock exchanges, including NSE, BSE, and MCX. Known for its comprehensive financial services and advanced trading solutions, Kotak Securities provides a robust platform for traders and investors. By leveraging Kotak's Trading APIs, developers and algo traders can seamlessly integrate their trading strategies with the OpenAlgo platform.
 
+{% embed url="https://www.youtube.com/watch?v=AtCCU4I1xSk" %}
+
 For developers and algo traders looking to use the Kotak API, the integration process generally involves the following steps:
 
 ### Step-by-Step Integration
@@ -12,18 +14,23 @@ Ensure you have your Kotak Securities Trading User ID and Password ready.
 
 #### Step 2: Register for API Access
 
-1. Navigate to the [Kotak Securities API registration page.](https://www.kotaksecurities.com/trading-tools/kotak-neo-trading-platform/trading-api/)
+1. Navigate to the [Kotak Securities API registration page.](https://neo.kotaksecurities.com/) login with your trading credentials
 2. Navigate to: Invest → TradeAPI → API Dashboard
-3. Click "Create Application"
-4. Copy the token shown after creation
-
-&#x20;      **Token format example**: ec6a746c-e44b-455e-abf2-c13352b2fc45
 
 <figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
 
+1. Click "Create Application"
+2. Copy the token shown after creation
+
+&#x20;      **Token format example**: ec6a746c-e44b-455e-abf2-c13352b2fc45
+
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+
 #### **Step 3: Register TOTP Authentication**
 
-Register for TOTP : [http://bit.ly/4h4LByx](http://bit.ly/4h4LByx)
+Register for TOTP from the Menu Section
+
+<figure><img src="../../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
 **What is TOTP?** Time-based One-Time Password generates a new 6-digit code every 30 seconds in an authenticator app. This is your dynamic password for API login.
 
@@ -40,11 +47,11 @@ Example:
 
 1. TOTP Registration screen: on verification of mobile number, otp and client code
 
-<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 2. Scan QR from authenticator app, Enter these 6 digits reflecting on authenticator app for Kotak-NEO, and click continue. You will get success toast which means registration of totp is complete.
 
-<figure><img src="../../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
 
 #### Step 4: Find Your UCC (Client Code)
 
@@ -74,7 +81,7 @@ Set up your environment variables in a `.env` file for Kotak's API:
 
 ```
 BROKER_API_KEY = 'your_kotak_unique_client_code'
-BROKER_API_SECRET = 'your_kotak_token_generated from step 2'
+BROKER_API_SECRET = 'your_kotak_token_generated'
 REDIRECT_URL = 'http://127.0.0.1:5000/kotak/callback'
 ```
 
