@@ -24,7 +24,7 @@ Set default value to '03:00' (3 AM IST)
 
 Now OpenAlgo will automatically identify the configured broker from .env
 
-<figure><img src="../.gitbook/assets/image (15).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (15).png" alt=""><figcaption></figcaption></figure>
 
 
 

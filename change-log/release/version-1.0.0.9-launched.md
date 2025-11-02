@@ -14,8 +14,8 @@ We've introduced Docker support to streamline the development environment setup 
 
 
 
-{% content-ref url="../getting-started/docker-development.md" %}
-[docker-development.md](../getting-started/docker-development.md)
+{% content-ref url="../../getting-started/docker-development.md" %}
+[docker-development.md](../../getting-started/docker-development.md)
 {% endcontent-ref %}
 
 **Key Features:**
@@ -42,7 +42,7 @@ We've introduced Docker support to streamline the development environment setup 
 
 Improved search interface in search.html and tradingview.html with advanced features for better user experience.
 
-<figure><img src="../.gitbook/assets/Screenshot 2024-11-03 at 12.28.29 PM.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/Screenshot 2024-11-03 at 12.28.29 PM.png" alt=""><figcaption></figcaption></figure>
 
 **Key Features:**
 
@@ -51,14 +51,14 @@ Improved search interface in search.html and tradingview.html with advanced feat
   * Improved search accuracy
   * Better handling of partial matches
 
-<figure><img src="../.gitbook/assets/Screenshot 2024-11-03 at 12.29.25 PM.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/Screenshot 2024-11-03 at 12.29.25 PM.png" alt=""><figcaption></figcaption></figure>
 
 * **New Pagination System**:
   * Efficient handling of large datasets
   * Smooth navigation through search results
   * Optimized data loading
 
-<figure><img src="../.gitbook/assets/Screenshot 2024-11-03 at 12.27.35 PM.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/Screenshot 2024-11-03 at 12.27.35 PM.png" alt=""><figcaption></figcaption></figure>
 
 **Benefits:**
 

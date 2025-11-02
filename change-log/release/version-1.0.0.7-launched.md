@@ -8,7 +8,7 @@ description: OpenAlgo Release Notes
 
 **Fastscalper Desktop (Cross Platform Apps) launched in v1.0.0.7**&#x20;
 
-<figure><img src="../.gitbook/assets/image (61).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (61).png" alt=""><figcaption></figcaption></figure>
 
 {% embed url="https://openalgo.in/download" %}
 
