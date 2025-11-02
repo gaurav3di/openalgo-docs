@@ -13,7 +13,7 @@
   * [Traffic/Latency Monitor](new-features/traffic-latency-monitor.md)
   * [Chartink Integration](new-features/chartink-integration.md)
 * [Responsibilities](responsibilities.md)
-* [Contributiors](contributiors.md)
+* [Contributors](contributors.md)
 * [Monetization](monetization.md)
 
 ## Connect Brokers

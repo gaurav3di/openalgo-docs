@@ -1,8 +1,6 @@
-# Contributiors
+# Contributors
 
-## Contributing to OpenAlgo
 
-### Let's democratize algorithmic trading, together!
 
 We're thrilled that you're interested in contributing to OpenAlgo! This guide will help you get started, whether you're fixing a bug, adding a new broker, improving documentation, or building new features.
 
