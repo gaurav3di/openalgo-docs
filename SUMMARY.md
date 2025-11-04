@@ -151,6 +151,7 @@
   * [Time Based Execution](trading-platform/amibroker/time-based-execution.md)
 * [Tradingview](trading-platform/tradingview.md)
   * [Futures to Options Module](trading-platform/tradingview/futures-to-options-module.md)
+* [GoCharting](trading-platform/gocharting.md)
 * [ChartInk](trading-platform/chartink.md)
 * [Python](trading-platform/python/README.md)
   * [Indicators](trading-platform/python/indicators/README.md)
