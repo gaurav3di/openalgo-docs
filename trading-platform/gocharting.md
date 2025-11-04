@@ -8,7 +8,7 @@ description: GoCharting Webhook Setup Guide
 
 GoCharting is a professional HTML5 charting platform optimized for Indian markets. With a **Premium Plan**, you can set up webhook alerts to automate your trading strategies with OpenAlgo.
 
-<figure><img src="../.gitbook/assets/image (140).png" alt=""><figcaption></figcaption></figure>
+{% embed url="https://www.youtube.com/watch?v=HpkSGNkhoYY" %}
 
 ***
 
@@ -18,6 +18,8 @@ GoCharting is a professional HTML5 charting platform optimized for Indian market
 
 * Webhook alerts are only available on the **GoCharting Premium Plan**
 * Subscribe at [GoCharting](https://gocharting.com) to access webhook features
+
+<figure><img src="../.gitbook/assets/image (140).png" alt=""><figcaption></figcaption></figure>
 
 #### 2. OpenAlgo Setup
 
