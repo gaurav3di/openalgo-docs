@@ -77,16 +77,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/margin
             "price": "125.50",
             "trigger_price": "0"
         },
-        {
-            "symbol": "RELIANCE",
-            "exchange": "NSE",
-            "action": "BUY",
-            "product": "CNC",
-            "pricetype": "MARKET",
-            "quantity": "5",
-            "price": "0",
-            "trigger_price": "0"
-        }
     ]
 }
 ```
@@ -99,10 +89,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/margin
     "data": {
         "total_margin_required": 328482.00,
         "span_margin": 258482.00,
-        "exposure_margin": 70000.00,
-        "available_balance": 500000.00,
-        "insufficient_balance": 0.00,
-        "brokerage": 150.00
+        "exposure_margin": 70000.00
     }
 }
 ```
@@ -150,15 +137,11 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/margin
 
 Different brokers return different margin components. Common fields include:
 
-| Field                   | Description                              | Availability |
-| ----------------------- | ---------------------------------------- | ------------ |
-| total\_margin\_required | Total margin required for all positions  | All brokers  |
-| span\_margin            | SPAN margin requirement                  | Most brokers |
-| exposure\_margin        | Exposure margin requirement              | Most brokers |
-| available\_balance      | Available balance in account             | Most brokers |
-| insufficient\_balance   | Shortfall amount (if margin > balance)   | Most brokers |
-| brokerage               | Estimated brokerage charges              | Some brokers |
-| raw\_response           | Complete broker response (for debugging) | All brokers  |
+| Field                   | Description                             | Availability |
+| ----------------------- | --------------------------------------- | ------------ |
+| total\_margin\_required | Total margin required for all positions | All brokers  |
+| span\_margin            | SPAN margin requirement                 | Most brokers |
+| exposure\_margin        | Exposure margin requirement             | Most brokers |
 
 ### Supported Exchanges
 
