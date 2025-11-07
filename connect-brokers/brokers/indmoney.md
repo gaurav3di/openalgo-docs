@@ -19,11 +19,11 @@ Visit [**https://www.indstocks.com/app/api-trading**](https://www.indstocks.com/
 
 2. Open the **API Dashboard**
 
-<figure><img src="../../.gitbook/assets/ind3.PNG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/ind5.PNG" alt=""><figcaption></figcaption></figure>
 
 3. Click **New Token** and generate token
 
-<figure><img src="../../.gitbook/assets/ind5.PNG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/ind3.PNG" alt=""><figcaption></figcaption></figure>
 
 4. Copy the token shown on screen
 
