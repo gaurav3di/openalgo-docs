@@ -32,7 +32,7 @@
   * [Fyers](connect-brokers/brokers/fyers.md)
   * [Groww](connect-brokers/brokers/groww.md)
   * [IIFL (XTS)](connect-brokers/brokers/iifl-xts.md)
-  * [IndMoney](connect-brokers/brokers/indmoney.md)
+  * [IndMoney (INDstocks)](connect-brokers/brokers/indmoney.md)
   * [IndiaBulls Securities](connect-brokers/brokers/indiabulls-securities.md)
   * [Kotak Securities](connect-brokers/brokers/kotak-securities.md)
   * [Paytm](connect-brokers/brokers/paytm.md)
