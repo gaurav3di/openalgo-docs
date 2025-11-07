@@ -5,8 +5,6 @@ Using IndMoney APIs, users can connect their IndMoney trading account with tools
 
 ### Steps for Integration
 
-#### **Step 1:** Generate Your API Access Token
-
 IndMoney uses a simple **Bearer Token** authentication model.
 
 To generate a token:
@@ -37,3 +35,16 @@ Tokens usually expire within **24 hours**. You must generate a fresh token when 
 5. Setup static IP , by clicking small hexagon button next to New Token and save it.
 
 <figure><img src="../../.gitbook/assets/ind4.PNG" alt=""><figcaption></figcaption></figure>
+
+### Environment Configuration
+
+The generated access token is used as the API SECRET and keep the api key as empty. Below is a sample configuration for the `.env` file:
+
+```
+# Indmoney Broker Configuration
+BROKER_API_KEY = ''
+BROKER_API_SECRET = 'your_generated_access_token'
+REDIRECT_URL = 'http://127.0.0.1:5000/indmoney/callback'
+```
+
+Integrating OpenAlgo with Indmoney's API opens up possibilities for automated trading strategies, providing a powerful tool for traders and developers to exploit market opportunities efficiently. It's essential to follow best practices for API integration, including handling rate limits, managing API keys securely, and ensuring robust error handling and logging mechanisms are in place.
