@@ -925,6 +925,44 @@ print(response)
 
 ```
 
+### Margin Example
+
+```python
+response = client.margin(positions=[
+      {
+          "symbol": "NIFTY25NOV2525000CE",
+          "exchange": "NFO",
+          "action": "BUY",
+          "product": "NRML",
+          "pricetype": "MARKET",
+          "quantity": "75"
+      },
+      {
+          "symbol": "NIFTY25NOV2525500CE",
+          "exchange": "NFO",
+          "action": "SELL",
+          "product": "NRML",
+          "pricetype": "MARKET",
+          "quantity": "75"
+      }
+  ])
+```
+
+
+
+**Margin Response**
+
+```json
+{
+    "status": "success",
+    "data": {
+      "total_margin_required": 91555.7625,
+      "span_margin": 0.0,
+      "exposure_margin": 91555.7625
+    }
+}
+```
+
 ### OrderBook Example
 
 ```python
