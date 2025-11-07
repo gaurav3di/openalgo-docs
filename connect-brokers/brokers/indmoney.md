@@ -32,9 +32,12 @@ This token will be used in OpenAlgo for all authenticated API requests.
 **Note:**\
 Tokens usually expire within **24 hours**. You must generate a fresh token when expired.
 
-5. Setup static IP , by clicking small hexagon button next to New Token and save it.
+5. **Setup Static IP:**\
+   Click the small **hexagon icon** next to **New Token** to enable and assign your **static IP**, and then save it.
 
 <figure><img src="../../.gitbook/assets/ind4.PNG" alt=""><figcaption></figcaption></figure>
+
+**Note :**&#x41; static IP is mandatory, and it must be whitelisted for all API calls to work. Without whitelisting, INDmoney will reject your API requests.
 
 ### Environment Configuration
 
