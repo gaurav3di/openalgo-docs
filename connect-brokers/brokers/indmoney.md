@@ -41,11 +41,11 @@ Tokens usually expire within **24 hours**. You must generate a fresh token when 
 
 ### Environment Configuration
 
-The generated access token is used as the API SECRET and keep the api key as empty. Below is a sample configuration for the `.env` file:
+The generated access token is used as the API SECRET and keep any dummy variable as API KEY. Below is a sample configuration for the `.env` file:
 
 ```
 # Indmoney Broker Configuration
-BROKER_API_KEY = ''
+BROKER_API_KEY = 'wxyz123' #any dummy key
 BROKER_API_SECRET = 'your_generated_access_token'
 REDIRECT_URL = 'http://127.0.0.1:5000/indmoney/callback'
 ```
