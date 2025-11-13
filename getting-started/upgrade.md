@@ -52,6 +52,7 @@ python migrate_telegram_bot.py
 python migrate_smtp_simple.py
 <strong>python migrate_security_columns.py
 </strong>python migrate_sandbox.py
+python migrate_order_mode.py
 
 # Get back to openalgo directory
 cd..
@@ -120,6 +121,7 @@ uv run migrate_telegram_bot.py
 uv run migrate_smtp_simple.py
 uv run migrate_security_columns.py
 uv run migrate_sandbox.py
+uv run migrate_order_mode.py
 cd ..
 ```
 
