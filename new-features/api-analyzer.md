@@ -309,10 +309,6 @@ You try to BUY ₹50,000 worth of stock
 
 **A:** It's similar but better! It's a **self-hosted testing environment** that uses real market data. It's NOT a regulated paper trading platform (which SEBI doesn't allow in India).
 
-#### Q: Can I lose real money in sandbox?
-
-**A:** **NO!** Absolutely not. All money in sandbox is fake. Your real broker account is never touched.
-
 #### Q: Does my broker know I'm using sandbox?
 
 **A:** **NO!** Sandbox runs entirely within OpenAlgo. No orders go to your broker.
@@ -334,7 +330,7 @@ You try to BUY ₹50,000 worth of stock
 
 #### Q: Do I need real broker API keys to use sandbox?
 
-**A:** **NO!** Sandbox works without broker connection. It simulates everything. However, if you have broker connection, it uses real-time prices (better realism).
+**A:** Ye&#x73;**!** Sandbox works with broker connection and it is mandatory
 
 #### Q: Can I use Action Center with Sandbox?
 
