@@ -14,6 +14,8 @@
 * BCD: BSE Currency
 * MCX: MCX Commodity
 * NCDEX: NCDEX Commodity
+* NSE\_INDEX : NSE Indices
+* BSE\_INDEX : NSE Indices
 
 ### Product Type
 
