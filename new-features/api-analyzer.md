@@ -46,7 +46,7 @@ Think of it as:
 
 When you enable Sandbox Mode:
 
-1. OpenAlgo gives you **₹1 Crore** (10 million rupees) in **fake money**
+1. OpenAlgo provides virtual simulation of a portfolio
 2. All your orders execute in a **simulated environment**
 3. Prices come from **real-time market data**
 4. **Everything else works exactly like live trading**
@@ -56,7 +56,7 @@ When you enable Sandbox Mode:
 
 | Feature             | Live Mode        | Sandbox Mode       |
 | ------------------- | ---------------- | ------------------ |
-| **Money**           | Real ₹₹₹         | Fake ₹1 Crore      |
+| **Money**           | Real ₹₹₹         | Dummy Capital      |
 | **Prices**          | Real market      | Real market (same) |
 | **Orders**          | Go to broker     | Stay in OpenAlgo   |
 | **P\&L**            | Real profit/loss | Simulated P\&L     |
@@ -97,7 +97,7 @@ print(response.json())
 
 Go to **Funds** page:
 
-* Available Balance: ₹10,000,000 (1 Crore)
+* Available Balance: ₹10,000,000&#x20;
 * Used Margin: ₹0
 * Total P\&L: ₹0
 
