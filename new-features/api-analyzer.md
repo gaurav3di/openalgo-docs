@@ -1,186 +1,605 @@
 # API Analyzer
 
-## API Analyzer
+### What is Sandbox Mode?
 
-OpenAlgo API Analyzer Documentation
+**Sandbox Mode** (also called **API Analyzer Mode**) is like a **trading video game** where you can practice trading strategies with **fake money** but **real market prices**.
 
-The **OpenAlgo API Analyzer** is a versatile tool designed to assist both traders and developers in testing, validating, and monitoring their trading integrations seamlessly and in real-time.
+Think of it as:
 
-### For Traders
+* **Flight Simulator** for trading
+* **Real market prices** from live data
+* **Safe testing** - no real money at risk
 
-#### Key Features
+### Why Would You Use It?
 
-1. **Real-Time Order Validation**
-   * Test orders without triggering actual execution
-   * Receive instant feedback on order parameters
-   * Validate trading strategies before deploying them live
-2. **Order Monitoring**
-   * Get a real-time view of all order requests
-   * Track modifications and cancellations in real-time
-   * Monitor position closures effectively
-3. **Strategy Management**
-   * Group and track orders by strategy name
-   * Simultaneously monitor multiple strategies
-   * Analyze and compare strategy performance metrics
-4. **Risk Management**
-   * Verify order parameters prior to execution
-   * Check position sizes, quantities, and limits
-   * Ensure price triggers and conditions meet expectations
-5. **Notifications**
-   * Instant visual and sound alerts for key actions
-   * Clear feedback for successes and errors
-   * Simplify tracking with real-time notifications
+#### Real-World Examples
 
-#### Benefits for Traders
+**Example 1: Learning Algorithmic Trading**
 
-1. **Risk Reduction**
-   * Safely test strategies without financial exposure
-   * Catch and correct errors before execution
-   * Minimize trading-related risks
-2. **Strategy Optimization**
-   * Refine trading parameters with confidence
-   * Experiment with different order types
-   * Optimize the efficiency of position sizing
-3. **Operational Efficiency**
-   * Quickly validate trading concepts and ideas
-   * Monitor multiple strategies effortlessly
-   * Gain real-time insights into order statuses
-4. **Cost Savings**
-   * Prevent costly trading errors
-   * Use the analyzer for strategy testing without incurring brokerage fees
-   * Optimize overall trading expenses
+* You wrote your first Python trading bot
+* You're scared to test it with real money
+* Enable Sandbox → Get ₹1 Crore fake money → Test your bot safely
+* If it loses all the money, no problem! Just reset and try again
 
-### For Developers
+**Example 2: Testing a New Strategy**
 
-#### Technical Features
+* You read about a new momentum trading strategy
+* Before risking ₹1 lakh real money, test it in sandbox
+* Run it for a week with fake money
+* If it works well, switch to live mode
 
-1. **API Testing Environment**
-   * Test API endpoints in a sandbox mode
-   * Validate request and response formats
-   * Debug integration issues with ease
-2. **Request Validation**
-   * Automatic checks for parameter accuracy
-   * Verify symbol compatibility with exchanges
-   * Ensure price and quantity values comply with requirements
-3. **Response Analysis**
-   * Inspect detailed API responses
-   * Analyze error messages for troubleshooting
-   * Verify HTTP status codes and response structures
-4. **Real-Time Monitoring**
-   * Use WebSocket connections for live event tracking
-   * Log all requests and responses for analysis
-   * Monitor API performance metrics in real-time
-5. **Debug Tools**
-   * View complete request details
-   * Inspect comprehensive response data
-   * Track API call sequences and timing
+**Example 3: Practicing Manual Trading**
 
-#### Supported API Endpoints
+* You're new to options trading
+* You want to practice buying/selling options without losing money
+* Sandbox gives you unlimited practice rounds
 
-The API Analyzer supports testing for the following endpoints:
+**Example 4: Debugging Your Code**
 
-* **Place Order** - Test order placement with various parameters
-* **Place Smart Order** - Validate smart order configurations
-* **Modify Order** - Test order modification scenarios
-* **Cancel Order** - Verify order cancellation logic
-* **Cancel All Orders** - Test bulk order cancellation
-* **Close Position** - Validate position closure mechanisms
+* Your trading bot has a bug that's placing wrong orders
+* Instead of debugging with real money (expensive!), use sandbox
+* Fix all bugs safely, then go live
 
-#### Validation Rules
+### How It Works
 
-The API Analyzer automatically validates:
+#### The Magic Setup
 
-* **Required Fields** - Ensures all mandatory parameters are present
-* **Data Types** - Validates correct data type usage
-* **Value Ranges** - Verifies values are within acceptable limits
-* **Symbol Existence** - Checks if symbols are valid and tradable
-* **Exchange Compatibility** - Ensures symbols match the specified exchange
+When you enable Sandbox Mode:
 
-#### Event System
+1. OpenAlgo gives you **₹1 Crore** (10 million rupees) in **fake money**
+2. All your orders execute in a **simulated environment**
+3. Prices come from **real-time market data**
+4. **Everything else works exactly like live trading**
+5. **Nothing touches your real broker account**
 
-Real-time monitoring through:
+#### Live Mode vs Sandbox Mode
 
-* **WebSocket Events** - Live updates on order activities
-* **Order Status Updates** - Immediate notification of status changes
-* **Error Notifications** - Instant alerts for issues or failures
-* **System Alerts** - Important system-level messages
+| Feature             | Live Mode        | Sandbox Mode       |
+| ------------------- | ---------------- | ------------------ |
+| **Money**           | Real ₹₹₹         | Fake ₹1 Crore      |
+| **Prices**          | Real market      | Real market (same) |
+| **Orders**          | Go to broker     | Stay in OpenAlgo   |
+| **P\&L**            | Real profit/loss | Simulated P\&L     |
+| **Risk**            | HIGH             | ZERO               |
+| **Can lose money?** | Yes              | No                 |
+| **Good for**        | Making money     | Learning, testing  |
 
-#### Integration Benefits
+### Step-by-Step Setup
 
-1. **Faster Development**
-   * Quick API testing without live trading
-   * Instant feedback on integration code
-   * Easy debugging with detailed logs
-2. **Code Quality**
-   * Validate integration logic thoroughly
-   * Catch errors early in development
-   * Ensure proper error handling mechanisms
-3. **Documentation**
-   * Access example requests and responses
-   * Study error scenarios and solutions
-   * Learn integration patterns and best practices
-4. **Maintenance**
-   * Track API usage patterns
-   * Monitor performance metrics
-   * Debug issues efficiently
+#### Step 1: Enable Sandbox Mode
+
+**Method A: Using Web UI** (Easiest)
+
+1. Log in to OpenAlgo
+2. Click **Settings** in the menu
+3. Find **"API Analyzer Mode"** toggle
+4. Switch it **ON** (it will turn green/blue)
+5. Notice: Interface changes to a different theme (visual indicator)
+
+**Method B: Using API** (For Python users)
+
+```python
+import requests
+
+payload = {
+    "apikey": "YOUR_API_KEY",
+    "mode": True  # True = Sandbox ON, False = Sandbox OFF
+}
+
+response = requests.post(
+    "http://127.0.0.1:5000/api/v1/analyzer/toggle",
+    json=payload
+)
+print(response.json())
+```
+
+#### Step 2: Check Your Fake Money
+
+Go to **Funds** page:
+
+* Available Balance: ₹10,000,000 (1 Crore)
+* Used Margin: ₹0
+* Total P\&L: ₹0
+
+#### Step 3: Place Your First Test Order
+
+**Using Web UI:**
+
+1. Go to any trading page
+2. Enter symbol (e.g., "RELIANCE")
+3. Choose BUY/SELL
+4. Enter quantity (e.g., 10 shares)
+5. Click "Place Order"
+6. Order executes instantly with fake money!
+
+**Using Python Code:**
+
+```python
+import requests
+
+payload = {
+    "apikey": "YOUR_API_KEY",
+    "symbol": "RELIANCE",
+    "exchange": "NSE",
+    "action": "BUY",
+    "quantity": 10,
+    "pricetype": "MARKET",
+    "product": "MIS"
+}
+
+response = requests.post(
+    "http://127.0.0.1:5000/api/v1/placeorder",
+    json=payload
+)
+print(response.json())
+```
+
+#### Step 4: Watch It Work!
+
+1. Check **Order Book** - Your order appears as "Complete"
+2. Check **Positions** - Shows your position with P\&L
+3. Check **Funds** - Used margin deducted from available balance
+4. P\&L updates in real-time as market price changes!
+
+### What You Get in Sandbox
+
+#### 1. Starting Capital
+
+* **Default**: ₹1 Crore (₹10,000,000)
+* **Configurable**: You can change it in sandbox settings
+* **Auto-reset**: Resets to starting amount every Sunday (configurable)
+
+#### 2. All Order Types Work
+
+* **MARKET** - Buy/sell at current market price
+* **LIMIT** - Buy/sell at specific price
+* **SL (Stop Loss)** - Trigger at stop price
+* **SL-M (Stop Loss Market)** - Trigger and execute at market
+
+#### 3. All Product Types Work
+
+* **MIS (Intraday)** - Squared off automatically at 3:15 PM
+* **CNC (Delivery)** - Converted to holdings at midnight
+* **NRML (F\&O)** - Futures and options trading
+
+#### 4. Realistic Features
+
+**Margin System:**
+
+* Equity Intraday (MIS): 5x leverage
+* Equity Delivery (CNC): 1x leverage (full payment)
+* Futures: 10x leverage
+* Options Buy: 1x (pay full premium)
+* Options Sell: 10x leverage
+
+**Auto Square-Off:**
+
+* MIS positions close automatically at:
+  * NSE/BSE: 3:15 PM
+  * MCX: 11:30 PM
+  * CDS: 4:45 PM
+
+**Realistic Pricing:**
+
+* BUY orders execute at **ask price** (seller's price)
+* SELL orders execute at **bid price** (buyer's price)
+* Just like real market!
+
+### Sandbox Settings Page
+
+Navigate to: `http://127.0.0.1:5000/sandbox`
+
+#### What You Can Configure
+
+**1. Capital Settings**
+
+* Starting Capital: ₹10,000,000 (change it to any amount)
+* Auto-Reset Day: Sunday (pick any day)
+* Auto-Reset Time: 12:00 AM (pick any time)
+* Manual Reset: Click "Reset Now" button anytime
+
+**2. Leverage Settings**
+
+* Equity MIS: 5x (how much you can borrow for intraday)
+* Futures: 10x (margin required for futures)
+* Options Sell: 10x (margin for selling options)
+* Options Buy: 1x (must pay full premium)
+
+**3. Square-Off Times**
+
+* When MIS positions auto-close
+* Different times for NSE, MCX, CDS
+
+**4. Performance Tuning**
+
+* How often to check pending orders (5 seconds)
+* How often to update P\&L (5 seconds)
+
+### How Sandbox Handles Different Scenarios
+
+#### Scenario 1: Buying Stocks (CNC)
+
+**What you do:**
+
+```
+BUY 10 RELIANCE @ ₹2,500 (CNC)
+```
+
+**What happens:**
+
+1. **Order placed** → ₹25,000 blocked from available balance
+2. **Position created** → Shows in positions page
+3. **Next day midnight** → Position converts to holdings automatically
+4. **Holdings page** → Shows 10 RELIANCE shares
+
+#### Scenario 2: Intraday Trading (MIS)
+
+**What you do:**
+
+```
+BUY 100 SBIN @ ₹625 (MIS)
+Price goes up to ₹630
+```
+
+**What happens:**
+
+1. **Margin blocked** → ₹12,500 (₹62,500 / 5x leverage)
+2. **Position shows** → +₹500 profit (100 shares × ₹5)
+3. **At 3:15 PM** → Position automatically squared off
+4. **Profit credited** → Available balance increases by ₹500
+
+#### Scenario 3: Options Trading
+
+**What you do:**
+
+```
+BUY NIFTY 20000 CE @ ₹100 (1 lot = 50 qty)
+Total cost: ₹5,000
+```
+
+**What happens:**
+
+1. **₹5,000 blocked** (full premium)
+2. **If premium goes to ₹150** → Profit ₹2,500
+3. **If premium goes to ₹50** → Loss ₹2,500
+4. **Just like real options trading!**
+
+#### Scenario 4: Running Out of Money
+
+**What happens:**
+
+```
+Available Balance: ₹10,000
+You try to BUY ₹50,000 worth of stock
+```
+
+**Result:**
+
+* Order rejected
+* Error: "Insufficient funds"
+* Just like real trading!
+
+### Understanding P\&L (Profit & Loss)
+
+#### Unrealized P\&L
+
+* Profit/loss on **open positions**
+* Changes every second as market price changes
+* Not real until you close the position
+
+#### Realized P\&L
+
+* Profit/loss on **closed positions**
+* Added to your available balance
+* This is "real" profit/loss in sandbox
+
+#### Example
+
+```
+1. BUY 100 SBIN @ ₹625
+2. Current price: ₹630
+   Unrealized P&L: +₹500 (not closed yet)
+3. SELL 100 SBIN @ ₹630
+   Realized P&L: +₹500 (closed, profit credited)
+```
+
+### Common Questions
+
+#### Q: Is this the same as "paper trading"?
+
+**A:** It's similar but better! It's a **self-hosted testing environment** that uses real market data. It's NOT a regulated paper trading platform (which SEBI doesn't allow in India).
+
+#### Q: Can I lose real money in sandbox?
+
+**A:** **NO!** Absolutely not. All money in sandbox is fake. Your real broker account is never touched.
+
+#### Q: Does my broker know I'm using sandbox?
+
+**A:** **NO!** Sandbox runs entirely within OpenAlgo. No orders go to your broker.
+
+#### Q: Can I test my algo trading strategies?
+
+**A:** **YES!** That's the main purpose. Test all your strategies safely before going live.
+
+#### Q: What happens when I switch back to live mode?
+
+**A:** All sandbox data stays in sandbox database. Your live trading starts fresh. They're completely separate.
+
+#### Q: Can I reset my sandbox funds?
+
+**A:** **YES!** Two ways:
+
+1. **Auto-reset**: Every Sunday at midnight (configurable)
+2. **Manual reset**: Click "Reset Now" button in sandbox settings
+
+#### Q: Do I need real broker API keys to use sandbox?
+
+**A:** **NO!** Sandbox works without broker connection. It simulates everything. However, if you have broker connection, it uses real-time prices (better realism).
+
+#### Q: Can I use Action Center with Sandbox?
+
+**A:** **YES!** They work together:
+
+* Enable both Sandbox + Semi-Auto mode
+* Test orders → Go to Action Center → You approve/reject
+* Perfect for testing the full workflow
+
+### When to Use Sandbox vs Live
+
+#### Use Sandbox Mode When:
+
+* Testing new strategies
+* Learning algorithmic trading
+* Debugging your trading code
+* Practicing options/futures trading
+* Experimenting with order types
+* Validating your algorithm logic
+* You're not ready to risk real money
+
+#### Use Live Mode When:
+
+* Strategy tested and proven in sandbox
+* You understand the risks
+* Code is bug-free
+* You're ready to make real money (or lose it)
+* You've practiced enough
 
 ### Best Practices
 
-#### Testing
+#### 1. Always Test First
 
-* **Always test new strategies** in analyzer mode first before going live
-* **Validate all parameters** thoroughly before enabling live trading
-* **Test edge cases and error scenarios** to ensure robust integration
+```
+New Strategy → Sandbox (1 week) → If profitable → Live Mode
+```
 
-#### Monitoring
+#### 2. Use Realistic Capital
 
-* **Regularly check analyzer logs** for any anomalies
-* **Monitor error rates** to identify potential issues
-* **Track strategy performance** to optimize trading logic
+If you plan to trade live with ₹1 lakh, test sandbox with ₹1 lakh (not ₹1 crore). This gives realistic results.
 
-#### Integration
+#### 3. Monitor Performance
 
-* **Implement proper error handling** for all API calls
-* **Use retry logic** for transient failures
-* **Respect API rate limits** to avoid throttling
+* Track win rate
+* Calculate average profit per trade
+* Measure maximum drawdown
+* Use this data to improve strategy
 
-#### Security
+#### 4. Don't Skip Sandbox
 
-* **Keep API keys secure** and never expose them in logs
-* **Use environment variables** for sensitive configuration
-* **Regularly rotate credentials** for enhanced security
+Even experienced traders test new strategies in sandbox first. It's free insurance!
 
-### Getting Started
+#### 5. Combine with Action Center
 
-#### Enabling API Analyzer Mode
+* Sandbox ON + Semi-Auto ON = Perfect testing environment
+* See every order before execution
+* Catch bugs early
 
-1. Navigate to OpenAlgo Settings
-2. Toggle the "API Analyzer Mode" switch to ON
-3. The interface will switch to Garden theme to indicate analyzer mode is active
-4. All API calls will now be processed in test mode without live execution
+### Visual Indicators
 
-#### Using the Analyzer
+When sandbox is enabled:
 
-1. **Place Test Orders** - Use your existing API integration or trading application
-2. **Monitor Requests** - View real-time order requests in the analyzer dashboard
-3. **Review Responses** - Check API responses and validation results
-4. **Analyze Performance** - Track strategy metrics and order flow
+* **Theme changes** to "Garden" theme (different colors)
+* **Badge/label** shows "Analyzer Mode Active"
+* **Funds page** shows sandbox balance (₹1 Crore default)
+* **Separate database** (sandbox.db)
 
-#### Switching Back to Live Mode
+When live mode is active:
 
-1. Navigate to OpenAlgo Settings
-2. Toggle the "API Analyzer Mode" switch to OFF
-3. The interface will revert to default theme
-4. All subsequent API calls will execute live orders
+* **Default theme**
+* **Real broker funds** shown
+* **Real database** (openalgo.db)
 
-### Support
+### Technical Details (Optional)
 
-For technical support or feature requests:
+#### Database Separation
 
-* **GitHub Issues** - Report bugs and request features at [OpenAlgo Repository](https://github.com/marketcalls/openalgo)
-* **Community Support** - Join discussions and get help from the community
-* **Documentation** - Access comprehensive guides at [docs.openalgo.in](https://docs.openalgo.in)
+* **Live**: `db/openalgo.db`
+* **Sandbox**: `db/sandbox.db`
+* Completely isolated - no data mixing
+
+#### Architecture
+
+```
+Your Trading Bot
+      ↓
+OpenAlgo API
+      ↓
+  [Analyzer Check]
+      ↓
+   Sandbox?
+   ↙     ↘
+YES        NO
+ ↓          ↓
+Sandbox    Real Broker
+Engine     API
+```
+
+#### Thread Management
+
+* Sandbox runs in background thread
+* Monitors pending orders every 5 seconds
+* Updates P\&L in real-time
+* Auto square-off runs on schedule
+* T+1 settlement at midnight
+
+#### Configuration File
+
+Located at: `db/sandbox.db` in table `sandbox_config`
+
+Can be modified via sandbox settings page or directly in database.
+
+### Troubleshooting
+
+#### Problem: Orders not executing in sandbox
+
+**Solution:**
+
+1. Check if sandbox mode is ON (Settings → API Analyzer Mode)
+2. Verify symbol exists (try RELIANCE, SBIN, INFY)
+3. Check available balance (Funds page)
+4. Look at logs for errors
+
+#### Problem: Can't see positions
+
+**Solution:**
+
+1. Make sure you're looking at sandbox positions, not live
+2. Check if order was actually placed (Order Book)
+3. Verify order status is "Complete"
+
+#### Problem: Wrong P\&L calculation
+
+**Solution:**
+
+1. Remember: BUY @ ask price, SELL @ bid price
+2. Check if using correct product type (MIS vs CNC)
+3. Verify leverage settings in sandbox config
+
+#### Problem: Funds not resetting
+
+**Solution:**
+
+1. Check auto-reset day/time in sandbox settings
+2. Use manual "Reset Now" button
+3. Restart OpenAlgo application
+
+### Example: Complete Trading Workflow
+
+Let's walk through a complete example:
+
+#### Step 1: Enable Sandbox
+
+```
+Settings → API Analyzer Mode → ON
+```
+
+#### Step 2: Check Starting Balance
+
+```
+Funds page: ₹10,000,000
+```
+
+#### Step 3: Place First Order
+
+```python
+# Buy RELIANCE
+{
+    "symbol": "RELIANCE",
+    "action": "BUY",
+    "quantity": 10,
+    "pricetype": "MARKET",
+    "product": "MIS"
+}
+```
+
+#### Step 4: Check Position
+
+```
+Positions page:
+- Symbol: RELIANCE
+- Quantity: 10
+- Avg Price: ₹2,500
+- LTP: ₹2,505
+- P&L: +₹50
+```
+
+#### Step 5: Close Position
+
+```python
+# Sell RELIANCE
+{
+    "symbol": "RELIANCE",
+    "action": "SELL",
+    "quantity": 10,
+    "pricetype": "MARKET",
+    "product": "MIS"
+}
+```
+
+#### Step 6: Check Final P\&L
+
+```
+Trade Book:
+- BUY 10 @ ₹2,500 = -₹25,000
+- SELL 10 @ ₹2,505 = +₹25,050
+- Realized P&L: +₹50
+
+Funds:
+- Available Balance: ₹10,000,050
+- Profit: ₹50 ✅
+```
+
+#### Step 7: Analyze and Learn
+
+* Strategy worked!
+* Made ₹50 profit (in sandbox)
+* Now optimize and test more
+* When confident → Switch to Live Mode
+
+### Regulatory Note
+
+#### Is Sandbox Legal in India?
+
+**YES**
+
+Sandbox is **NOT** a virtual/paper trading platform.
+
+It's a **personal testing environment** that:
+
+* Runs on your own computer
+* Uses your own OpenAlgo installation
+* For your own strategy development
+* Like a calculator or Excel spreadsheet
+
+It's a **development tool**, not a trading service.
+
+### Support & Resources
+
+* **Detailed Docs**: See `docs/sandbox/` folder for technical details
+* **Report Issues**: https://github.com/marketcalls/openalgo/issues
+* **Full Documentation**: https://docs.openalgo.in
+* **Community**: Join discussions on GitHub
+
+### Summary
+
+**Sandbox Mode** = Your **safe playground** for trading
+
+* Free virtual money (₹1 Crore)
+* Real market prices
+* Zero risk
+* Perfect for learning
+* Test before going live
+
+**Remember**: The best traders test everything before risking real money. Sandbox makes that easy!
 
 ***
 
-**Note**: The API Analyzer is designed for testing and validation purposes. For complete trading simulation with virtual capital, margin tracking, and position management, see the Sandbox Mode documentation.
+**Next Steps**:
+
+1. Enable sandbox mode
+2. Place a few test orders
+3. Watch how P\&L changes
+4. Test your strategy for 1 week
+5. If profitable, switch to Live Mode
+6. Start making real money
+
+Good luck and happy testing!

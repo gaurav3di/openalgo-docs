@@ -12,6 +12,7 @@
   * [PNL Tracker](new-features/pnl-tracker.md)
   * [Traffic/Latency Monitor](new-features/traffic-latency-monitor.md)
   * [Chartink Integration](new-features/chartink-integration.md)
+  * [Action Center](new-features/action-center.md)
 * [Responsibilities](responsibilities.md)
 * [Contributors](contributors.md)
 * [Monetization](monetization.md)

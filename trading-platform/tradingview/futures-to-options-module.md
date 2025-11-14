@@ -405,7 +405,7 @@ table.cell_set_text(tLog, row = 1, column = 1, text = exittext )
 
 ### Ensure Alert Message is Set
 
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 #### 💡 How Traders Can Use It
 

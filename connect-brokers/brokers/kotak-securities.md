@@ -17,14 +17,14 @@ Ensure you have your Kotak Securities Trading User ID and Password ready.
 1. Navigate to the [Kotak Securities API registration page.](https://neo.kotaksecurities.com/) login with your trading credentials
 2. Navigate to: Invest → TradeAPI → API Dashboard
 
-<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 1. Click "Create Application"
 2. Copy the token shown after creation
 
 &#x20;      **Token format example**: ec6a746c-e44b-455e-abf2-c13352b2fc45
 
-<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 #### **Step 3: Register TOTP Authentication**
 
@@ -47,7 +47,7 @@ Example:
 
 1. TOTP Registration screen: on verification of mobile number, otp and client code
 
-<figure><img src="../../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 2. Scan QR from authenticator app, Enter these 6 digits reflecting on authenticator app for Kotak-NEO, and click continue. You will get success toast which means registration of totp is complete.
 
