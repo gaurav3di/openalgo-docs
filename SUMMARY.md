@@ -118,6 +118,7 @@
     * [OptionSymbol](api-documentation/v1/data-api/optionsymbol.md)
     * [OptionGreeks](api-documentation/v1/data-api/optiongreeks.md)
     * [Ticker](api-documentation/v1/data-api/ticker.md)
+    * [Instruments](api-documentation/v1/data-api/instruments.md)
   * [Alert API](api-documentation/v1/data-api-1/README.md)
     * [Telegram](api-documentation/v1/data-api-1/telegram.md)
   * [Websockets](api-documentation/v1/websockets.md)
