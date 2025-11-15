@@ -2,7 +2,7 @@
 
 MStock is a modern Indian stock broker by Mirae Asset, offering commission-free trading and robust REST-based APIs. These APIs enable traders and developers to automate trading, retrieve account information, and integrate market data seamlessly. By connecting mStock OpenAPI with OpenAlgo, algo traders can efficiently execute strategies, manage positions, and automate workflows.
 
-For developers and algo traders looking to use the mStock Type-B API, the integration process involves the following steps:
+For developers and algo traders looking to use the mStock API, the integration process involves the following steps:
 
 ### **Step-by-Step Integration**
 
