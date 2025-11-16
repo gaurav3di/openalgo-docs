@@ -120,7 +120,6 @@ response = client.optionsorder(
       underlying="NIFTY",
       exchange="NSE_INDEX",
       expiry_date="28OCT25",
-      strike_int=50,
       offset="ATM",
       option_type="CE",
       action="BUY",
@@ -155,7 +154,6 @@ response = client.optionsorder(
       underlying="NIFTY",
       exchange="NSE_INDEX",
       expiry_date="28OCT25",
-      strike_int=50,
       offset="ITM4",
       option_type="PE",
       action="BUY",
@@ -190,7 +188,6 @@ response = client.optionsorder(
       underlying="NIFTY",
       exchange="NSE_INDEX",
       expiry_date="28OCT25",
-      strike_int=50,
       offset="OTM5",
       option_type="CE",
       action="BUY",
@@ -726,7 +723,6 @@ response = client.optionsymbol(
       underlying="NIFTY",
       exchange="NSE_INDEX",
       expiry_date="28OCT25",
-      strike_int=50,
       offset="ATM",
       option_type="CE"
   )
@@ -754,7 +750,6 @@ response = client.optionsymbol(
       underlying="NIFTY",
       exchange="NSE_INDEX",
       expiry_date="28OCT25",
-      strike_int=50,
       offset="ITM3",
       option_type="PE"
   )
@@ -782,7 +777,6 @@ response = client.optionsymbol(
       underlying="NIFTY",
       exchange="NSE_INDEX",
       expiry_date="28OCT25",
-      strike_int=50,
       offset="OTM4",
       option_type="CE"
   )
@@ -800,6 +794,31 @@ print(response)
   "lotsize": 75,
   "tick_size": 0.05,
   "underlying_ltp": 25966.05
+}
+```
+
+### SyntheticFuture Example
+
+```python
+response = client.syntheticfuture(
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      expiry_date="25NOV25"
+  )
+
+print(response)
+```
+
+SyntheticFuture **Response**
+
+```
+{
+ 'atm_strike': 25900.0,
+ 'expiry': '25NOV25',
+ 'status': 'success',
+ 'synthetic_future_price': 25980.05,
+ 'underlying': 'NIFTY',
+ 'underlying_ltp': 25910.05
 }
 ```
 
@@ -876,6 +895,34 @@ response
   '25-JUN-30'],
  'message': 'Found 18 expiry dates for NIFTY options in NFO',
  'status': 'success'}
+```
+
+### Instruments Example
+
+```python
+response = client.instruments(exchange="NSE")
+
+print(response.tail())
+```
+
+
+
+Instruments **Response**
+
+```json
+     brexchange           brsymbol exchange expiry instrumenttype  lotsize  \
+3041        NSE      NSE:NEOGEN-EQ      NSE   None             EQ        1   
+3042        NSE     NSE:ALANKIT-EQ      NSE   None             EQ        1   
+3043        NSE  NSE:EVERESTIND-EQ      NSE   None             EQ        1   
+3044        NSE   NSE:VIKASLIFE-EQ      NSE   None             EQ        1   
+3045        NSE    NSE:ONEPOINT-EQ      NSE   None             EQ        1   
+
+                          name  strike      symbol  tick_size           token  
+3041  NEOGEN CHEMICALS LIMITED    -1.0      NEOGEN       0.10  10100000009917  
+3042           ALANKIT LIMITED    -1.0     ALANKIT       0.01  10100000009921  
+3043    EVEREST INDUSTRIES LTD    -1.0  EVERESTIND       0.05   1010000000993  
+3044    VIKAS LIFECARE LIMITED    -1.0   VIKASLIFE       0.01  10100000009931  
+3045     ONE POINT ONE SOL LTD    -1.0    ONEPOINT       0.01  10100000009939  
 ```
 
 ### Telegram Alert Example
