@@ -17,11 +17,9 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 ```json
 {
     "apikey": "eb51c74ed08ffc821fd5da90b55b7560a3a9e48fd58df01063225ecd7b98c993",
-    "strategy": "test_strategy",
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
     "expiry_date": "28OCT25",
-    "strike_int": 50,
     "offset": "ITM2",
     "option_type": "CE"
 }
@@ -49,10 +47,8 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 ```json
 {
     "apikey": "eb51c74ed08ffc821fd5da90b55b7560a3a9e48fd58df01063225ecd7b98c993",
-    "strategy": "test_strategy",
     "underlying": "NIFTY28OCT25FUT",
     "exchange": "NFO",
-    "strike_int": 50,
     "offset": "ITM2",
     "option_type": "CE"
 }
@@ -84,7 +80,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 | underlying   | Underlying symbol (NIFTY, BANKNIFTY, NIFTY28OCT25FUT)      | Mandatory          | -             |
 | exchange     | Exchange code (NSE\_INDEX, NSE, NFO, BSE\_INDEX, BSE, BFO) | Mandatory          | -             |
 | expiry\_date | Expiry date in DDMMMYY format (e.g., 28OCT25)              | Optional\*         | -             |
-| strike\_int  | Strike interval (50 for NIFTY, 100 for BANKNIFTY)          | Mandatory          | -             |
 | offset       | Strike offset (ATM, ITM1-ITM50, OTM1-OTM50)                | Mandatory          | -             |
 | option\_type | Option type (CE for Call, PE for Put)                      | Mandatory          | -             |
 
@@ -107,37 +102,33 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 
 ### Examples for Different Underlyings
 
-#### NIFTY (Strike Interval: 50)
+#### NIFTY&#x20;
 
 ```json
 {
     "apikey": "your_api_key",
-    "strategy": "nifty_weekly",
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "28NOV24",
-    "strike_int": 50,
+    "expiry_date": "18NOV25",
     "offset": "ATM",
     "option_type": "CE"
 }
 ```
 
-#### BANKNIFTY (Strike Interval: 100)
+#### BANKNIFTY&#x20;
 
 ```json
 {
     "apikey": "your_api_key",
-    "strategy": "banknifty_options",
     "underlying": "BANKNIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "28NOV24",
-    "strike_int": 100,
+    "expiry_date": "25NOV25",
     "offset": "OTM2",
     "option_type": "PE"
 }
 ```
 
-#### RELIANCE Equity (Strike Interval: 10)
+#### RELIANCE Equity&#x20;
 
 ```json
 {

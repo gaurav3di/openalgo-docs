@@ -21,7 +21,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "underlying": "NIFTY28OCT25FUT",
     "exchange": "NFO",
     "expiry_date": "28OCT25",
-    "strike_int": 50,
     "offset": "ITM2",
     "option_type": "CE",
     "action": "BUY",
@@ -60,7 +59,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
     "expiry_date": "25NOV25",
-    "strike_int": 50,
     "offset": "ATM",
     "option_type": "CE",
     "action": "BUY",
@@ -101,7 +99,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
     "expiry_date": "25NOV25",
-    "strike_int": 50,
     "offset": "OTM1",
     "option_type": "CE",
     "action": "BUY",
@@ -125,7 +122,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "underlying": "BANKNIFTY",
     "exchange": "NSE_INDEX",
     "expiry_date": "25NOV25",
-    "strike_int": 100,
     "offset": "ATM",
     "option_type": "PE",
     "action": "SELL",
@@ -149,7 +145,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 | underlying          | Underlying symbol (NIFTY, BANKNIFTY, NIFTY28OCT25FUT)      | Mandatory          | -             |
 | exchange            | Exchange code (NSE\_INDEX, NSE, NFO, BSE\_INDEX, BSE, BFO) | Mandatory          | -             |
 | expiry\_date        | Expiry date in DDMMMYY format (e.g., 28OCT25)              | Optional\*         | -             |
-| strike\_int         | Strike interval (50 for NIFTY, 100 for BANKNIFTY)          | Mandatory          | -             |
 | offset              | Strike offset (ATM, ITM1-ITM50, OTM1-OTM50)                | Mandatory          | -             |
 | option\_type        | Option type (CE for Call, PE for Put)                      | Mandatory          | -             |
 | action              | Action (BUY/SELL)                                          | Mandatory          | -             |
@@ -227,7 +222,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
     "expiry_date": "25NOV25",
-    "strike_int": 50,
     "offset": "ATM",
     "option_type": "CE",
     "action": "BUY",
@@ -246,7 +240,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
     "expiry_date": "25NOV25",
-    "strike_int": 50,
     "offset": "ATM",
     "option_type": "PE",
     "action": "BUY",
@@ -315,7 +308,6 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "underlying": "RELIANCE",
     "exchange": "NSE",
     "expiry_date": "25NOV25",
-    "strike_int": 10,
     "offset": "OTM2",
     "option_type": "CE",
     "action": "SELL",

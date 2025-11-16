@@ -115,6 +115,7 @@
     * [Intervals](api-documentation/v1/data-api/intervals.md)
     * [Symbol](api-documentation/v1/data-api/symbol.md)
     * [Search](api-documentation/v1/data-api/search.md)
+    * [SyntheticFuture](api-documentation/v1/data-api/syntheticfuture.md)
     * [Expiry](api-documentation/v1/data-api/expiry.md)
     * [OptionSymbol](api-documentation/v1/data-api/optionsymbol.md)
     * [OptionGreeks](api-documentation/v1/data-api/optiongreeks.md)
