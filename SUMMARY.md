@@ -213,6 +213,7 @@
 ## Change Log
 
 * [release](change-log/release/README.md)
+  * [Version 1.0.0.37 Launched](change-log/release/version-1.0.0.37-launched.md)
   * [Version 1.0.0.36 Launched](change-log/release/version-1.0.0.36-launched.md)
   * [Version 1.0.0.35 Launched](change-log/release/version-1.0.0.35-launched.md)
   * [Version 1.0.0.34 Launched](change-log/release/version-1.0.0.34-launched.md)
