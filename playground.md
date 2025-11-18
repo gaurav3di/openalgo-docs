@@ -6,7 +6,7 @@
 
 The API Playground is a web-based interface for testing OpenAlgo REST API endpoints. It provides an intuitive UI to explore, test, and debug all available API endpoints without needing external tools like Postman.
 
-<figure><img src="../../.gitbook/assets/image (144).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (144).png" alt=""><figcaption></figcaption></figure>
 
 ### Features
 
