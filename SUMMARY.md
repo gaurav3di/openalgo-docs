@@ -128,6 +128,7 @@
   * [HTTP Status Codes](api-documentation/v1/http-status-codes.md)
   * [Rate Limiting](api-documentation/v1/rate-limiting.md)
   * [API Collections](api-documentation/v1/api-collections.md)
+  * [Playground](api-documentation/v1/playground.md)
 
 ***
 
