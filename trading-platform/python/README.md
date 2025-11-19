@@ -217,7 +217,7 @@ Place Options Order Response
 
 ### OptionsMultiOrder Example
 
-To place Iron options order
+To place Iron options order (Same Expiry)
 
 ```python
 response = client.optionsmultiorder(
@@ -240,7 +240,6 @@ Place OptionsMultiOrder Response
 
 ```json
 {
-    'mode': 'analyze',
     'status': 'success',
     'underlying': 'NIFTY',
     'underlying_ltp': 26050.45,
@@ -286,6 +285,56 @@ Place OptionsMultiOrder Response
             'symbol': 'NIFTY25NOV2525850PE'
         }
     ]
+}
+
+```
+
+To place Diagonal Spread options order (Different Expiry)
+
+```python
+response = client.optionsmultiorder(
+      strategy="Diagonal Spread Test",
+      underlying="NIFTY",
+      exchange="NSE_INDEX",
+      legs=[
+          {"offset": "ITM2", "option_type": "CE", "action": "BUY", "quantity": 75, "expiry_date": "30DEC25"},
+          {"offset": "OTM2", "option_type": "CE", "action": "SELL", "quantity": 75, "expiry_date": "25NOV25"}
+      ]
+  )
+
+print(response)
+
+```
+
+Place OptionsMultiOrder Response
+
+```json
+{
+    "results": [
+        {
+            "action": "BUY",
+            "leg": 1,
+            "mode": "analyze",
+            "offset": "ITM2",
+            "option_type": "CE",
+            "orderid": "25111933337854",
+            "status": "success",
+            "symbol": "NIFTY30DEC2525950CE"
+        },
+        {
+            "action": "SELL",
+            "leg": 2,
+            "mode": "analyze",
+            "offset": "OTM2",
+            "option_type": "CE",
+            "orderid": "25111957475473",
+            "status": "success",
+            "symbol": "NIFTY25NOV2526150CE"
+        }
+    ],
+    "status": "success",
+    "underlying": "NIFTY",
+    "underlying_ltp": 26052.65
 }
 
 ```
