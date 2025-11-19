@@ -215,6 +215,81 @@ Place Options Order Response
 }
 ```
 
+### OptionsMultiOrder Example
+
+To place Iron options order
+
+```python
+response = client.optionsmultiorder(
+    strategy="Iron Condor Test",
+    underlying="NIFTY",
+    exchange="NSE_INDEX",
+    expiry_date="25NOV25",
+    legs=[
+        {"offset": "OTM6", "option_type": "CE", "action": "BUY", "quantity": 75},
+        {"offset": "OTM6", "option_type": "PE", "action": "BUY", "quantity": 75},
+        {"offset": "OTM4", "option_type": "CE", "action": "SELL", "quantity": 75},
+        {"offset": "OTM4", "option_type": "PE", "action": "SELL", "quantity": 75}
+    ]
+)
+
+print(response)
+```
+
+Place OptionsMultiOrder Response
+
+```json
+{
+    'mode': 'analyze',
+    'status': 'success',
+    'underlying': 'NIFTY',
+    'underlying_ltp': 26050.45,
+    'results': [
+        {
+            'action': 'BUY',
+            'leg': 1,
+            'mode': 'analyze',
+            'offset': 'OTM6',
+            'option_type': 'CE',
+            'orderid': '25111996859688',
+            'status': 'success',
+            'symbol': 'NIFTY25NOV2526350CE'
+        },
+        {
+            'action': 'BUY',
+            'leg': 2,
+            'mode': 'analyze',
+            'offset': 'OTM6',
+            'option_type': 'PE',
+            'orderid': '25111996042210',
+            'status': 'success',
+            'symbol': 'NIFTY25NOV2525750PE'
+        },
+        {
+            'action': 'SELL',
+            'leg': 3,
+            'mode': 'analyze',
+            'offset': 'OTM4',
+            'option_type': 'CE',
+            'orderid': '25111922189638',
+            'status': 'success',
+            'symbol': 'NIFTY25NOV2526250CE'
+        },
+        {
+            'action': 'SELL',
+            'leg': 4,
+            'mode': 'analyze',
+            'offset': 'OTM4',
+            'option_type': 'PE',
+            'orderid': '25111919252668',
+            'status': 'success',
+            'symbol': 'NIFTY25NOV2525850PE'
+        }
+    ]
+}
+
+```
+
 ### BasketOrder example
 
 To place a new basket order:
