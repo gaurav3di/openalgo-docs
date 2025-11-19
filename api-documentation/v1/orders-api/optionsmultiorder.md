@@ -235,19 +235,22 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsmultiorder
 
 #### Parameter Description (Per Leg)
 
-| Parameters          | Description                                 | Mandatory/Optional | Default Value |
-| ------------------- | ------------------------------------------- | ------------------ | ------------- |
-| offset              | Strike offset (ATM, ITM1-ITM50, OTM1-OTM50) | Mandatory          | -             |
-| option\_type        | Option type (CE for Call, PE for Put)       | Mandatory          | -             |
-| action              | Action (BUY/SELL)                           | Mandatory          | -             |
-| quantity            | Quantity (must be multiple of lot size)     | Mandatory          | -             |
-| pricetype           | Price type (MARKET/LIMIT/SL/SL-M)           | Optional           | MARKET        |
-| product             | Product type (MIS/NRML)\*\*                 | Optional           | MIS           |
-| price               | Limit price                                 | Optional           | 0             |
-| trigger\_price      | Trigger price for SL orders                 | Optional           | 0             |
-| disclosed\_quantity | Disclosed quantity                          | Optional           | 0             |
+| Parameters          | Description                                            | Mandatory/Optional | Default Value |
+| ------------------- | ------------------------------------------------------ | ------------------ | ------------- |
+| offset              | Strike offset (ATM, ITM1-ITM50, OTM1-OTM50)            | Mandatory          | -             |
+| option\_type        | Option type (CE for Call, PE for Put)                  | Mandatory          | -             |
+| action              | Action (BUY/SELL)                                      | Mandatory          | -             |
+| quantity            | Quantity (must be multiple of lot size)                | Mandatory          | -             |
+| expiry\_date        | Per-leg expiry (DDMMMYY) for diagonal/calendar spreads | Optional           | Request-level |
+| pricetype           | Price type (MARKET/LIMIT/SL/SL-M)                      | Optional           | MARKET        |
+| product             | Product type (MIS/NRML)\*\*                            | Optional           | MIS           |
+| price               | Limit price                                            | Optional           | 0             |
+| trigger\_price      | Trigger price for SL orders                            | Optional           | 0             |
+| disclosed\_quantity | Disclosed quantity                                     | Optional           | 0             |
 
 \*\*Note: Options only support MIS and NRML products (CNC not supported)
+
+\*\*\*Note: Per-leg expiry\_date overrides the request-level expiry\_date, enabling diagonal and calendar spreads in a single API call
 
 
 
@@ -683,39 +686,73 @@ This order ensures:
 }
 ```
 
-**12. Calendar Spread (Different Expiry - 2 API Calls Required)**
+**12. Calendar Spread (Different Expiries - Single API Call)**
 
-**Note:** Calendar spreads require different expiry dates, so you need to make two separate API calls:
+**Note:** Calendar spreads use the same strike but different expiry dates. Use per-leg `expiry_date` to specify different expiries.
 
-**First Call (Near Expiry - SELL):**
-
-```json
-{
-    "apikey": "<your_app_apikey>",
-    "strategy": "Calendar Spread - Near",
-    "underlying": "NIFTY",
-    "exchange": "NSE_INDEX",
-    "expiry_date": "25NOV25",
-    "legs": [
-        {"offset": "ATM", "option_type": "CE", "action": "SELL", "quantity": 75}
-    ]
-}
-```
-
-**Second Call (Far Expiry - BUY):**
+**Request:**
 
 ```json
 {
     "apikey": "<your_app_apikey>",
-    "strategy": "Calendar Spread - Far",
+    "strategy": "Calendar Spread",
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "30DEC25",
     "legs": [
-        {"offset": "ATM", "option_type": "CE", "action": "BUY", "quantity": 75}
+        {"offset": "ATM", "option_type": "CE", "action": "BUY", "quantity": 75, "expiry_date": "30DEC25"},
+        {"offset": "ATM", "option_type": "CE", "action": "SELL", "quantity": 75, "expiry_date": "25NOV25"}
     ]
 }
 ```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "underlying": "NIFTY",
+    "underlying_ltp": 24150.50,
+    "results": [
+        {"leg": 1, "symbol": "NIFTY30DEC2524150CE", "offset": "ATM", "option_type": "CE", "action": "BUY", "status": "success", "orderid": "240123000001262"},
+        {"leg": 2, "symbol": "NIFTY25NOV2524150CE", "offset": "ATM", "option_type": "CE", "action": "SELL", "status": "success", "orderid": "240123000001263"}
+    ]
+}
+```
+
+**13. Diagonal Spread (Different Strikes & Expiries - Single API Call)**
+
+**Note:** Diagonal spreads combine different strike prices AND different expiry dates. Use per-leg `expiry_date` to specify different expiries.
+
+**Request (Bullish Diagonal Call Spread):**
+
+```json
+{
+    "apikey": "<your_app_apikey>",
+    "strategy": "Diagonal Spread",
+    "underlying": "NIFTY",
+    "exchange": "NSE_INDEX",
+    "legs": [
+        {"offset": "ITM2", "option_type": "CE", "action": "BUY", "quantity": 75, "expiry_date": "30DEC25"},
+        {"offset": "OTM2", "option_type": "CE", "action": "SELL", "quantity": 75, "expiry_date": "25NOV25"}
+    ]
+}
+```
+
+**Response:**
+
+```json
+{
+    "status": "success",
+    "underlying": "NIFTY",
+    "underlying_ltp": 24150.50,
+    "results": [
+        {"leg": 1, "symbol": "NIFTY30DEC2524050CE", "offset": "ITM2", "option_type": "CE", "action": "BUY", "status": "success", "orderid": "240123000001264"},
+        {"leg": 2, "symbol": "NIFTY25NOV2524250CE", "offset": "OTM2", "option_type": "CE", "action": "SELL", "status": "success", "orderid": "240123000001265"}
+    ]
+}
+```
+
+**Note:** BUY legs always execute first for margin efficiency, regardless of order in the request.
 
 
 
