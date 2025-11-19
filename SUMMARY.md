@@ -100,6 +100,7 @@
     * [Placeorder](api-documentation/v1/orders-api/placeorder.md)
     * [PlaceSmartOrder](api-documentation/v1/orders-api/placesmartorder.md)
     * [OptionsOrder](api-documentation/v1/orders-api/optionsorder.md)
+    * [OptionsMultiOrder](api-documentation/v1/orders-api/optionsmultiorder.md)
     * [BasketOrder](api-documentation/v1/orders-api/basketorder.md)
     * [SplitOrder](api-documentation/v1/orders-api/splitorder.md)
     * [ModifyOrder](api-documentation/v1/orders-api/modifyorder.md)
