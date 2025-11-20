@@ -155,6 +155,7 @@
   * [Spot/Futures to Options Module (Single Leg)](trading-platform/amibroker/spot-futures-to-options-module-single-leg.md)
   * [Spot/Futures to Options Module (Two Leg)](trading-platform/amibroker/spot-futures-to-options-module-two-leg.md)
   * [Time Based Execution](trading-platform/amibroker/time-based-execution.md)
+  * [Telegram EOD Alert](trading-platform/amibroker/telegram-eod-alert.md)
 * [Tradingview](trading-platform/tradingview.md)
   * [Futures to Options Module](trading-platform/tradingview/futures-to-options-module.md)
 * [GoCharting](trading-platform/gocharting.md)
