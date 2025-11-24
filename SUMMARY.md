@@ -111,6 +111,7 @@
     * [OpenPosition](api-documentation/v1/orders-api/openposition.md)
   * [Data API](api-documentation/v1/data-api/README.md)
     * [Quotes](api-documentation/v1/data-api/quotes.md)
+    * [MultiQuotes](api-documentation/v1/data-api/multiquotes.md)
     * [Depth](api-documentation/v1/data-api/depth.md)
     * [History](api-documentation/v1/data-api/history.md)
     * [Intervals](api-documentation/v1/data-api/intervals.md)

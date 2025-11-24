@@ -8,305 +8,687 @@ This tutorial provides instructions on how to utilize simple buy and sell tradin
 2\)Place Smart Option Orders to intelligent send orders by manipulating the current existing positions.\
 3\)Option Strike calculation at Amibroker end (Trades can configure the Underlying symbol as Spot./Futures) based on their trading requirement) accordingly, options strikes will be calculated.
 
-Internet Functions Method (Modern)
+### Internet Function Method (Modern Method)
 
-```clike
+```c
 /* 
-OpenAlgo - Modern Spot/Futures to Options Trading Module 
+OpenAlgo - Modern Spot/Futures to Options Trading Module v2.0
 Created By: Rajandran R (Founder - Marketcalls / Creator OpenAlgo) 
-Created On: 23 Dec 2024 
+Original: 24 Nov 2025
+Updated: Uses OptionsOrder API for server-side strike calculations
+Added: Static Memory Refresh Button
 Website: www.marketcalls.in / www.openalgo.in 
 */
 
-_SECTION_BEGIN("OpenAlgo - Spot/Futures to Options Module");
+_SECTION_BEGIN("OpenAlgo - Spot/Futures to Options Module v2.0");
 
-// Parameter Definitions
-RequestTimedRefresh(1, False);
-EnableTextOutput(False);
+/* --------------------------------------------------------------------------
+   Version Check Variable
+   -------------------------------------------------------------------------- */
+ReqVer = 6.35;
 
-apikey = ParamStr("OpenAlgo API Key", "******");
-strategy = ParamStr("Strategy Name", "Test Strategy");
-spot = ParamList("Spot Symbol", "NIFTY|BANKNIFTY|FINNIFTY|SENSEX|CRUDEOILM");
-expiry = ParamStr("Expiry Date", "17SEP25");
-exchange = ParamList("Exchange", "NFO|BFO|MCX", 0);
-symbol = ParamStr("Underlying Symbol", "NIFTY");   //Amibroker Symbols Spot/Futures (Calculation of Strike Price)
-iInterval = Param("Strike Interval", 50, 1, 10000, 1);
-StrikeCalculation = ParamList("Strike Calculation", "PREVOPEN|PREVCLOSE|TODAYSOPEN", 0);
-LotSize = Param("Lot Size", 75, 1, 10000, 1);
-offsetCE = Param("CE Offset", 0, -40, 40, 1);  //0 - ATM Options,  +4 - 4 strike OTM , -2 = 2 strike wide ITM options
-offsetPE = Param("PE Offset", 0, -40, 40, 1);
-pricetype = ParamList("Order Type", "MARKET", 0);
-product = ParamList("Product", "MIS|NRML", 1);
-tradetype = ParamList("Option Trade Type", "BUY|SELL", 0);  //Option Buyer - Option Seller
-quantity = Param("Quantity (Lot Size)", 1, 0, 10000) * LotSize;
-host = ParamStr("Host", "http://127.0.0.1:5000");
-ver = ParamStr("API Version", "v1");
-VoiceAlert = ParamList("Voice Alert", "Disable|Enable", 1);
-EntryDelay = Param("Entry Delay", 0, 0, 1, 1);
-ExitDelay = Param("Exit Delay", 0, 0, 1, 1);
-EnableAlgo = ParamList("AlgoStatus", "Disable|Enable|LongOnly|ShortOnly", 0);
+/* --------------------------------------------------------------------------
+   Global Variables for GUI
+   -------------------------------------------------------------------------- */
+global IDset;
+IDset = 0;
 
-SetChartOptions(0, chartShowArrows | chartShowDates);
-_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue(ROC(C, 1))));
+/* --------------------------------------------------------------------------
+   Helper Functions - Defined at Global Scope
+   -------------------------------------------------------------------------- */
 
-bridgeurl = host + "/api/" + ver;
-
-static_name_ = Name()+GetChartID()+interval(2)+strategy;
-static_name_algo = static_name_+interval(2)+strategy+"algostatus";
-
-
-//OpenAlgo Dashboard
-
-GfxSelectFont( "BOOK ANTIQUA", 14, 100 );
-GfxSetBkMode( 1 );
-if(EnableAlgo == "Enable")
+/* Simple JSON value extractor */
+function ExtractJsonValue(json_str, key_name)
 {
-AlgoStatus = "Algo Enabled";
-GfxSetTextColor( colorGreen ); 
-GfxTextOut( "Algostatus : "+AlgoStatus , 20, 40); 
-if(Nz(StaticVarGet(static_name_algo),0)!=1)
-{
-_TRACE("Algo Status : Enabled");
-StaticVarSet(static_name_algo, 1);
-}
-}
-if(EnableAlgo == "Disable")
-{
-AlgoStatus = "Algo Disabled";
-GfxSetTextColor( colorRed ); 
-GfxTextOut( "Algostatus : "+AlgoStatus , 20, 40); 
-if(Nz(StaticVarGet(static_name_algo),0)!=0)
-{
-_TRACE("Algo Status : Disabled");
-StaticVarSet(static_name_algo, 0);
-}
-}
-
-// Strike Price Calculations
-if (StrikeCalculation == "PREVOPEN") {
-    SetForeign(symbol);
-    spotC = Ref(Open, -1);
-    RestorePriceArrays();
-} else if (StrikeCalculation == "PREVCLOSE") {
-    SetForeign(symbol);
-    spotC = Ref(Close, -1);
-    RestorePriceArrays();
-} else if (StrikeCalculation == "TODAYSOPEN") {
-    SetForeign(symbol);
-    spotC = TimeFrameGetPrice("O", inDaily);
-    RestorePriceArrays();
-}
-
-
-//Maintain Array to Store ATM Strikes for each and every bar
-strike = IIf(spotC % iInterval > iInterval/2, spotC - (spotC%iInterval) + iInterval,
-			spotC - (spotC%iInterval));
-			
-//Entry Strikes	
-
-		
-strikeCE = strike + (offsetCE * iInterval);
-strikePE = strike - (offsetPE * iInterval);
-
-buycontinue = Flip(Buy,Sell);
-shortcontinue  = Flip(Short,Cover);
-
-printf("\n Spot Price :"+spotC);
-printf("\n Strike CE :"+strikeCE);
-printf("\n Strike PE :"+strikePE);
-
-
-global ExitStrikeCE;
-global ExitStrikePE;
-global entryoptions;
-global exitoptons;
-
-// Trading Variables
-AlgoBuy = LastValue(Ref(Buy, -EntryDelay));
-AlgoSell = LastValue(Ref(Sell, -ExitDelay));
-AlgoShort = LastValue(Ref(Short, -EntryDelay));
-AlgoCover = LastValue(Ref(Cover, -ExitDelay));
-
-//Exit Strikes
-if(tradetype=="BUY")
-{
-ExitStrikeCE = ValueWhen(Ref(Buy,-Entrydelay),strikeCE); 
-ExitStrikePE = ValueWhen(Ref(Short,-Entrydelay),strikePE);
-
-
-
-entryoptions = WriteIf(AlgoBuy,spot+expiry+LastValue(strikeCE)+"CE", WriteIf(AlgoShort,spot+expiry+LastValue(strikePE)+"PE",""));
-exitoptions = WriteIf(AlgoSell,spot+expiry+LastValue(ExitStrikeCE)+"CE", WriteIf(AlgoCover,spot+expiry+LastValue(ExitStrikePE)+"PE",""));
-
-
-}
-if(tradetype=="SELL")
-{
-ExitStrikeCE = ValueWhen(Ref(Short,-Entrydelay),strikeCE); 
-ExitStrikePE = ValueWhen(Ref(Buy,-Entrydelay),strikePE);
-
-
-
-entryoptions = WriteIf(AlgoBuy,spot+expiry+LastValue(strikePE)+"PE", WriteIf(AlgoShort,spot+expiry+LastValue(strikeCE)+"CE",""));
-exitoptions = WriteIf(AlgoSell,spot+expiry+LastValue(ExitStrikeCE)+"PE", WriteIf(AlgoCover,spot+expiry+LastValue(ExitStrikeCE)+"CE",""));
-
-}
-
-printf("\n\n\nEntry Symbol : "+entryoptions);
-printf("\nExit Symbol : "+exitoptions);
-
-
-
-
-// Define Functions for Order Placement and Exit
-function PlaceOrder(action, optionType, qty) {
-    postData = "{\"apikey\": \"" + apikey + "\", " +
-               "\"strategy\": \"" + strategy + "\", " +
-               "\"symbol\": \"" + entryoptions + "\", " +
-               "\"action\": \"" + action + "\", " +
-               "\"exchange\": \"" + exchange + "\", " +
-               "\"pricetype\": \"" + pricetype + "\", " +
-               "\"product\": \"" + product + "\", " +
-               "\"quantity\": \"" + qty + "\"}";
-    headers = "Content-Type: application/json\r\nAccept-Encoding: gzip, deflate\r\n";
-    InternetSetHeaders(headers);
-    ih = InternetPostRequest(bridgeurl + "/placeorder", postData);
-
-    if (ih) {
-        response = "";
-        while ((line = InternetReadString(ih)) != "") {
-            response += line;
+    result = "";
+    
+    /* Find the key in JSON */
+    search_key = "\"" + key_name + "\":";
+    pos = StrFind(json_str, search_key);
+    
+    if (pos >= 0)
+    {
+        /* Move past the key */
+        start = pos + StrLen(search_key);
+        
+        /* Skip whitespace */
+        while (start < StrLen(json_str) AND StrMid(json_str, start, 1) == " ")
+        {
+            start = start + 1;
         }
-        _TRACE("PlaceOrder Request : "+postData);
-        _TRACEF("PlaceOrder Response: %s", response);
-        if (VoiceAlert == "Enable") Say(action + " Order Placed.");
-        InternetClose(ih);
-    } else {
-        _TRACE("Failed to place order.");
+        
+        /* Check if value is quoted string */
+        if (StrMid(json_str, start, 1) == "\"")
+        {
+            start = start + 1;  /* Skip opening quote */
+            end = start;
+            /* Find closing quote */
+            while (end < StrLen(json_str) AND StrMid(json_str, end, 1) != "\"")
+            {
+                end = end + 1;
+            }
+            /* Extract value WITHOUT the closing quote */
+            result = StrMid(json_str, start, end - start);
+        }
+        else
+        {
+            /* Numeric or boolean value */
+            end = start;
+            while (end < StrLen(json_str))
+            {
+                ch = StrMid(json_str, end, 1);
+                if (ch == "," OR ch == "}" OR ch == " ")
+                {
+                    break;
+                }
+                end = end + 1;
+            }
+            result = StrMid(json_str, start, end - start);
+        }
     }
+    
+    return result;
 }
 
-function ExitOrder(action, optionType) {
-    postData = "{\"apikey\": \"" + apikey + "\", " +
-               "\"strategy\": \"" + strategy + "\", " +
-               "\"symbol\": \"" + exitoptions + "\", " +
-               "\"action\": \"" + action + "\", " +
-               "\"exchange\": \"" + exchange + "\", " +
-               "\"pricetype\": \"" + pricetype + "\", " +
-               "\"product\": \"" + product + "\", " +
-               "\"position_size\": \"" + "0" + "\", " +
-               "\"quantity\": \"0\"}";
-    headers = "Content-Type: application/json\r\nAccept-Encoding: gzip, deflate\r\n";
+/* Function to post option order using OptionsOrder API */
+function PostOptionOrder(offset_val, opt_type, act, qty, apikey_val, strategy_val, underlying_val, exchange_val, expiry_val, pricetype_val, product_val, host_val, ver_val)
+{
+    url = host_val + "/api/" + ver_val + "/optionsorder";
+    
+    /* Construct JSON request body */
+    body = "{\"apikey\": \"" + apikey_val + "\", " +
+           "\"strategy\": \"" + strategy_val + "\", " +
+           "\"underlying\": \"" + underlying_val + "\", " +
+           "\"exchange\": \"" + exchange_val + "\", " +
+           "\"expiry_date\": \"" + expiry_val + "\", " +
+           "\"offset\": \"" + offset_val + "\", " +
+           "\"option_type\": \"" + opt_type + "\", " +
+           "\"action\": \"" + act + "\", " +
+           "\"quantity\": \"" + NumToStr(qty, 1.0) + "\", " +
+           "\"pricetype\": \"" + pricetype_val + "\", " +
+           "\"product\": \"" + product_val + "\", " +
+           "\"price\": \"0\", " +
+           "\"trigger_price\": \"0\", " +
+           "\"disclosed_quantity\": \"0\"}";
+    
+    _TRACEF("OpenAlgo OptionsOrder Request: %s", body);
+    
+    /* Set headers */
+    headers = "Content-Type: application/json\r\n" +
+              "Accept-Encoding: gzip, deflate\r\n";
     InternetSetHeaders(headers);
+    
+    ih = InternetPostRequest(url, body);
+    
+    response = "";
+    if (ih)
+    {
+        while ((line = InternetReadString(ih)) != "")
+        {
+            response = response + line;
+        }
+        _TRACEF("OpenAlgo OptionsOrder Response: %s", response);
+        InternetClose(ih);
+    }
+    else
+    {
+        _TRACE("OpenAlgo HTTP post failed");
+    }
+    
+    return response;
+}
+
+/* Function to exit position using placesmartorder with quantity=0 and position_size=0 */
+function ExitPosition(sym, exch, product_type, apikey_val, strategy_val, host_val, ver_val)
+{
+    /* Build postData for smart exit */
+    postData = "{\"apikey\": \"" + apikey_val + "\", " +
+               "\"strategy\": \"" + strategy_val + "\", " +
+               "\"symbol\": \"" + sym + "\", " +
+               "\"action\": \"SELL\", " +
+               "\"exchange\": \"" + exch + "\", " +
+               "\"pricetype\": \"MARKET\", " +
+               "\"product\": \"" + product_type + "\", " +
+               "\"quantity\": \"0\", " +
+               "\"position_size\": \"0\"}";
+
+    headers = "Content-Type: application/json\r\n" +
+              "Accept-Encoding: gzip, deflate\r\n";
+    InternetSetHeaders(headers);
+
+    _TRACE("Exit Order Request Sent: " + postData);
+    
+    /* Build URL */
+    bridgeurl = host_val + "/api/" + ver_val;
     ih = InternetPostRequest(bridgeurl + "/placesmartorder", postData);
 
-    if (ih) {
-        response = "";
-        while ((line = InternetReadString(ih)) != "") {
-            response += line;
+    response = "";
+    if (ih) 
+    {
+        while ((line = InternetReadString(ih)) != "") 
+        {
+            response = response + line;
         }
-        _TRACE("PlaceOrder Request : "+postData);
-        _TRACEF("ExitOrder Response: %s", response);
-        if (VoiceAlert == "Enable") Say(action + " Exit Order Placed.");
+        _TRACEF("Exit Order Response: %s", response);
         InternetClose(ih);
-    } else {
-        _TRACE("Failed to exit order.");
+    } 
+    else 
+    {
+        _TRACE("Failed to place exit order.");
     }
+    
+    return response;
 }
 
+/* --------------------------------------------------------------------------
+   Version Check and Main Code
+   -------------------------------------------------------------------------- */
+if (Version() < ReqVer)
+{
+    SetChartOptions(0, chartShowDates);
+    GfxSetBkMode(1);
+    GfxSetBkColor(colorBlack);
+    GfxSetTextColor(colorRed);
+    GfxSelectFont("Arial", 16, 700);
+    GfxTextOut("This AFL needs AmiBroker 6.35 or later", 40, 40);
+}
+else
+{
+    /* --------------------------------------------------------------------------
+       Parameter Definitions
+       -------------------------------------------------------------------------- */
+    RequestTimedRefresh(1, False);
+    EnableTextOutput(False);
+    SetOption("StaticVarAutoSave", 30);
 
-if (EnableAlgo != "Disable") {
-    lasttime = StrFormat("%0.f", LastValue(BarIndex()));
+    apikey = ParamStr("OpenAlgo API Key", "******");
+    strategy = ParamStr("Strategy Name", "SpotToOptions");
+    
+    /* Underlying and Exchange Settings */
+    underlying = ParamList("Underlying Symbol", "NIFTY|BANKNIFTY|FINNIFTY|SENSEX|CRUDEOILM");
+    exchange = ParamList("Exchange", "NSE_INDEX|BSE_INDEX|NFO|BFO|MCX", 0);
+    expiry = ParamStr("Expiry Date (DDMMMYY)", "30DEC25");
+    
+    /* Strike Offset Settings - Now using string-based offsets */
+    CE_offset = ParamStr("CE Offset", "ATM");   /* ATM, ITM1, ITM2, OTM1, OTM2, etc. */
+    PE_offset = ParamStr("PE Offset", "ATM");   /* ATM, ITM1, ITM2, OTM1, OTM2, etc. */
+    
+    /* Order Settings */
+    LotSize = Param("Lot Size", 75, 1, 10000, 1);
+    quantity = Param("Quantity (Lots)", 1, 0, 100) * LotSize;
+    pricetype = ParamList("Order Type", "MARKET", 0);
+    product = ParamList("Product", "NRML|MIS", 0);
+    tradetype = ParamList("Option Trade Type", "BUY|SELL", 0);  /* Option Buyer - Option Seller */
+    
+    /* Connection Settings */
+    host = ParamStr("Host", "http://127.0.0.1:5000");
+    ver = ParamStr("API Version", "v1");
+    
+    /* Alert and Timing Settings */
+    VoiceAlert = ParamList("Voice Alert", "Disable|Enable", 1);
+    EntryDelay = Param("Entry Delay", 0, 0, 1, 1);
+    ExitDelay = Param("Exit Delay", 0, 0, 1, 1);
+    EnableAlgo = ParamList("AlgoStatus", "Disable|Enable|LongOnly|ShortOnly", 0);
 
-    SetChartBkColor(colorDarkGrey);
+    /* --------------------------------------------------------------------------
+       Chart Settings
+       -------------------------------------------------------------------------- */
+    SetChartOptions(0, chartShowArrows | chartShowDates);
+    _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue(ROC(C, 1))));
+    Plot(Close, "Close", colorDefault, styleNoTitle | ParamStyle("Style") | GetPriceStyle());
 
-    if (EnableAlgo == "Enable" OR EnableAlgo == "LongOnly" OR EnableAlgo == "ShortOnly") {
-        if (AlgoBuy == True AND AlgoCover == True AND StaticVarGet(static_name_ + "buyCoverAlgo") == 0 AND StaticVarGetText(static_name_ + "buyCoverAlgo_barvalue") != lasttime) {
-            if (tradetype == "BUY") {
-                // Long Call and Exit Long Put
-                ExitOrder("SELL", "PE");
-                PlaceOrder("BUY", "CE", quantity);
-            } else if (tradetype == "SELL") {
-                // Short Put and Exit Short Call
-                ExitOrder("BUY", "CE");
-                PlaceOrder("SELL", "PE", quantity);
+    /* --------------------------------------------------------------------------
+       Static Variable Names for Tracking
+       -------------------------------------------------------------------------- */
+    static_name_ = Name() + GetChartID() + interval(2) + strategy;
+    static_name_algo = static_name_ + "_algostatus";
+    
+    /* Entry tracking - CE positions */
+    static_CE_order = static_name_ + "_CE_order";
+    static_CE_symbol = static_name_ + "_CE_symbol";
+    static_CE_exchange = static_name_ + "_CE_exchange";
+    
+    /* Entry tracking - PE positions */
+    static_PE_order = static_name_ + "_PE_order";
+    static_PE_symbol = static_name_ + "_PE_symbol";
+    static_PE_exchange = static_name_ + "_PE_exchange";
+
+    /* --------------------------------------------------------------------------
+       OpenAlgo Dashboard Display
+       -------------------------------------------------------------------------- */
+    GfxSelectFont("BOOK ANTIQUA", 14, 100);
+    GfxSetBkMode(1);
+    
+    if (EnableAlgo == "Enable")
+    {
+        AlgoStatus = "Algo Enabled";
+        GfxSetTextColor(colorGreen);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+        if (Nz(StaticVarGet(static_name_algo), 0) != 1)
+        {
+            _TRACE("Algo Status : Enabled");
+            StaticVarSet(static_name_algo, 1);
+        }
+    }
+    else if (EnableAlgo == "Disable")
+    {
+        AlgoStatus = "Algo Disabled";
+        GfxSetTextColor(colorRed);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+        if (Nz(StaticVarGet(static_name_algo), 0) != 0)
+        {
+            _TRACE("Algo Status : Disabled");
+            StaticVarSet(static_name_algo, 0);
+        }
+    }
+    else if (EnableAlgo == "LongOnly")
+    {
+        AlgoStatus = "Long Only";
+        GfxSetTextColor(colorYellow);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+    }
+    else if (EnableAlgo == "ShortOnly")
+    {
+        AlgoStatus = "Short Only";
+        GfxSetTextColor(colorOrange);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+    }
+    
+    /* Display Trade Mode */
+    GfxSelectFont("BOOK ANTIQUA", 16, 700);
+    if (tradetype == "BUY")
+    {
+        GfxSetTextColor(colorBrightGreen);
+    }
+    else
+    {
+        GfxSetTextColor(colorRed);
+    }
+    GfxTextOut("Trade Mode : " + tradetype, 20, 65);
+    
+    /* Display Current Settings */
+    GfxSelectFont("BOOK ANTIQUA", 10, 400);
+    GfxSetTextColor(colorWhite);
+    GfxTextOut("Underlying: " + underlying + " | Expiry: " + expiry + " | CE Offset: " + CE_offset + " | PE Offset: " + PE_offset, 20, 90);
+    GfxTextOut("Quantity: " + NumToStr(quantity, 1.0) + " | Product: " + product, 20, 108);
+    
+    /* Display Position Status */
+    GfxSelectFont("BOOK ANTIQUA", 10, 400);
+    GfxSetTextColor(colorYellow);
+    CE_status = WriteIf(Nz(StaticVarGet(static_CE_order), 0) == 1, "ACTIVE: " + StaticVarGetText(static_CE_symbol), "NONE");
+    PE_status = WriteIf(Nz(StaticVarGet(static_PE_order), 0) == 1, "ACTIVE: " + StaticVarGetText(static_PE_symbol), "NONE");
+    GfxTextOut("CE Position: " + CE_status, 20, 126);
+    GfxTextOut("PE Position: " + PE_status, 20, 144);
+
+    /* --------------------------------------------------------------------------
+       Refresh Memory Button
+       -------------------------------------------------------------------------- */
+    btnRefreshY = 170;
+    btnRefreshW = 150;
+    btnRefreshH = 35;
+    
+    GuiButton("REFRESH MEMORY", ++IDset, 20, btnRefreshY, btnRefreshW, btnRefreshH, notifyClicked);
+    btnRefreshMemory = IDset;
+    GuiSetColors(btnRefreshMemory, btnRefreshMemory, 1, colorWhite, colorDarkTeal, colorWhite);
+    
+    /* Process Button Click Events */
+    for (i = 0; (cid = GuiGetEvent(i, 0)) > 0; i++)
+    {
+        if (GuiGetEvent(i, 1) == notifyClicked)
+        {
+            if (cid == btnRefreshMemory)
+            {
+                _TRACE("=== REFRESH MEMORY BUTTON CLICKED ===");
+                
+                /* Clear CE Position Tracking */
+                StaticVarSet(static_CE_order, 0);
+                StaticVarSetText(static_CE_symbol, "");
+                StaticVarSetText(static_CE_exchange, "");
+                
+                /* Clear PE Position Tracking */
+                StaticVarSet(static_PE_order, 0);
+                StaticVarSetText(static_PE_symbol, "");
+                StaticVarSetText(static_PE_exchange, "");
+                
+                /* Clear All Signal Tracking Variables */
+                StaticVarSet(static_name_ + "buyCoverAlgo", 0);
+                StaticVarSetText(static_name_ + "buyCoverAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "buyAlgo", 0);
+                StaticVarSetText(static_name_ + "buyAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "sellAlgo", 0);
+                StaticVarSetText(static_name_ + "sellAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "ShortSellAlgo", 0);
+                StaticVarSetText(static_name_ + "ShortSellAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "ShortAlgo", 0);
+                StaticVarSetText(static_name_ + "ShortAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "CoverAlgo", 0);
+                StaticVarSetText(static_name_ + "CoverAlgo_barvalue", "");
+                
+                _TRACE("All Static Variables Cleared Successfully");
+                
+                if (VoiceAlert == "Enable")
+                {
+                    Say("Memory Refreshed");
+                }
             }
-            _TRACE("Buy Cover Order Triggered.");
-            StaticVarSet(static_name_ + "buyCoverAlgo", 1);
-            StaticVarSetText(static_name_ + "buyCoverAlgo_barvalue", lasttime);
-        } else if (AlgoBuy != True OR AlgoCover != True) {
+        }
+    }
+
+    /* --------------------------------------------------------------------------
+       Trading Signal Variables
+       -------------------------------------------------------------------------- */
+    AlgoBuy = LastValue(Ref(Buy, -EntryDelay));
+    AlgoSell = LastValue(Ref(Sell, -ExitDelay));
+    AlgoShort = LastValue(Ref(Short, -EntryDelay));
+    AlgoCover = LastValue(Ref(Cover, -ExitDelay));
+
+    /* --------------------------------------------------------------------------
+       Trading Logic
+       -------------------------------------------------------------------------- */
+    if (EnableAlgo != "Disable")
+    {
+        lasttime = StrFormat("%0.f", LastValue(BarIndex()));
+        SetChartBkColor(colorDarkGrey);
+
+        /* ========================================================================
+           BUY SIGNAL PROCESSING
+           ======================================================================== */
+        
+        /* Buy + Cover (Reversal from Short to Long) */
+        if (AlgoBuy == True AND AlgoCover == True AND StaticVarGet(static_name_ + "buyCoverAlgo") == 0 AND StaticVarGetText(static_name_ + "buyCoverAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "LongOnly")
+            {
+                /* Exit existing PE position first */
+                exit_symbol = StaticVarGetText(static_PE_symbol);
+                exit_exchange = StaticVarGetText(static_PE_exchange);
+                
+                if (exit_symbol != "" AND Nz(StaticVarGet(static_PE_order), 0) == 1)
+                {
+                    _TRACE("Exiting PE Position for Reversal: " + exit_symbol);
+                    response = ExitPosition(exit_symbol, exit_exchange, product, apikey, strategy, host, ver);
+                    
+                    has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                    if (has_success)
+                    {
+                        StaticVarSet(static_PE_order, 0);
+                        StaticVarSetText(static_PE_symbol, "");
+                        StaticVarSetText(static_PE_exchange, "");
+                        _TRACE("PE Exit Success");
+                    }
+                }
+                
+                /* Place new CE entry */
+                if (tradetype == "BUY")
+                {
+                    /* Option Buyer: Buy CE */
+                    response = PostOptionOrder(CE_offset, "CE", "BUY", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                else
+                {
+                    /* Option Seller: Sell PE */
+                    response = PostOptionOrder(PE_offset, "PE", "SELL", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                
+                symbol_resolved = StrReplace(ExtractJsonValue(response, "symbol"), "\"", "");
+                exchange_resolved = StrReplace(ExtractJsonValue(response, "exchange"), "\"", "");
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success AND symbol_resolved != "")
+                {
+                    StaticVarSet(static_CE_order, 1);
+                    StaticVarSetText(static_CE_symbol, symbol_resolved, True);
+                    StaticVarSetText(static_CE_exchange, exchange_resolved, True);
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Buy Cover Order Placed");
+                    }
+                    _TRACEF("Buy Cover Order Success: %s", symbol_resolved);
+                }
+                
+                StaticVarSet(static_name_ + "buyCoverAlgo", 1);
+                StaticVarSetText(static_name_ + "buyCoverAlgo_barvalue", lasttime);
+            }
+        }
+        else if (AlgoBuy != True OR AlgoCover != True)
+        {
             StaticVarSet(static_name_ + "buyCoverAlgo", 0);
             StaticVarSetText(static_name_ + "buyCoverAlgo_barvalue", "");
         }
 
-        if (AlgoBuy == True AND AlgoCover != True AND StaticVarGet(static_name_ + "buyAlgo") == 0 AND StaticVarGetText(static_name_ + "buyAlgo_barvalue") != lasttime) {
-            if (tradetype == "BUY") {
-                PlaceOrder("BUY", "CE", quantity);
-            } else if (tradetype == "SELL") {
-                PlaceOrder("SELL", "PE", quantity);
+        /* Buy Only (Fresh Long Entry) */
+        if (AlgoBuy == True AND AlgoCover != True AND StaticVarGet(static_name_ + "buyAlgo") == 0 AND StaticVarGetText(static_name_ + "buyAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "LongOnly")
+            {
+                if (tradetype == "BUY")
+                {
+                    /* Option Buyer: Buy CE */
+                    response = PostOptionOrder(CE_offset, "CE", "BUY", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                else
+                {
+                    /* Option Seller: Sell PE */
+                    response = PostOptionOrder(PE_offset, "PE", "SELL", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                
+                symbol_resolved = StrReplace(ExtractJsonValue(response, "symbol"), "\"", "");
+                exchange_resolved = StrReplace(ExtractJsonValue(response, "exchange"), "\"", "");
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success AND symbol_resolved != "")
+                {
+                    StaticVarSet(static_CE_order, 1);
+                    StaticVarSetText(static_CE_symbol, symbol_resolved, True);
+                    StaticVarSetText(static_CE_exchange, exchange_resolved, True);
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Buy Order Placed");
+                    }
+                    _TRACEF("Buy Order Success: %s", symbol_resolved);
+                }
+                
+                StaticVarSet(static_name_ + "buyAlgo", 1);
+                StaticVarSetText(static_name_ + "buyAlgo_barvalue", lasttime);
             }
-            _TRACE("Buy Order Triggered.");
-            StaticVarSet(static_name_ + "buyAlgo", 1);
-            StaticVarSetText(static_name_ + "buyAlgo_barvalue", lasttime);
-        } else if (AlgoBuy != True) {
+        }
+        else if (AlgoBuy != True)
+        {
             StaticVarSet(static_name_ + "buyAlgo", 0);
             StaticVarSetText(static_name_ + "buyAlgo_barvalue", "");
         }
 
-        if (AlgoSell == True AND AlgoShort != True AND StaticVarGet(static_name_ + "sellAlgo") == 0 AND StaticVarGetText(static_name_ + "sellAlgo_barvalue") != lasttime) {
-            if (tradetype == "BUY") {
-                ExitOrder("SELL", "CE");
-            } else if (tradetype == "SELL") {
-                ExitOrder("BUY", "PE");
+        /* ========================================================================
+           SELL SIGNAL PROCESSING (Exit Long)
+           ======================================================================== */
+        
+        if (AlgoSell == True AND AlgoShort != True AND StaticVarGet(static_name_ + "sellAlgo") == 0 AND StaticVarGetText(static_name_ + "sellAlgo_barvalue") != lasttime)
+        {
+            exit_symbol = StaticVarGetText(static_CE_symbol);
+            exit_exchange = StaticVarGetText(static_CE_exchange);
+            
+            if (exit_symbol != "" AND Nz(StaticVarGet(static_CE_order), 0) == 1)
+            {
+                _TRACE("Exiting CE Position: " + exit_symbol);
+                response = ExitPosition(exit_symbol, exit_exchange, product, apikey, strategy, host, ver);
+                
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success)
+                {
+                    StaticVarSet(static_CE_order, 0);
+                    StaticVarSetText(static_CE_symbol, "");
+                    StaticVarSetText(static_CE_exchange, "");
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Sell Exit Order Placed");
+                    }
+                    _TRACE("CE Exit Success");
+                }
             }
-            _TRACE("Sell Order Triggered.");
+            
             StaticVarSet(static_name_ + "sellAlgo", 1);
             StaticVarSetText(static_name_ + "sellAlgo_barvalue", lasttime);
-        } else if (AlgoSell != True) {
+        }
+        else if (AlgoSell != True)
+        {
             StaticVarSet(static_name_ + "sellAlgo", 0);
             StaticVarSetText(static_name_ + "sellAlgo_barvalue", "");
         }
 
-        if (AlgoShort == True AND AlgoSell == True AND StaticVarGet(static_name_ + "ShortSellAlgo") == 0 AND StaticVarGetText(static_name_ + "ShortSellAlgo_barvalue") != lasttime) {
-            if (tradetype == "BUY") {
-                ExitOrder("SELL", "CE");
-                PlaceOrder("BUY", "PE", quantity);
-            } else if (tradetype == "SELL") {
-                ExitOrder("BUY", "PE");
-                PlaceOrder("SELL", "CE", quantity);
+        /* ========================================================================
+           SHORT SIGNAL PROCESSING
+           ======================================================================== */
+        
+        /* Short + Sell (Reversal from Long to Short) */
+        if (AlgoShort == True AND AlgoSell == True AND StaticVarGet(static_name_ + "ShortSellAlgo") == 0 AND StaticVarGetText(static_name_ + "ShortSellAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "ShortOnly")
+            {
+                /* Exit existing CE position first */
+                exit_symbol = StaticVarGetText(static_CE_symbol);
+                exit_exchange = StaticVarGetText(static_CE_exchange);
+                
+                if (exit_symbol != "" AND Nz(StaticVarGet(static_CE_order), 0) == 1)
+                {
+                    _TRACE("Exiting CE Position for Reversal: " + exit_symbol);
+                    response = ExitPosition(exit_symbol, exit_exchange, product, apikey, strategy, host, ver);
+                    
+                    has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                    if (has_success)
+                    {
+                        StaticVarSet(static_CE_order, 0);
+                        StaticVarSetText(static_CE_symbol, "");
+                        StaticVarSetText(static_CE_exchange, "");
+                        _TRACE("CE Exit Success");
+                    }
+                }
+                
+                /* Place new PE entry */
+                if (tradetype == "BUY")
+                {
+                    /* Option Buyer: Buy PE */
+                    response = PostOptionOrder(PE_offset, "PE", "BUY", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                else
+                {
+                    /* Option Seller: Sell CE */
+                    response = PostOptionOrder(CE_offset, "CE", "SELL", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                
+                symbol_resolved = StrReplace(ExtractJsonValue(response, "symbol"), "\"", "");
+                exchange_resolved = StrReplace(ExtractJsonValue(response, "exchange"), "\"", "");
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success AND symbol_resolved != "")
+                {
+                    StaticVarSet(static_PE_order, 1);
+                    StaticVarSetText(static_PE_symbol, symbol_resolved, True);
+                    StaticVarSetText(static_PE_exchange, exchange_resolved, True);
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Short Sell Order Placed");
+                    }
+                    _TRACEF("Short Sell Order Success: %s", symbol_resolved);
+                }
+                
+                StaticVarSet(static_name_ + "ShortSellAlgo", 1);
+                StaticVarSetText(static_name_ + "ShortSellAlgo_barvalue", lasttime);
             }
-            _TRACE("Short Sell Order Triggered.");
-            StaticVarSet(static_name_ + "ShortSellAlgo", 1);
-            StaticVarSetText(static_name_ + "ShortSellAlgo_barvalue", lasttime);
-        } else if (AlgoShort != True OR AlgoSell != True) {
+        }
+        else if (AlgoShort != True OR AlgoSell != True)
+        {
             StaticVarSet(static_name_ + "ShortSellAlgo", 0);
             StaticVarSetText(static_name_ + "ShortSellAlgo_barvalue", "");
         }
 
-        if (AlgoShort == True AND AlgoSell != True AND StaticVarGet(static_name_ + "ShortAlgo") == 0 AND StaticVarGetText(static_name_ + "ShortAlgo_barvalue") != lasttime) {
-            if (tradetype == "BUY") {
-                PlaceOrder("BUY", "PE", quantity);
-            } else if (tradetype == "SELL") {
-                PlaceOrder("SELL", "CE", quantity);
+        /* Short Only (Fresh Short Entry) */
+        if (AlgoShort == True AND AlgoSell != True AND StaticVarGet(static_name_ + "ShortAlgo") == 0 AND StaticVarGetText(static_name_ + "ShortAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "ShortOnly")
+            {
+                if (tradetype == "BUY")
+                {
+                    /* Option Buyer: Buy PE */
+                    response = PostOptionOrder(PE_offset, "PE", "BUY", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                else
+                {
+                    /* Option Seller: Sell CE */
+                    response = PostOptionOrder(CE_offset, "CE", "SELL", quantity, apikey, strategy, underlying, exchange, expiry, pricetype, product, host, ver);
+                }
+                
+                symbol_resolved = StrReplace(ExtractJsonValue(response, "symbol"), "\"", "");
+                exchange_resolved = StrReplace(ExtractJsonValue(response, "exchange"), "\"", "");
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success AND symbol_resolved != "")
+                {
+                    StaticVarSet(static_PE_order, 1);
+                    StaticVarSetText(static_PE_symbol, symbol_resolved, True);
+                    StaticVarSetText(static_PE_exchange, exchange_resolved, True);
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Short Order Placed");
+                    }
+                    _TRACEF("Short Order Success: %s", symbol_resolved);
+                }
+                
+                StaticVarSet(static_name_ + "ShortAlgo", 1);
+                StaticVarSetText(static_name_ + "ShortAlgo_barvalue", lasttime);
             }
-            _TRACE("Short Order Triggered.");
-            StaticVarSet(static_name_ + "ShortAlgo", 1);
-            StaticVarSetText(static_name_ + "ShortAlgo_barvalue", lasttime);
-        } else if (AlgoShort != True) {
+        }
+        else if (AlgoShort != True)
+        {
             StaticVarSet(static_name_ + "ShortAlgo", 0);
             StaticVarSetText(static_name_ + "ShortAlgo_barvalue", "");
         }
 
-        if (AlgoCover == True AND AlgoBuy != True AND StaticVarGet(static_name_ + "CoverAlgo") == 0 AND StaticVarGetText(static_name_ + "CoverAlgo_barvalue") != lasttime) {
-            if (tradetype == "BUY") {
-                ExitOrder("SELL", "PE");
-            } else if (tradetype == "SELL") {
-                ExitOrder("BUY", "CE");
+        /* ========================================================================
+           COVER SIGNAL PROCESSING (Exit Short)
+           ======================================================================== */
+        
+        if (AlgoCover == True AND AlgoBuy != True AND StaticVarGet(static_name_ + "CoverAlgo") == 0 AND StaticVarGetText(static_name_ + "CoverAlgo_barvalue") != lasttime)
+        {
+            exit_symbol = StaticVarGetText(static_PE_symbol);
+            exit_exchange = StaticVarGetText(static_PE_exchange);
+            
+            if (exit_symbol != "" AND Nz(StaticVarGet(static_PE_order), 0) == 1)
+            {
+                _TRACE("Exiting PE Position: " + exit_symbol);
+                response = ExitPosition(exit_symbol, exit_exchange, product, apikey, strategy, host, ver);
+                
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success)
+                {
+                    StaticVarSet(static_PE_order, 0);
+                    StaticVarSetText(static_PE_symbol, "");
+                    StaticVarSetText(static_PE_exchange, "");
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Cover Exit Order Placed");
+                    }
+                    _TRACE("PE Exit Success");
+                }
             }
-            _TRACE("Cover Order Triggered.");
+            
             StaticVarSet(static_name_ + "CoverAlgo", 1);
             StaticVarSetText(static_name_ + "CoverAlgo_barvalue", lasttime);
-        } else if (AlgoCover != True) {
+        }
+        else if (AlgoCover != True)
+        {
             StaticVarSet(static_name_ + "CoverAlgo", 0);
             StaticVarSetText(static_name_ + "CoverAlgo_barvalue", "");
         }
@@ -314,13 +696,11 @@ if (EnableAlgo != "Disable") {
 }
 
 _SECTION_END();
-
-
 ```
 
-VB Script Method (Legacy)
+### VBScript (Legacy Method)
 
-```clike
+```c
 
 /*
 OpenAlgo - Smart Spot/Futures to Options Trading Module
