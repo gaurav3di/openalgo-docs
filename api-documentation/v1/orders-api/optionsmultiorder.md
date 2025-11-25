@@ -63,6 +63,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsmultiorder
         {
             "leg": 1,
             "symbol": "NIFTY25NOV2424650CE",
+            "exchange": "NFO",
             "offset": "OTM10",
             "option_type": "CE",
             "action": "BUY",
@@ -72,6 +73,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsmultiorder
         {
             "leg": 2,
             "symbol": "NIFTY25NOV2423650PE",
+            "exchange": "NFO",
             "offset": "OTM10",
             "option_type": "PE",
             "action": "BUY",
@@ -81,6 +83,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsmultiorder
         {
             "leg": 3,
             "symbol": "NIFTY25NOV2424400CE",
+            "exchange": "NFO",
             "offset": "OTM5",
             "option_type": "CE",
             "action": "SELL",
@@ -90,6 +93,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsmultiorder
         {
             "leg": 4,
             "symbol": "NIFTY25NOV2423900PE",
+            "exchange": "NFO",
             "offset": "OTM5",
             "option_type": "PE",
             "action": "SELL",
@@ -153,39 +157,73 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsmultiorder
 
 
 
-#### Sample API Request (Straddle with LIMIT Orders)
+#### Sample API Request
 
 ```json
 {
-    "apikey": "<your_app_apikey>",
-    "strategy": "Long Straddle",
-    "underlying": "BANKNIFTY",
+    "apikey": "<your_openalgo_apikey>",
+    "strategy": "Short Straddle",
+    "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "25NOV25",
     "legs": [
         {
             "offset": "ATM",
             "option_type": "CE",
-            "action": "BUY",
-            "quantity": 30,
-            "pricetype": "LIMIT",
-            "product": "MIS",
-            "price": 250.0
+            "action": "SELL",
+            "expiry_date": "25NOV25",
+            "quantity": 75,
+            "pricetype": "MARKET",
+            "product": "NRML"
         },
         {
             "offset": "ATM",
             "option_type": "PE",
-            "action": "BUY",
-            "quantity": 30,
-            "pricetype": "LIMIT",
-            "product": "MIS",
-            "price": 250.0
+            "action": "SELL",
+            "expiry_date": "30DEC25",  
+            "quantity": 75,
+            "pricetype": "MARKET",
+            "product": "NRML"
         }
     ]
 }
 ```
 
 
+
+#### Sample API Response
+
+```json
+{
+  "mode": "analyze",
+  "results": [
+    {
+      "action": "SELL",
+      "exchange": "NFO",
+      "leg": 1,
+      "mode": "analyze",
+      "offset": "ATM",
+      "option_type": "CE",
+      "orderid": "25112456537780",
+      "status": "success",
+      "symbol": "NIFTY25NOV2525950CE"
+    },
+    {
+      "action": "SELL",
+      "exchange": "NFO",
+      "leg": 2,
+      "mode": "analyze",
+      "offset": "ATM",
+      "option_type": "PE",
+      "orderid": "25112458966667",
+      "status": "success",
+      "symbol": "NIFTY30DEC2525950PE"
+    }
+  ],
+  "status": "success",
+  "underlying": "NIFTY",
+  "underlying_ltp": 25959.5
+}
+```
 
 #### Sample API Request (Future as Underlying)
 
@@ -274,6 +312,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsmultiorder
 | ------------ | -------------------------------------------- | ------ |
 | leg          | Leg number (1, 2, 3, ...)                    | number |
 | symbol       | Resolved option symbol                       | string |
+| exchange     | Exchange                                     | string |
 | offset       | Strike offset from request                   | string |
 | option\_type | Option type (CE/PE)                          | string |
 | action       | Action (BUY/SELL)                            | string |

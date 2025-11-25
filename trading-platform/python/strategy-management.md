@@ -4,11 +4,9 @@ OpenAlgo's Strategy Management Module allows you to automate your trading strate
 
 
 
-> Note: When creating a trading strategy in the _Strategy Management_ section, ensure you select the platform as Python to access the webhook ID displayed in the _View Strategy_ section.\
+> Note: When creating a trading strategy in the _Strategy Management_ section, ensure you select the platform as Python to access the webhook ID displayed in the _View Strategy_ section.<br>
 >
->
-> Keep the webhook ID private, as it is sensitive information similar to API keys. Do not share it with anyone.\
->
+> Keep the webhook ID private, as it is sensitive information similar to API keys. Do not share it with anyone.<br>
 
 ```python
 

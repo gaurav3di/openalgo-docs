@@ -6,8 +6,7 @@ description: OpenAlgo Release Notes
 
 16th July 2024
 
-**Aliceblue OpenAlgo Plugin Integration** completed\
-
+**Aliceblue OpenAlgo Plugin Integration** completed<br>
 
 **Bug Fixes**
 

@@ -6,8 +6,7 @@ This section provides OpenAlgo Installation Guideline for Windows Users
 
 ## How to Configure Ngrok for OpenAlgo to Automate Tradingview Strategies
 
-\
-
+<br>
 
 {% embed url="https://www.youtube.com/watch?v=nYZGXx3WKhM" %}
 

@@ -2,8 +2,7 @@
 
 The line Trading Automation tool is designed for Manual traders who want to perform level-based trade execution faster and also bring some advanced trade management in their trades (multiple entries, targets, stops, pyramiding, martingale, etc)
 
-\
-
+<br>
 
 <figure><img src="../../.gitbook/assets/image (42).png" alt=""><figcaption><p>Line Trade Automation v1.0</p></figcaption></figure>
 
@@ -939,35 +938,30 @@ where the characters ‘B’. ‘X’, ‘S’, ‘C’ are used along with hori
 
 ### Type of Trendline Signals
 
-\
-
+<br>
 
 <figure><img src="../../.gitbook/assets/image (44).png" alt=""><figcaption></figcaption></figure>
 
 ### Type of Entry and Exit Trendlines
 
-\
-
+<br>
 
 <figure><img src="../../.gitbook/assets/image (45).png" alt=""><figcaption></figcaption></figure>
 
 ### Drawing Trend Line and Assigning Study Name
 
-\
-
+<br>
 
 <figure><img src="../../.gitbook/assets/image (46).png" alt=""><figcaption><p>Drawing trendlines and Assigning study ID</p></figcaption></figure>
 
 ### Pyramiding and Pyramiding Settings with Targets
 
-\
-
+<br>
 
 <figure><img src="../../.gitbook/assets/image (47).png" alt=""><figcaption><p>Using Line Automation for Pyramiding</p></figcaption></figure>
 
 ### Creating Multiple Entries and Multiple Stops using Line Automation Module
 
-\
-
+<br>
 
 <figure><img src="../../.gitbook/assets/image (48).png" alt=""><figcaption><p>Using Line Automation with Multiple Long Entry and Long Exit Signals</p></figcaption></figure>

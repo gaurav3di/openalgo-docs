@@ -13,8 +13,7 @@ description: OpenAlgo Release Notes
 * **Comprehensive API Support**: Enjoy broad functionality with APIs for order placement, modification, cancellation, and more.
 * **Multi-Broker Compatibility**: Initially supporting Angel, Upstox, and Zerodha, 5 Paisa, Fyers, Kotak, Dhan, and ICICI Direct and have plans to extend to other brokers.
 * **Flexible Access**: Utilize ngrok for custom domain support, facilitating access to the application and trading automation from anywhere.\
-  \
-
+  <br>
 
 List of Supported Brokers
 

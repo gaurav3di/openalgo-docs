@@ -18,8 +18,7 @@ With n8n, traders can create workflows that:
 \
 This section guides you through creating a workflow in n8n, a powerful open-source workflow automation tool, to automatically place orders in OpenAlgo at a scheduled time. We'll use the example of placing a short straddle on NIFTY options at 9:20 AM IST every day.
 
-\
-
+<br>
 
 <figure><img src="../.gitbook/assets/image (84).png" alt=""><figcaption></figcaption></figure>
 

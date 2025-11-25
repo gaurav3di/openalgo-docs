@@ -30,7 +30,6 @@ OpenAlgo introduces powerful tools for performance monitoring:
 
 • Plan scaling based on actual usage.
 
-\
-
+<br>
 
 These tools provide essential visibility to optimize system performance, ensuring reliable and efficient trading operations.

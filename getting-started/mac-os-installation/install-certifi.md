@@ -39,8 +39,7 @@ export SSL_CERT_FILE=$(python3.11 -m certifi)
 
 4. **Retry Running Your Python Code:**
 
-After setting up the certificates through certifi, try running your Python code again. This should resolve any SSL certificate issues.\
-
+After setting up the certificates through certifi, try running your Python code again. This should resolve any SSL certificate issues.<br>
 
 If you installed Python using a method other than Homebrew and the Python installation includes the Install Certificates.command, you would typically find it in the Python application directory within /Applications/Python 3.11 or similar. If this is the case, navigate to this directory in Finder, and you should be able to run the Install Certificates.command by double-clicking on it.
 

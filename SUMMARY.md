@@ -180,6 +180,7 @@
   * [Supertrend Strategy](trading-platform/python/supertrend-strategy.md)
   * [Supertrend Strategy with yfinance data](trading-platform/python/supertrend-strategy-with-yfinance-data.md)
   * [Intraday Rolling Straddles](trading-platform/python/intraday-rolling-straddles.md)
+  * [Option Chain](trading-platform/python/option-chain.md)
   * [Voice Based Orders](trading-platform/python/voice-based-orders.md)
 * [NodeJS](trading-platform/nodejs.md)
 * [GO](trading-platform/go.md)

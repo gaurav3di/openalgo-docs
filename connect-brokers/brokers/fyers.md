@@ -30,4 +30,4 @@ REDIRECT_URL = 'http://127.0.0.1:5000/fyers/callback'
 
 Integrating with Fyers API marks the beginning of a new realm of possibilities for automated and algorithmic trading strategies, offering traders and developers a sophisticated platform to tap into market opportunities with agility and precision. To maximize the potential of the Fyers API, it's crucial to adhere to best practices for API integration. This includes being vigilant about handling rate limits, ensuring the secure management of API keys, and implementing comprehensive error handling and logging mechanisms. By doing so, one can ensure a reliable and effective trading experience that leverages the full capabilities of Fyers' advanced trading infrastructure.
 
-\
+<br>

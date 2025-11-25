@@ -14,7 +14,6 @@ OpenAlgo now supports seamless Chartink integration for automated trading based 
 
 **• Auto Square-off:** Automatically close intraday positions sequentially.
 
-\
-
+<br>
 
 Simply connect your Chartink webhook, configure strategies in OpenAlgo, and automate your trading flow.

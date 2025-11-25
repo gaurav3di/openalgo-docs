@@ -78,4 +78,4 @@ PlaceSmartOrder API function, which allows traders to build intelligent trading 
 | SELL   | 100       | -100           | -100             | No Action. Position matched             |
 | SELL   | 100       | -200           | -100             | SELL 100 to match Open Pos in API Param |
 
-\
+<br>

@@ -1,7 +1,6 @@
 # Zebu
 
-Zebu, a leading stock trading platform, offers robust API services for traders and developers looking to integrate algorithmic trading solutions into their platforms. The Zebu MYNT API enables access to real-time market data, portfolio management, and trade execution for stocks, commodities, and mutual funds.\
-
+Zebu, a leading stock trading platform, offers robust API services for traders and developers looking to integrate algorithmic trading solutions into their platforms. The Zebu MYNT API enables access to real-time market data, portfolio management, and trade execution for stocks, commodities, and mutual funds.<br>
 
 To integrate Zebu’s API, follow the steps below:
 
@@ -57,7 +56,6 @@ Make sure to store your API credentials securely and handle them with care to pr
 
 Integrating OpenAlgo with Zebu’s MYNT API opens opportunities for algorithmic trading and portfolio management. By using the Zebu API, developers can automate trading strategies and enhance trading experiences for users. Be sure to implement best practices for API rate limits, security, and error handling.
 
-\
-
+<br>
 
 For further assistance or troubleshooting, refer to [Zebu API Documentation](https://zebumyntapi.web.app).

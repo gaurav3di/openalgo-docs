@@ -10,9 +10,9 @@
 
 {% embed url="https://github.com/marketcalls/openalgo" %}
 
-### Key Features 
+### Key Features<br>
 
-#### Smart Trading Tools 
+#### Smart Trading Tools<br>
 
 • **Advanced Order Placement**: Execute trades with precision using smart tools like position size management and automated order splitting.
 
@@ -60,8 +60,7 @@
 
 • Python, NodeJS, Excel, Google Sheets
 
-\
-
+<br>
 
 #### Risk Management
 
@@ -91,8 +90,7 @@
 
 #### User Experience
 
-\
-
+<br>
 
 • **Interactive Dashboard**: Monitor algo trading activities in real-time with an intuitive interface.
 
@@ -130,7 +128,7 @@
 
 
 
-### Getting Started 
+### Getting Started<br>
 
 1\. Download OpenAlgo from GitHub.
 
@@ -154,7 +152,6 @@
 
 • Explore professional support options.
 
-\
-
+<br>
 
 OpenAlgo is more than a trading platform – it’s a complete ecosystem for algorithmic trading. Whether you’re a beginner automating your first strategy or an experienced trader needing advanced capabilities, OpenAlgo equips you with the tools and flexibility to excel in algorithmic trading.

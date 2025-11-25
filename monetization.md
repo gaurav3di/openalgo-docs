@@ -17,8 +17,7 @@ This requirement ensures that even if the software is accessed over a network (l
 
 This ensures that any advancements built on OpenAlgo are contributed back to the community, but it does not preclude monetization efforts. Here’s how developers can monetize OpenAlgo within these constraints:
 
-\
-
+<br>
 
 **1. Open-Source Foundation with AGPL Compliance:**
 
@@ -40,13 +39,11 @@ While AGPL requires the release of source code for any network service, develope
 
 Developers can create value around the ecosystem by offering paid support plans, training sessions, or premium documentation. This could include webinars, one-on-one mentoring for algorithmic trading, or detailed guides for deploying OpenAlgo-based systems. Since these are services and not software, they do not require source code disclosure and are fully monetizable.
 
-\
-
+<br>
 
 **How OpenAlgo Should Not Be Monetized:**
 
-\
-
+<br>
 
 **1. Closed-Source Modifications or Plugins:**
 
@@ -64,4 +61,4 @@ Any attempts to monetize derivatives of OpenAlgo without making the source code 
 
 The AGPL v3.0 license fosters a thriving community while ensuring transparency and sharing of innovations. Developers are encouraged to monetize responsibly by adhering to the open-source principles that benefit everyone involved in the OpenAlgo ecosystem.
 
-\
+<br>

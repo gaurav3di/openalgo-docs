@@ -108,8 +108,7 @@ Make sure that Charts are loaded properly.
 
 <figure><img src="../../.gitbook/assets/Amibroker Chart.png" alt=""><figcaption></figcaption></figure>
 
-Start using your brokers data for your analysis purpose.\
-
+Start using your brokers data for your analysis purpose.<br>
 
 For more details and troubleshooting refer the [Ticker API](../../api-documentation/v1/data-api/ticker.md)
 

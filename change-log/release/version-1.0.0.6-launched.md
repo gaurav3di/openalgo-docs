@@ -7,8 +7,7 @@ description: OpenAlgo Release Notes
 12th Sep 2024
 
 **Zebu OpenAlgo Plugin Integration** completed.\
-.env file initial file check added.\
-
+.env file initial file check added.<br>
 
 **Bug Fixes**
 

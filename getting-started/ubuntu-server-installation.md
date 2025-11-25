@@ -306,8 +306,7 @@ After installation completes, verify each deployment:
 
 1. **Firewall**
    * The installation configures UFW to allow only HTTP, HTTPS, and SSH
-   *   Additional ports can be opened if needed:\
-
+   *   Additional ports can be opened if needed:<br>
 
        ```bash
        sudo ufw allow <port_number>

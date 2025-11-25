@@ -62,8 +62,7 @@ OpenAlgo makes algorithmic trading accessible and straightforward by providing s
 * Click on your login ID at the top right corner to bring out the menu.
 * Go to `Profile -> MyProfile and get the`` `**`Client ID`**` ``as shown below`
 
-\
-
+<br>
 
 <figure><img src="../../.gitbook/assets/image (41).png" alt=""><figcaption></figcaption></figure>
 
