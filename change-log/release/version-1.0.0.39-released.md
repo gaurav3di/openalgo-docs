@@ -4,7 +4,7 @@ Version **1.0.0.39** is a **major milestone release**, introducing a new Tier-1 
 
 ***
 
-## **0. Mandatory Upgrade Notice**
+### **0. Mandatory Upgrade Notice**
 
 This version **requires mandatory upgrade steps** due to new DB indexes, migration updates, and broker integrations.
 
@@ -13,11 +13,11 @@ Upgrade guide:\
 
 ***
 
-## **1. Major New Integration: Kotak Broker Added**
+### **1. Major New Integration: Motilal Oswal Added**
 
-OpenAlgo now officially includes **full Kotak Broker Integration**.
+OpenAlgo now officially includes **full Motilal Oswal Integration**.
 
-#### **Kotak Integration Includes**
+**Motilal Oswal Integration Includes**
 
 * Order placement, modification, cancellation
 * Funds, positions, holdings
@@ -26,17 +26,17 @@ OpenAlgo now officially includes **full Kotak Broker Integration**.
 * Contract & exchange mapping
 * Fully production-ready routing
 
-Kotak joins Angel, Dhan, Zerodha, Fyers, Upstox, and Motilal as a primary supported broker.
+Motilal joins Angel, Dhan, Zerodha, Fyers, Upstox, and Kotak as a primary supported broker.
 
 This is one of the **largest broker integrations since OpenAlgo launched**.
 
 ***
 
-## **2. MultiQuote API – Pilot Release**
+### **2. MultiQuote API – Pilot Release**
 
 A new-generation **MultiQuote API** has been introduced.
 
-#### **Pilot Launch**
+**Pilot Launch**
 
 * **Fyers MultiQuote API** added.
 * Designed for ultra-fast multi-symbol quote retrieval.
@@ -47,46 +47,46 @@ _(Further broker rollout will occur in upcoming versions.)_
 
 ***
 
-## **3. Platform Improvements**
+### **3. Platform Improvements**
 
-### **WebSocket Verbose Mode**
+#### **WebSocket Verbose Mode**
 
 * New toggleable verbose mode to reduce noise and improve streaming efficiency.
 
-### **Database & Latency Engine**
+#### **Database & Latency Engine**
 
 * Added multiple high-impact DB indexes.
 * Unified migration system implemented.
 * Latency stats optimized (N+1 query fix).
 * latency.db storage trimmed by removing heavy request/response data.
 
-### **PNLTracker**
+#### **PNLTracker**
 
 * Now supports **sub-minute trades** for precise scalping and HFT-style analytics.
 
-### **Python SDK v1.0.40**
+#### **Python SDK v1.0.40**
 
 * Updated for compatibility with v1.0.0.39.
 * Enhanced WebSocket support with verbose control.
 
 ***
 
-## **4. Major Motilal Enhancements**
+### **4. Major Motilal Enhancements**
 
-#### **WebSocket Updates**
+**WebSocket Updates**
 
 * Normalized depth levels 2–5 (set to zero values).
 * Fixed depth feed and LTP updates for Index symbols.
 * Full LTP + quotes + 1-level depth implemented.
 * SSL certificate issue handled by disabling SSL until broker fixes.
 
-#### **Market Data & Contracts**
+**Market Data & Contracts**
 
 * Master contract updated with Index contracts.
 * Historical API aligned with new contract updates.
 * Index quote logic improved.
 
-#### **Orders, Margin & Holdings**
+**Orders, Margin & Holdings**
 
 * Quantity-to-lot conversion fixed.
 * Minor order API bugs resolved.
@@ -95,45 +95,45 @@ _(Further broker rollout will occur in upcoming versions.)_
 
 ***
 
-## **5. Options Engine Enhancements**
+### **5. Options Engine Enhancements**
 
-#### **OptionsMultiOrder**
+**OptionsMultiOrder**
 
 * Response formatting fixed.
 * Underlying LTP “None” issue resolved.
 * Multi-quote underlying resolution improved.
 * Multiple fixes based on PR review.
 
-#### **Options APIs**
+**Options APIs**
 
 * Cleanup and parameter corrections across OptionsOrder and OptionSymbol.
 
 ***
 
-## **6. Additional Broker-Level Improvements**
+### **6. Additional Broker-Level Improvements**
 
-#### **Dhan**
+**Dhan**
 
 * depth\_level fixes.
 * Depth 5/20 activation.
 * unsubscribe\_all fixed.
 
-#### **Fyers**
+**Fyers**
 
 * TBT unsubscription fixed.
 * TBT 50-level depth upgraded.
 
-#### **Zebu, PayTM, TradeJini**
+**Zebu, PayTM, TradeJini**
 
 * Margin APIs updated (standardized for non-margin brokers).
 
-#### **General**
+**General**
 
 * Multiple contract mapping and feed consistency fixes across brokers.
 
 ***
 
-## **7. UI, Security & Documentation**
+### **7. UI, Security & Documentation**
 
 * Design documentation updated for November release.
 * Security updates including IDOR fixes and safer endpoint routing.
@@ -143,7 +143,7 @@ _(Further broker rollout will occur in upcoming versions.)_
 
 ***
 
-## **Summary**
+### **Summary**
 
 Version **1.0.0.39** introduces:
 
@@ -158,5 +158,7 @@ Version **1.0.0.39** introduces:
 * Dozens of broker stability improvements
 
 This release significantly strengthens OpenAlgo’s real-time data layer, multi-broker coverage, and execution reliability.
+
+***
 
 ***
