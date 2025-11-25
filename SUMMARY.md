@@ -163,6 +163,7 @@
 * [GoCharting](trading-platform/gocharting.md)
 * [ChartInk](trading-platform/chartink.md)
 * [Python](trading-platform/python/README.md)
+  * [Websockets (Verbose Control)](trading-platform/python/websockets-verbose-control.md)
   * [Indicators](trading-platform/python/indicators/README.md)
     * [Trend](trading-platform/python/indicators/trend.md)
     * [Momentum](trading-platform/python/indicators/momentum.md)
