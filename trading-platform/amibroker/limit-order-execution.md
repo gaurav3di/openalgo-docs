@@ -8,6 +8,8 @@ The OpenAlgo Limit Order Execution Module is an AmiBroker AFL-based trading tool
 
 The execution workflow follows a state machine architecture that places a limit order at the calculated price, monitors order status, and automatically modifies the order with fresh quotes if it remains unfilled. This modify-and-retry loop continues up to a configurable number of attempts (default: 3), after which the pending order is automatically canceled. The module supports configurable tick sizes for proper price rounding across different instruments (stocks, futures, commodities), making it suitable for exchanges like NSE, NFO, MCX, and others. Users can trigger BUY or SELL orders via parameter buttons, manually cancel active orders, or reset the module state as needed.
 
+
+
 <figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
 
 ### Amibroker Execution Module
@@ -877,3 +879,288 @@ Plot(Close, "Close", ParamColor("Color", colorDefault), styleNoTitle | ParamStyl
 
 _SECTION_END();
 ```
+
+### Key Features Implemented
+
+| Feature              | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| **5 Price Modes**    | MidPrice, BestBid, BestAsk, BidOffset, AskOffset   |
+| **Auto-Retry Logic** | Modifies order up to N times if still open         |
+| **State Machine**    | 9 states for robust order lifecycle management     |
+| **GFX Dashboard**    | Real-time bid/ask/ltp, order status, retry counter |
+| **Manual Override**  | Cancel button works at any state                   |
+| **Tick Rounding**    | Prices rounded to configurable tick size           |
+
+***
+
+## Limit Order Execution Module - Design Document
+
+***
+
+### Overview
+
+**Purpose:** Execute limit orders with automatic retry/modification logic and visual dashboard tracking
+
+**Supported Exchanges:** NSE, NFO, CDS, BSE, BFO, BCD, MCX
+
+**Execution Flow:**
+
+```
+Place Limit Order → Monitor Status → Modify if Open (max N times) → Cancel if Still Open → Final Status Check
+```
+
+***
+
+### State Machine Design
+
+| State         | Description                               | Next State                                          |
+| ------------- | ----------------------------------------- | --------------------------------------------------- |
+| `IDLE`        | No active order, waiting for user trigger | `PLACING`                                           |
+| `PLACING`     | Sending order to API                      | `MONITORING` / `REJECTED`                           |
+| `MONITORING`  | Checking order status                     | `COMPLETE` / `MODIFYING` / `CANCELING` / `REJECTED` |
+| `MODIFYING`   | Modifying order price (retry loop)        | `MONITORING` / `CANCELING`                          |
+| `CANCELING`   | Canceling pending order                   | `FINAL_CHECK`                                       |
+| `FINAL_CHECK` | Last status check after cancel            | `COMPLETE` / `CANCELED`                             |
+| `COMPLETE`    | Order filled                              | `IDLE` (via Reset)                                  |
+| `CANCELED`    | Order canceled                            | `IDLE` (via Reset)                                  |
+| `REJECTED`    | Order rejected by broker                  | `IDLE` (via Reset)                                  |
+
+***
+
+### Parameters
+
+#### Connection Settings
+
+| Parameter     | Type      | Description                               |
+| ------------- | --------- | ----------------------------------------- |
+| API Key       | ParamStr  | OpenAlgo authentication key               |
+| Symbol        | ParamStr  | Trading symbol (e.g., CRUDEOIL18DEC25FUT) |
+| Exchange      | ParamList | MCX, NSE, NFO, CDS, BSE, BFO, BCD         |
+| Strategy Name | ParamStr  | Strategy identifier for order tracking    |
+
+#### Order Settings
+
+| Parameter | Type      | Description              |
+| --------- | --------- | ------------------------ |
+| Quantity  | Param     | Order quantity (1-10000) |
+| Product   | ParamList | MIS, CNC, NRML           |
+
+#### Execution Settings
+
+| Parameter   | Type      | Description                                      |
+| ----------- | --------- | ------------------------------------------------ |
+| Price Mode  | ParamList | MidPrice, BestBid, BestAsk, BidOffset, AskOffset |
+| Tick Offset | Param     | Number of ticks to offset (0-10)                 |
+| Tick Size   | ParamList | 0.01, 0.05, 0.1, 0.2, 0.25, 0.5, 1, 5, 10, 25    |
+| Max Retries | Param     | Maximum modification attempts (1-10, default: 3) |
+| Retry Delay | Param     | Seconds between status checks (1-10, default: 1) |
+
+#### Trigger Buttons
+
+| Button           | Action                                   |
+| ---------------- | ---------------------------------------- |
+| Place BUY Limit  | Initiates BUY order at calculated price  |
+| Place SELL Limit | Initiates SELL order at calculated price |
+| Cancel Order     | Manually cancels active order            |
+| Reset Module     | Clears all state and returns to IDLE     |
+
+***
+
+### Price Calculation Modes
+
+| Mode          | Calculation                     | Use Case                                       |
+| ------------- | ------------------------------- | ---------------------------------------------- |
+| **MidPrice**  | (Bid + Ask) / 2 rounded to tick | Balanced approach, potential price improvement |
+| **BestBid**   | Bid price                       | Passive BUY, join the queue                    |
+| **BestAsk**   | Ask price                       | Passive SELL, join the queue                   |
+| **BidOffset** | Bid + (N × TickSize)            | Aggressive BUY, higher fill probability        |
+| **AskOffset** | Ask - (N × TickSize)            | Aggressive SELL, higher fill probability       |
+
+All prices are rounded to the nearest tick size for exchange compliance.
+
+***
+
+### API Endpoints Used
+
+| API         | Endpoint                 | Purpose                     |
+| ----------- | ------------------------ | --------------------------- |
+| Quotes      | POST /api/v1/quotes      | Fetch real-time bid/ask/ltp |
+| PlaceOrder  | POST /api/v1/placeorder  | Place limit order           |
+| OrderStatus | POST /api/v1/orderstatus | Check order fill status     |
+| ModifyOrder | POST /api/v1/modifyorder | Update order price          |
+| CancelOrder | POST /api/v1/cancelorder | Cancel pending order        |
+
+***
+
+### API Call Sequence
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 1: Fetch Quote                                            │
+│  POST /api/v1/quotes → Get bid, ask, ltp                        │
+│  Calculate limit price based on selected mode                   │
+│  Round to nearest tick size                                     │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 2: Place Limit Order                                      │
+│  POST /api/v1/placeorder                                        │
+│  pricetype: "LIMIT", price: calculated price                    │
+│  Store: orderID                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 3: Check Order Status (after retry delay)                 │
+│  POST /api/v1/orderstatus                                       │
+│  Read: order_status (complete/open/rejected/cancelled)          │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 4: Modify Order (if open and retry < max)                 │
+│  POST /api/v1/quotes → Fetch fresh bid/ask                      │
+│  POST /api/v1/modifyorder → Update price                        │
+│  Increment retry counter, loop back to Step 3                   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 5: Cancel Order (after max retries exhausted)             │
+│  POST /api/v1/cancelorder                                       │
+│  Final status check after retry delay                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+***
+
+### Static Variables
+
+#### Order Tracking
+
+| Variable                  | Type    | Purpose                     |
+| ------------------------- | ------- | --------------------------- |
+| LimitExec\_State          | Numeric | Current state machine state |
+| LimitExec\_OrderID        | Text    | Active order ID             |
+| LimitExec\_Action         | Text    | BUY or SELL                 |
+| LimitExec\_OrderStatus    | Text    | Last known order status     |
+| LimitExec\_Message        | Text    | User-facing status message  |
+| LimitExec\_RetryCount     | Numeric | Current retry attempt       |
+| LimitExec\_LastActionTime | Numeric | Timestamp of last action    |
+
+#### Price Data
+
+| Variable             | Type    | Purpose                             |
+| -------------------- | ------- | ----------------------------------- |
+| LimitExec\_Bid       | Numeric | Current bid price                   |
+| LimitExec\_Ask       | Numeric | Current ask price                   |
+| LimitExec\_LTP       | Numeric | Last traded price                   |
+| LimitExec\_MidPrice  | Numeric | Calculated mid price (tick-rounded) |
+| LimitExec\_QuoteTime | Numeric | Last quote fetch timestamp          |
+
+#### Order Details
+
+| Variable               | Type    | Purpose                                  |
+| ---------------------- | ------- | ---------------------------------------- |
+| LimitExec\_OrderPrice  | Numeric | Price at which order was placed/modified |
+| LimitExec\_FilledPrice | Numeric | Average fill price (if complete)         |
+
+***
+
+### GFX Dashboard Layout
+
+```
+┌────────────────────────────────────────────────────────────┐
+│       LIMIT ORDER EXECUTION - SYMBOL (EXCHANGE)            │
+├────────────────────────────────────────────────────────────┤
+│                    MARKET DATA                             │
+├──────────────┬───────────────────────┬─────────────────────┤
+│     BID      │         LTP           │        ASK          │
+│   5765.00    │       5766.00         │      5767.00        │
+├──────────────┼───────────────────────┼─────────────────────┤
+│     MID      │       5766.00         │  SPREAD  │   2.00   │
+├──────────────┴───────────────────────┴─────────────────────┤
+│                    ORDER STATUS                            │
+├──────────────┬─────────────────────────────────────────────┤
+│    STATE     │              ORDER ID                       │
+│  MONITORING  │         250828000185002                     │
+├──────────────┼──────────────┼──────────────┼───────────────┤
+│   ACTION     │    PRICE     │    RETRY     │    FILLED     │
+│     BUY      │   5766.00    │    1 / 3     │     ---       │
+├──────────────┴──────────────┴──────────────┴───────────────┤
+│  Modified @ 5766.00. Monitoring...                         │
+├────────────────────────────────────────────────────────────┤
+│  Mode: MidPrice | Tick: 1 | Qty: 1 | Product: MIS          │
+└────────────────────────────────────────────────────────────┘
+```
+
+***
+
+### Color Coding
+
+| Element                     | Color       | Meaning                   |
+| --------------------------- | ----------- | ------------------------- |
+| Bid Price/BUY Action        | Dark Green  | Buy side                  |
+| Ask Price/SELL Action       | Dark Red    | Sell side                 |
+| LTP                         | Yellow      | Last traded price         |
+| State: COMPLETE             | Dark Green  | Order filled successfully |
+| State: MONITORING/MODIFYING | Dark Yellow | Order in progress         |
+| State: CANCELED/REJECTED    | Dark Red    | Order failed or canceled  |
+| State: IDLE                 | Grey        | No active order           |
+
+***
+
+### Error Handling
+
+| Scenario                  | Action                                 |
+| ------------------------- | -------------------------------------- |
+| Invalid API Key           | Display warning, disable all API calls |
+| API call fails            | Log error, proceed to next state       |
+| Order rejected            | Set state to REJECTED, display message |
+| Order cancelled by broker | Set state to REJECTED, display message |
+| Modify fails              | Move to CANCELING state                |
+| Max retries exhausted     | Auto-cancel pending order              |
+| Cancel fails              | Move to CANCELED state (assumed)       |
+| Filled during cancel      | Set state to COMPLETE                  |
+
+***
+
+### Timing Control
+
+| Event             | Interval                                        |
+| ----------------- | ----------------------------------------------- |
+| Quote Refresh     | Every 2 seconds (when API key valid)            |
+| Chart Refresh     | Every 1 second (RequestTimedRefresh)            |
+| Status Check      | After configurable retry delay (default: 1 sec) |
+| State Transitions | Immediate upon condition met                    |
+
+***
+
+### Safety Features
+
+1. **API Key Validation:** No API calls made if key is default or less than 10 characters
+2. **State Protection:** BUY/SELL triggers only work in IDLE state
+3. **Manual Override:** Cancel button works in any active state
+4. **Reset Function:** Clears all state for fresh start
+5. **Automatic Cleanup:** Orders auto-canceled after max retries
+6. **Final Check:** Verifies fill status after cancel to avoid missed fills
+
+***
+
+### Instrument Configuration Guide
+
+| Instrument Type  | Exchange | Recommended Tick Size |
+| ---------------- | -------- | --------------------- |
+| Equity           | NSE/BSE  | 0.05                  |
+| Equity F\&O      | NFO/BFO  | 0.05                  |
+| Currency Futures | CDS      | 0.0025                |
+| Crude Oil        | MCX      | 1                     |
+| Natural Gas      | MCX      | 0.1                   |
+| Gold             | MCX      | 1                     |
+| Silver           | MCX      | 1                     |
+
+***
+
+### Version History
+
+| Version | Date     | Changes                                                          |
+| ------- | -------- | ---------------------------------------------------------------- |
+| 1.0     | Nov 2025 | Initial release with 5 price modes, state machine, GFX dashboard |
+
