@@ -14,828 +14,954 @@ A two-legged options trading strategy involves buying or selling two options at 
 
 ```clike
 
-/*
-OpenAlgo - Smart Spot/Futures to Two Leg Options Trading Module
+/* 
+OpenAlgo - Smart Spot/Futures to Two Leg Options Trading Module v2.0
 
-Supported Two Leg Strategies
-Strategies that be built using this module
-1)Credit Spread
-2)Debit Spread
-3)Straddle
-4)Strangle
-5)Synthetic Futures
-6)Diagonal spread
-7)Calendar Spread
-8)Ratio Spread
-9)Ratio Back Spread
+Supported Two Leg Strategies:
+1) Credit Spread
+2) Debit Spread
+3) Straddle
+4) Strangle
+5) Synthetic Futures
+6) Diagonal Spread
+7) Calendar Spread
+8) Ratio Spread
+9) Ratio Back Spread
 
-
-Created By : Rajandran R(Founder - Marketcalls / Creator - Openalgo )
-Created on : 4 Jun 2024.
-Website : www.marketcalls.in / www.openalgo.in
+Created By: Rajandran R (Founder - Marketcalls / Creator - OpenAlgo)
+Original: 24 Nov 2025
+Updated: Uses OptionsMultiOrder API for server-side multi-leg execution
+Fixed: ExtractLegValue function for proper API response parsing
+Website: www.marketcalls.in / www.openalgo.in
 */
 
+_SECTION_BEGIN("OpenAlgo - Two Leg Options Module v2.0");
 
+/* --------------------------------------------------------------------------
+   Version Check Variable
+   -------------------------------------------------------------------------- */
+ReqVer = 6.35;
 
+/* --------------------------------------------------------------------------
+   Global Variables for GUI
+   -------------------------------------------------------------------------- */
+global IDset;
+IDset = 0;
 
-_SECTION_BEGIN("Openalgo - Order Controls");
+/* --------------------------------------------------------------------------
+   Helper Functions - Defined at Global Scope
+   -------------------------------------------------------------------------- */
 
-// Send orders even if Amibroker is minimized or Chart is not active
-RequestTimedRefresh(1, False); 
-EnableTextOutput(False);
-
-
-apikey = ParamStr("OpenAlgo API Key", "******");
-
-strategy = ParamStr("Strategy Name", "Test Strategy");
-
-
-
-spot = Paramlist("Spot Symbol","NIFTY|BANKNIFTY|FINNIFTY|SENSEX");
-expiry_leg1 = ParamStr("Expiry Date1","06JUN24");
-expiry_leg2 = ParamStr("Expiry Date2","06JUN24");
-
-exchange = ParamList("Exchange","NFO|BFO",0); 
-Symbol = ParamStr("Underlying Symbol(Datafeed Symbol)","NIFTY"); 
-iInterval= Param("Strike Interval",50,1,10000,1);
-StrikeCalculation = Paramlist("Strike Calculation","PREVOPEN|PREVCLOSE|TODAYSOPEN",0);
-LotSize = Param("Lot Size",25,1,10000,1);
-
-quantity_leg1 = Param("quanity1(Lot Size)",1,0,10000)*LotSize;
-quantity_leg2 = Param("quanity2(Lot Size)",1,0,10000)*LotSize;
-
-opttype_buyleg1 = ParamList("Option Type1(Buy)","CE|PE",0);
-opttype_buyleg2 = ParamList("Option Type2(Buy)","CE|PE",0);
-
-tradetype_buyleg1 = ParamList("Option Trade Type1(Buy)","BUY|SELL",0);
-tradetype_buyleg2 = ParamList("Option Trade Type2(Buy)","BUY|SELL",0);
-
-
-offset_buyleg1 = Param("Offset1(Buy)",0,-40,40,1);
-offset_buyleg2 = Param("Offset2(Buy)",0,-40,40,1);
-
-opttype_shortleg1 = ParamList("Option Type1(Short)","CE|PE",0);
-opttype_shortleg2 = ParamList("Option Type2(Short)","CE|PE",0);
-
-
-
-tradetype_shortleg1 = ParamList("Option Trade Type1(Short)","BUY|SELL",0);
-tradetype_shortleg2 = ParamList("Option Trade Type2(Short)","BUY|SELL",0);
-
-
-offset_shortleg1 = Param("Offset1(Short)",0,-40,40,1);
-offset_shortleg2 = Param("Offset2(Short)",0,-40,40,1);
-
-pricetype = ParamList("Order Type","MARKET",0);
-product = ParamList("Product","MIS|NRML",1);
-
-
-price = 0; 
-disclosed_quantity = 0;
-trigger_price = 0;
-
-host = ParamStr("host","http://127.0.0.1:5000");
-ver = ParamStr("API Version","v1");
-
-
-VoiceAlert = ParamList("Voice Alert","Disable|Enable",1);
-
-Entrydelay = Param("Entry Delay",0,0,1,1);
-Exitdelay = Param("Exit Delay",0,0,1,1);
-EnableAlgo = ParamList("AlgoStatus","Disable|Enable|LongOnly|ShortOnly",0);
-
-
-bridgeurl = host+"/api/"+ver;
-resp = "";
-
-
-//Static Variables for Order protection
-
-static_name_ = Name()+GetChartID()+interval(2)+strategy;
-static_name_algo = Name()+GetChartID()+interval(2)+strategy+"algostatus";
-
-
-AlgoBuy = lastvalue(Ref(Buy,-Entrydelay));
-AlgoSell = lastvalue(Ref(Sell,-Exitdelay));
-AlgoShort = lastvalue(Ref(Short,-Entrydelay));
-AlgoCover = lastvalue(Ref(Cover,-Exitdelay));
-
-
-
-GfxSelectFont( "BOOK ANTIQUA", 14, 100 );
-GfxSetBkMode( 1 );
-if(EnableAlgo == "Enable")
+/* Simple JSON value extractor */
+function ExtractJsonValue(json_str, key_name)
 {
-AlgoStatus = "Algo Enabled";
-GfxSetTextColor( colorGreen ); 
-GfxTextOut( "Algostatus : "+AlgoStatus , 20, 40); 
-if(Nz(StaticVarGet(static_name_algo),0)!=1)
-{
-_TRACE("Algo Status : Enabled");
-StaticVarSet(static_name_algo, 1);
-}
-}
-if(EnableAlgo == "Disable")
-{
-AlgoStatus = "Algo Disabled";
-GfxSetTextColor( colorRed ); 
-GfxTextOut( "Algostatus : "+AlgoStatus , 20, 40); 
-if(Nz(StaticVarGet(static_name_algo),0)!=0)
-{
-_TRACE("Algo Status : Disabled");
-StaticVarSet(static_name_algo, 0);
-}
-}
-if(EnableAlgo == "LongOnly")
-{
-AlgoStatus = "Long Only";
-GfxSetTextColor( colorYellow ); 
-GfxTextOut( "Algostatus : "+AlgoStatus , 20, 40); 
-if(Nz(StaticVarGet(static_name_algo),0)!=2)
-{
-_TRACE("Algo Status : Long Only");
-StaticVarSet(static_name_algo, 2);
-}
-}
-if(EnableAlgo == "ShortOnly")
-{
-AlgoStatus = "Short Only";
-GfxSetTextColor( colorYellow ); 
-GfxTextOut( "Algostatus : "+AlgoStatus , 20, 40); 
-if(Nz(StaticVarGet(static_name_algo),0)!=3)
-{
-_TRACE("Algo Status : Short Only");
-StaticVarSet(static_name_algo, 3);
-}
-}
-
-
-
-
-
-//optionCEtype = WriteIf(offsetCE == 0, "ATM CE", WriteIf(offsetCE<0,"ITM"+abs(offsetCE)+" CE","OTM"+abs(offsetCE)+" CE"));
-//optionPEtype = WriteIf(offsetPE == 0, "ATM PE", WriteIf(offsetPE<0,"ITM"+abs(offsetPE)+" PE","OTM"+abs(offsetPE)+" PE"));
-
-
-if(StrikeCalculation=="PREVOPEN")
-{
-SetForeign(Symbol);
-spotC = Ref(OPEN,-1);
-RestorePriceArrays();
-}
-
-if(StrikeCalculation=="PREVCLOSE")
-{
-SetForeign(Symbol);
-spotC = Ref(Close,-1);
-RestorePriceArrays();
-}
-
-if(StrikeCalculation=="TODAYSOPEN")
-{
-SetForeign(Symbol);
-spotC = TimeFrameGetPrice("O",inDaily);
-RestorePriceArrays();
-}
-//Maintain Array to Store ATM Strikes for each and every bar
-strike = IIf(spotC % iInterval > iInterval/2, spotC - (spotC%iInterval) + iInterval,
-			spotC - (spotC%iInterval));
-			
-//Buy Signal Entry Strikes	
-
-if(opttype_buyleg1=="CE")
-{	
-strike_buyleg1 = strike + (offset_buyleg1 * iInterval);
-}
-if(opttype_buyleg1=="PE")
-{	
-strike_buyleg1 = strike - (offset_buyleg1 * iInterval);
-}
-if(opttype_buyleg2=="CE")
-{	
-strike_buyleg2 = strike + (offset_buyleg2 * iInterval);
-}
-if(opttype_buyleg2=="PE")
-{	
-strike_buyleg2 = strike - (offset_buyleg2 * iInterval);
-}
-
-//Short Signal Entry Strikes	
-
-if(opttype_shortleg1=="CE")
-{	
-strike_shortleg1 = strike + (offset_shortleg1 * iInterval);
-}
-if(opttype_shortleg1=="PE")
-{	
-strike_shortleg1 = strike - (offset_shortleg1 * iInterval);
-}
-if(opttype_shortleg2=="CE")
-{	
-strike_shortleg2 = strike + (offset_shortleg2 * iInterval);
-}
-if(opttype_shortleg2=="PE")
-{	
-strike_shortleg2 = strike - (offset_shortleg2 * iInterval);
-}
-
-
-buycontinue = Flip(Buy,Sell);
-shortcontinue  = Flip(Short,Cover);
-
-entrysymbol_leg1 = "";
-entrysymbol_leg2 = "";
-
-
-exitsymbol_leg1 = "";
-exitsymbol_leg2 = "";
-
-
-ExitStrike_buyleg1 = ValueWhen(Ref(Buy,-Entrydelay),strike_buyleg1);
-ExitStrike_buyleg2 = ValueWhen(Ref(Buy,-Entrydelay),strike_buyleg2);
-
-ExitStrike_shortleg1 = ValueWhen(Ref(Short,-Entrydelay),strike_shortleg1);
-ExitStrike_shortleg2 = ValueWhen(Ref(Short,-Entrydelay),strike_shortleg2);
-
-//-------------prepare the enty and exit symbols for two legged option strategy
-
-
-
-entrysymbol_leg1 = WriteIf(Buy,spot+expiry_leg1+strike_buyleg1+opttype_buyleg1, WriteIf(Short,spot+expiry_leg1+strike_shortleg1+opttype_shortleg1,""));
-exitsymbol_leg1 = WriteIf(sell,spot+expiry_leg1+ExitStrike_buyleg1+opttype_buyleg1, WriteIf(cover,spot+expiry_leg1+ExitStrike_shortleg1+opttype_shortleg1,""));
-
-entrysymbol_leg2 = WriteIf(Buy,spot+expiry_leg2+strike_buyleg2+opttype_buyleg2, WriteIf(Short,spot+expiry_leg2+strike_shortleg2+opttype_shortleg2,""));
-exitsymbol_leg2 = WriteIf(sell,spot+expiry_leg2+ExitStrike_buyleg2+opttype_buyleg2, WriteIf(cover,spot+expiry_leg2+ExitStrike_shortleg2+opttype_shortleg2,""));
-
-
-
-printf("\n\n\nEntry Leg1 Symbol : "+entrysymbol_leg1);
-printf("\nExit Leg1 Symbol : "+exitsymbol_leg1);
-
-printf("\n\n\nEntry Leg2 Symbol : "+entrysymbol_leg2);
-printf("\nExit Leg2 Symbol : "+exitsymbol_leg2);
-
-
-
-_SECTION_END();
-
-
-
-
-//Buy and Sell Order Functions
-//signaltype = "buy" OR "short
-//leg = "leg1","leg2"
-
-
-//Squareoff Function to Exit Open Positions
-
-//signaltype = "buy" OR "short
-//leg = "leg1","leg2"
-
-
-
-
-
-_SECTION_BEGIN("OpenAlgo Bridge Controls");
-
-EnableScript("VBScript"); 
-<%
-Public Sub PlaceOrder(action, OptionType, quantity,expiry,signaltype,leg)
-	
-    Dim oXMLHTTP
-    Dim oStream
-    Set oXMLHTTP = CreateObject("Msxml2.XMLHTTP")
-    ' Define variables with the specified values
-    Dim apikey, strategy, symbol , exchange, pricetype, product
-    apikey = AFL.Var("apikey")
-    strategy = AFL.Var("strategy")
+    result = "";
     
-
-	
+    /* Find the key in JSON */
+    search_key = "\"" + key_name + "\":";
+    pos = StrFind(json_str, search_key);
     
-    If leg = "leg1"  Then
-		symbol = AFL.Var("entrysymbol_leg1")
-	elseIf leg = "leg2" Then
-			symbol = AFL.Var("entrysymbol_leg2")
-	End If
-
-
-   
-    exchange = AFL.Var("exchange")
-    pricetype = AFL.Var("pricetype")
-    product = AFL.Var("product")
-   
-    
-    ' Construct the JSON string for the POST message
-    Dim jsonRequestBody
-    jsonRequestBody = "{""apikey"":""" & apikey & _
-    """,""strategy"":""" & strategy & _
-    """,""symbol"":""" & symbol & _
-    """,""action"":""" & action & _
-    """,""exchange"":""" & exchange & _
-    """,""pricetype"":""" & pricetype & _
-    """,""product"":""" & product & _
-    """,""quantity"":""" & quantity & """}"
-    
-    ' Set the URL
-    Dim url
-    url = AFL.Var("bridgeurl")&"/placeorder"
-    
-    ' MsgBox "API Request: " & jsonRequestBody, vbInformation, "API Information"
-    
-    ' Configure the HTTP request for POST method
-    oXMLHTTP.Open "POST", url, False
-    oXMLHTTP.setRequestHeader "Content-Type", "application/json"
-    oXMLHTTP.setRequestHeader "Cache-Control", "no-cache"
-    oXMLHTTP.setRequestHeader "Pragma", "no-cache"
-    
-    ' Send the request with the JSON body
-    oXMLHTTP.Send jsonRequestBody
-    
-    api_parameters = "Strategy :" & strategy & " Symbol :" & symbol & " Exchange :" & exchange & _
-                 " Action :" & action & " Pricetype :" & pricetype & _
-                 " Product :" & product & " Quantity:" & quantity & _
-                 " api_url :" & url
-
-    
-    ' MsgBox "API Request: " & oXMLHTTP.responseText, vbInformation, "API Information"
-    
-    
-    AFL("api_request") = api_parameters  
-    AFL("api_response") = oXMLHTTP.responseText
-    
-    
-    ' Optionally, handle the response here
-    ' Dim response
-    ' response = oXMLHTTP.responseText
-    ' Response handling code...
-End Sub
-
-
-Public Sub ExitOrder(action, OptionType,expiry,signaltype,leg)
-    Dim oXMLHTTP
-    Dim oStream
-    Set oXMLHTTP = CreateObject("Msxml2.XMLHTTP")
-    ' Define variables with the specified values
-    Dim apikey, strategy, symbol , exchange, pricetype, product
-    apikey = AFL.Var("apikey")
-    strategy = AFL.Var("strategy")
-   	
-    
-    If leg = "leg1"  Then
-		symbol = AFL.Var("exitsymbol_leg1")
-	elseIf leg = "leg2" Then
-			symbol = AFL.Var("exitsymbol_leg2")
-	End If
-    
-    exchange = AFL.Var("exchange")
-    pricetype = AFL.Var("pricetype")
-    product = AFL.Var("product")
-    position_size = "0"
-    quantity = "0"
-   
-    
-    ' Construct the JSON string for the POST message
-    Dim jsonRequestBody
-    jsonRequestBody = "{""apikey"":""" & apikey & _
-    """,""strategy"":""" & strategy & _
-    """,""symbol"":""" & symbol & _
-    """,""action"":""" & action & _
-    """,""exchange"":""" & exchange & _
-    """,""pricetype"":""" & pricetype & _
-    """,""product"":""" & product & _
-    """,""quantity"":""" & quantity & _
-    """,""position_size"":""" & position_size & """}"
-    
-    ' Set the URL
-    Dim url
-    url = AFL.Var("bridgeurl")&"/placesmartorder"
-    
-    ' Configure the HTTP request for POST method
-    oXMLHTTP.Open "POST", url, False
-    oXMLHTTP.setRequestHeader "Content-Type", "application/json"
-    oXMLHTTP.setRequestHeader "Cache-Control", "no-cache"
-    oXMLHTTP.setRequestHeader "Pragma", "no-cache"
-    
-    ' Send the request with the JSON body
-    oXMLHTTP.Send jsonRequestBody
-    
-    api_parameters = "Strategy :" & strategy & " Symbol :" & symbol & " Exchange :" & exchange & _
-                 " Action :" & action & " Pricetype :" & pricetype & _
-                 " Product :" & product & " Quantity:" & quantity & _
-                 " Position Size :" & position_size & " api_url :" & url
-
-    
-    AFL("ex_api_request") = api_parameters  
-    AFL("ex_api_response") = oXMLHTTP.responseText
-    
-    
-    ' Optionally, handle the response here
-    ' Dim response
-    ' response = oXMLHTTP.responseText
-    ' Response handling code...
-End Sub
-
-%>
-
-openalgo = GetScriptObject();
-
-
-
-
-//Configure Trace Logs
-
-if(EnableAlgo != "Disable")
+    if (pos >= 0)
     {
-        lasttime = StrFormat("%0.f",LastValue(BarIndex()));
+        /* Move past the key */
+        start = pos + StrLen(search_key);
         
-        SetChartBkColor(colorDarkGrey);
-        if(EnableAlgo == "Enable")
-        {   
-            if (AlgoBuy==True AND AlgoCover == True AND StaticVarGet(static_name_+"buyCoverAlgo")==0 AND StaticVarGetText(static_name_+"buyCoverAlgo_barvalue") != lasttime )
-            {
-            
-	//ExitOrder(action,OptionType,orderqty,position_size,expiry,signaltype,leg)
-	//leg = "leg1","leg2"
-				
-				//Cover Signal
-				if(tradetype_shortleg1=="SELL")
-				{
-				openalgo.ExitOrder(tradetype_shortleg1,opttype_shortleg1,expiry_leg1,"short","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response);
-				openalgo.ExitOrder(tradetype_shortleg2,opttype_shortleg2,expiry_leg2,"short","leg2"); 
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response);
-				}
-				else
-				{
-				openalgo.ExitOrder(tradetype_shortleg2,opttype_shortleg2,expiry_leg2,"short","leg2");
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response);
-				openalgo.ExitOrder(tradetype_shortleg1,opttype_shortleg1,expiry_leg1,"short","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				}
-				//Buy Signal
-				if(tradetype_buyleg1=="BUY")
-				{
-				openalgo.PlaceOrder(tradetype_buyleg1,opttype_buyleg1,quantity_leg1,expiry_leg1,"buy","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				openalgo.PlaceOrder(tradetype_buyleg2,opttype_buyleg2,quantity_leg2,expiry_leg2,"buy","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				}
-				else
-				{
-				openalgo.PlaceOrder(tradetype_buyleg2,opttype_buyleg2,quantity_leg2,expiry_leg2,"buy","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				openalgo.PlaceOrder(tradetype_buyleg1,opttype_buyleg1,quantity_leg1,expiry_leg1,"buy","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				}
-					
-				
-				
-				
-                StaticVarSetText(static_name_+"buyCoverAlgo_barvalue",lasttime);  
-                StaticVarSet(static_name_+"buyCoverAlgo",1); //Algo Order was triggered, no more order on this bar
-                
-        
-            }
-            else if ((AlgoBuy != True OR AlgoCover != True))
-            {   
-                StaticVarSet(static_name_+"buyCoverAlgo",0);
-                StaticVarSetText(static_name_+"buyCoverAlgo_barvalue","");
-            }
-            
-            if (AlgoBuy==True AND AlgoCover != True AND StaticVarGet(static_name_+"buyAlgo")==0 AND StaticVarGetText(static_name_+"buyAlgo_barvalue") != lasttime)
-            {
-				
-				//Buy Signal
-				if(tradetype_buyleg1=="BUY")
-				{
-				openalgo.PlaceOrder(tradetype_buyleg1,opttype_buyleg1,quantity_leg1,expiry_leg1,"buy","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				openalgo.PlaceOrder(tradetype_buyleg2,opttype_buyleg2,quantity_leg2,expiry_leg2,"buy","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				}
-				else
-				{
-				openalgo.PlaceOrder(tradetype_buyleg2,opttype_buyleg2,quantity_leg2,expiry_leg2,"buy","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				openalgo.PlaceOrder(tradetype_buyleg1,opttype_buyleg1,quantity_leg1,expiry_leg1,"buy","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				}
-				
-				
-                StaticVarSetText(static_name_+"buyAlgo_barvalue",lasttime); 
-                StaticVarSet(static_name_+"buyAlgo",1); //Algo Order was triggered, no more order on this bar
-                
-            }
-            else if (AlgoBuy != True)
-            {   
-                StaticVarSet(static_name_+"buyAlgo",0);
-                StaticVarSetText(static_name_+"buyAlgo_barvalue","");
-                
-            }
-            if (AlgoSell==true AND AlgoShort != True AND StaticVarGet(static_name_+"sellAlgo")==0 AND StaticVarGetText(static_name_+"sellAlgo_barvalue") != lasttime)
-            {     
-				//Sell Signal
-				if(tradetype_buyleg1=="SELL")
-				{
-				openalgo.ExitOrder(tradetype_buyleg1,opttype_buyleg1,expiry_leg1,"buy","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_buyleg2,opttype_buyleg2,expiry_leg2,"buy","leg2"); 
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				}
-				else
-				{
-				openalgo.ExitOrder(tradetype_buyleg2,opttype_buyleg2,expiry_leg2,"buy","leg2");
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_buyleg1,opttype_buyleg1,expiry_leg1,"buy","leg1");  
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				}
-                
-                StaticVarSetText(static_name_+"sellAlgo_barvalue",lasttime);
-                StaticVarSet(static_name_+"sellAlgo",1); //Algo Order was triggered, no more order on this bar
-                
-            }
-            else if (AlgoSell != True )
-            {   
-                StaticVarSet(static_name_+"sellAlgo",0);
-                StaticVarSetText(static_name_+"sellAlgo_barvalue","");
-            }
-            if (AlgoShort==True AND AlgoSell==True AND  StaticVarGet(static_name_+"ShortSellAlgo")==0 AND StaticVarGetText(static_name_+"ShortSellAlgo_barvalue") != lasttime)
-            {
-				//Sell Signal
-				if(tradetype_buyleg1=="SELL")
-				{
-				openalgo.ExitOrder(tradetype_buyleg1,opttype_buyleg1,expiry_leg1,"buy","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_buyleg2,opttype_buyleg2,expiry_leg2,"buy","leg2"); 
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				}
-				else
-				{
-				openalgo.ExitOrder(tradetype_buyleg2,opttype_buyleg2,expiry_leg2,"buy","leg2");
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_buyleg1,opttype_buyleg1,expiry_leg1,"buy","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response);  
-				}
-				//Short
-				if(tradetype_shortleg1=="BUY")
-				{
-				openalgo.PlaceOrder(tradetype_shortleg1,opttype_shortleg1,quantity_leg1,expiry_leg1,"short","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				openalgo.PlaceOrder(tradetype_shortleg2,opttype_shortleg2,quantity_leg2,expiry_leg2,"short","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				}
-				else
-				{
-				openalgo.PlaceOrder(tradetype_shortleg2,opttype_shortleg2,quantity_leg2,expiry_leg2,"short","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				openalgo.PlaceOrder(tradetype_shortleg1,opttype_shortleg1,quantity_leg1,expiry_leg1,"short","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				}
-				
-				
-                StaticVarSetText(static_name_+"ShortsellAlgo_barvalue",lasttime);
-                StaticVarSet(static_name_+"ShortSellAlgo",1); //Algo Order was triggered, no more order on this bar
-                
-            }
-            else if ((AlgoShort != True OR AlgoSell != True))
-            {   
-                StaticVarSet(static_name_+"ShortSellAlgo",0);
-                StaticVarSetText(static_name_+"ShortsellAlgo_barvalue","");
-            }
-                
-            if (AlgoShort==True  AND  AlgoSell != True AND StaticVarGet(static_name_+"ShortAlgo")==0 AND  StaticVarGetText(static_name_+"ShortAlgo_barvalue") != lasttime)
-            {
-				//Short
-				if(tradetype_shortleg1=="BUY")
-				{
-				openalgo.PlaceOrder(tradetype_shortleg1,opttype_shortleg1,quantity_leg1,expiry_leg1,"short","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				openalgo.PlaceOrder(tradetype_shortleg2,opttype_shortleg2,quantity_leg2,expiry_leg2,"short","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				}
-				else
-				{
-				openalgo.PlaceOrder(tradetype_shortleg2,opttype_shortleg2,quantity_leg2,expiry_leg2,"short","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				openalgo.PlaceOrder(tradetype_shortleg1,opttype_shortleg1,quantity_leg1,expiry_leg1,"short","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				}
-				
-                StaticVarSetText(static_name_+"ShortAlgo_barvalue",lasttime); 
-                StaticVarSet(static_name_+"ShortAlgo",1); //Algo Order was triggered, no more order on this bar
-                
-            }
-            else if (AlgoShort != True )
-            {   
-                StaticVarSet(static_name_+"ShortAlgo",0);
-                StaticVarSetText(static_name_+"ShortAlgo_barvalue","");
-            }
-            if (AlgoCover==true AND AlgoBuy != True AND StaticVarGet(static_name_+"CoverAlgo")==0 AND StaticVarGetText(static_name_+"CoverAlgo_barvalue") != lasttime)
-            {
-				
-				//Cover Signal
-				if(tradetype_shortleg1=="SELL")
-				{
-				openalgo.ExitOrder(tradetype_shortleg1,opttype_shortleg1,expiry_leg1,"short","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_shortleg2,opttype_shortleg2,expiry_leg2,"short","leg2"); 
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				}
-				else
-				{
-				openalgo.ExitOrder(tradetype_shortleg2,opttype_shortleg2,expiry_leg2,"short","leg2");
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_shortleg1,opttype_shortleg1,expiry_leg1,"short","leg1");  
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				}
-               
-                StaticVarSetText(static_name_+"CoverAlgo_barvalue",lasttime); 
-                StaticVarSet(static_name_+"CoverAlgo",1); //Algo Order was triggered, no more order on this bar
-                
-            }
-            else if (AlgoCover != True )
-            {   
-                StaticVarSet(static_name_+"CoverAlgo",0);
-                StaticVarSetText(static_name_+"CoverAlgo_barvalue","");
-            }
+        /* Skip whitespace */
+        while (start < StrLen(json_str) AND StrMid(json_str, start, 1) == " ")
+        {
+            start = start + 1;
         }
         
-      else if(EnableAlgo == "LongOnly")
+        /* Check if value is quoted string */
+        if (StrMid(json_str, start, 1) == "\"")
         {
-        
-			 if (AlgoBuy==True AND StaticVarGet(static_name_+"buyAlgo")==0 AND StaticVarGetText(static_name_+"buyAlgo_barvalue") != lasttime)
+            start = start + 1;  /* Skip opening quote */
+            end = start;
+            /* Find closing quote */
+            while (end < StrLen(json_str) AND StrMid(json_str, end, 1) != "\"")
             {
-            
-				//Buy Signal
-				if(tradetype_buyleg1=="BUY")
-				{
-				openalgo.PlaceOrder(tradetype_buyleg1,opttype_buyleg1,quantity_leg1,expiry_leg1,"buy","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				openalgo.PlaceOrder(tradetype_buyleg2,opttype_buyleg2,quantity_leg2,expiry_leg2,"buy","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				}
-				else
-				{
-				openalgo.PlaceOrder(tradetype_buyleg2,opttype_buyleg2,quantity_leg2,expiry_leg2,"buy","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				openalgo.PlaceOrder(tradetype_buyleg1,opttype_buyleg1,quantity_leg1,expiry_leg1,"buy","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				}
-				
-                StaticVarSetText(static_name_+"buyAlgo_barvalue",lasttime);
-                StaticVarSet(static_name_+"buyAlgo",1); //Algo Order was triggered, no more order on this bar
-                
+                end = end + 1;
             }
-            
-            
-            else if (AlgoBuy != True )
-            {  
-                StaticVarSet(static_name_+"buyAlgo",0);
-                StaticVarSetText(static_name_+"buyAlgo_barvalue","");
-            
-            }
-            
-             if (AlgoSell==True AND StaticVarGet(static_name_+"sellAlgo")==0 AND StaticVarGetText(static_name_+"sellAlgo_barvalue") != lasttime)
-            { 
-            
-				//Sell Signal
-				if(tradetype_buyleg1=="SELL")
-				{
-				openalgo.ExitOrder(tradetype_buyleg1,opttype_buyleg1,expiry_leg1,"buy","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_buyleg2,opttype_buyleg2,expiry_leg2,"buy","leg2"); 
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				}
-				else
-				{
-				openalgo.ExitOrder(tradetype_buyleg2,opttype_buyleg2,expiry_leg2,"buy","leg2");
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_buyleg1,opttype_buyleg1,expiry_leg1,"buy","leg1");  
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				}
-				
-                StaticVarSet(static_name_+"sellAlgo",1);
-                StaticVarSetText(static_name_+"sellAlgo_barvalue",lasttime);
-            }
-            else if (AlgoSell != True )
-            {  
-                StaticVarSet(static_name_+"sellAlgo",0);
-                StaticVarSetText(static_name_+"sellAlgo_barvalue","");
-            
-            }
-            
-        } 
-        else if(EnableAlgo == "ShortOnly")
+            result = StrMid(json_str, start, end - start);
+        }
+        else
         {
-            if (AlgoShort==True AND StaticVarGet(static_name_+"ShortAlgo")==0 AND StaticVarGetText(static_name_+"ShortAlgo_barvalue") != lasttime)
+            /* Numeric or boolean value */
+            end = start;
+            while (end < StrLen(json_str))
             {
-				//Short
-				if(tradetype_shortleg1=="BUY")
-				{
-				openalgo.PlaceOrder(tradetype_shortleg1,opttype_shortleg1,quantity_leg1,expiry_leg1,"short","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				openalgo.PlaceOrder(tradetype_shortleg2,opttype_shortleg2,quantity_leg2,expiry_leg2,"short","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				}
-				else
-				{
-				openalgo.PlaceOrder(tradetype_shortleg2,opttype_shortleg2,quantity_leg2,expiry_leg2,"short","leg2");
-				_TRACE("API Request leg2: "+api_request);
-				_TRACE("API Response leg2: "+api_response);
-				openalgo.PlaceOrder(tradetype_shortleg1,opttype_shortleg1,quantity_leg1,expiry_leg1,"short","leg1");
-				_TRACE("API Request leg1: "+api_request);
-				_TRACE("API Response leg1: "+api_response);
-				}
-				
-                StaticVarSetText(static_name_+"ShortAlgo_barvalue",lasttime); 
-                StaticVarSet(static_name_+"ShortAlgo",1); //Algo Order was triggered, no more order on this bar
-                
+                ch = StrMid(json_str, end, 1);
+                if (ch == "," OR ch == "}" OR ch == " ")
+                {
+                    break;
+                }
+                end = end + 1;
             }
-            else if (AlgoShort != True )
-            {   
-                StaticVarSet(static_name_+"ShortAlgo",0);
-                StaticVarSetText(static_name_+"ShortAlgo_barvalue","");
-            }
-            if (AlgoCover==true AND StaticVarGet(static_name_+"CoverAlgo")==0 AND StaticVarGetText(static_name_+"CoverAlgo_barvalue") != lasttime)
-            {
-            
-				//Cover Signal
-				if(tradetype_shortleg1=="SELL")
-				{
-				openalgo.ExitOrder(tradetype_shortleg1,opttype_shortleg1,expiry_leg1,"short","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_shortleg2,opttype_shortleg2,expiry_leg2,"short","leg2"); 
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				}
-				else
-				{
-				openalgo.ExitOrder(tradetype_shortleg2,opttype_shortleg2,expiry_leg2,"short","leg2");
-				_TRACE("Exit API Request leg2: "+ex_api_request);
-				_TRACE("Exit API Response leg2: "+ex_api_response); 
-				openalgo.ExitOrder(tradetype_shortleg1,opttype_shortleg1,expiry_leg1,"short","leg1"); 
-				_TRACE("Exit API Request leg1: "+ex_api_request);
-				_TRACE("Exit API Response leg1: "+ex_api_response);  
-				}
-               
-                StaticVarSetText(static_name_+"CoverAlgo_barvalue",lasttime); 
-                StaticVarSet(static_name_+"CoverAlgo",1); //Algo Order was triggered, no more order on this bar
-                
-            }
-            else if (AlgoCover != True)
-            {   
-                StaticVarSet(static_name_+"CoverAlgo",0);
-                StaticVarSetText(static_name_+"CoverAlgo_barvalue","");
-            }
-        } 
-        
+            result = StrMid(json_str, start, end - start);
+        }
     }
     
-  
+    return result;
+}
+
+/* 
+   Function to extract leg data from optionsmultiorder API response
+   The API returns: {"results":[{"leg":1,"symbol":"...","exchange":"...",...},{"leg":2,...}],"status":"success"}
+   leg_num: 1 for first leg, 2 for second leg (matches API "leg" field)
+   key_name: the field to extract (symbol, exchange, orderid, status, etc.)
+*/
+function ExtractLegValue(json_str, leg_num, key_name)
+{
+    result = "";
+    
+    /* Build search pattern to find the leg object by "leg":N */
+    leg_search = "\"leg\":" + NumToStr(leg_num, 1.0, False);
+    
+    /* Find position of this leg marker */
+    leg_pos = StrFind(json_str, leg_search);
+    
+    if (leg_pos >= 0)
+    {
+        /* Find the start of this leg's object by searching backwards for { */
+        obj_start = leg_pos;
+        while (obj_start > 0 AND StrMid(json_str, obj_start, 1) != "{")
+        {
+            obj_start = obj_start - 1;
+        }
+        
+        /* Find the end of this leg's object by searching for matching } */
+        brace_count = 1;
+        obj_end = obj_start + 1;
+        while (obj_end < StrLen(json_str) AND brace_count > 0)
+        {
+            ch = StrMid(json_str, obj_end, 1);
+            if (ch == "{")
+            {
+                brace_count = brace_count + 1;
+            }
+            else if (ch == "}")
+            {
+                brace_count = brace_count - 1;
+            }
+            obj_end = obj_end + 1;
+        }
+        
+        /* Extract the leg object */
+        leg_obj = StrMid(json_str, obj_start, obj_end - obj_start);
+        
+        /* Now extract the requested key from this leg object */
+        result = ExtractJsonValue(leg_obj, key_name);
+    }
+    
+    return result;
+}
+
+/* Function to post multi-leg option order using OptionsMultiOrder API */
+function PostMultiLegOrder(offset1, opttype1, action1, expiry1, qty1, offset2, opttype2, action2, expiry2, qty2, apikey_val, strategy_val, underlying_val, exchange_val, pricetype_val, product_val, host_val, ver_val)
+{
+    url = host_val + "/api/" + ver_val + "/optionsmultiorder";
+    
+    /* Construct JSON request body with legs array */
+    body = "{\"apikey\": \"" + apikey_val + "\", " +
+           "\"strategy\": \"" + strategy_val + "\", " +
+           "\"underlying\": \"" + underlying_val + "\", " +
+           "\"exchange\": \"" + exchange_val + "\", " +
+           "\"legs\": [" +
+           "{" +
+           "\"offset\": \"" + offset1 + "\", " +
+           "\"option_type\": \"" + opttype1 + "\", " +
+           "\"action\": \"" + action1 + "\", " +
+           "\"expiry_date\": \"" + expiry1 + "\", " +
+           "\"quantity\": " + NumToStr(qty1, 1.0) + ", " +
+           "\"pricetype\": \"" + pricetype_val + "\", " +
+           "\"product\": \"" + product_val + "\"" +
+           "}, " +
+           "{" +
+           "\"offset\": \"" + offset2 + "\", " +
+           "\"option_type\": \"" + opttype2 + "\", " +
+           "\"action\": \"" + action2 + "\", " +
+           "\"expiry_date\": \"" + expiry2 + "\", " +
+           "\"quantity\": " + NumToStr(qty2, 1.0) + ", " +
+           "\"pricetype\": \"" + pricetype_val + "\", " +
+           "\"product\": \"" + product_val + "\"" +
+           "}" +
+           "]}";
+    
+    _TRACEF("OpenAlgo OptionsMultiOrder Request: %s", body);
+    
+    /* Set headers */
+    headers = "Content-Type: application/json\r\n" +
+              "Accept-Encoding: gzip, deflate\r\n";
+    InternetSetHeaders(headers);
+    
+    ih = InternetPostRequest(url, body);
+    
+    response = "";
+    if (ih)
+    {
+        while ((line = InternetReadString(ih)) != "")
+        {
+            response = response + line;
+        }
+        _TRACEF("OpenAlgo OptionsMultiOrder Response: %s", response);
+        InternetClose(ih);
+    }
+    else
+    {
+        _TRACE("OpenAlgo HTTP post failed");
+    }
+    
+    return response;
+}
+
+/* Function to exit position using placesmartorder with quantity=0 and position_size=0 */
+function ExitPosition(sym, exch, product_type, apikey_val, strategy_val, host_val, ver_val)
+{
+    /* Build postData for smart exit */
+    postData = "{\"apikey\": \"" + apikey_val + "\", " +
+               "\"strategy\": \"" + strategy_val + "\", " +
+               "\"symbol\": \"" + sym + "\", " +
+               "\"action\": \"SELL\", " +
+               "\"exchange\": \"" + exch + "\", " +
+               "\"pricetype\": \"MARKET\", " +
+               "\"product\": \"" + product_type + "\", " +
+               "\"quantity\": \"0\", " +
+               "\"position_size\": \"0\"}";
+
+    headers = "Content-Type: application/json\r\n" +
+              "Accept-Encoding: gzip, deflate\r\n";
+    InternetSetHeaders(headers);
+
+    _TRACE("Exit Order Request Sent: " + postData);
+    
+    /* Build URL */
+    bridgeurl = host_val + "/api/" + ver_val;
+    ih = InternetPostRequest(bridgeurl + "/placesmartorder", postData);
+
+    response = "";
+    if (ih) 
+    {
+        while ((line = InternetReadString(ih)) != "") 
+        {
+            response = response + line;
+        }
+        _TRACEF("Exit Order Response: %s", response);
+        InternetClose(ih);
+    } 
+    else 
+    {
+        _TRACE("Failed to place exit order.");
+    }
+    
+    return response;
+}
+
+/* --------------------------------------------------------------------------
+   Version Check and Main Code
+   -------------------------------------------------------------------------- */
+if (Version() < ReqVer)
+{
+    SetChartOptions(0, chartShowDates);
+    GfxSetBkMode(1);
+    GfxSetBkColor(colorBlack);
+    GfxSetTextColor(colorRed);
+    GfxSelectFont("Arial", 16, 700);
+    GfxTextOut("This AFL needs AmiBroker 6.35 or later", 40, 40);
+}
+else
+{
+    /* --------------------------------------------------------------------------
+       Parameter Definitions
+       -------------------------------------------------------------------------- */
+    RequestTimedRefresh(1, False);
+    EnableTextOutput(False);
+    SetOption("StaticVarAutoSave", 30);
+
+    apikey = ParamStr("OpenAlgo API Key", "******");
+    strategy = ParamStr("Strategy Name", "TwoLegOptions");
+    
+    /* Underlying and Exchange Settings */
+    underlying = ParamList("Underlying Symbol", "NIFTY|BANKNIFTY|FINNIFTY|SENSEX|CRUDEOILM");
+    exchange = ParamList("Exchange", "NSE_INDEX|BSE_INDEX|NFO|BFO|MCX", 0);
+    
+    /* Expiry Settings for Both Legs */
+    expiry_leg1 = ParamStr("Expiry Date Leg1 (DDMMMYY)", "30DEC25");
+    expiry_leg2 = ParamStr("Expiry Date Leg2 (DDMMMYY)", "30DEC25");
+    
+    /* Lot Size */
+    LotSize = Param("Lot Size", 75, 1, 10000, 1);
+    
+    /* ========== BUY SIGNAL LEG CONFIGURATION ========== */
+    /* Leg 1 (Buy Signal) */
+    opttype_buyleg1 = ParamList("Buy Leg1 Option Type", "CE|PE", 0);
+    tradetype_buyleg1 = ParamList("Buy Leg1 Trade Type", "BUY|SELL", 0);
+    offset_buyleg1 = ParamStr("Buy Leg1 Offset", "ATM");  /* ATM, ITM1, ITM2, OTM1, OTM2 */
+    quantity_leg1 = Param("Buy Leg1 Quantity (Lots)", 1, 0, 100) * LotSize;
+    
+    /* Leg 2 (Buy Signal) */
+    opttype_buyleg2 = ParamList("Buy Leg2 Option Type", "CE|PE", 1);
+    tradetype_buyleg2 = ParamList("Buy Leg2 Trade Type", "BUY|SELL", 1);
+    offset_buyleg2 = ParamStr("Buy Leg2 Offset", "ATM");  /* ATM, ITM1, ITM2, OTM1, OTM2 */
+    quantity_leg2 = Param("Buy Leg2 Quantity (Lots)", 1, 0, 100) * LotSize;
+    
+    /* ========== SHORT SIGNAL LEG CONFIGURATION ========== */
+    /* Leg 1 (Short Signal) */
+    opttype_shortleg1 = ParamList("Short Leg1 Option Type", "CE|PE", 1);
+    tradetype_shortleg1 = ParamList("Short Leg1 Trade Type", "BUY|SELL", 0);
+    offset_shortleg1 = ParamStr("Short Leg1 Offset", "ATM");  /* ATM, ITM1, ITM2, OTM1, OTM2 */
+    
+    /* Leg 2 (Short Signal) */
+    opttype_shortleg2 = ParamList("Short Leg2 Option Type", "CE|PE", 0);
+    tradetype_shortleg2 = ParamList("Short Leg2 Trade Type", "BUY|SELL", 1);
+    offset_shortleg2 = ParamStr("Short Leg2 Offset", "ATM");  /* ATM, ITM1, ITM2, OTM1, OTM2 */
+    
+    /* Order Settings */
+    pricetype = ParamList("Order Type", "MARKET", 0);
+    product = ParamList("Product", "NRML|MIS", 0);
+    
+    /* Connection Settings */
+    host = ParamStr("Host", "http://127.0.0.1:5000");
+    ver = ParamStr("API Version", "v1");
+    
+    /* Alert and Timing Settings */
+    VoiceAlert = ParamList("Voice Alert", "Disable|Enable", 1);
+    EntryDelay = Param("Entry Delay", 0, 0, 1, 1);
+    ExitDelay = Param("Exit Delay", 0, 0, 1, 1);
+    EnableAlgo = ParamList("AlgoStatus", "Disable|Enable|LongOnly|ShortOnly", 0);
+
+    /* --------------------------------------------------------------------------
+       Chart Settings
+       -------------------------------------------------------------------------- */
+    SetChartOptions(0, chartShowArrows | chartShowDates);
+    _N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue(ROC(C, 1))));
+    Plot(Close, "Close", colorDefault, styleNoTitle | ParamStyle("Style") | GetPriceStyle());
+
+    /* --------------------------------------------------------------------------
+       Static Variable Names for Tracking
+       -------------------------------------------------------------------------- */
+    static_name_ = Name() + GetChartID() + interval(2) + strategy;
+    static_name_algo = static_name_ + "_algostatus";
+    
+    /* Buy Signal Legs Tracking */
+    static_buyleg1_order = static_name_ + "_buyleg1_order";
+    static_buyleg1_symbol = static_name_ + "_buyleg1_symbol";
+    static_buyleg1_exchange = static_name_ + "_buyleg1_exchange";
+    
+    static_buyleg2_order = static_name_ + "_buyleg2_order";
+    static_buyleg2_symbol = static_name_ + "_buyleg2_symbol";
+    static_buyleg2_exchange = static_name_ + "_buyleg2_exchange";
+    
+    /* Short Signal Legs Tracking */
+    static_shortleg1_order = static_name_ + "_shortleg1_order";
+    static_shortleg1_symbol = static_name_ + "_shortleg1_symbol";
+    static_shortleg1_exchange = static_name_ + "_shortleg1_exchange";
+    
+    static_shortleg2_order = static_name_ + "_shortleg2_order";
+    static_shortleg2_symbol = static_name_ + "_shortleg2_symbol";
+    static_shortleg2_exchange = static_name_ + "_shortleg2_exchange";
+
+    /* --------------------------------------------------------------------------
+       OpenAlgo Dashboard Display
+       -------------------------------------------------------------------------- */
+    GfxSelectFont("BOOK ANTIQUA", 14, 100);
+    GfxSetBkMode(1);
+    
+    if (EnableAlgo == "Enable")
+    {
+        AlgoStatus = "Algo Enabled";
+        GfxSetTextColor(colorGreen);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+        if (Nz(StaticVarGet(static_name_algo), 0) != 1)
+        {
+            _TRACE("Algo Status : Enabled");
+            StaticVarSet(static_name_algo, 1);
+        }
+    }
+    else if (EnableAlgo == "Disable")
+    {
+        AlgoStatus = "Algo Disabled";
+        GfxSetTextColor(colorRed);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+        if (Nz(StaticVarGet(static_name_algo), 0) != 0)
+        {
+            _TRACE("Algo Status : Disabled");
+            StaticVarSet(static_name_algo, 0);
+        }
+    }
+    else if (EnableAlgo == "LongOnly")
+    {
+        AlgoStatus = "Long Only";
+        GfxSetTextColor(colorYellow);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+    }
+    else if (EnableAlgo == "ShortOnly")
+    {
+        AlgoStatus = "Short Only";
+        GfxSetTextColor(colorOrange);
+        GfxTextOut("Algostatus : " + AlgoStatus, 20, 40);
+    }
+    
+    /* Display Strategy Info */
+    GfxSelectFont("BOOK ANTIQUA", 10, 400);
+    GfxSetTextColor(colorWhite);
+    GfxTextOut("Underlying: " + underlying + " | Product: " + product + " | API: OptionsMultiOrder", 20, 65);
+    GfxTextOut("Expiry Leg1: " + expiry_leg1 + " | Expiry Leg2: " + expiry_leg2, 20, 83);
+    
+    /* Display Buy Signal Configuration */
+    GfxSetTextColor(colorBrightGreen);
+    GfxTextOut("BUY Signal Config:", 20, 105);
+    GfxSetTextColor(colorWhite);
+    GfxTextOut("Leg1: " + tradetype_buyleg1 + " " + opttype_buyleg1 + " @ " + offset_buyleg1 + " | Qty: " + NumToStr(quantity_leg1, 1.0), 20, 123);
+    GfxTextOut("Leg2: " + tradetype_buyleg2 + " " + opttype_buyleg2 + " @ " + offset_buyleg2 + " | Qty: " + NumToStr(quantity_leg2, 1.0), 20, 141);
+    
+    /* Display Short Signal Configuration */
+    GfxSetTextColor(colorRed);
+    GfxTextOut("SHORT Signal Config:", 20, 163);
+    GfxSetTextColor(colorWhite);
+    GfxTextOut("Leg1: " + tradetype_shortleg1 + " " + opttype_shortleg1 + " @ " + offset_shortleg1, 20, 181);
+    GfxTextOut("Leg2: " + tradetype_shortleg2 + " " + opttype_shortleg2 + " @ " + offset_shortleg2, 20, 199);
+    
+    /* Display Position Status */
+    GfxSelectFont("BOOK ANTIQUA", 10, 700);
+    GfxSetTextColor(colorYellow);
+    GfxTextOut("=== POSITION STATUS ===", 20, 225);
+    
+    GfxSelectFont("BOOK ANTIQUA", 9, 400);
+    buyleg1_status = WriteIf(Nz(StaticVarGet(static_buyleg1_order), 0) == 1, "ACTIVE: " + StaticVarGetText(static_buyleg1_symbol), "NONE");
+    buyleg2_status = WriteIf(Nz(StaticVarGet(static_buyleg2_order), 0) == 1, "ACTIVE: " + StaticVarGetText(static_buyleg2_symbol), "NONE");
+    shortleg1_status = WriteIf(Nz(StaticVarGet(static_shortleg1_order), 0) == 1, "ACTIVE: " + StaticVarGetText(static_shortleg1_symbol), "NONE");
+    shortleg2_status = WriteIf(Nz(StaticVarGet(static_shortleg2_order), 0) == 1, "ACTIVE: " + StaticVarGetText(static_shortleg2_symbol), "NONE");
+    
+    GfxSetTextColor(colorAqua);
+    GfxTextOut("Buy Leg1: " + buyleg1_status, 20, 243);
+    GfxTextOut("Buy Leg2: " + buyleg2_status, 20, 258);
+    GfxSetTextColor(colorOrange);
+    GfxTextOut("Short Leg1: " + shortleg1_status, 20, 273);
+    GfxTextOut("Short Leg2: " + shortleg2_status, 20, 288);
+
+    /* --------------------------------------------------------------------------
+       Refresh Memory Button
+       -------------------------------------------------------------------------- */
+    btnRefreshY = 310;
+    btnRefreshW = 150;
+    btnRefreshH = 35;
+    
+    GuiButton("REFRESH MEMORY", ++IDset, 20, btnRefreshY, btnRefreshW, btnRefreshH, notifyClicked);
+    btnRefreshMemory = IDset;
+    GuiSetColors(btnRefreshMemory, btnRefreshMemory, 1, colorWhite, colorDarkTeal, colorWhite);
+    
+    /* Process Button Click Events */
+    for (i = 0; (cid = GuiGetEvent(i, 0)) > 0; i++)
+    {
+        if (GuiGetEvent(i, 1) == notifyClicked)
+        {
+            if (cid == btnRefreshMemory)
+            {
+                _TRACE("=== REFRESH MEMORY BUTTON CLICKED ===");
+                
+                /* Clear Buy Legs Position Tracking */
+                StaticVarSet(static_buyleg1_order, 0);
+                StaticVarSetText(static_buyleg1_symbol, "");
+                StaticVarSetText(static_buyleg1_exchange, "");
+                
+                StaticVarSet(static_buyleg2_order, 0);
+                StaticVarSetText(static_buyleg2_symbol, "");
+                StaticVarSetText(static_buyleg2_exchange, "");
+                
+                /* Clear Short Legs Position Tracking */
+                StaticVarSet(static_shortleg1_order, 0);
+                StaticVarSetText(static_shortleg1_symbol, "");
+                StaticVarSetText(static_shortleg1_exchange, "");
+                
+                StaticVarSet(static_shortleg2_order, 0);
+                StaticVarSetText(static_shortleg2_symbol, "");
+                StaticVarSetText(static_shortleg2_exchange, "");
+                
+                /* Clear All Signal Tracking Variables */
+                StaticVarSet(static_name_ + "buyCoverAlgo", 0);
+                StaticVarSetText(static_name_ + "buyCoverAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "buyAlgo", 0);
+                StaticVarSetText(static_name_ + "buyAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "sellAlgo", 0);
+                StaticVarSetText(static_name_ + "sellAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "ShortSellAlgo", 0);
+                StaticVarSetText(static_name_ + "ShortSellAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "ShortAlgo", 0);
+                StaticVarSetText(static_name_ + "ShortAlgo_barvalue", "");
+                
+                StaticVarSet(static_name_ + "CoverAlgo", 0);
+                StaticVarSetText(static_name_ + "CoverAlgo_barvalue", "");
+                
+                _TRACE("All Static Variables Cleared Successfully");
+                
+                if (VoiceAlert == "Enable")
+                {
+                    Say("Memory Refreshed");
+                }
+            }
+        }
+    }
+
+    /* --------------------------------------------------------------------------
+       Trading Signal Variables
+       -------------------------------------------------------------------------- */
+    AlgoBuy = LastValue(Ref(Buy, -EntryDelay));
+    AlgoSell = LastValue(Ref(Sell, -ExitDelay));
+    AlgoShort = LastValue(Ref(Short, -EntryDelay));
+    AlgoCover = LastValue(Ref(Cover, -ExitDelay));
+
+    /* --------------------------------------------------------------------------
+       Trading Logic
+       -------------------------------------------------------------------------- */
+    if (EnableAlgo != "Disable")
+    {
+        lasttime = StrFormat("%0.f", LastValue(BarIndex()));
+        SetChartBkColor(colorDarkGrey);
+
+        /* ========================================================================
+           BUY + COVER SIGNAL (Reversal from Short to Long)
+           ======================================================================== */
+        if (AlgoBuy == True AND AlgoCover == True AND StaticVarGet(static_name_ + "buyCoverAlgo") == 0 AND StaticVarGetText(static_name_ + "buyCoverAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable")
+            {
+                _TRACE("=== BUY + COVER Signal Triggered (MultiOrder) ===");
+                
+                /* Exit Short Legs First */
+                exit_sym1 = StaticVarGetText(static_shortleg1_symbol);
+                exit_exch1 = StaticVarGetText(static_shortleg1_exchange);
+                if (exit_sym1 != "" AND Nz(StaticVarGet(static_shortleg1_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym1, exit_exch1, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_shortleg1_order, 0);
+                        StaticVarSetText(static_shortleg1_symbol, "");
+                        StaticVarSetText(static_shortleg1_exchange, "");
+                        _TRACE("Short Leg1 Exit Success");
+                    }
+                }
+                
+                exit_sym2 = StaticVarGetText(static_shortleg2_symbol);
+                exit_exch2 = StaticVarGetText(static_shortleg2_exchange);
+                if (exit_sym2 != "" AND Nz(StaticVarGet(static_shortleg2_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym2, exit_exch2, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_shortleg2_order, 0);
+                        StaticVarSetText(static_shortleg2_symbol, "");
+                        StaticVarSetText(static_shortleg2_exchange, "");
+                        _TRACE("Short Leg2 Exit Success");
+                    }
+                }
+                
+                /* Place Multi-Leg Buy Entry Order */
+                response = PostMultiLegOrder(
+                    offset_buyleg1, opttype_buyleg1, tradetype_buyleg1, expiry_leg1, quantity_leg1,
+                    offset_buyleg2, opttype_buyleg2, tradetype_buyleg2, expiry_leg2, quantity_leg2,
+                    apikey, strategy, underlying, exchange, pricetype, product, host, ver
+                );
+                
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success)
+                {
+                    /* Extract Leg 1 details (API returns "leg":1) */
+                    symbol1 = StrReplace(ExtractLegValue(response, 1, "symbol"), "\"", "");
+                    exchange1 = StrReplace(ExtractLegValue(response, 1, "exchange"), "\"", "");
+                    
+                    /* Extract Leg 2 details (API returns "leg":2) */
+                    symbol2 = StrReplace(ExtractLegValue(response, 2, "symbol"), "\"", "");
+                    exchange2 = StrReplace(ExtractLegValue(response, 2, "exchange"), "\"", "");
+                    
+                    if (symbol1 != "")
+                    {
+                        StaticVarSet(static_buyleg1_order, 1);
+                        StaticVarSetText(static_buyleg1_symbol, symbol1, True);
+                        StaticVarSetText(static_buyleg1_exchange, exchange1, True);
+                        _TRACEF("Buy Leg1 Entry Success: %s on %s", symbol1, exchange1);
+                    }
+                    
+                    if (symbol2 != "")
+                    {
+                        StaticVarSet(static_buyleg2_order, 1);
+                        StaticVarSetText(static_buyleg2_symbol, symbol2, True);
+                        StaticVarSetText(static_buyleg2_exchange, exchange2, True);
+                        _TRACEF("Buy Leg2 Entry Success: %s on %s", symbol2, exchange2);
+                    }
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Buy Cover Multi Order Placed");
+                    }
+                }
+                else
+                {
+                    _TRACE("Buy MultiOrder Failed");
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Buy Order Failed");
+                    }
+                }
+                
+                StaticVarSet(static_name_ + "buyCoverAlgo", 1);
+                StaticVarSetText(static_name_ + "buyCoverAlgo_barvalue", lasttime);
+            }
+        }
+        else if (AlgoBuy != True OR AlgoCover != True)
+        {
+            StaticVarSet(static_name_ + "buyCoverAlgo", 0);
+            StaticVarSetText(static_name_ + "buyCoverAlgo_barvalue", "");
+        }
+
+        /* ========================================================================
+           BUY ONLY SIGNAL (Fresh Long Entry)
+           ======================================================================== */
+        if (AlgoBuy == True AND AlgoCover != True AND StaticVarGet(static_name_ + "buyAlgo") == 0 AND StaticVarGetText(static_name_ + "buyAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "LongOnly")
+            {
+                _TRACE("=== BUY Signal Triggered (MultiOrder) ===");
+                
+                /* Place Multi-Leg Buy Entry Order */
+                response = PostMultiLegOrder(
+                    offset_buyleg1, opttype_buyleg1, tradetype_buyleg1, expiry_leg1, quantity_leg1,
+                    offset_buyleg2, opttype_buyleg2, tradetype_buyleg2, expiry_leg2, quantity_leg2,
+                    apikey, strategy, underlying, exchange, pricetype, product, host, ver
+                );
+                
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success)
+                {
+                    /* Extract Leg 1 details (API returns "leg":1) */
+                    symbol1 = StrReplace(ExtractLegValue(response, 1, "symbol"), "\"", "");
+                    exchange1 = StrReplace(ExtractLegValue(response, 1, "exchange"), "\"", "");
+                    
+                    /* Extract Leg 2 details (API returns "leg":2) */
+                    symbol2 = StrReplace(ExtractLegValue(response, 2, "symbol"), "\"", "");
+                    exchange2 = StrReplace(ExtractLegValue(response, 2, "exchange"), "\"", "");
+                    
+                    if (symbol1 != "")
+                    {
+                        StaticVarSet(static_buyleg1_order, 1);
+                        StaticVarSetText(static_buyleg1_symbol, symbol1, True);
+                        StaticVarSetText(static_buyleg1_exchange, exchange1, True);
+                        _TRACEF("Buy Leg1 Entry Success: %s on %s", symbol1, exchange1);
+                    }
+                    
+                    if (symbol2 != "")
+                    {
+                        StaticVarSet(static_buyleg2_order, 1);
+                        StaticVarSetText(static_buyleg2_symbol, symbol2, True);
+                        StaticVarSetText(static_buyleg2_exchange, exchange2, True);
+                        _TRACEF("Buy Leg2 Entry Success: %s on %s", symbol2, exchange2);
+                    }
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Buy Multi Order Placed");
+                    }
+                }
+                else
+                {
+                    _TRACE("Buy MultiOrder Failed");
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Buy Order Failed");
+                    }
+                }
+                
+                StaticVarSet(static_name_ + "buyAlgo", 1);
+                StaticVarSetText(static_name_ + "buyAlgo_barvalue", lasttime);
+            }
+        }
+        else if (AlgoBuy != True)
+        {
+            StaticVarSet(static_name_ + "buyAlgo", 0);
+            StaticVarSetText(static_name_ + "buyAlgo_barvalue", "");
+        }
+
+        /* ========================================================================
+           SELL ONLY SIGNAL (Exit Long)
+           ======================================================================== */
+        if (AlgoSell == True AND AlgoShort != True AND StaticVarGet(static_name_ + "sellAlgo") == 0 AND StaticVarGetText(static_name_ + "sellAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "LongOnly")
+            {
+                _TRACE("=== SELL Signal Triggered ===");
+                
+                /* Exit Buy Leg 1 */
+                exit_sym1 = StaticVarGetText(static_buyleg1_symbol);
+                exit_exch1 = StaticVarGetText(static_buyleg1_exchange);
+                if (exit_sym1 != "" AND Nz(StaticVarGet(static_buyleg1_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym1, exit_exch1, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_buyleg1_order, 0);
+                        StaticVarSetText(static_buyleg1_symbol, "");
+                        StaticVarSetText(static_buyleg1_exchange, "");
+                        _TRACE("Buy Leg1 Exit Success");
+                    }
+                }
+                
+                /* Exit Buy Leg 2 */
+                exit_sym2 = StaticVarGetText(static_buyleg2_symbol);
+                exit_exch2 = StaticVarGetText(static_buyleg2_exchange);
+                if (exit_sym2 != "" AND Nz(StaticVarGet(static_buyleg2_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym2, exit_exch2, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_buyleg2_order, 0);
+                        StaticVarSetText(static_buyleg2_symbol, "");
+                        StaticVarSetText(static_buyleg2_exchange, "");
+                        _TRACE("Buy Leg2 Exit Success");
+                    }
+                }
+                
+                if (VoiceAlert == "Enable")
+                {
+                    Say("Sell Exit Order Placed");
+                }
+                
+                StaticVarSet(static_name_ + "sellAlgo", 1);
+                StaticVarSetText(static_name_ + "sellAlgo_barvalue", lasttime);
+            }
+        }
+        else if (AlgoSell != True)
+        {
+            StaticVarSet(static_name_ + "sellAlgo", 0);
+            StaticVarSetText(static_name_ + "sellAlgo_barvalue", "");
+        }
+
+        /* ========================================================================
+           SHORT + SELL SIGNAL (Reversal from Long to Short)
+           ======================================================================== */
+        if (AlgoShort == True AND AlgoSell == True AND StaticVarGet(static_name_ + "ShortSellAlgo") == 0 AND StaticVarGetText(static_name_ + "ShortSellAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable")
+            {
+                _TRACE("=== SHORT + SELL Signal Triggered (MultiOrder) ===");
+                
+                /* Exit Buy Legs First */
+                exit_sym1 = StaticVarGetText(static_buyleg1_symbol);
+                exit_exch1 = StaticVarGetText(static_buyleg1_exchange);
+                if (exit_sym1 != "" AND Nz(StaticVarGet(static_buyleg1_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym1, exit_exch1, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_buyleg1_order, 0);
+                        StaticVarSetText(static_buyleg1_symbol, "");
+                        StaticVarSetText(static_buyleg1_exchange, "");
+                        _TRACE("Buy Leg1 Exit Success");
+                    }
+                }
+                
+                exit_sym2 = StaticVarGetText(static_buyleg2_symbol);
+                exit_exch2 = StaticVarGetText(static_buyleg2_exchange);
+                if (exit_sym2 != "" AND Nz(StaticVarGet(static_buyleg2_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym2, exit_exch2, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_buyleg2_order, 0);
+                        StaticVarSetText(static_buyleg2_symbol, "");
+                        StaticVarSetText(static_buyleg2_exchange, "");
+                        _TRACE("Buy Leg2 Exit Success");
+                    }
+                }
+                
+                /* Place Multi-Leg Short Entry Order */
+                response = PostMultiLegOrder(
+                    offset_shortleg1, opttype_shortleg1, tradetype_shortleg1, expiry_leg1, quantity_leg1,
+                    offset_shortleg2, opttype_shortleg2, tradetype_shortleg2, expiry_leg2, quantity_leg2,
+                    apikey, strategy, underlying, exchange, pricetype, product, host, ver
+                );
+                
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success)
+                {
+                    /* Extract Leg 1 details (API returns "leg":1) */
+                    symbol1 = StrReplace(ExtractLegValue(response, 1, "symbol"), "\"", "");
+                    exchange1 = StrReplace(ExtractLegValue(response, 1, "exchange"), "\"", "");
+                    
+                    /* Extract Leg 2 details (API returns "leg":2) */
+                    symbol2 = StrReplace(ExtractLegValue(response, 2, "symbol"), "\"", "");
+                    exchange2 = StrReplace(ExtractLegValue(response, 2, "exchange"), "\"", "");
+                    
+                    if (symbol1 != "")
+                    {
+                        StaticVarSet(static_shortleg1_order, 1);
+                        StaticVarSetText(static_shortleg1_symbol, symbol1, True);
+                        StaticVarSetText(static_shortleg1_exchange, exchange1, True);
+                        _TRACEF("Short Leg1 Entry Success: %s on %s", symbol1, exchange1);
+                    }
+                    
+                    if (symbol2 != "")
+                    {
+                        StaticVarSet(static_shortleg2_order, 1);
+                        StaticVarSetText(static_shortleg2_symbol, symbol2, True);
+                        StaticVarSetText(static_shortleg2_exchange, exchange2, True);
+                        _TRACEF("Short Leg2 Entry Success: %s on %s", symbol2, exchange2);
+                    }
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Short Sell Multi Order Placed");
+                    }
+                }
+                else
+                {
+                    _TRACE("Short MultiOrder Failed");
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Short Order Failed");
+                    }
+                }
+                
+                StaticVarSet(static_name_ + "ShortSellAlgo", 1);
+                StaticVarSetText(static_name_ + "ShortSellAlgo_barvalue", lasttime);
+            }
+        }
+        else if (AlgoShort != True OR AlgoSell != True)
+        {
+            StaticVarSet(static_name_ + "ShortSellAlgo", 0);
+            StaticVarSetText(static_name_ + "ShortSellAlgo_barvalue", "");
+        }
+
+        /* ========================================================================
+           SHORT ONLY SIGNAL (Fresh Short Entry)
+           ======================================================================== */
+        if (AlgoShort == True AND AlgoSell != True AND StaticVarGet(static_name_ + "ShortAlgo") == 0 AND StaticVarGetText(static_name_ + "ShortAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "ShortOnly")
+            {
+                _TRACE("=== SHORT Signal Triggered (MultiOrder) ===");
+                
+                /* Place Multi-Leg Short Entry Order */
+                response = PostMultiLegOrder(
+                    offset_shortleg1, opttype_shortleg1, tradetype_shortleg1, expiry_leg1, quantity_leg1,
+                    offset_shortleg2, opttype_shortleg2, tradetype_shortleg2, expiry_leg2, quantity_leg2,
+                    apikey, strategy, underlying, exchange, pricetype, product, host, ver
+                );
+                
+                has_success = StrFind(response, "\"status\":\"success\"") >= 0;
+                
+                if (has_success)
+                {
+                    /* Extract Leg 1 details (API returns "leg":1) */
+                    symbol1 = StrReplace(ExtractLegValue(response, 1, "symbol"), "\"", "");
+                    exchange1 = StrReplace(ExtractLegValue(response, 1, "exchange"), "\"", "");
+                    
+                    /* Extract Leg 2 details (API returns "leg":2) */
+                    symbol2 = StrReplace(ExtractLegValue(response, 2, "symbol"), "\"", "");
+                    exchange2 = StrReplace(ExtractLegValue(response, 2, "exchange"), "\"", "");
+                    
+                    if (symbol1 != "")
+                    {
+                        StaticVarSet(static_shortleg1_order, 1);
+                        StaticVarSetText(static_shortleg1_symbol, symbol1, True);
+                        StaticVarSetText(static_shortleg1_exchange, exchange1, True);
+                        _TRACEF("Short Leg1 Entry Success: %s on %s", symbol1, exchange1);
+                    }
+                    
+                    if (symbol2 != "")
+                    {
+                        StaticVarSet(static_shortleg2_order, 1);
+                        StaticVarSetText(static_shortleg2_symbol, symbol2, True);
+                        StaticVarSetText(static_shortleg2_exchange, exchange2, True);
+                        _TRACEF("Short Leg2 Entry Success: %s on %s", symbol2, exchange2);
+                    }
+                    
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Short Multi Order Placed");
+                    }
+                }
+                else
+                {
+                    _TRACE("Short MultiOrder Failed");
+                    if (VoiceAlert == "Enable")
+                    {
+                        Say("Short Order Failed");
+                    }
+                }
+                
+                StaticVarSet(static_name_ + "ShortAlgo", 1);
+                StaticVarSetText(static_name_ + "ShortAlgo_barvalue", lasttime);
+            }
+        }
+        else if (AlgoShort != True)
+        {
+            StaticVarSet(static_name_ + "ShortAlgo", 0);
+            StaticVarSetText(static_name_ + "ShortAlgo_barvalue", "");
+        }
+
+        /* ========================================================================
+           COVER ONLY SIGNAL (Exit Short)
+           ======================================================================== */
+        if (AlgoCover == True AND AlgoBuy != True AND StaticVarGet(static_name_ + "CoverAlgo") == 0 AND StaticVarGetText(static_name_ + "CoverAlgo_barvalue") != lasttime)
+        {
+            if (EnableAlgo == "Enable" OR EnableAlgo == "ShortOnly")
+            {
+                _TRACE("=== COVER Signal Triggered ===");
+                
+                /* Exit Short Leg 1 */
+                exit_sym1 = StaticVarGetText(static_shortleg1_symbol);
+                exit_exch1 = StaticVarGetText(static_shortleg1_exchange);
+                if (exit_sym1 != "" AND Nz(StaticVarGet(static_shortleg1_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym1, exit_exch1, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_shortleg1_order, 0);
+                        StaticVarSetText(static_shortleg1_symbol, "");
+                        StaticVarSetText(static_shortleg1_exchange, "");
+                        _TRACE("Short Leg1 Exit Success");
+                    }
+                }
+                
+                /* Exit Short Leg 2 */
+                exit_sym2 = StaticVarGetText(static_shortleg2_symbol);
+                exit_exch2 = StaticVarGetText(static_shortleg2_exchange);
+                if (exit_sym2 != "" AND Nz(StaticVarGet(static_shortleg2_order), 0) == 1)
+                {
+                    response = ExitPosition(exit_sym2, exit_exch2, product, apikey, strategy, host, ver);
+                    if (StrFind(response, "\"status\":\"success\"") >= 0)
+                    {
+                        StaticVarSet(static_shortleg2_order, 0);
+                        StaticVarSetText(static_shortleg2_symbol, "");
+                        StaticVarSetText(static_shortleg2_exchange, "");
+                        _TRACE("Short Leg2 Exit Success");
+                    }
+                }
+                
+                if (VoiceAlert == "Enable")
+                {
+                    Say("Cover Exit Order Placed");
+                }
+                
+                StaticVarSet(static_name_ + "CoverAlgo", 1);
+                StaticVarSetText(static_name_ + "CoverAlgo_barvalue", lasttime);
+            }
+        }
+        else if (AlgoCover != True)
+        {
+            StaticVarSet(static_name_ + "CoverAlgo", 0);
+            StaticVarSetText(static_name_ + "CoverAlgo_barvalue", "");
+        }
+    }
+}
+
 _SECTION_END();
 ```
 
