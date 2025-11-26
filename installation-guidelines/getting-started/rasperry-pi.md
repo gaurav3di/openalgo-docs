@@ -4,6 +4,8 @@
 
 **This guide helps you install and configure OpenAlgo on Raspberry Pi models 3, 4, or 5 (4GB+ RAM), preferably running Ubuntu 24.04+ server edition.**
 
+<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
 ### Hardware & OS Recommendations
 
 * **Raspberry Pi Model**: 3, 4, or 5 (minimum 4GB RAM)

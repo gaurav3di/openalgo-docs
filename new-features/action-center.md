@@ -4,7 +4,7 @@
 
 **Action Center** is like a "shopping cart approval system" for your trading orders. Instead of orders executing immediately, they wait in a queue for you to manually review and approve them before they go to your broker.
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
 
 
