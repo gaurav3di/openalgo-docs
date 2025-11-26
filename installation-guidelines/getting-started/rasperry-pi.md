@@ -13,6 +13,8 @@
 * **Operating System**: Ubuntu 24.04+ Server edition (preferred)
 * **RPi official power adapter**: Recommended to buy for stable power supply and avoid RPi abrupt shutdowns and restarts. [Get Ubuntu images for Raspberry Pi](https://ubuntu.com/download/raspberry-pi)
 
+<figure><img src="../../.gitbook/assets/image (145).png" alt=""><figcaption></figcaption></figure>
+
 ### Initial System Preparation
 
 #### 1. Flash OS to SD Card
