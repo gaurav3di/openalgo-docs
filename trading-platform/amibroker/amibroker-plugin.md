@@ -26,7 +26,7 @@ This guide will walk you through the installation and configuration of the OpenA
 -Visual LED indicator in AmiBroker status bar\
 -Supports Mixed EOD Timeframe
 
-<figure><img src="../../.gitbook/assets/Amibroker Charts.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/Amibroker Charts (1).png" alt=""><figcaption></figcaption></figure>
 
 ### Installation Steps
 

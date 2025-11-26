@@ -4,7 +4,7 @@
 
 This document provides a comprehensive guide to understanding, measuring, and optimizing latency in OpenAlgo. After extensive performance engineering, we've reduced platform overhead by 95% (from 117ms to 5-10ms), making OpenAlgo one of the fastest retail algo trading platforms available.
 
-<figure><img src=".gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
