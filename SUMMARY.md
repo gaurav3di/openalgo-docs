@@ -122,6 +122,7 @@
     * [SyntheticFuture](api-documentation/v1/data-api/syntheticfuture.md)
     * [Expiry](api-documentation/v1/data-api/expiry.md)
     * [OptionSymbol](api-documentation/v1/data-api/optionsymbol.md)
+    * [Option Chain](api-documentation/v1/data-api/option-chain.md)
     * [OptionGreeks](api-documentation/v1/data-api/optiongreeks.md)
     * [Ticker](api-documentation/v1/data-api/ticker.md)
     * [Instruments](api-documentation/v1/data-api/instruments.md)
