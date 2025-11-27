@@ -817,6 +817,201 @@ print(response)
 }
 ```
 
+### OptionChain Example
+
+Note : To fetch entire option chain for a expiry remove the strike\_count (optional) parameter
+
+```python
+chain = client.optionchain(
+    underlying="NIFTY",
+    exchange="NSE_INDEX",
+    expiry_date="30DEC25",
+    strike_count=10
+)
+```
+
+**Symbols Response**
+
+```json
+{
+    "status": "success",
+    "underlying": "NIFTY",
+    "underlying_ltp": 26215.55,
+    "expiry_date": "30DEC25",
+    "atm_strike": 26200.0,
+    "chain": [
+        {
+            "strike": 26100.0,
+            "ce": {
+                "symbol": "NIFTY30DEC2526100CE",
+                "label": "ITM2",
+                "ltp": 490,
+                "bid": 490,
+                "ask": 491,
+                "open": 540,
+                "high": 571,
+                "low": 444.75,
+                "prev_close": 496.8,
+                "volume": 1195800,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            },
+            "pe": {
+                "symbol": "NIFTY30DEC2526100PE",
+                "label": "OTM2",
+                "ltp": 193,
+                "bid": 191.2,
+                "ask": 193,
+                "open": 204.1,
+                "high": 229.95,
+                "low": 175.6,
+                "prev_close": 215.95,
+                "volume": 1832700,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            }
+        },
+        {
+            "strike": 26150.0,
+            "ce": {
+                "symbol": "NIFTY30DEC2526150CE",
+                "label": "ITM1",
+                "ltp": 460.5,
+                "bid": 452.9,
+                "ask": 463,
+                "open": 475.8,
+                "high": 535.7,
+                "low": 414.6,
+                "prev_close": 461.05,
+                "volume": 183525,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            },
+            "pe": {
+                "symbol": "NIFTY30DEC2526150PE",
+                "label": "OTM1",
+                "ltp": 208.5,
+                "bid": 207.85,
+                "ask": 210.1,
+                "open": 218.2,
+                "high": 248.8,
+                "low": 190.75,
+                "prev_close": 233.7,
+                "volume": 332100,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            }
+        },
+        {
+            "strike": 26200.0,
+            "ce": {
+                "symbol": "NIFTY30DEC2526200CE",
+                "label": "ATM",
+                "ltp": 427,
+                "bid": 425.05,
+                "ask": 427,
+                "open": 449.95,
+                "high": 503.5,
+                "low": 384,
+                "prev_close": 433.2,
+                "volume": 2994000,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            },
+            "pe": {
+                "symbol": "NIFTY30DEC2526200PE",
+                "label": "ATM",
+                "ltp": 227.4,
+                "bid": 227.35,
+                "ask": 228.5,
+                "open": 251.9,
+                "high": 269.15,
+                "low": 205.95,
+                "prev_close": 251.9,
+                "volume": 3745350,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            }
+        },
+        {
+            "strike": 26250.0,
+            "ce": {
+                "symbol": "NIFTY30DEC2526250CE",
+                "label": "OTM1",
+                "ltp": 398,
+                "bid": 395.4,
+                "ask": 400.5,
+                "open": 442.1,
+                "high": 468.5,
+                "low": 355.75,
+                "prev_close": 401.9,
+                "volume": 407100,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            },
+            "pe": {
+                "symbol": "NIFTY30DEC2526250PE",
+                "label": "ITM1",
+                "ltp": 243.85,
+                "bid": 243.6,
+                "ask": 246.15,
+                "open": 264.25,
+                "high": 288,
+                "low": 222.15,
+                "prev_close": 269.7,
+                "volume": 487575,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            }
+        },
+        {
+            "strike": 26300.0,
+            "ce": {
+                "symbol": "NIFTY30DEC2526300CE",
+                "label": "OTM2",
+                "ltp": 367.55,
+                "bid": 364,
+                "ask": 367.55,
+                "open": 378,
+                "high": 437.4,
+                "low": 327.25,
+                "prev_close": 371.45,
+                "volume": 2416350,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            },
+            "pe": {
+                "symbol": "NIFTY30DEC2526300PE",
+                "label": "ITM2",
+                "ltp": 266,
+                "bid": 264.2,
+                "ask": 266.5,
+                "open": 263.1,
+                "high": 311.55,
+                "low": 240,
+                "prev_close": 289.85,
+                "volume": 2891100,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            }
+        }
+    ]
+}
+
+```
+
+
+
 ### Symbol Example
 
 ```python
