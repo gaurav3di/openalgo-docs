@@ -18,15 +18,16 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 {
     "apikey": "<your_app_apikey>",
     "strategy": "test_strategy",
-    "underlying": "NIFTY28OCT25FUT",
+    "underlying": "NIFTY30DEC25FUT",
     "exchange": "NFO",
-    "expiry_date": "28OCT25",
+    "expiry_date": "30DEC25",
     "offset": "ITM2",
     "option_type": "CE",
     "action": "BUY",
     "quantity": 75,
     "pricetype": "MARKET",
-    "product": "NRML"
+    "product": "NRML",
+    "splitsize": 0
 }
 ```
 
@@ -38,9 +39,9 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 {
     "status": "success",
     "orderid": "25102700000020",
-    "symbol": "NIFTY28OCT2525850CE",
+    "symbol": "NIFTY30DEC2525850CE",
     "exchange": "NFO",
-    "underlying": "NIFTY28OCT25FUT",
+    "underlying": "NIFTY30DEC25FUT",
     "underlying_ltp": 25966.05,
     "offset": "ITM2",
     "option_type": "CE",
@@ -58,16 +59,14 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "strategy": "nifty_weekly",
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "25NOV25",
+    "expiry_date": "30DEC25",
     "offset": "ATM",
     "option_type": "CE",
     "action": "BUY",
     "quantity": 75,
     "pricetype": "MARKET",
     "product": "MIS",
-    "price": "0",
-    "trigger_price": "0",
-    "disclosed_quantity": "0"
+    "splitsize": 0
 }
 ```
 
@@ -79,10 +78,10 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 {
     "status": "success",
     "orderid": "240123000001234",
-    "symbol": "NIFTY25NOV2526000CE",
+    "symbol": "NIFTY30DEC2524000CE",
     "exchange": "NFO",
     "underlying": "NIFTY",
-    "underlying_ltp": 26987.50,
+    "underlying_ltp": 23987.50,
     "offset": "ATM",
     "option_type": "CE"
 }
@@ -98,7 +97,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "strategy": "nifty_scalping",
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "25NOV25",
+    "expiry_date": "30DEC25",
     "offset": "OTM1",
     "option_type": "CE",
     "action": "BUY",
@@ -106,8 +105,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "pricetype": "LIMIT",
     "product": "MIS",
     "price": "50.0",
-    "trigger_price": "0",
-    "disclosed_quantity": "0"
+    "splitsize": 0
 }
 ```
 
@@ -121,7 +119,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "strategy": "protective_stop",
     "underlying": "BANKNIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "25NOV25",
+    "expiry_date": "30DEC25",
     "offset": "ATM",
     "option_type": "PE",
     "action": "SELL",
@@ -130,7 +128,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "product": "MIS",
     "price": "100.0",
     "trigger_price": "105.0",
-    "disclosed_quantity": "0"
+    "splitsize": 0
 }
 ```
 
@@ -142,20 +140,21 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 | ------------------- | ---------------------------------------------------------- | ------------------ | ------------- |
 | apikey              | App API key                                                | Mandatory          | -             |
 | strategy            | Strategy name                                              | Mandatory          | -             |
-| underlying          | Underlying symbol (NIFTY, BANKNIFTY, NIFTY28OCT25FUT)      | Mandatory          | -             |
+| underlying          | Underlying symbol (NIFTY, BANKNIFTY, NIFTY30DEC25FUT)      | Mandatory          | -             |
 | exchange            | Exchange code (NSE\_INDEX, NSE, NFO, BSE\_INDEX, BSE, BFO) | Mandatory          | -             |
-| expiry\_date        | Expiry date in DDMMMYY format (e.g., 28OCT25)              | Optional\*         | -             |
+| expiry\_date        | Expiry date in DDMMMYY format (e.g., 30DEC25)              | Mandatory          | -             |
 | offset              | Strike offset (ATM, ITM1-ITM50, OTM1-OTM50)                | Mandatory          | -             |
 | option\_type        | Option type (CE for Call, PE for Put)                      | Mandatory          | -             |
 | action              | Action (BUY/SELL)                                          | Mandatory          | -             |
 | quantity            | Quantity (must be multiple of lot size)                    | Mandatory          | -             |
+| splitsize           | Auto-split order into chunks of this size (0=no split)     | Optional           | 0             |
 | pricetype           | Price type (MARKET/LIMIT/SL/SL-M)                          | Optional           | MARKET        |
 | product             | Product type (MIS/NRML)\*\*                                | Optional           | MIS           |
 | price               | Limit price                                                | Optional           | 0             |
 | trigger\_price      | Trigger price for SL orders                                | Optional           | 0             |
 | disclosed\_quantity | Disclosed quantity                                         | Optional           | 0             |
 
-\*Note: expiry\_date is optional if underlying includes expiry (e.g., NIFTY28OCT25FUT) \*\*Note: Options only support MIS and NRML products (CNC not supported)
+\*\*Note: Options only support MIS and NRML products (CNC not supported)
 
 ####
 
@@ -221,13 +220,14 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "strategy": "straddle",
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "25NOV25",
+    "expiry_date": "30DEC25",
     "offset": "ATM",
     "option_type": "CE",
     "action": "BUY",
     "quantity": 75,
     "pricetype": "MARKET",
-    "product": "MIS"
+    "product": "MIS",
+    "splitsize": 0
 }
 ```
 
@@ -239,98 +239,35 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
     "strategy": "straddle",
     "underlying": "NIFTY",
     "exchange": "NSE_INDEX",
-    "expiry_date": "25NOV25",
+    "expiry_date": "30DEC25",
     "offset": "ATM",
     "option_type": "PE",
     "action": "BUY",
     "quantity": 75,
     "pricetype": "MARKET",
-    "product": "MIS"
+    "product": "MIS",
+    "splitsize": 0
 }
 ```
 
-#### 2. Iron Condor (4 Legs)
-
-**Leg 1: Sell OTM1 Call**
+#### 2. Covered Call (Equity + Short Call)
 
 ```json
 {
-    "underlying": "NIFTY",
-    "offset": "OTM1",
-    "option_type": "CE",
-    "action": "SELL",
-    "quantity": 75
-}
-```
-
-**Leg 2: Sell OTM1 Put**
-
-```json
-{
-    "underlying": "NIFTY",
-    "offset": "OTM1",
-    "option_type": "PE",
-    "action": "SELL",
-    "quantity": 75
-}
-```
-
-**Leg 3: Buy OTM3 Call**
-
-```json
-{
-    "underlying": "NIFTY",
-    "offset": "OTM3",
-    "option_type": "CE",
-    "action": "BUY",
-    "quantity": 75
-}
-```
-
-**Leg 4: Buy OTM3 Put**
-
-```json
-{
-    "underlying": "NIFTY",
-    "offset": "OTM3",
-    "option_type": "PE",
-    "action": "BUY",
-    "quantity": 75
-}
-```
-
-#### 3. Covered Call (Equity + Short Call)
-
-```json
-{
-    "apikey": "your_api_key",
+    "apikey": "<your_app_apikey>",
     "strategy": "covered_call",
     "underlying": "RELIANCE",
     "exchange": "NSE",
-    "expiry_date": "25NOV25",
+    "expiry_date": "30DEC25",
     "offset": "OTM2",
     "option_type": "CE",
     "action": "SELL",
     "quantity": 1000,
     "pricetype": "MARKET",
-    "product": "NRML"
+    "product": "NRML",
+    "splitsize": 0
 }
 ```
-
-####
-
-### Lot Size Reference
-
-| Underlying | Lot Size | Strike Interval | Exchange   |
-| ---------- | -------- | --------------- | ---------- |
-| NIFTY      | 25       | 50              | NSE\_INDEX |
-| BANKNIFTY  | 15       | 100             | NSE\_INDEX |
-| FINNIFTY   | 25       | 50              | NSE\_INDEX |
-| MIDCPNIFTY | 50       | 25              | NSE\_INDEX |
-| SENSEX     | 10       | 100             | BSE\_INDEX |
-| BANKEX     | 15       | 100             | BSE\_INDEX |
-
-**Note**: For equity options, lot size varies. Check contract specifications.
 
 ####
 
@@ -339,7 +276,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 ```json
 {
     "status": "error",
-    "message": "Option symbol NIFTY28NOV2425500CE not found in NFO. Symbol may not exist or master contract needs update."
+    "message": "Option symbol NIFTY30DEC2525500CE not found in NFO. Symbol may not exist or master contract needs update."
 }
 ```
 
@@ -347,13 +284,13 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 
 ### Common Error Messages
 
-| Error Message                       | Cause                           | Solution                     |
-| ----------------------------------- | ------------------------------- | ---------------------------- |
-| Invalid openalgo apikey             | API key is incorrect or expired | Check API key in settings    |
-| Option symbol not found             | Calculated strike doesn't exist | Check strike\_int and offset |
-| Quantity must be a positive integer | Invalid quantity value          | Provide valid quantity       |
-| Insufficient funds                  | Not enough margin (Live mode)   | Add funds or reduce quantity |
-| Master contract needs update        | Symbol database is outdated     | Update master contract data  |
+| Error Message                       | Cause                           | Solution                      |
+| ----------------------------------- | ------------------------------- | ----------------------------- |
+| Invalid openalgo apikey             | API key is incorrect or expired | Check API key in settings     |
+| Option symbol not found             | Calculated strike doesn't exist | Check offset and expiry\_date |
+| Quantity must be a positive integer | Invalid quantity value          | Provide valid quantity        |
+| Insufficient funds                  | Not enough margin (Live mode)   | Add funds or reduce quantity  |
+| Master contract needs update        | Symbol database is outdated     | Update master contract data   |
 
 ####
 
@@ -381,7 +318,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsorder
 
 1. **Test in Analyze Mode First**: Enable Analyze Mode to test strategies without real money
 2. **Verify Lot Size**: Ensure quantity is a multiple of lot size
-3. **Check Strike Intervals**: Use correct strike\_int for each underlying (50 for NIFTY, 100 for BANKNIFTY)
+3. **Verify Offset**: Ensure offset value is valid (ATM, ITM1-ITM50, OTM1-OTM50)
 4. **Use Appropriate Product**: MIS for intraday, NRML for overnight
 5. **Handle Errors**: Implement error handling for failed orders
 6. **Monitor Margin**: Check available margin before placing orders
