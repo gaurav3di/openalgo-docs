@@ -35,6 +35,7 @@
   * [IIFL (XTS)](connect-brokers/brokers/iifl-xts.md)
   * [IndMoney (INDstocks)](connect-brokers/brokers/indmoney.md)
   * [IndiaBulls Securities](connect-brokers/brokers/indiabulls-securities.md)
+  * [JainamXTS](connect-brokers/brokers/jainamxts.md)
   * [Kotak Securities](connect-brokers/brokers/kotak-securities.md)
   * [Motilal Oswal](connect-brokers/brokers/motilal-oswal.md)
   * [Mstock](connect-brokers/brokers/mstock.md)
