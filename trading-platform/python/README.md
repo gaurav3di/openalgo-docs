@@ -125,7 +125,8 @@ response = client.optionsorder(
       action="BUY",
       quantity=75,
       pricetype="MARKET",
-      product="NRML"
+      product="NRML",
+      splitsize = 0
   )
 
 print(response)
@@ -159,7 +160,8 @@ response = client.optionsorder(
       action="BUY",
       quantity=75,
       pricetype="MARKET",
-      product="NRML"
+      product="NRML",
+      splitsize = 0
   )
 
 print(response)
@@ -193,7 +195,8 @@ response = client.optionsorder(
       action="BUY",
       quantity=75,
       pricetype="MARKET",
-      product="NRML"
+      product="NRML",
+      splitsize = 0
   )
 
 print(response)
