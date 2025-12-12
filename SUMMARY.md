@@ -41,6 +41,7 @@
   * [Mstock](connect-brokers/brokers/mstock.md)
   * [Paytm](connect-brokers/brokers/paytm.md)
   * [Pocketful](connect-brokers/brokers/pocketful.md)
+  * [Samco](connect-brokers/brokers/samco.md)
   * [Shoonya](connect-brokers/brokers/shoonya.md)
   * [Tradejini](connect-brokers/brokers/tradejini.md)
   * [Upstox](connect-brokers/brokers/upstox.md)
