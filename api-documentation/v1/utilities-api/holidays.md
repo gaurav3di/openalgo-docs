@@ -17,7 +17,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/market/holidays
 ```json
 {
     "apikey": "<your_app_apikey>",
-    "year": 2026
+    "year": 2025
 }
 ```
 
@@ -25,89 +25,46 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/market/holidays
 
 ```json
 {
-"data": [
-    {
-      "closed_exchanges": [
-        "NSE",
-        "BSE",
-        "NFO",
-        "BFO",
-        "CDS",
-        "BCD",
-        "MCX"
-      ],
-      "date": "2026-01-26",
-      "description": "Republic Day",
-      "holiday_type": "TRADING_HOLIDAY",
-      "open_exchanges": []
-    },
-    {
-      "closed_exchanges": [],
-      "date": "2026-02-19",
-      "description": "Chhatrapati Shivaji Maharaj Jayanti",
-      "holiday_type": "SETTLEMENT_HOLIDAY",
-      "open_exchanges": []
-    },
-    {
-      "closed_exchanges": [
-        "NSE",
-        "BSE",
-        "NFO",
-        "BFO",
-        "CDS",
-        "BCD"
-      ],
-      "date": "2026-03-10",
-      "description": "Holi",
-      "holiday_type": "TRADING_HOLIDAY",
-      "open_exchanges": [
+    "status": "success",
+    "year": 2025,
+    "timezone": "Asia/Kolkata",
+    "data": [
         {
-          "end_time": 1741677900000,
-          "exchange": "MCX",
-          "start_time": 1741624200000
-        }
-      ]
-    },
-    {
-      "closed_exchanges": [
-        "NSE",
-        "BSE",
-        "NFO",
-        "BFO",
-        "CDS",
-        "BCD"
-      ],
-      "date": "2026-03-20",
-      "description": "Id-Ul-Fitr (Ramadan)",
-      "holiday_type": "TRADING_HOLIDAY",
-      "open_exchanges": [
+            "date": "2025-02-26",
+            "description": "Maha Shivaratri",
+            "holiday_type": "TRADING_HOLIDAY",
+            "closed_exchanges": ["NSE", "BSE", "NFO", "BFO", "CDS", "BCD"],
+            "open_exchanges": [
+                {
+                    "exchange": "MCX",
+                    "start_time": 1740549000000,
+                    "end_time": 1740602700000
+                }
+            ]
+        },
         {
-          "end_time": 1742541900000,
-          "exchange": "MCX",
-          "start_time": 1742488200000
-        }
-      ]
-    },
-    {
-      "closed_exchanges": [
-        "NSE",
-        "BSE",
-        "NFO",
-        "BFO",
-        "CDS",
-        "BCD"
-      ],
-      "date": "2026-03-25",
-      "description": "Holi (Dhuleti)",
-      "holiday_type": "TRADING_HOLIDAY",
-      "open_exchanges": [
+            "date": "2025-04-18",
+            "description": "Good Friday",
+            "holiday_type": "TRADING_HOLIDAY",
+            "closed_exchanges": ["NSE", "BSE", "NFO", "BFO", "CDS", "BCD", "MCX"],
+            "open_exchanges": []
+        },
         {
-          "end_time": 1742973900000,
-          "exchange": "MCX",
-          "start_time": 1742920200000
+            "date": "2025-11-01",
+            "description": "Diwali Laxmi Pujan (Muhurat Trading)",
+            "holiday_type": "SPECIAL_SESSION",
+            "closed_exchanges": [],
+            "open_exchanges": [
+                {"exchange": "NSE", "start_time": 1730469000000, "end_time": 1730473500000},
+                {"exchange": "BSE", "start_time": 1730469000000, "end_time": 1730473500000},
+                {"exchange": "NFO", "start_time": 1730469000000, "end_time": 1730473500000},
+                {"exchange": "BFO", "start_time": 1730469000000, "end_time": 1730473500000},
+                {"exchange": "CDS", "start_time": 1730469000000, "end_time": 1730473500000},
+                {"exchange": "BCD", "start_time": 1730469000000, "end_time": 1730473500000},
+                {"exchange": "MCX", "start_time": 1730469000000, "end_time": 1730491500000}
+            ]
         }
-      ]
-    }
+    ]
 }
 ```
 
