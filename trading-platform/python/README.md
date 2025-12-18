@@ -1589,7 +1589,7 @@ Holdings Response
 ### Holidays Example
 
 ```python
-response = client.holidays()
+response = client.holidays(year=2026)
 print(response)
 ```
 
