@@ -6,29 +6,6 @@
 
 ***
 
-### Table of Contents
-
-1. Executive Summary
-2. Password & Credential Security
-3. API Key Security
-4. Encryption
-5. Session Security
-6. CSRF Protection
-7. Rate Limiting
-8. Input Validation
-9. SQL Injection Prevention
-10. XSS Prevention
-11. IP Security & Banning
-12. Logging & Audit Trails
-13. Docker Security
-14. CORS Configuration
-15. Security Headers
-16. Multi-Factor Authentication
-17. Vulnerability Management
-18. Security Libraries
-
-***
-
 ### Executive Summary
 
 OpenAlgo implements **enterprise-grade security** with a defense-in-depth approach across all layers of the application. This document details all strong security practices currently implemented in the codebase.
