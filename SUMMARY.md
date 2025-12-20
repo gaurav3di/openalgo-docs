@@ -224,6 +224,7 @@
 
 * [Architecture](security/architecture.md)
 * [Ban IP](security/ban-ip.md)
+* [Practices](security/practices.md)
 
 ## Change Log
 
