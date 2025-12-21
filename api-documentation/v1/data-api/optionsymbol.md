@@ -16,12 +16,12 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 
 ```json
 {
-    "apikey": "eb51c74ed08ffc821fd5da90b55b7560a3a9e48fd58df01063225ecd7b98c993",
-    "underlying": "NIFTY",
-    "exchange": "NSE_INDEX",
-    "expiry_date": "28OCT25",
-    "offset": "ITM2",
-    "option_type": "CE"
+  "apikey": "43fd92f1d8f036c15e50e1a5f6e216564f211013bd6cd40946b2ff2129da3739",
+  "exchange": "NSE_INDEX",
+  "expiry_date": "30DEC25",
+  "offset": "ITM2",
+  "option_type": "CE",
+  "underlying": "NIFTY"
 }
 ```
 
@@ -31,12 +31,13 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 
 ```json
 {
-    "status": "success",
-    "symbol": "NIFTY28OCT2525850CE",
-    "exchange": "NFO",
-    "lotsize": 75,
-    "tick_size": 0.05,
-    "underlying_ltp": 25966.05
+  "status": "success",
+  "symbol": "NIFTY30DEC2525850CE",
+  "exchange": "NFO",
+  "lotsize": 75,
+  "tick_size": 5,
+  "freeze_qty": 1800,
+  "underlying_ltp": 25966.4
 }
 ```
 
@@ -46,11 +47,12 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 
 ```json
 {
-    "apikey": "eb51c74ed08ffc821fd5da90b55b7560a3a9e48fd58df01063225ecd7b98c993",
-    "underlying": "NIFTY28OCT25FUT",
-    "exchange": "NFO",
-    "offset": "ITM2",
-    "option_type": "CE"
+  "apikey": "43fd92f1d8f036c15e50e1a5f6e216564f211013bd6cd40946b2ff2129da3739",
+  "exchange": "NSE_INDEX",
+  "expiry_date": "30DEC25",
+  "offset": "OTM2",
+  "option_type": "PE",
+  "underlying": "BANKNIFTY"
 }
 ```
 
@@ -60,12 +62,13 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 
 ```json
 {
-    "status": "success",
-    "symbol": "NIFTY28OCT2525850CE",
-    "exchange": "NFO",
-    "lotsize": 75,
-    "tick_size": 0.05,
-    "underlying_ltp": 25966.05
+  "status": "success",
+  "symbol": "BANKNIFTY30DEC2558900PE",
+  "exchange": "NFO",
+  "lotsize": 35,
+  "tick_size": 5,
+  "freeze_qty": 600,
+  "underlying_ltp": 59069.2
 }
 ```
 
@@ -97,6 +100,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/optionsymbol
 | lotsize         | Lot size of the option contract      | number |
 | tick\_size      | Minimum price movement               | number |
 | underlying\_ltp | Last Traded Price of underlying      | number |
+| freeze\_qty     | Freeze Quantity                      | number |
 
 ####
 

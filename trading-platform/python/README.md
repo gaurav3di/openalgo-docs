@@ -1019,8 +1019,8 @@ chain = client.optionchain(
 
 ```python
 response = client.symbol(
-            symbol="RELIANCE",
-            exchange="NSE"
+            symbol="NIFTY30DEC25FUT",
+            exchange="NFO"
             )
 print(response)
 ```
@@ -1029,28 +1029,29 @@ print(response)
 
 ```json
 {
-  "status": "success",
   "data": {
-    "id": 979,
-    "name": "RELIANCE",
-    "symbol": "RELIANCE",
-    "brsymbol": "RELIANCE-EQ",
-    "exchange": "NSE",
-    "brexchange": "NSE",
-    "instrumenttype": "",
-    "expiry": "",
-    "strike": -0.01,
-    "lotsize": 1,
-    "tick_size": 0.05,
-    "token": "2885"
-  }
+    "brexchange": "NSE_FO",
+    "brsymbol": "NIFTY FUT 30 DEC 25",
+    "exchange": "NFO",
+    "expiry": "30-DEC-25",
+    "freeze_qty": 1800,
+    "id": 57900,
+    "instrumenttype": "FUT",
+    "lotsize": 75,
+    "name": "NIFTY",
+    "strike": 0,
+    "symbol": "NIFTY30DEC25FUT",
+    "tick_size": 10,
+    "token": "NSE_FO|49543"
+  },
+  "status": "success"
 }
 ```
 
 ### Search Example
 
 ```python
-response = client.search(query="NIFTY 25000 JUL CE",exchange="NFO")
+response = client.search(query="NIFTY 26000 DEC CE",exchange="NFO")
 print(response)
 ```
 
@@ -1060,46 +1061,105 @@ print(response)
 {
   "data": [
     {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY17JUL2525000CE",
+      "brexchange": "NSE_FO",
+      "brsymbol": "NIFTY 26000 CE 30 DEC 25",
       "exchange": "NFO",
-      "expiry": "17-JUL-25",
-      "instrumenttype": "OPTIDX",
+      "expiry": "30-DEC-25",
+      "freeze_qty": 1800,
+      "instrumenttype": "CE",
       "lotsize": 75,
       "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY17JUL2525000CE",
-      "tick_size": 0.05,
-      "token": "47275"
+      "strike": 26000,
+      "symbol": "NIFTY30DEC2526000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|71399"
     },
     {
-      "brexchange": "NFO",
-      "brsymbol": "FINNIFTY31JUL2525000CE",
+      "brexchange": "NSE_FO",
+      "brsymbol": "NIFTY 26000 CE 29 DEC 26",
       "exchange": "NFO",
-      "expiry": "31-JUL-25",
-      "instrumenttype": "OPTIDX",
+      "expiry": "29-DEC-26",
+      "freeze_qty": 1800,
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 26000,
+      "symbol": "NIFTY29DEC2626000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|71505"
+    },
+    {
+      "brexchange": "NSE_FO",
+      "brsymbol": "NIFTY 26000 CE 26 DEC 28",
+      "exchange": "NFO",
+      "expiry": "26-DEC-28",
+      "freeze_qty": 1800,
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 26000,
+      "symbol": "NIFTY26DEC2826000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|67786"
+    },
+    {
+      "brexchange": "NSE_FO",
+      "brsymbol": "NIFTY 26000 CE 28 DEC 27",
+      "exchange": "NFO",
+      "expiry": "28-DEC-27",
+      "freeze_qty": 1800,
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 26000,
+      "symbol": "NIFTY28DEC2726000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|53628"
+    },
+    {
+      "brexchange": "NSE_FO",
+      "brsymbol": "FINNIFTY 26000 CE 30 DEC 25",
+      "exchange": "NFO",
+      "expiry": "30-DEC-25",
+      "freeze_qty": 1200,
+      "instrumenttype": "CE",
       "lotsize": 65,
       "name": "FINNIFTY",
-      "strike": 25000,
-      "symbol": "FINNIFTY31JUL2525000CE",
-      "tick_size": 0.05,
-      "token": "54763"
+      "strike": 26000,
+      "symbol": "FINNIFTY30DEC2526000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|61709"
     },
     {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY24JUL2525000CE",
+      "brexchange": "NSE_FO",
+      "brsymbol": "NIFTY 26000 CE 24 DEC 29",
       "exchange": "NFO",
-      "expiry": "24-JUL-25",
-      "instrumenttype": "OPTIDX",
+      "expiry": "24-DEC-29",
+      "freeze_qty": 1800,
+      "instrumenttype": "CE",
       "lotsize": 75,
       "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY24JUL2525000CE",
-      "tick_size": 0.05,
-      "token": "49487"
+      "strike": 26000,
+      "symbol": "NIFTY24DEC2926000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|61778"
+    },
+    {
+      "brexchange": "NSE_FO",
+      "brsymbol": "NIFTY 26000 CE 23 DEC 25",
+      "exchange": "NFO",
+      "expiry": "23-DEC-25",
+      "freeze_qty": 1800,
+      "instrumenttype": "CE",
+      "lotsize": 75,
+      "name": "NIFTY",
+      "strike": 26000,
+      "symbol": "NIFTY23DEC2526000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|57005"
     }
   ],
-  "message": "Found 6 matching symbols",
+  "message": "Found 7 matching symbols",
   "status": "success"
 }
 ```
@@ -1112,7 +1172,7 @@ ATM Option
 response = client.optionsymbol(
       underlying="NIFTY",
       exchange="NSE_INDEX",
-      expiry_date="28OCT25",
+      expiry_date="30DEC25",
       offset="ATM",
       option_type="CE"
   )
@@ -1125,11 +1185,12 @@ print(response)
 ```json
 {
   "status": "success",
-  "symbol": "NIFTY28OCT2525950CE",
+  "symbol": "NIFTY30DEC2525950CE",
   "exchange": "NFO",
   "lotsize": 75,
-  "tick_size": 0.05,
-  "underlying_ltp": 25966.05
+  "tick_size": 5,
+  "freeze_qty": 1800,
+  "underlying_ltp": 25966.4
 }
 ```
 
@@ -1139,7 +1200,7 @@ ITM Option
 response = client.optionsymbol(
       underlying="NIFTY",
       exchange="NSE_INDEX",
-      expiry_date="28OCT25",
+      expiry_date="30DEC25",
       offset="ITM3",
       option_type="PE"
   )
@@ -1152,11 +1213,12 @@ print(response)
 ```json
 {
   "status": "success",
-  "symbol": "NIFTY28OCT2526100PE",
+  "symbol": "NIFTY30DEC2526100PE",
   "exchange": "NFO",
   "lotsize": 75,
-  "tick_size": 0.05,
-  "underlying_ltp": 25966.05
+  "tick_size": 5,
+  "freeze_qty": 1800,
+  "underlying_ltp": 25966.4
 }
 ```
 
@@ -1166,7 +1228,7 @@ OTM Option
 response = client.optionsymbol(
       underlying="NIFTY",
       exchange="NSE_INDEX",
-      expiry_date="28OCT25",
+      expiry_date="30DEC25",
       offset="OTM4",
       option_type="CE"
   )
@@ -1179,11 +1241,12 @@ print(response)
 ```json
 {
   "status": "success",
-  "symbol": "NIFTY28OCT2526150CE",
+  "symbol": "NIFTY30DEC2526150CE",
   "exchange": "NFO",
   "lotsize": 75,
-  "tick_size": 0.05,
-  "underlying_ltp": 25966.05
+  "tick_size": 5,
+  "freeze_qty": 1800,
+  "underlying_ltp": 25966.4
 }
 ```
 

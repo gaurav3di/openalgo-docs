@@ -16,11 +16,10 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/symbol
 
 ```json
 {
-    "apikey": "<your_app_apikey>",
-    "symbol":"SBIN", 
-    "exchange":"NSE"     
+  "apikey": "43fd92f1d8f036c15e50e1a5f6e216564f211013bd6cd40946b2ff2129da3739",
+  "symbol": "NIFTY30DEC25FUT",
+  "exchange": "NFO"
 }
-
 ```
 
 ###
@@ -30,18 +29,19 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/symbol
 ```json
 {
   "data": {
-    "brexchange": "NSE",
-    "brsymbol": "ZOMATO-EQ",
-    "exchange": "NSE",
-    "expiry": "",
-    "id": 7162,
-    "instrumenttype": "",
-    "lotsize": 1,
-    "name": "ZOMATO",
-    "strike": -0.01,
-    "symbol": "ZOMATO",
-    "tick_size": 0.01,
-    "token": "5097"
+    "brexchange": "NSE_FO",
+    "brsymbol": "NIFTY FUT 30 DEC 25",
+    "exchange": "NFO",
+    "expiry": "30-DEC-25",
+    "freeze_qty": 1800,
+    "id": 57900,
+    "instrumenttype": "FUT",
+    "lotsize": 75,
+    "name": "NIFTY",
+    "strike": 0,
+    "symbol": "NIFTY30DEC25FUT",
+    "tick_size": 10,
+    "token": "NSE_FO|49543"
   },
   "status": "success"
 }
