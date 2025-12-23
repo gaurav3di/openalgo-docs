@@ -59,17 +59,18 @@ SDKs are officially supported client packages intended for application developme
 
 These libraries and tools extend OpenAlgo support to popular trading platforms, analysis tools, and user interfaces.
 
-| Platform / Tool             | Repository                                                                                           |
-| --------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Amibroker Plugin            | [https://github.com/marketcalls/OpenAlgoPlugin](https://github.com/marketcalls/OpenAlgoPlugin)       |
-| Excel Add-in                | [https://github.com/marketcalls/OpenAlgo-Excel](https://github.com/marketcalls/OpenAlgo-Excel)       |
-| Backtrader Integration      | [https://github.com/p2c2e/openalgo-backtrader](https://github.com/p2c2e/openalgo-backtrader)         |
-| PineTS                      | [https://github.com/marketcalls/openalgo-pinets](https://github.com/marketcalls/openalgo-pinets)     |
-| MCP / AI Agents             | [https://github.com/marketcalls/openalgo-mcp](https://github.com/marketcalls/openalgo-mcp)           |
-| OpenAlgo Mobile             | [https://github.com/marketcalls/openalgo-mobile](https://github.com/marketcalls/openalgo-mobile)     |
-| Web Portal                  | [https://github.com/marketcalls/openalgo-webpage](https://github.com/marketcalls/openalgo-webpage)   |
-| Chrome Plugin               | [https://github.com/marketcalls/openalgo-chrome](https://github.com/marketcalls/openalgo-chrome)     |
-| Fast Scalper (Rust + Tauri) | [https://github.com/marketcalls/fastscalper-tauri](https://github.com/marketcalls/fastscalper-tauri) |
+| Platform / Tool                    | Repository                                                                                           |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 📊 **Excel Add-in**                | [https://github.com/marketcalls/OpenAlgo-Excel](https://github.com/marketcalls/OpenAlgo-Excel)       |
+| 📉 **Amibroker Plugin**            | [https://github.com/marketcalls/OpenAlgoPlugin](https://github.com/marketcalls/OpenAlgoPlugin)       |
+| 🔁 **Backtrader Integration**      | [https://github.com/p2c2e/openalgo-backtrader](https://github.com/p2c2e/openalgo-backtrader)         |
+| ⚡ **PineTS**                       | [https://github.com/marketcalls/openalgo-pinets](https://github.com/marketcalls/openalgo-pinets)     |
+| 🪞 **AlgoMirror**                  | [https://github.com/marketcalls/algomirror](https://github.com/marketcalls/algomirror)               |
+| 🤖 **MCP / AI Agents**             | [https://github.com/marketcalls/openalgo-mcp](https://github.com/marketcalls/openalgo-mcp)           |
+| 📱 **OpenAlgo Mobile**             | [https://github.com/marketcalls/openalgo-mobile](https://github.com/marketcalls/openalgo-mobile)     |
+| 🌐 **Web Portal**                  | [https://github.com/marketcalls/openalgo-webpage](https://github.com/marketcalls/openalgo-webpage)   |
+| 🧩 **Chrome Plugin**               | [https://github.com/marketcalls/openalgo-chrome](https://github.com/marketcalls/openalgo-chrome)     |
+| 🚄 **Fast Scalper (Rust + Tauri)** | [https://github.com/marketcalls/fastscalper-tauri](https://github.com/marketcalls/fastscalper-tauri) |
 
 ***
 
