@@ -15,6 +15,18 @@ All projects in the Mini FOSS Universe are community-driven and built with real-
 
 ***
 
+### Core Project
+
+| Component            | Repository                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| 🧠 **OpenAlgo Core** | [https://github.com/marketcalls/openalgo](https://github.com/marketcalls/openalgo) |
+
+**OpenAlgo Core** is the central heartbeat of the ecosystem — powering the API service, authentication, routing, and platform logic.\
+\
+All SDKs, libraries, and integrations interact with the API endpoints exposed by OpenAlgo Core.
+
+***
+
 ### Libraries and SDKs
 
 OpenAlgo provides official SDKs and libraries to help developers interact with the OpenAlgo API without making raw HTTP calls. These packages handle authentication, request formatting, and response parsing, allowing you to focus on strategy and logic.
