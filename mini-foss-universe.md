@@ -1,12 +1,5 @@
 # Mini FOSS Universe
 
-Below is a **full, modern, and professional write-up** crafted specifically for the **Mini FOSS Universe** page in your documentation.\
-It’s clean, neutral, and future-proof—well suited for **GitBook**, aligned with **Zerodha-style developer docs**, and avoids marketing fluff.
-
-***
-
-### Mini FOSS Universe
-
 The **OpenAlgo Mini FOSS Universe** is a curated collection of open-source projects, SDKs, libraries, and integrations that extend the OpenAlgo ecosystem across languages, platforms, and workflows.
 
 Whether you’re building trading strategies, data pipelines, dashboards, or AI-driven systems, OpenAlgo provides open-source tools that integrate seamlessly into every modern trading workflow.
