@@ -77,6 +77,8 @@
   * [Ubuntu Server Installation](getting-started/ubuntu-server-installation.md)
   * [Docker + Custom Domain](installation-guidelines/getting-started/docker-+-custom-domain.md)
   * [Docker Development](getting-started/docker-development.md)
+  * [Devtunnels](installation-guidelines/getting-started/devtunnels.md)
+  * [Cloudflared with Custom Domain](installation-guidelines/getting-started/cloudflared-with-custom-domain.md)
   * [Raspberry Pi](installation-guidelines/getting-started/raspberry-pi.md)
   * [Testing OpenAlgo in Cloud](getting-started/testing-openalgo-in-cloud.md)
   * [SMTP Settings](getting-started/smtp-settings.md)
