@@ -231,6 +231,7 @@
 ## Change Log
 
 * [release](change-log/release/README.md)
+  * [Version 1.0.0.41 Released](change-log/release/version-1.0.0.41-released.md)
   * [Version 1.0.0.40 Released](change-log/release/version-1.0.0.40-released.md)
   * [Version 1.0.0.39 Released](change-log/release/version-1.0.0.39-released.md)
   * [Version 1.0.0.38 Released](change-log/release/version-1.0.0.38-released.md)
