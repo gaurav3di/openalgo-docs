@@ -195,6 +195,7 @@
   * [Voice Based Orders](trading-platform/python/voice-based-orders.md)
 * [NodeJS](trading-platform/nodejs.md)
 * [GO](trading-platform/go.md)
+* [RUST](trading-platform/rust.md)
 * [.NET](trading-platform/.net.md)
 * [Java](trading-platform/java.md)
 * [Metatrader 5](trading-platform/metatrader-5/README.md)
