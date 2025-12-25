@@ -1,6 +1,6 @@
 # GO
 
-## Go SDK for OpenAlgo
+## Go
 
 To install the OpenAlgo Go library, use go get:
 
@@ -16,183 +16,92 @@ For detailed function parameters refer to the [API Documentation](https://docs.o
 
 #### Getting Started with OpenAlgo
 
-First, import the OpenAlgo package and initialize it with your API key:
+First, import the openalgo package and initialize the client with your API key:
 
 ```go
 package main
 
 import (
+    "fmt"
     "github.com/marketcalls/openalgo-go/openalgo"
-    "encoding/json"
 )
 
-// Replace 'your_api_key_here' with your actual API key
-// Specify the host URL with your hosted domain or ngrok domain.
-// If running locally then use the default host value.
-// Parameters: apiKey, host, version, websocketURL (optional)
-client := openalgo.NewClient(
-    "your_api_key_here",
-    "http://127.0.0.1:5000",
-    "v1",                    // API version
-    "ws://127.0.0.1:8765",   // WebSocket URL (optional)
-)
+func main() {
+    // Replace 'your_api_key_here' with your actual API key
+    // Default host is http://127.0.0.1:5000
+    client := openalgo.NewClient("your_api_key_here", "http://127.0.0.1:5000")
 
+    // Or with custom WebSocket URL
+    client := openalgo.NewClient("your_api_key_here", "http://127.0.0.1:5000", "v1", "ws://127.0.0.1:8765")
+}
 ```
 
 #### Check OpenAlgo Version
 
 ```go
-import (
-    "fmt"
-    "encoding/json"
-    "github.com/marketcalls/openalgo-go/openalgo"
-)
+import "github.com/marketcalls/openalgo-go/openalgo"
 
-fmt.Printf("OpenAlgo Go SDK Version: %s\n", openalgo.Version)
+fmt.Println("OpenAlgo version:", openalgo.Version)
 ```
-
-#### Complete List of Implemented Functions
-
-**Order Management**
-
-* `PlaceOrder` - Place a new order
-* `PlaceSmartOrder` - Place a smart order with position sizing
-* `BasketOrder` - Place multiple orders at once
-* `SplitOrder` - Split large orders into smaller chunks
-* `ModifyOrder` - Modify an existing order
-* `CancelOrder` - Cancel a specific order
-* `CancelAllOrder` - Cancel all pending orders
-* `ClosePosition` - Close all open positions
-* `OrderStatus` - Get order status
-* `OpenPosition` - Get open position for a symbol
-
-**Market Data**
-
-* `Quotes` - Get real-time quotes
-* `Depth` - Get market depth
-* `History` - Get historical data
-* `Intervals` - Get available time intervals
-* `Symbol` - Get symbol information
-* `Search` - Search for symbols
-* `Expiry` - Get expiry dates
-
-**Account Information**
-
-* `Funds` - Get account funds
-* `OrderBook` - Get all orders
-* `TradeBook` - Get all trades
-* `PositionBook` - Get all positions
-* `Holdings` - Get holdings
-
-**Utility**
-
-* `Ping` - Check API connectivity
-* `AnalyzerStatus` - Get analyzer status
-* `AnalyzerToggle` - Toggle analyzer mode (requires boolean: true to enable, false to disable)
-
-**WebSocket Streaming**
-
-* `Connect` - Connect to WebSocket
-* `Disconnect` - Disconnect from WebSocket
-* `SubscribeLTP` - Subscribe to LTP updates
-* `UnsubscribeLTP` - Unsubscribe from LTP
-* `SubscribeQuote` - Subscribe to quote updates
-* `UnsubscribeQuote` - Unsubscribe from quotes
-* `SubscribeDepth` - Subscribe to market depth
-* `UnsubscribeDepth` - Unsubscribe from depth
 
 #### Examples
 
 Please refer to the documentation on [order constants](https://docs.openalgo.in/api-documentation/v1/order-constants), and consult the API reference for details on optional parameters
 
-#### Ping Example
-
-Check API connectivity:
-
-```go
-response, err := client.Ping()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
-if err != nil {
-    log.Printf("Error: %v", err)
-}
-fmt.Println(string(jsonBytes))
-```
-
-**Ping Response**
-
-```json
-{
-  "data": {
-    "broker": "shoonya",
-    "message": "pong"
-  },
-  "status": "success"
-}
-```
-
-#### PlaceOrder Example
+#### PlaceOrder example
 
 To place a new market order:
 
 ```go
 response, err := client.PlaceOrder(
-    "GO Strategy", // strategy
-    "NHPC",      // symbol
-    "BUY",       // action
-    "NSE",       // exchange
-    "MARKET",    // price_type
-    "MIS",       // product
-    1,           // quantity
+    "Go",           // strategy
+    "NHPC",         // symbol
+    "BUY",          // action
+    "NSE",          // exchange
+    "MARKET",       // priceType
+    "MIS",          // product
+    1,              // quantity
 )
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Place Market Order Response**
+Place Market Order Response
 
 ```json
-{
-  "orderid": "25092400475638",
-  "status": "success"
-}
-
+{"orderid": "250408000989443", "status": "success"}
 ```
 
 To place a new limit order:
 
 ```go
 response, err := client.PlaceOrder(
-    "GO Strategy", // strategy
-    "YESBANK",   // symbol
-    "BUY",       // action
-    "NSE",       // exchange
-    "LIMIT",     // price_type
-    "MIS",       // product
-    "1",         // quantity
+    "Go",           // strategy
+    "YESBANK",      // symbol
+    "BUY",          // action
+    "NSE",          // exchange
+    "LIMIT",        // priceType
+    "MIS",          // product
+    1,              // quantity
     map[string]interface{}{
-        "price":              16.0,
-        "trigger_price":      0.0,
-        "disclosed_quantity": "0",
+        "price":         "16",
+        "trigger_price": "0",
     },
 )
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Place Limit Order Response**
+Place Limit Order Response
 
 ```json
-{
-  "orderid": "25092400479260",
-  "status": "success"
-}
-
+{"orderid": "250408001003813", "status": "success"}
 ```
 
 #### PlaceSmartOrder Example
@@ -201,38 +110,244 @@ To place a smart order considering the current position size:
 
 ```go
 response, err := client.PlaceSmartOrder(
-    "GO Strategy", // strategy
-    "TATAMOTORS",  // symbol
-    "SELL",        // action
-    "NSE",         // exchange
-    "MARKET",      // price_type
-    "MIS",         // product
-    1,             // quantity
-    5,             // position_size
+    "Go",           // strategy
+    "TATAMOTORS",   // symbol
+    "SELL",         // action
+    "NSE",          // exchange
+    "MARKET",       // priceType
+    "MIS",          // product
+    1,              // quantity
+    5,              // positionSize
 )
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Place Smart Market Order Response**
+Place Smart Market Order Response
+
+```json
+{"orderid": "250408000997543", "status": "success"}
+```
+
+#### OptionsOrder Example
+
+To place ATM options order
+
+```go
+response, err := client.OptionsOrder(
+    "Go",           // strategy
+    "NIFTY",        // underlying
+    "NSE_INDEX",    // exchange
+    "28OCT25",      // expiryDate
+    "ATM",          // offset
+    "CE",           // optionType
+    "BUY",          // action
+    75,             // quantity
+    "MARKET",       // priceType
+    "NRML",         // product
+    0,              // splitSize
+)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+Place Options Order Response
 
 ```json
 {
-  "orderid": "25092400479260",
-  "status": "success"
+  "exchange": "NFO",
+  "offset": "ATM",
+  "option_type": "CE",
+  "orderid": "25102800000006",
+  "status": "success",
+  "symbol": "NIFTY28OCT2525950CE",
+  "underlying": "NIFTY28OCT25FUT",
+  "underlying_ltp": 25966.05
 }
-
 ```
 
-#### BasketOrder Example
+To place ITM options order
+
+```go
+response, err := client.OptionsOrder(
+    "Go",           // strategy
+    "NIFTY",        // underlying
+    "NSE_INDEX",    // exchange
+    "28OCT25",      // expiryDate
+    "ITM4",         // offset
+    "PE",           // optionType
+    "BUY",          // action
+    75,             // quantity
+    "MARKET",       // priceType
+    "NRML",         // product
+    0,              // splitSize
+)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+Place Options Order Response
+
+```json
+{
+  "exchange": "NFO",
+  "offset": "ITM4",
+  "option_type": "PE",
+  "orderid": "25102800000007",
+  "status": "success",
+  "symbol": "NIFTY28OCT2526150PE",
+  "underlying": "NIFTY28OCT25FUT",
+  "underlying_ltp": 25966.05
+}
+```
+
+#### OptionsMultiOrder Example
+
+To place Iron Condor options order (Same Expiry)
+
+```go
+legs := []openalgo.OptionsLeg{
+    {Offset: "OTM6", OptionType: "CE", Action: "BUY", Quantity: "75"},
+    {Offset: "OTM6", OptionType: "PE", Action: "BUY", Quantity: "75"},
+    {Offset: "OTM4", OptionType: "CE", Action: "SELL", Quantity: "75"},
+    {Offset: "OTM4", OptionType: "PE", Action: "SELL", Quantity: "75"},
+}
+
+response, err := client.OptionsMultiOrder(
+    "Iron Condor Test",  // strategy
+    "NIFTY",             // underlying
+    "NSE_INDEX",         // exchange
+    "25NOV25",           // expiryDate
+    legs,
+)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+Place OptionsMultiOrder Response
+
+```json
+{
+    "status": "success",
+    "underlying": "NIFTY",
+    "underlying_ltp": 26050.45,
+    "results": [
+        {
+            "action": "BUY",
+            "leg": 1,
+            "mode": "analyze",
+            "offset": "OTM6",
+            "option_type": "CE",
+            "orderid": "25111996859688",
+            "status": "success",
+            "symbol": "NIFTY25NOV2526350CE"
+        },
+        {
+            "action": "BUY",
+            "leg": 2,
+            "mode": "analyze",
+            "offset": "OTM6",
+            "option_type": "PE",
+            "orderid": "25111996042210",
+            "status": "success",
+            "symbol": "NIFTY25NOV2525750PE"
+        },
+        {
+            "action": "SELL",
+            "leg": 3,
+            "mode": "analyze",
+            "offset": "OTM4",
+            "option_type": "CE",
+            "orderid": "25111922189638",
+            "status": "success",
+            "symbol": "NIFTY25NOV2526250CE"
+        },
+        {
+            "action": "SELL",
+            "leg": 4,
+            "mode": "analyze",
+            "offset": "OTM4",
+            "option_type": "PE",
+            "orderid": "25111919252668",
+            "status": "success",
+            "symbol": "NIFTY25NOV2525850PE"
+        }
+    ]
+}
+```
+
+To place Diagonal Spread options order (Different Expiry)
+
+```go
+legs := []openalgo.OptionsLeg{
+    {Offset: "ITM2", OptionType: "CE", Action: "BUY", Quantity: "75", ExpiryDate: "30DEC25"},
+    {Offset: "OTM2", OptionType: "CE", Action: "SELL", Quantity: "75", ExpiryDate: "25NOV25"},
+}
+
+response, err := client.OptionsMultiOrder(
+    "Diagonal Spread Test",  // strategy
+    "NIFTY",                 // underlying
+    "NSE_INDEX",             // exchange
+    "",                      // expiryDate (empty, using per-leg expiry)
+    legs,
+)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+Place OptionsMultiOrder Response
+
+```json
+{
+    "results": [
+        {
+            "action": "BUY",
+            "leg": 1,
+            "mode": "analyze",
+            "offset": "ITM2",
+            "option_type": "CE",
+            "orderid": "25111933337854",
+            "status": "success",
+            "symbol": "NIFTY30DEC2525950CE"
+        },
+        {
+            "action": "SELL",
+            "leg": 2,
+            "mode": "analyze",
+            "offset": "OTM2",
+            "option_type": "CE",
+            "orderid": "25111957475473",
+            "status": "success",
+            "symbol": "NIFTY25NOV2526150CE"
+        }
+    ],
+    "status": "success",
+    "underlying": "NIFTY",
+    "underlying_ltp": 26052.65
+}
+```
+
+#### BasketOrder example
 
 To place a new basket order:
 
 ```go
-basketOrders := []map[string]interface{}{
+orders := []map[string]interface{}{
     {
         "symbol":    "BHEL",
         "exchange":  "NSE",
@@ -250,12 +365,13 @@ basketOrders := []map[string]interface{}{
         "product":   "MIS",
     },
 }
-response, err := client.BasketOrder("GO Strategy", basketOrders)
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+
+response, err := client.BasketOrder("Go", orders)
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Basket Order Response**
@@ -265,40 +381,39 @@ fmt.Println(string(jsonBytes))
   "status": "success",
   "results": [
     {
-      "orderid": "25092400496406",
+      "symbol": "BHEL",
       "status": "success",
-      "symbol": "YESBANK"
+      "orderid": "250408000999544"
     },
     {
-      "orderid": "25092400496407",
+      "symbol": "ZOMATO",
       "status": "success",
-      "symbol": "NHPC"
+      "orderid": "250408000997545"
     }
   ]
 }
-
 ```
 
-#### SplitOrder Example
+#### SplitOrder example
 
 To place a new split order:
 
 ```go
 response, err := client.SplitOrder(
-    "GO Strategy", // strategy
-    "YESBANK",   // symbol
-    "NSE",       // exchange
-    "SELL",      // action
-    105,         // quantity
-    20,          // split_size
-    "MARKET",    // price_type
-    "MIS",       // product
+    "Go",           // strategy
+    "YESBANK",      // symbol
+    "NSE",          // exchange
+    "SELL",         // action
+    105,            // quantity
+    20,             // splitSize
+    "MARKET",       // priceType
+    "MIS",          // product
 )
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **SplitOrder Response**
@@ -306,24 +421,17 @@ fmt.Println(string(jsonBytes))
 ```json
 {
   "status": "success",
-  "split_size": 2,
-  "total_quantity": 4,
+  "split_size": 20,
+  "total_quantity": 105,
   "results": [
-    {
-      "order_num": 1,
-      "orderid": "25092400502095",
-      "quantity": 2,
-      "status": "success"
-    },
-    {
-      "order_num": 2,
-      "orderid": "25092400502096",
-      "quantity": 2,
-      "status": "success"
-    }
+    {"order_num": 1, "orderid": "250408001021467", "quantity": 20, "status": "success"},
+    {"order_num": 2, "orderid": "250408001021459", "quantity": 20, "status": "success"},
+    {"order_num": 3, "orderid": "250408001021466", "quantity": 20, "status": "success"},
+    {"order_num": 4, "orderid": "250408001021470", "quantity": 20, "status": "success"},
+    {"order_num": 5, "orderid": "250408001021471", "quantity": 20, "status": "success"},
+    {"order_num": 6, "orderid": "250408001021472", "quantity": 5, "status": "success"}
   ]
 }
-
 ```
 
 #### ModifyOrder Example
@@ -332,33 +440,29 @@ To modify an existing order:
 
 ```go
 response, err := client.ModifyOrder(
-    "250408001002736", // order_id
-    "GO Strategy",     // strategy
-    "YESBANK",         // symbol
-    "BUY",             // action
-    "NSE",             // exchange
-    "LIMIT",           // price_type
-    "CNC",             // product
-    1,                 // quantity
-    "16.5",            // price
-    "0",               // disclosed_quantity
-    "0",               // trigger_price
+    "250408001002736",  // orderID
+    "Go",               // strategy
+    "YESBANK",          // symbol
+    "BUY",              // action
+    "NSE",              // exchange
+    "LIMIT",            // priceType
+    "CNC",              // product
+    1,                  // quantity
+    "16.5",             // price
+    "0",                // disclosedQuantity
+    "0",                // triggerPrice
 )
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Modify Order Response**
 
 ```json
-{
-  "orderid": "25092400479260",
-  "status": "success"
-}
-
+{"orderid": "250408001002736", "status": "success"}
 ```
 
 #### CancelOrder Example
@@ -366,107 +470,98 @@ fmt.Println(string(jsonBytes))
 To cancel an existing order:
 
 ```go
-response, err := client.CancelOrder(
-    "250408001002736", // order_id
-    "GO Strategy",     // strategy
-)
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.CancelOrder("250408001002736", "Go")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Cancelorder Response**
+**CancelOrder Response**
 
 ```json
-{
-  "orderid": "25092400479260",
-  "status": "success"
-}
+{"orderid": "250408001002736", "status": "success"}
 ```
 
 #### CancelAllOrder Example
 
-To cancel all open orders and trigger pending orders:
+To cancel all open orders and trigger pending orders
 
 ```go
-response, err := client.CancelAllOrder("GO Strategy")
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.CancelAllOrder("Go")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Cancelallorder Response**
+**CancelAllOrder Response**
 
 ```json
 {
   "status": "success",
-  "message": "Canceled 1 orders. Failed to cancel 0 orders.",
+  "message": "Canceled 5 orders. Failed to cancel 0 orders.",
   "canceled_orders": [
-    "25092400490404"
+    "250408001042620",
+    "250408001042667",
+    "250408001042642",
+    "250408001043015",
+    "250408001043386"
   ],
   "failed_cancellations": []
 }
-
 ```
 
 #### ClosePosition Example
 
-To close all open positions across various exchanges:
+To close all open positions across various exchanges
 
 ```go
-response, err := client.ClosePosition("GO Strategy")
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.ClosePosition("Go")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **ClosePosition Response**
 
 ```json
-{
-  "status": "success",
-  "message": "All Open Positions Squared Off"
-}
+{"message": "All Open Positions Squared Off", "status": "success"}
 ```
 
 #### OrderStatus Example
 
-To Get the Current OrderStatus:
+To Get the Current OrderStatus
 
 ```go
-response, err := client.OrderStatus(
-    "250408000989443", // order_id
-    "GO Strategy",     // strategy
-)
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.OrderStatus("250828000185002", "Test Strategy")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Orderstatus Response**
+**OrderStatus Response**
 
 ```json
 {
   "data": {
-    "action": "SELL",
-    "average_price": 21.28,
+    "action": "BUY",
+    "average_price": 18.95,
     "exchange": "NSE",
     "order_status": "complete",
-    "orderid": "25092400502095",
+    "orderid": "250828000185002",
     "price": 0,
     "pricetype": "MARKET",
     "product": "MIS",
-    "quantity": "2",
+    "quantity": "1",
     "symbol": "YESBANK",
-    "timestamp": "14:18:50 24-09-2025",
+    "timestamp": "28-Aug-2025 09:59:10",
     "trigger_price": 0
   },
   "status": "success"
@@ -475,59 +570,121 @@ fmt.Println(string(jsonBytes))
 
 #### OpenPosition Example
 
-To Get the Current OpenPosition:
+To Get the Current OpenPosition
 
 ```go
-response, err := client.OpenPosition(
-    "GO Strategy",   // strategy
-    "YESBANK",       // symbol
-    "NSE",           // exchange
-    "MIS",           // product
-)
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.OpenPosition("Test Strategy", "YESBANK", "NSE", "MIS")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **OpenPosition Response**
 
 ```json
-{
-  "status": "success",
-  "quantity": -3
-}
-
+{"quantity": "-10", "status": "success"}
 ```
 
 #### Quotes Example
 
 ```go
 response, err := client.Quotes("RELIANCE", "NSE")
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Quotes response**
+**Quotes Response**
 
 ```json
 {
+  "status": "success",
   "data": {
-    "ask": 1383,
-    "bid": 0,
-    "high": 1396,
-    "low": 1380.4,
-    "ltp": 1383,
-    "oi": 0,
-    "open": 1385.3,
-    "prev_close": 1389.8,
-    "volume": 5922759
-  },
-  "status": "success"
+    "open": 1172.0,
+    "high": 1196.6,
+    "low": 1163.3,
+    "ltp": 1187.75,
+    "ask": 1188.0,
+    "bid": 1187.85,
+    "prev_close": 1165.7,
+    "volume": 14414545
+  }
+}
+```
+
+#### MultiQuotes Example
+
+```go
+symbols := []map[string]string{
+    {"symbol": "RELIANCE", "exchange": "NSE"},
+    {"symbol": "TCS", "exchange": "NSE"},
+    {"symbol": "INFY", "exchange": "NSE"},
+}
+
+response, err := client.MultiQuotes(symbols)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**MultiQuotes Response**
+
+```json
+{
+  "status": "success",
+  "results": [
+    {
+      "symbol": "RELIANCE",
+      "exchange": "NSE",
+      "data": {
+        "open": 1542.3,
+        "high": 1571.6,
+        "low": 1540.5,
+        "ltp": 1569.9,
+        "prev_close": 1539.7,
+        "ask": 1569.9,
+        "bid": 0,
+        "oi": 0,
+        "volume": 14054299
+      }
+    },
+    {
+      "symbol": "TCS",
+      "exchange": "NSE",
+      "data": {
+        "open": 3118.8,
+        "high": 3178,
+        "low": 3117,
+        "ltp": 3162.9,
+        "prev_close": 3119.2,
+        "ask": 0,
+        "bid": 3162.9,
+        "oi": 0,
+        "volume": 2508527
+      }
+    },
+    {
+      "symbol": "INFY",
+      "exchange": "NSE",
+      "data": {
+        "open": 1532.1,
+        "high": 1560.3,
+        "low": 1532.1,
+        "ltp": 1557.9,
+        "prev_close": 1530.6,
+        "ask": 0,
+        "bid": 1557.9,
+        "oi": 0,
+        "volume": 7575038
+      }
+    }
+  ]
 }
 ```
 
@@ -535,11 +692,11 @@ fmt.Println(string(jsonBytes))
 
 ```go
 response, err := client.Depth("SBIN", "NSE")
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Depth Response**
@@ -548,86 +705,68 @@ fmt.Println(string(jsonBytes))
 {
   "status": "success",
   "data": {
+    "open": 760.0,
+    "high": 774.0,
+    "low": 758.15,
+    "ltp": 769.6,
+    "ltq": 205,
+    "prev_close": 746.9,
+    "volume": 9362799,
+    "oi": 161265750,
+    "totalbuyqty": 591351,
+    "totalsellqty": 835701,
     "asks": [
-      {"price": 870.65, "quantity": 120},
-      {"price": 870.7, "quantity": 111},
-      {"price": 870.75, "quantity": 105},
-      {"price": 870.8, "quantity": 69},
-      {"price": 870.85, "quantity": 244}
+      {"price": 769.6, "quantity": 767},
+      {"price": 769.65, "quantity": 115},
+      {"price": 769.7, "quantity": 162},
+      {"price": 769.75, "quantity": 1121},
+      {"price": 769.8, "quantity": 430}
     ],
     "bids": [
-      {"price": 870.35, "quantity": 36},
-      {"price": 870.3, "quantity": 70},
-      {"price": 870.2, "quantity": 345},
-      {"price": 870.15, "quantity": 575},
-      {"price": 870.1, "quantity": 611}
-    ],
-    "high": 880.4,
-    "low": 869.1,
-    "ltp": 870.35,
-    "ltq": 1,
-    "oi": 0,
-    "open": 875.2,
-    "prev_close": 870.5,
-    "totalbuyqty": 1637,
-    "totalsellqty": 649,
-    "volume": 313325
+      {"price": 769.4, "quantity": 886},
+      {"price": 769.35, "quantity": 212},
+      {"price": 769.3, "quantity": 351},
+      {"price": 769.25, "quantity": 343},
+      {"price": 769.2, "quantity": 399}
+    ]
   }
 }
-
 ```
 
 #### History Example
 
 ```go
-response, err := client.History(
-    "SBIN",       // symbol
-    "NSE",        // exchange
-    "5m",         // interval
-    "2025-04-01", // start_date
-    "2025-04-08", // end_date
-)
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.History("SBIN", "NSE", "5m", "2025-04-01", "2025-04-08")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **History Response**
 
 ```json
 {
+  "status": "success",
   "data": [
     {
-      "close": 806.4,
-      "high": 808.3,
-      "low": 803.4,
-      "oi": 0,
-      "open": 803.4,
-      "timestamp": 1756698300,
-      "volume": 825363
+      "timestamp": "2025-04-01T09:15:00+05:30",
+      "open": 766.5,
+      "high": 774.0,
+      "low": 763.2,
+      "close": 772.5,
+      "volume": 318625
     },
     {
-      "close": 808.5,
-      "high": 809.95,
-      "low": 808.15,
-      "oi": 0,
-      "open": 808.65,
-      "timestamp": 1756790100,
-      "volume": 235913
-    },
-    {
-      "close": 807.9,
-      "high": 808.9,
-      "low": 807.6,
-      "oi": 0,
-      "open": 808.4,
-      "timestamp": 1756791900,
-      "volume": 415620
-    },
-  ],
-  "status": "success"
+      "timestamp": "2025-04-01T09:20:00+05:30",
+      "open": 772.45,
+      "high": 774.95,
+      "low": 772.1,
+      "close": 773.2,
+      "volume": 197189
+    }
+  ]
 }
 ```
 
@@ -635,70 +774,118 @@ fmt.Println(string(jsonBytes))
 
 ```go
 response, err := client.Intervals()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Intervals response**
+**Intervals Response**
 
-```jsonp
+```json
 {
+  "status": "success",
   "data": {
-    "days": [
-      "D"
-    ],
-    "hours": [
-      "1h",
-      "2h",
-      "4h"
-    ],
-    "minutes": [
-      "1m",
-      "3m",
-      "5m",
-      "10m",
-      "15m",
-      "30m"
-    ],
     "months": [],
-    "seconds": [],
-    "weeks": []
-  },
-  "status": "success"
+    "weeks": [],
+    "days": ["D"],
+    "hours": ["1h"],
+    "minutes": ["10m", "15m", "1m", "30m", "3m", "5m"],
+    "seconds": []
+  }
+}
+```
+
+#### OptionChain Example
+
+Note: To fetch entire option chain for an expiry, omit the strikeCount parameter
+
+```go
+response, err := client.OptionChain("NIFTY", "NSE_INDEX", "30DEC25", 10)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**OptionChain Response**
+
+```json
+{
+    "status": "success",
+    "underlying": "NIFTY",
+    "underlying_ltp": 26215.55,
+    "expiry_date": "30DEC25",
+    "atm_strike": 26200.0,
+    "chain": [
+        {
+            "strike": 26100.0,
+            "ce": {
+                "symbol": "NIFTY30DEC2526100CE",
+                "label": "ITM2",
+                "ltp": 490,
+                "bid": 490,
+                "ask": 491,
+                "open": 540,
+                "high": 571,
+                "low": 444.75,
+                "prev_close": 496.8,
+                "volume": 1195800,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            },
+            "pe": {
+                "symbol": "NIFTY30DEC2526100PE",
+                "label": "OTM2",
+                "ltp": 193,
+                "bid": 191.2,
+                "ask": 193,
+                "open": 204.1,
+                "high": 229.95,
+                "low": 175.6,
+                "prev_close": 215.95,
+                "volume": 1832700,
+                "oi": 0,
+                "lotsize": 75,
+                "tick_size": 0.05
+            }
+        }
+    ]
 }
 ```
 
 #### Symbol Example
 
 ```go
-response, err := client.Symbol("RELIANCE", "NSE")
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.Symbol("NIFTY30DEC25FUT", "NFO")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
-**Symbols Response**
+**Symbol Response**
 
 ```json
 {
   "data": {
-    "brexchange": "NSE",
-    "brsymbol": "RELIANCE-EQ",
-    "exchange": "NSE",
-    "expiry": "",
-    "id": 986,
-    "instrumenttype": "EQ",
-    "lotsize": 1,
-    "name": "RELIANCE",
-    "strike": -1,
-    "symbol": "RELIANCE",
-    "tick_size": 0.1,
-    "token": "2885"
+    "brexchange": "NSE_FO",
+    "brsymbol": "NIFTY FUT 30 DEC 25",
+    "exchange": "NFO",
+    "expiry": "30-DEC-25",
+    "freeze_qty": 1800,
+    "id": 57900,
+    "instrumenttype": "FUT",
+    "lotsize": 75,
+    "name": "NIFTY",
+    "strike": 0,
+    "symbol": "NIFTY30DEC25FUT",
+    "tick_size": 10,
+    "token": "NSE_FO|49543"
   },
   "status": "success"
 }
@@ -707,12 +894,12 @@ fmt.Println(string(jsonBytes))
 #### Search Example
 
 ```go
-response, err := client.Search("NIFTY 25000 JUL CE", "NFO")
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.Search("NIFTY 26000 DEC CE", "NFO")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Search Response**
@@ -721,104 +908,332 @@ fmt.Println(string(jsonBytes))
 {
   "data": [
     {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY28OCT25C25000",
+      "brexchange": "NSE_FO",
+      "brsymbol": "NIFTY 26000 CE 30 DEC 25",
       "exchange": "NFO",
-      "expiry": "28-OCT-25",
+      "expiry": "30-DEC-25",
+      "freeze_qty": 1800,
       "instrumenttype": "CE",
       "lotsize": 75,
       "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY28OCT2525000CE",
-      "tick_size": 0.05,
-      "token": "58909"
-    }
-    {
-      "brexchange": "NFO",
-      "brsymbol": "NIFTY07OCT25C25000",
-      "exchange": "NFO",
-      "expiry": "07-OCT-25",
-      "instrumenttype": "CE",
-      "lotsize": 75,
-      "name": "NIFTY",
-      "strike": 25000,
-      "symbol": "NIFTY07OCT2525000CE",
-      "tick_size": 0.05,
-      "token": "38387"
+      "strike": 26000,
+      "symbol": "NIFTY30DEC2526000CE",
+      "tick_size": 5,
+      "token": "NSE_FO|71399"
     }
   ],
-  "message": "Found 2 matching symbols",
+  "message": "Found 7 matching symbols",
   "status": "success"
+}
+```
+
+#### OptionSymbol Example
+
+ATM Option
+
+```go
+response, err := client.OptionSymbol("NIFTY", "NSE_INDEX", "30DEC25", "ATM", "CE")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**OptionSymbol Response**
+
+```json
+{
+  "status": "success",
+  "symbol": "NIFTY30DEC2525950CE",
+  "exchange": "NFO",
+  "lotsize": 75,
+  "tick_size": 5,
+  "freeze_qty": 1800,
+  "underlying_ltp": 25966.4
+}
+```
+
+ITM Option
+
+```go
+response, err := client.OptionSymbol("NIFTY", "NSE_INDEX", "30DEC25", "ITM3", "PE")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**OptionSymbol Response**
+
+```json
+{
+  "status": "success",
+  "symbol": "NIFTY30DEC2526100PE",
+  "exchange": "NFO",
+  "lotsize": 75,
+  "tick_size": 5,
+  "freeze_qty": 1800,
+  "underlying_ltp": 25966.4
+}
+```
+
+OTM Option
+
+```go
+response, err := client.OptionSymbol("NIFTY", "NSE_INDEX", "30DEC25", "OTM4", "CE")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**OptionSymbol Response**
+
+```json
+{
+  "status": "success",
+  "symbol": "NIFTY30DEC2526150CE",
+  "exchange": "NFO",
+  "lotsize": 75,
+  "tick_size": 5,
+  "freeze_qty": 1800,
+  "underlying_ltp": 25966.4
+}
+```
+
+#### SyntheticFuture Example
+
+```go
+response, err := client.SyntheticFuture("NIFTY", "NSE_INDEX", "25NOV25")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**SyntheticFuture Response**
+
+```json
+{
+  "atm_strike": 25900.0,
+  "expiry": "25NOV25",
+  "status": "success",
+  "synthetic_future_price": 25980.05,
+  "underlying": "NIFTY",
+  "underlying_ltp": 25910.05
+}
+```
+
+#### OptionGreeks Example
+
+```go
+response, err := client.OptionGreeks(
+    "NIFTY25NOV2526000CE",  // symbol
+    "NFO",                   // exchange
+    0.00,                    // interestRate
+    "NIFTY",                 // underlyingSymbol
+    "NSE_INDEX",             // underlyingExchange
+)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**OptionGreeks Response**
+
+```json
+{
+  "days_to_expiry": 28.5071,
+  "exchange": "NFO",
+  "expiry_date": "25-Nov-2025",
+  "greeks": {
+    "delta": 0.4967,
+    "gamma": 0.000352,
+    "rho": 9.733994,
+    "theta": -7.919,
+    "vega": 28.9489
+  },
+  "implied_volatility": 15.6,
+  "interest_rate": 0.0,
+  "option_price": 435,
+  "option_type": "CE",
+  "spot_price": 25966.05,
+  "status": "success",
+  "strike": 26000.0,
+  "symbol": "NIFTY25NOV2526000CE",
+  "underlying": "NIFTY"
 }
 ```
 
 #### Expiry Example
 
 ```go
-response, err := client.Expiry(
-    "NIFTY",   // symbol
-    "NFO",     // exchange
-    "options", // instrument_type
-)
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
+response, err := client.Expiry("NIFTY", "NFO", "options")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Expiry Response**
 
 ```json
 {
-  "da              ta": [
-    "30-SEP-25",
-    "07-OCT-25",
-    "14-OCT-25",
-    "20-OCT-25",
-    "28-OCT-25",
-    "04-NOV-25",
-    "25-NOV-25",
-    "30-DEC-25",
-    "31-MAR-26",
-    "30-JUN-26",
-    "29-DEC-26",
-    "29-JUN-27",
-    "28-DEC-27",
-    "27-JUN-28",
-    "26-DEC-28",
-    "26-JUN-29",
-    "24-DEC-29",
-    "25-JUN-30"
+  "data": [
+    "10-JUL-25",
+    "17-JUL-25",
+    "24-JUL-25",
+    "31-JUL-25",
+    "07-AUG-25",
+    "28-AUG-25",
+    "25-SEP-25",
+    "24-DEC-25",
+    "26-MAR-26",
+    "25-JUN-26"
   ],
   "message": "Found 18 expiry dates for NIFTY options in NFO",
   "status": "success"
 }
 ```
 
+#### Instruments Example
+
+```go
+response, err := client.Instruments("NSE")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**Instruments Response**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "brexchange": "NSE",
+      "brsymbol": "NSE:RELIANCE-EQ",
+      "exchange": "NSE",
+      "expiry": null,
+      "instrumenttype": "EQ",
+      "lotsize": 1,
+      "name": "RELIANCE INDUSTRIES LTD",
+      "strike": -1.0,
+      "symbol": "RELIANCE",
+      "tick_size": 0.05,
+      "token": "10100000002885"
+    }
+  ]
+}
+```
+
+#### Telegram Alert Example
+
+```go
+response, err := client.Telegram("<openalgo_loginid>", "NIFTY crossed 26000!")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**Telegram Alert Response**
+
+```json
+{
+  "message": "Notification sent successfully",
+  "status": "success"
+}
+```
+
+With priority:
+
+```go
+response, err := client.TelegramWithPriority("<openalgo_loginid>", "Urgent: NIFTY crossed 26000!", 10)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
 #### Funds Example
 
 ```go
 response, err := client.Funds()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Funds Response**
 
 ```json
 {
+  "status": "success",
   "data": {
-    "availablecash": "93.81",
+    "availablecash": "320.66",
     "collateral": "0.00",
-    "m2mrealized": "-0.13",
-    "m2munrealized": "0.00",
-    "utiliseddebits": "86.81"
-  },
-  "status": "success"
+    "m2mrealized": "3.27",
+    "m2munrealized": "-7.88",
+    "utiliseddebits": "679.34"
+  }
+}
+```
+
+#### Margin Example
+
+```go
+positions := []openalgo.MarginPosition{
+    {
+        Symbol:    "NIFTY25NOV2525000CE",
+        Exchange:  "NFO",
+        Action:    "BUY",
+        Product:   "NRML",
+        PriceType: "MARKET",
+        Quantity:  "75",
+    },
+    {
+        Symbol:    "NIFTY25NOV2525500CE",
+        Exchange:  "NFO",
+        Action:    "SELL",
+        Product:   "NRML",
+        PriceType: "MARKET",
+        Quantity:  "75",
+    },
+}
+
+response, err := client.Margin(positions)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**Margin Response**
+
+```json
+{
+    "status": "success",
+    "data": {
+      "total_margin_required": 91555.7625,
+      "span_margin": 0.0,
+      "exposure_margin": 91555.7625
+    }
 }
 ```
 
@@ -826,79 +1241,42 @@ fmt.Println(string(jsonBytes))
 
 ```go
 response, err := client.OrderBook()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
+
+**OrderBook Response**
 
 ```json
 {
+  "status": "success",
   "data": {
     "orders": [
       {
         "action": "BUY",
+        "symbol": "RELIANCE",
         "exchange": "NSE",
-        "order_status": "canceled",
-        "orderid": "25092400516306",
-        "price": "20.30",
-        "pricetype": "LIMIT",
+        "orderid": "250408000989443",
         "product": "MIS",
         "quantity": "1",
-        "symbol": "YESBANK",
-        "timestamp": "14:28:56 24-09-2025",
-        "trigger_price": 0
-      },
-      {
-        "action": "BUY",
-        "exchange": "NSE",
-        "order_status": "complete",
-        "orderid": "25092400496407",
-        "price": 0,
+        "price": 1186.0,
         "pricetype": "MARKET",
-        "product": "CNC",
-        "quantity": "1",
-        "symbol": "NHPC",
-        "timestamp": "14:14:26 24-09-2025",
-        "trigger_price": 0
-      },
-      {
-        "action": "BUY",
-        "exchange": "NSE",
         "order_status": "complete",
-        "orderid": "25092400496406",
-        "price": 0,
-        "pricetype": "MARKET",
-        "product": "MIS",
-        "quantity": "1",
-        "symbol": "YESBANK",
-        "timestamp": "14:14:26 24-09-2025",
-        "trigger_price": 0
-      },
-      {
-        "action": "SELL",
-        "exchange": "NSE",
-        "order_status": "complete",
-        "orderid": "25092400492663",
-        "price": 0,
-        "pricetype": "MARKET",
-        "product": "MIS",
-        "quantity": "2",
-        "symbol": "YESBANK",
-        "timestamp": "14:11:10 24-09-2025",
-        "trigger_price": 0
-      },
+        "trigger_price": 0.0,
+        "timestamp": "08-Apr-2025 13:58:03"
+      }
     ],
     "statistics": {
-      "total_buy_orders": 2,
-      "total_completed_orders": 3,
-      "total_open_orders": 0,
-      "total_rejected_orders": 0,
-      "total_sell_orders": 1
+      "total_buy_orders": 2.0,
+      "total_sell_orders": 0.0,
+      "total_completed_orders": 1.0,
+      "total_open_orders": 0.0,
+      "total_rejected_orders": 0.0
     }
-  },
-  "status": "success"
+  }
 }
 ```
 
@@ -906,64 +1284,31 @@ fmt.Println(string(jsonBytes))
 
 ```go
 response, err := client.TradeBook()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **TradeBook Response**
 
 ```json
 {
+  "status": "success",
   "data": [
     {
       "action": "BUY",
-      "average_price": "21.30",
+      "symbol": "RELIANCE",
       "exchange": "NSE",
-      "orderid": "25092400504502",
+      "orderid": "250408000989443",
       "product": "MIS",
-      "quantity": "3",
-      "symbol": "YESBANK",
-      "timestamp": "14:20:38",
-      "trade_value": 63.9
-    },
-    {
-      "action": "SELL",
-      "average_price": "21.28",
-      "exchange": "NSE",
-      "orderid": "25092400502095",
-      "product": "MIS",
-      "quantity": "2",
-      "symbol": "YESBANK",
-      "timestamp": "14:18:50",
-      "trade_value": 42.56
-    },
-    {
-      "action": "SELL",
-      "average_price": "21.29",
-      "exchange": "NSE",
-      "orderid": "25092400492663",
-      "product": "MIS",
-      "quantity": "2",
-      "symbol": "YESBANK",
-      "timestamp": "14:11:10",
-      "trade_value": 42.58
-    },
-    {
-      "action": "BUY",
-      "average_price": "21.32",
-      "exchange": "NSE",
-      "orderid": "25092400475638",
-      "product": "MIS",
-      "quantity": "1",
-      "symbol": "YESBANK",
-      "timestamp": "13:58:19",
-      "trade_value": 21.32
+      "quantity": 0.0,
+      "average_price": 1180.1,
+      "timestamp": "13:58:03",
+      "trade_value": 1180.1
     }
-  ],
-  "status": "success"
+  ]
 }
 ```
 
@@ -971,38 +1316,29 @@ fmt.Println(string(jsonBytes))
 
 ```go
 response, err := client.PositionBook()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **PositionBook Response**
 
 ```json
 {
+  "status": "success",
   "data": [
     {
-      "average_price": 0,
+      "symbol": "NHPC",
       "exchange": "NSE",
-      "ltp": 0,
-      "pnl": 0,
       "product": "MIS",
-      "quantity": 0,
-      "symbol": "YESBANK"
-    },
-    {
-      "average_price": 86.4,
-      "exchange": "NSE",
-      "ltp": 86.29,
-      "pnl": -0.11,
-      "product": "CNC",
-      "quantity": 1,
-      "symbol": "NHPC"
+      "quantity": "-1",
+      "average_price": "83.74",
+      "ltp": "83.72",
+      "pnl": "0.02"
     }
-  ],
-  "status": "success"
+  ]
 }
 ```
 
@@ -1010,43 +1346,98 @@ fmt.Println(string(jsonBytes))
 
 ```go
 response, err := client.Holdings()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Holdings Response**
 
 ```json
 {
+  "status": "success",
   "data": {
     "holdings": [
       {
+        "symbol": "RELIANCE",
         "exchange": "NSE",
-        "pnl": 0,
-        "pnlpercent": 0,
         "product": "CNC",
         "quantity": 1,
-        "symbol": "BHEL"
-      },
-      {
-        "exchange": "NSE",
-        "pnl": 0,
-        "pnlpercent": 0,
-        "product": "CNC",
-        "quantity": 1,
-        "symbol": "YESBANK"
+        "pnl": -149.0,
+        "pnlpercent": -11.1
       }
     ],
     "statistics": {
-      "totalholdingvalue": 271.55,
-      "totalinvvalue": 271.55,
-      "totalpnlpercentage": 0,
-      "totalprofitandloss": 0
+      "totalholdingvalue": 1768.0,
+      "totalinvvalue": 2001.0,
+      "totalprofitandloss": -233.15,
+      "totalpnlpercentage": -11.65
     }
-  },
+  }
+}
+```
+
+#### Holidays Example
+
+```go
+response, err := client.Holidays(2026)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**Holidays Response**
+
+```json
+{
+  "data": [
+    {
+      "closed_exchanges": ["NSE", "BSE", "NFO", "BFO", "CDS", "BCD", "MCX"],
+      "date": "2026-01-26",
+      "description": "Republic Day",
+      "holiday_type": "TRADING_HOLIDAY",
+      "open_exchanges": []
+    },
+    {
+      "closed_exchanges": [],
+      "date": "2026-02-19",
+      "description": "Chhatrapati Shivaji Maharaj Jayanti",
+      "holiday_type": "SETTLEMENT_HOLIDAY",
+      "open_exchanges": []
+    }
+  ],
+  "status": "success"
+}
+```
+
+#### Timings Example
+
+```go
+response, err := client.Timings("2025-12-19")
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**Timings Response**
+
+```json
+{
+  "data": [
+    {"end_time": 1766138400000, "exchange": "NSE", "start_time": 1766115900000},
+    {"end_time": 1766138400000, "exchange": "BSE", "start_time": 1766115900000},
+    {"end_time": 1766138400000, "exchange": "NFO", "start_time": 1766115900000},
+    {"end_time": 1766138400000, "exchange": "BFO", "start_time": 1766115900000},
+    {"end_time": 1766168700000, "exchange": "MCX", "start_time": 1766115000000},
+    {"end_time": 1766143800000, "exchange": "BCD", "start_time": 1766115000000},
+    {"end_time": 1766143800000, "exchange": "CDS", "start_time": 1766115000000}
+  ],
   "status": "success"
 }
 ```
@@ -1055,11 +1446,11 @@ fmt.Println(string(jsonBytes))
 
 ```go
 response, err := client.AnalyzerStatus()
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Analyzer Status Response**
@@ -1069,7 +1460,7 @@ fmt.Println(string(jsonBytes))
   "data": {
     "analyze_mode": true,
     "mode": "analyze",
-    "total_logs": 1
+    "total_logs": 2
   },
   "status": "success"
 }
@@ -1080,11 +1471,11 @@ fmt.Println(string(jsonBytes))
 ```go
 // Switch to analyze mode (simulated responses)
 response, err := client.AnalyzerToggle(true)
-jsonBytes, err := json.MarshalIndent(response, "", "  ")
 if err != nil {
-    log.Printf("Error: %v", err)
+    fmt.Println("Error:", err)
+    return
 }
-fmt.Println(string(jsonBytes))
+fmt.Println(response)
 ```
 
 **Analyzer Toggle Response**
@@ -1095,58 +1486,46 @@ fmt.Println(string(jsonBytes))
     "analyze_mode": true,
     "message": "Analyzer mode switched to analyze",
     "mode": "analyze",
-    "total_logs": 1
+    "total_logs": 2
   },
   "status": "success"
 }
 ```
 
-#### LTP Data (Streaming Websocket)
+#### LTP Data (Streaming WebSocket)
 
 ```go
 package main
 
 import (
-    "encoding/json"
     "fmt"
-    "log"
     "time"
     "github.com/marketcalls/openalgo-go/openalgo"
 )
 
 func main() {
-    // Initialize OpenAlgo client
-    client := openalgo.NewClient(
-        "your_api_key",           // Replace with your actual OpenAlgo API key
-        "http://127.0.0.1:5000",  // REST API host
-        "v1",                     // API version
-        "ws://127.0.0.1:8765",    // WebSocket host (optional)
-    )
+    client := openalgo.NewClient("your_api_key", "http://127.0.0.1:5000")
 
     // Connect to WebSocket
-    if err := client.Connect(); err != nil {
-        log.Fatalf("Failed to connect: %v", err)
+    err := client.Connect()
+    if err != nil {
+        fmt.Println("Error connecting:", err)
+        return
     }
     defer client.Disconnect()
 
-    // Define instruments to subscribe for LTP
+    // Define instruments using Instrument struct
     instruments := []openalgo.Instrument{
         {Exchange: "NSE", Symbol: "RELIANCE"},
         {Exchange: "NSE", Symbol: "INFY"},
     }
 
-    // Callback function for LTP updates
-    onLTP := func(data interface{}) {
-        fmt.Println("LTP Update Received:")
-        fmt.Println(data)
-    }
+    // Subscribe to LTP
+    client.SubscribeLTP(instruments, func(data interface{}) {
+        fmt.Println("LTP Update:", data)
+    })
 
-    // Subscribe
-    if err := client.SubscribeLTP(instruments, onLTP); err != nil {
-        log.Printf("Error subscribing to LTP: %v", err)
-    }
-
-    // Run for a few seconds to receive data
+    // Keep running for 10 seconds
     time.Sleep(10 * time.Second)
 
     // Unsubscribe
@@ -1154,108 +1533,72 @@ func main() {
 }
 ```
 
-#### Quotes (Streaming Websocket)
+#### Quotes (Streaming WebSocket)
 
 ```go
 package main
 
 import (
     "fmt"
-    "encoding/json"
-    "log"
     "time"
     "github.com/marketcalls/openalgo-go/openalgo"
 )
 
 func main() {
-    // Initialize OpenAlgo client
-    client := openalgo.NewClient(
-        "your_api_key",           // Replace with your actual OpenAlgo API key
-        "http://127.0.0.1:5000",  // REST API host
-        "v1",                     // API version
-        "ws://127.0.0.1:8765",    // WebSocket host (optional)
-    )
+    client := openalgo.NewClient("your_api_key", "http://127.0.0.1:5000")
 
-    // Connect
-    if err := client.Connect(); err != nil {
-        log.Fatalf("Failed to connect: %v", err)
+    err := client.Connect()
+    if err != nil {
+        fmt.Println("Error connecting:", err)
+        return
     }
     defer client.Disconnect()
 
-    // Instruments list
     instruments := []openalgo.Instrument{
         {Exchange: "NSE", Symbol: "RELIANCE"},
         {Exchange: "NSE", Symbol: "INFY"},
     }
 
-    // Callback for Quote updates
-    onQuote := func(data interface{}) {
-        fmt.Println("Quote Update Received:")
-        fmt.Println(data)
-    }
+    client.SubscribeQuote(instruments, func(data interface{}) {
+        fmt.Println("Quote Update:", data)
+    })
 
-    // Subscribe to quote stream
-    if err := client.SubscribeQuote(instruments, onQuote); err != nil {
-        log.Printf("Error subscribing to quotes: %v", err)
-    }
-
-    // Keep the script running to receive data
     time.Sleep(10 * time.Second)
-
-    // Unsubscribe
     client.UnsubscribeQuote(instruments)
 }
 ```
 
-#### Depth (Streaming Websocket)
+#### Depth (Streaming WebSocket)
 
 ```go
 package main
 
 import (
     "fmt"
-    "log"
     "time"
-    "encoding/json"
     "github.com/marketcalls/openalgo-go/openalgo"
 )
 
 func main() {
-    // Initialize OpenAlgo client
-    client := openalgo.NewClient(
-        "your_api_key",           // Replace with your actual OpenAlgo API key
-        "http://127.0.0.1:5000",  // REST API host
-        "v1",                     // API version
-        "ws://127.0.0.1:8765",    // WebSocket host (optional)
-    )
+    client := openalgo.NewClient("your_api_key", "http://127.0.0.1:5000")
 
-    // Connect
-    if err := client.Connect(); err != nil {
-        log.Fatalf("Failed to connect: %v", err)
+    err := client.Connect()
+    if err != nil {
+        fmt.Println("Error connecting:", err)
+        return
     }
     defer client.Disconnect()
 
-    // Instruments list for depth
     instruments := []openalgo.Instrument{
         {Exchange: "NSE", Symbol: "RELIANCE"},
         {Exchange: "NSE", Symbol: "INFY"},
     }
 
-    // Callback for market depth updates
-    onDepth := func(data interface{}) {
-        fmt.Println("Market Depth Update Received:")
-        fmt.Println(data)
-    }
+    client.SubscribeDepth(instruments, func(data interface{}) {
+        fmt.Println("Depth Update:", data)
+    })
 
-    // Subscribe to depth stream
-    if err := client.SubscribeDepth(instruments, onDepth); err != nil {
-        log.Printf("Error subscribing to depth: %v", err)
-    }
-
-    // Run for a few seconds to collect data
     time.Sleep(10 * time.Second)
-
-    // Unsubscribe
     client.UnsubscribeDepth(instruments)
 }
 ```
