@@ -2,6 +2,16 @@
 
 ## OpenAlgo Rust SDK
 
+To install the OpenAlgo Rust library, use cargo:
+
+```bash
+cargo add openalgo tokio --features tokio/full
+```
+
+Or add to your `Cargo.toml`:
+
+
+
 To install the OpenAlgo Rust library, add to your `Cargo.toml`:
 
 ```toml
