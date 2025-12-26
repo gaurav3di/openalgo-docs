@@ -50,6 +50,7 @@ SDKs are officially supported client packages intended for application developme
 | Python              | [https://github.com/marketcalls/openalgo-python-library](https://github.com/marketcalls/openalgo-python-library) |
 | Node.js             | [https://github.com/marketcalls/openalgo-node](https://github.com/marketcalls/openalgo-node)                     |
 | Java                | [https://github.com/marketcalls/openalgo-java](https://github.com/marketcalls/openalgo-java)                     |
+| RUST                | [https://github.com/marketcalls/openalgo-rust](https://github.com/marketcalls/openalgo-rust)                     |
 | .NET / C#           | [https://github.com/marketcalls/openalgo.NET](https://github.com/marketcalls/openalgo.NET)                       |
 | Go                  | [https://github.com/marketcalls/openalgo-go](https://github.com/marketcalls/openalgo-go)                         |
 
@@ -66,6 +67,8 @@ These libraries and tools extend OpenAlgo support to popular trading platforms, 
 | 🔁 **Backtrader Integration**      | [https://github.com/p2c2e/openalgo-backtrader](https://github.com/p2c2e/openalgo-backtrader)         |
 | ⚡ **PineTS**                       | [https://github.com/marketcalls/openalgo-pinets](https://github.com/marketcalls/openalgo-pinets)     |
 | 🪞 **AlgoMirror**                  | [https://github.com/marketcalls/algomirror](https://github.com/marketcalls/algomirror)               |
+| ⚡ OpenAlgo chart                   | [https://github.com/crypt0inf0/openalgo-chart](https://github.com/crypt0inf0/openalgo-chart)         |
+| 🌐 OpenAlgo Helm Chart             | [https://github.com/p2c2e/openalgo\_helm](https://github.com/p2c2e/openalgo_helm)                    |
 | 🤖 **MCP / AI Agents**             | [https://github.com/marketcalls/openalgo-mcp](https://github.com/marketcalls/openalgo-mcp)           |
 | 📱 **OpenAlgo Mobile**             | [https://github.com/marketcalls/openalgo-mobile](https://github.com/marketcalls/openalgo-mobile)     |
 | 🌐 **Web Portal**                  | [https://github.com/marketcalls/openalgo-webpage](https://github.com/marketcalls/openalgo-webpage)   |
