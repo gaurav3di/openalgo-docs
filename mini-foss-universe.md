@@ -86,6 +86,7 @@ Each SDK and integration has dedicated documentation that includes installation 
 * Java — [https://docs.openalgo.in/trading-platform/java](https://docs.openalgo.in/trading-platform/java)
 * .NET — [https://docs.openalgo.in/trading-platform/.net](https://docs.openalgo.in/trading-platform/.net)
 * Go — [https://docs.openalgo.in/trading-platform/go](https://docs.openalgo.in/trading-platform/go)
+* RUST — https://docs.openalgo.in/trading-platform/rust
 * Excel — [https://docs.openalgo.in/trading-platform/excel](https://docs.openalgo.in/trading-platform/excel)
 * Amibroker Plugin — [https://docs.openalgo.in/trading-platform/amibroker/amibroker-plugin](https://docs.openalgo.in/trading-platform/amibroker/amibroker-plugin)
 * MCP / AI Agents — [https://docs.openalgo.in/mcp](https://docs.openalgo.in/mcp)
