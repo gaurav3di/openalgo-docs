@@ -244,7 +244,56 @@ OpenAlgo Excel Add-In is built using **Excel-DNA**, which requires the **.NET 6 
 
 ***
 
+### Websockets (Real Time streaming)
+
+**Function:** oa\_ws\_connect()
+
+**Example Usage:**
+
+```
+=oa_ws_connect() or =oa_ws_connect([url]) ##default: ws://127.0.0.1:8765
+=oa_ws_status() # Get connection status
+```
+
+#### **LTP (streaming Webscoket)**
+
+**Function:** oa\_ws\_ltp(symbol,exchange)
+
+**Example Usage :**
+
+```
+=oa_ws_ltp("RELIANCE", "NSE")                             
+```
+
+**Returns:** LTP for the given symbol.
+
+#### Quotes (streaming Websocket)
+
+**Function:** oa\_ws\_quote(symbol,exchange)
+
+**Example Usage:**
+
+```
+=oa_ws_quote("RELIANCE", "NSE")                             
+```
+
+**Returns:** Market price details for the given symbol.
+
+#### Depth (streaming websocket)
+
+**Function:** oa\_ws\_depth(symbol,exchange)
+
+**Example Usage:**
+
+```
+=oa_ws_depth("RELIANCE", "NSE")
+```
+
+**Returns:** Order book depth for buy/sell levels.
+
 ### Notes
+
+
 
 * Test in **OpenAlgo Analyzer Mode** before using in live markets.
 
