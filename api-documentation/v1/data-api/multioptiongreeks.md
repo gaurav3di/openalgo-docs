@@ -2,7 +2,7 @@
 
 ### **Multi Option Greeks API**
 
-#### Endpoint URL <a href="#endpoint-url" id="endpoint-url"></a>
+### Endpoint URL <a href="#endpoint-url" id="endpoint-url"></a>
 
 This API Function Calculates Multi Option Greeks (Delta, Gamma, Theta, Vega, Rho) and Implied Volatility using Black-76 Model
 
@@ -12,7 +12,7 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/multiopti
 Custom Domain:  POST https://<your-custom-domain>/api/v1/multioptiongreeks
 ```
 
-**Why Black-76 Model?**
+### **Why Black-76 Model?**
 
 OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-Scholes for calculating multi option Greeks. This is the correct choice for Indian F\&O markets:
 
@@ -23,7 +23,7 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 * Greeks match with professional trading platforms
 * Proper handling of cost of carry
 
-#### Prerequisites <a href="#prerequisites" id="prerequisites"></a>
+### Prerequisites <a href="#prerequisites" id="prerequisites"></a>
 
 1. **py\_vollib Library Required**
    * Install with: `pip install py_vollib`
@@ -36,7 +36,7 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
    * API key must be active and valid
    * Get API key from OpenAlgo settings
 
-#### **Sample API Request (NFO - NIFTY Option with Auto-Detected Spot)**
+### **Sample API Request (NFO - NIFTY Option with Auto-Detected Spot)**
 
 ```
 {
@@ -56,7 +56,7 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 
 **Note**: Auto-detects NIFTY from NSE\_INDEX (spot price: 26240) as underlying
 
-#### **Sample API Request (Explicit Underlying with Zero Interest Rate)**
+### **Sample API Request (Explicit Underlying with Zero Interest Rate)**
 
 ```
 {
@@ -133,7 +133,7 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 }
 ```
 
-#### **Sample API Request (With Custom Interest Rate)**
+### **Sample API Request (With Custom Interest Rate)**
 
 ```
 {
