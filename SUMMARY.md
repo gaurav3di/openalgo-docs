@@ -128,6 +128,7 @@
     * [OptionSymbol](api-documentation/v1/data-api/optionsymbol.md)
     * [Option Chain](api-documentation/v1/data-api/option-chain.md)
     * [OptionGreeks](api-documentation/v1/data-api/optiongreeks.md)
+    * [MultiOptionGreeks](api-documentation/v1/data-api/multioptiongreeks.md)
     * [Ticker](api-documentation/v1/data-api/ticker.md)
     * [Instruments](api-documentation/v1/data-api/instruments.md)
   * [Utilities API](api-documentation/v1/utilities-api/README.md)
