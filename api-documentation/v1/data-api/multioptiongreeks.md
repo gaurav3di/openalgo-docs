@@ -40,7 +40,7 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 
 ```
 {
-  "apikey": "",
+  "apikey": "your-openalgo-api-key-here",
   "symbols": [
     {
       "symbol": "NIFTY27JAN2626000CE",
@@ -60,7 +60,7 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 
 ```
 {
-  "apikey": "aa0e7d84449e728b6ea2802243ab5e8aaf6aadecda59d59aa022a22e16d02755",
+  "apikey": "your-openalgo-api-key-here",
   "symbols": [
     {
       "symbol": "NIFTY27JAN2626100CE",
@@ -121,6 +121,89 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
       "status": "success",
       "strike": 26000,
       "symbol": "NIFTY27JAN2626000PE",
+      "underlying": "NIFTY"
+    }
+  ],
+  "status": "success",
+  "summary": {
+    "failed": 0,
+    "success": 2,
+    "total": 2
+  }
+}
+```
+
+### **Sample API Request (Using Futures as Underlying)**
+
+```
+{
+  "apikey": "your-openalgo-api-key-here",
+  "symbols": [
+    {
+      "symbol": "NIFTY27JAN2624500CE",
+      "exchange": "NFO",
+      "underlying_symbol": "NIFTY27JAN26FUT",
+      "underlying_exchange": "NFO"
+    },
+    {
+      "symbol": "NIFTY27JAN2624500PE",
+      "exchange": "NFO",
+      "underlying_symbol": "NIFTY27JAN26FUT",
+      "underlying_exchange": "NFO"
+    }
+  ],
+  "interest_rate": 7.0
+}
+```
+
+### **Sample API Response (Success - With Futures)**
+
+```
+{
+  "data": [
+    {
+      "days_to_expiry": 20.0662,
+      "exchange": "NFO",
+      "expiry_date": "27-Jan-2026",
+      "greeks": {
+        "delta": 1,
+        "gamma": 0,
+        "rho": 0,
+        "theta": 0,
+        "vega": 0
+      },
+      "implied_volatility": 0,
+      "interest_rate": 7,
+      "intrinsic_value": 1699.9,
+      "note": "Deep ITM option with no time value - theoretical Greeks returned",
+      "option_price": 1697.25,
+      "option_type": "CE",
+      "spot_price": 26199.9,
+      "status": "success",
+      "strike": 24500,
+      "symbol": "NIFTY27JAN2624500CE",
+      "time_value": 0,
+      "underlying": "NIFTY"
+    },
+    {
+      "days_to_expiry": 20.0662,
+      "exchange": "NFO",
+      "expiry_date": "27-Jan-2026",
+      "greeks": {
+        "delta": -0.0204,
+        "gamma": 0.000057,
+        "rho": -0.003628,
+        "theta": -1.0635,
+        "vega": 3.0272
+      },
+      "implied_volatility": 14.12,
+      "interest_rate": 7,
+      "option_price": 6.6,
+      "option_type": "PE",
+      "spot_price": 26199.9,
+      "status": "success",
+      "strike": 24500,
+      "symbol": "NIFTY27JAN2624500PE",
       "underlying": "NIFTY"
     }
   ],
