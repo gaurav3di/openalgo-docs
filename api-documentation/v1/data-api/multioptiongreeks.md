@@ -36,7 +36,7 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
    * API key must be active and valid
    * Get API key from OpenAlgo settings
 
-**Sample API Request**
+#### **Sample API Request (NFO - NIFTY Option with Auto-Detected Spot)**
 
 ```
 {
@@ -54,7 +54,29 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 }
 ```
 
-**Sample API Response (Success)**
+**Note**: Auto-detects NIFTY from NSE\_INDEX (spot price: 26240) as underlying
+
+#### **Sample API Request (Explicit Underlying with Zero Interest Rate)**
+
+```
+{
+  "apikey": "aa0e7d84449e728b6ea2802243ab5e8aaf6aadecda59d59aa022a22e16d02755",
+  "symbols": [
+    {
+      "symbol": "NIFTY27JAN2626100CE",
+      "exchange": "NFO"
+    },
+    {
+      "symbol": "NIFTY27JAN2626100PE",
+      "exchange": "NFO"
+    }
+  ]
+}
+```
+
+**Note**: Explicitly specifies NIFTY spot (26240) from NSE\_INDEX. Using interest\_rate: 0 for theoretical calculations or when interest rate impact is negligible.
+
+#### **Sample API Response (Success)**
 
 ```
 {
@@ -111,6 +133,17 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 }
 ```
 
+#### **Sample API Request (With Custom Interest Rate)**
+
+```
+{
+    "apikey": "your_api_key",
+    "symbol": "NIFTY30DEC2526100CE",
+    "exchange": "NFO",
+    "interest_rate": 6.5
+}
+```
+
 ### Parameter Description
 
 | Parameters           | Description                                                                                                                                                                                          | Mandatory/Optional | Default Value                                          |
@@ -124,7 +157,14 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 | underlying\_exchange | Custom underlying exchange (e.g., NSE\_INDEX or NFO)                                                                                                                                                 | Optional           | Auto-detected                                          |
 | expiry\_time         | Custom expiry time in HH:MM format (e.g., "17:00", "19:00"). Required for MCX contracts with non-standard expiry times                                                                               | Optional           | Exchange defaults: NFO/BFO=15:30, CDS=12:30, MCX=23:30 |
 
-**Response Parameters**
+**Notes**:
+
+* **Interest Rate**: Default is 0. For accurate Greeks (especially Rho), specify current RBI repo rate (typically 6.25-7.0%). Interest rate has minimal impact on short-term options (< 7 days).
+* **Forward Price**: When provided, the API uses this value directly instead of fetching underlying price. Calculate synthetic futures as: `Forward = Spot x e^(r x T)` where r is interest rate and T is time to expiry in years.
+* Use `underlying_symbol` and `underlying_exchange` to choose between spot and futures as underlying. If not specified, automatically uses spot price.
+* Use `expiry_time` for MCX commodities that don't expire at the default 23:30. See MCX Commodity Expiry Times section below.
+
+#### **Response Parameters**
 
 | Parameter           | Description                             | Type   |
 | ------------------- | --------------------------------------- | ------ |
