@@ -111,3 +111,35 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 }
 ```
 
+**Response Parameters**
+
+{% columns %}
+{% column %}
+**Parameter**
+
+status
+
+
+
+symbol
+{% endcolumn %}
+
+{% column %}
+**Description**
+
+API response status (success/error)
+
+Option symbol
+{% endcolumn %}
+
+{% column %}
+**Type**
+
+string
+
+
+
+string
+{% endcolumn %}
+{% endcolumns %}
+
