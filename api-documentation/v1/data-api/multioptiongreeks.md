@@ -111,35 +111,38 @@ OpenAlgo uses the **Black-76 model** (via py\_vollib library) instead of Black-S
 }
 ```
 
+### Parameter Description
+
+| Parameters           | Description                                                                                                                                                                                          | Mandatory/Optional | Default Value                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------ |
+| apikey               | App API key                                                                                                                                                                                          | Mandatory          | -                                                      |
+| symbol               | Option symbol (e.g., NIFTY02DEC2526000CE)                                                                                                                                                            | Mandatory          | -                                                      |
+| exchange             | Exchange code (NFO, BFO, CDS, MCX)                                                                                                                                                                   | Mandatory          | -                                                      |
+| interest\_rate       | Risk-free interest rate (annualized %). Specify current RBI repo rate (e.g., 6.5, 6.75) for accurate Rho calculations. Use 0 for theoretical calculations or when interest rate impact is negligible | Optional           | 0                                                      |
+| forward\_price       | Custom forward/synthetic futures price. If provided, skips underlying price fetch. Useful for synthetic futures (Spot x e^rT) or illiquid underlyings like FINNIFTY, MIDCPNIFTY                      | Optional           | Auto-fetched                                           |
+| underlying\_symbol   | Custom underlying symbol (e.g., NIFTY or NIFTY30DEC25FUT)                                                                                                                                            | Optional           | Auto-detected                                          |
+| underlying\_exchange | Custom underlying exchange (e.g., NSE\_INDEX or NFO)                                                                                                                                                 | Optional           | Auto-detected                                          |
+| expiry\_time         | Custom expiry time in HH:MM format (e.g., "17:00", "19:00"). Required for MCX contracts with non-standard expiry times                                                                               | Optional           | Exchange defaults: NFO/BFO=15:30, CDS=12:30, MCX=23:30 |
+
 **Response Parameters**
 
-{% columns %}
-{% column %}
-**Parameter**
-
-status
-
-
-
-symbol
-{% endcolumn %}
-
-{% column %}
-**Description**
-
-API response status (success/error)
-
-Option symbol
-{% endcolumn %}
-
-{% column %}
-**Type**
-
-string
-
-
-
-string
-{% endcolumn %}
-{% endcolumns %}
-
+| Parameter           | Description                             | Type   |
+| ------------------- | --------------------------------------- | ------ |
+| status              | API response status (success/error)     | string |
+| symbol              | Option symbol                           | string |
+| exchange            | Exchange code                           | string |
+| underlying          | Underlying symbol                       | string |
+| strike              | Strike price                            | number |
+| option\_type        | Option type (CE/PE)                     | string |
+| expiry\_date        | Expiry date (formatted)                 | string |
+| days\_to\_expiry    | Days remaining to expiry                | number |
+| spot\_price         | Underlying spot/futures/forward price   | number |
+| option\_price       | Current option premium                  | number |
+| interest\_rate      | Interest rate used                      | number |
+| implied\_volatility | Implied Volatility (%)                  | number |
+| greeks              | Object containing Greeks                | object |
+| greeks.delta        | Delta (rate of change of option price)  | number |
+| greeks.gamma        | Gamma (rate of change of delta)         | number |
+| greeks.theta        | Theta (time decay per day)              | number |
+| greeks.vega         | Vega (sensitivity to volatility per 1%) | number |
+| greeks.rho          | Rho (sensitivity to interest rate)      | number |
