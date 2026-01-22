@@ -8,6 +8,7 @@
 * [OpenAlgo GPT](openalgo-gpt.md)
 * [New Features](new-features/README.md)
   * [Fast Scalper](new-features/fast-scalper.md)
+  * [Flow - Visual Strategy Builder](new-features/flow-visual-strategy-builder.md)
   * [API Analyzer](new-features/api-analyzer.md)
   * [PNL Tracker](new-features/pnl-tracker.md)
   * [Traffic/Latency Monitor](new-features/traffic-latency-monitor.md)

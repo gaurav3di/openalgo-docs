@@ -1,118 +1,235 @@
 # Why to Build with OpenAlgo?
 
-_“Why should I use OpenAlgo when I can just build my strategy directly on top of the broker’s SDK or API?”_
+_"Why should I use OpenAlgo when I can just build my strategy directly on top of the broker's SDK or API?"_
 
-It’s a common question. Many start with broker SDKs because it feels quick—just wire your signals and send orders. But soon, the pain points show up:
+It's a common question. Many start with broker SDKs because it feels quick—just wire your signals and send orders. But soon, the pain points show up:
 
-* How do you monitor trades live?
+* How do you monitor trades in real-time?
 * Where do you store and replay logs?
 * How do you test webhooks or strategies before going live?
-* How do you manage symbols, expiries, and contracts?
-* What happens when you want to move from Broker A to Broker B?
+* How do you manage symbols, expiries, and contracts across brokers?
+* What happens when you want to switch from Broker A to Broker B?
 
-That’s when you realize the SDK is not enough.
+That's when you realize the SDK is not enough.
 
-**OpenAlgo takes care of the heavy lifting.**\
-It’s not just an API wrapper—it’s a **full-stack, open-source trading automation framework** designed to host strategies, manage brokers, and scale securely.
+**OpenAlgo takes care of the heavy lifting.**
+
+It's not just an API wrapper—it's a **full-stack, open-source trading automation framework** designed to host strategies, manage brokers, and scale securely.
 
 <figure><img src=".gitbook/assets/image (123).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
-#### What Makes OpenAlgo Different?
+### What Makes OpenAlgo Different?
 
-**Strategy Management & Hosting**
+#### Strategy Management & Hosting
 
-You can now **host your Python strategies directly inside OpenAlgo**, alongside strategies from TradingView, Amibroker, MetaTrader, Excel, N8N, or Chartink. Start, pause, monitor, and analyze—all from a central control plane.
+Host your **Python strategies directly inside OpenAlgo**, alongside strategies from TradingView, Amibroker, ChartInk, MetaTrader, Excel, or custom webhooks. Start, pause, schedule, monitor, and analyze—all from a central control plane.
 
-**Backtesting & API Analyzer**
+| Capability                  | Description                                        |
+| --------------------------- | -------------------------------------------------- |
+| **Python Strategy Hosting** | Upload and run Python scripts with scheduling      |
+| **Flow Visual Builder**     | Create strategies without code using drag-and-drop |
+| **Multi-Platform Support**  | TradingView, Amibroker, ChartInk, Excel, and more  |
+| **Centralized Control**     | Manage all strategies from one dashboard           |
 
-Integrated with **Backtrader**, OpenAlgo lets you backtest signals using historical data before pushing them live. The **API Analyzer** works like a local sandbox—test your signals, APIs, and strategies without hitting real broker servers.
+#### Sandbox Testing & API Analyzer
 
-**Cache Layer & Log Storage**
+The **Analyzer Mode** works like a local sandbox—test your signals, APIs, and strategies with ₹1 Crore sandbox capital without hitting real broker servers. Validate everything before going live.
 
-High-performance caching keeps repeated requests fast, while **centralized log storage** ensures every trade, event, and error is traceable for compliance and debugging.
+| Feature                 | Benefit                               |
+| ----------------------- | ------------------------------------- |
+| **Sandbox Capital**     | ₹1 Crore to test freely               |
+| **Real Market Prices**  | Realistic simulation with live data   |
+| **Margin Calculations** | Actual margin requirements enforced   |
+| **Position Tracking**   | Full position and holdings management |
+| **Zero Risk**           | Complete isolation from live trading  |
 
-**Multi-Broker, Multi-Platform**
+#### Historical Data & Backtesting
 
-OpenAlgo supports **multiple brokers** via a **common API and WebSocket layer**. Write your strategy once, and run it across Zerodha, AngelOne, Dhan, Upstox, Flattrade, Firstock, and more—without rewriting code.
+**Historify** lets you download and store historical market data locally using DuckDB. Use this data for backtesting, analysis, or feeding into your strategy development workflow.
 
-It also supports running strategies from **TradingView, Amibroker, MetaTrader, Chartink, Excel, Google Sheets, and N8N**—all via the same API.
+| Capability              | Description                  |
+| ----------------------- | ---------------------------- |
+| **Bulk Downloads**      | Download years of OHLCV data |
+| **DuckDB Storage**      | Efficient columnar storage   |
+| **Multiple Timeframes** | 1-minute to daily data       |
+| **Export Options**      | CSV, JSON, or direct query   |
 
-**Unified Symbol & Contract Management**
+#### Multi-Broker, Multi-Platform
 
-With OpenAlgo’s **Common Symbol Format**, you don’t have to worry about broker-specific quirks. Contracts, expiries, and lot sizes are maintained automatically.
+OpenAlgo supports **24+ Indian brokers** via a **unified API and WebSocket layer**. Write your strategy once, and run it across Zerodha, Angel One, Dhan, Upstox, Fyers, Flattrade, Firstock, and more—without rewriting code.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Your Strategy Code                          │
+│                    (Write Once)                                 │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   OpenAlgo Unified API                          │
+│              (Common Interface for All Brokers)                 │
+└───┬─────────┬─────────┬─────────┬─────────┬─────────┬──────────┘
+    │         │         │         │         │         │
+    ▼         ▼         ▼         ▼         ▼         ▼
+┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
+│Zerodha│ │ Angel │ │  Dhan │ │ Fyers │ │Upstox │ │ More  │
+└───────┘ └───────┘ └───────┘ └───────┘ └───────┘ └───────┘
+```
+
+#### Unified Symbol & Contract Management
+
+With OpenAlgo's **Common Symbol Format**, you don't have to worry about broker-specific quirks. Contracts, expiries, and lot sizes are maintained automatically.
+
+| Broker  | Their Format | OpenAlgo Format |
+| ------- | ------------ | --------------- |
+| Zerodha | `SBIN`       | `SBIN`          |
+| Angel   | `SBIN-EQ`    | `SBIN`          |
+| Dhan    | `SBIN`       | `SBIN`          |
+
+**One symbol format. All brokers.**
 
 ***
 
-#### Speed, Stability, and Control
+### Speed, Stability, and Control
 
-* **HTTPX with Connection Pooling** reduces latency to **50ms–120ms** vs. 150ms–250ms in plain scripts.
-* **Backtesting integration** with Backtrader lets you validate performance before risking real money.
-* **WebSocket broadcast layer** ensures one stream can power multiple strategies, cutting redundant broker connections.
-* **Latency Monitor** tracks order round-trips so you know exactly how your infra is performing.
+#### Performance Optimizations
 
-***
+| Feature                       | Impact                                             |
+| ----------------------------- | -------------------------------------------------- |
+| **HTTPX Connection Pooling**  | 50ms–120ms latency vs 150ms–250ms in plain scripts |
+| **WebSocket Broadcast Layer** | One broker stream powers multiple strategies       |
+| **Symbol Caching**            | Instant symbol lookups without repeated API calls  |
+| **Rate Limit Management**     | Automatic throttling to stay within broker limits  |
 
-#### Deployment Comes Secure by Default
+#### Real-Time Monitoring
 
-OpenAlgo is battle-tested with:
+| Tool                    | Purpose                               |
+| ----------------------- | ------------------------------------- |
+| **Latency Monitor**     | Track order round-trip times          |
+| **Traffic Logs**        | Complete API request/response history |
+| **P\&L Tracker**        | Real-time profit/loss visualization   |
+| **WebSocket Dashboard** | Monitor live data connections         |
 
-* CORS and CSP headers
-* CSRF protection
-* Endpoint rate limiting
-* Session management and audit trails
-* Sandboxed execution for hosted strategies
+#### Notification & Alerts
 
-You can run it locally, inside **Docker**, or on cloud servers—secure out of the box.
-
-***
-
-#### SDKs, Add-ins, and Community Support
-
-* **Python, Go, Node.js SDKs** to code in your favorite language
-* **Excel Add-ins** for traders who love spreadsheets
-* **Docker support** for clean deployment
-* **Community support** through Discord and GitHub
-* **Log storage** for auditing and debugging
+| Channel               | Capabilities                          |
+| --------------------- | ------------------------------------- |
+| **Telegram Bot**      | Trade notifications, commands, alerts |
+| **WebSocket Updates** | Real-time order and position changes  |
+| **Dashboard Alerts**  | Visual notifications in UI            |
 
 ***
 
-#### Why Not Just Use Broker APIs Directly?
+### Security by Default
 
-You’d have to reinvent:
+OpenAlgo is production-tested with enterprise-grade security:
 
-* Strategy hosting and lifecycle control
-* Backtesting and simulation tools
-* Symbol and contract management
-* Connection pooling and WebSocket normalization
-* Trade management dashboards
-* Cache and log storage layers
-* Monitoring and latency measurement
+| Security Feature         | Description                                |
+| ------------------------ | ------------------------------------------ |
+| **CORS & CSP Headers**   | Cross-origin and content security policies |
+| **CSRF Protection**      | Token-based request validation             |
+| **Rate Limiting**        | Per-endpoint request throttling            |
+| **Two-Factor Auth**      | TOTP-based login security                  |
+| **Session Management**   | Secure session handling with timeouts      |
+| **Audit Trails**         | Complete logging for compliance            |
+| **API Key Encryption**   | Secure storage with pepper-based hashing   |
+| **Subprocess Isolation** | Sandboxed execution for hosted strategies  |
+
+Deploy locally, in **Docker**, or on cloud servers—secure out of the box.
+
+***
+
+### SDKs, Add-ins, and Ecosystem
+
+#### Official SDKs
+
+| Language    | Package              |
+| ----------- | -------------------- |
+| **Python**  | `openalgo` on PyPI   |
+| **Node.js** | REST API integration |
+| **Go**      | REST API integration |
+
+#### Platform Integrations
+
+| Platform          | Integration Type    |
+| ----------------- | ------------------- |
+| **TradingView**   | Webhooks            |
+| **Amibroker**     | HTTP calls from AFL |
+| **ChartInk**      | Scanner webhooks    |
+| **Excel**         | VBA with REST API   |
+| **Google Sheets** | Apps Script         |
+| **MetaTrader 5**  | EA integration      |
+
+#### Deployment Options
+
+| Option           | Best For                        |
+| ---------------- | ------------------------------- |
+| **Local**        | Personal desktop trading        |
+| **Docker**       | Clean, reproducible deployments |
+| **Cloud Server** | 24/7 automated trading          |
+| **VPS**          | Low-latency remote access       |
+
+***
+
+### Why Not Just Use Broker APIs Directly?
+
+With direct broker APIs, you'd have to build:
+
+| Component                | What You'd Build                  | OpenAlgo Provides                |
+| ------------------------ | --------------------------------- | -------------------------------- |
+| **Strategy Hosting**     | Process management, scheduling    | Built-in with Python hosting     |
+| **Testing Environment**  | Sandbox, mock broker              | Analyzer Mode with ₹1 Cr capital |
+| **Symbol Management**    | Expiry handling, contract mapping | Unified symbol format            |
+| **Connection Pooling**   | HTTP/WebSocket optimization       | HTTPX with connection reuse      |
+| **Trade Dashboard**      | React UI, real-time updates       | Full React frontend included     |
+| **Log Storage**          | Database, query interface         | SQLite with traffic logs         |
+| **Latency Tracking**     | Timing, metrics, alerts           | Latency monitor built-in         |
+| **Multi-Broker Support** | N broker integrations             | 24+ brokers pre-integrated       |
+| **Security Layer**       | Auth, rate limiting, CSRF         | Enterprise security included     |
+| **Notifications**        | Telegram, alerts                  | Telegram bot integrated          |
 
 OpenAlgo ships with all this—**pre-wired, tested, and open source**.
 
 ***
 
-#### Open Source Freedom
+### Open Source Freedom
 
 Licensed under **AGPL**, OpenAlgo gives you:
 
-* Full source code and modification rights
-* Freedom to self-host
-* No per-order fees or vendor lock-ins
-* The ability to build commercial apps on top (with compliance)
+| Freedom               | Description                             |
+| --------------------- | --------------------------------------- |
+| **Full Source Code**  | Inspect, modify, extend                 |
+| **Self-Hosting**      | Run on your infrastructure              |
+| **No Per-Order Fees** | Zero transaction costs                  |
+| **No Vendor Lock-in** | Switch or fork anytime                  |
+| **Commercial Use**    | Build products on top (with compliance) |
+| **Community Support** | Discord, GitHub, documentation          |
 
 ***
 
-#### Final Thoughts
+### The Bottom Line
 
-Broker APIs give you _access_.\
-OpenAlgo gives you _infrastructure_.
+| Aspect               | Broker APIs             | OpenAlgo             |
+| -------------------- | ----------------------- | -------------------- |
+| **Setup Time**       | Weeks of development    | Hours to deploy      |
+| **Broker Switching** | Rewrite everything      | Change one config    |
+| **Testing**          | Build your own sandbox  | Analyzer Mode ready  |
+| **Monitoring**       | Build dashboards        | Full UI included     |
+| **Security**         | Implement yourself      | Production-ready     |
+| **Maintenance**      | You maintain everything | Community maintained |
+| **Cost**             | Your development time   | Free and open source |
 
-It doesn’t replace your strategy logic—it **amplifies** it with the ecosystem you need to operate, monitor, backtest, and scale confidently.
+**Broker APIs give you&#x20;**_**access**_**.** **OpenAlgo gives you&#x20;**_**infrastructure**_**.**
 
-And when you’re ready to switch brokers or expand to multi-broker setups, you’ll already be on **OpenAlgo’s unified, broker-agnostic foundation**.
+It doesn't replace your strategy logic—it **amplifies** it with the ecosystem you need to operate, monitor, test, and scale confidently.
+
+And when you're ready to switch brokers or expand to multi-broker setups, you'll already be on **OpenAlgo's unified, broker-agnostic foundation**.
 
 ***
+
+**Previous**: 01 - What is OpenAlgo
+
+**Next**: 03 - Key Concepts
 
