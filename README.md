@@ -4,8 +4,6 @@
 
 **OpenAlgo** is a free, open-source algorithmic trading platform that bridges your trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 24+ Indian brokers, enabling seamless automation from TradingView, Amibroker, Python scripts, Excel, and AI agents.
 
-**Website**: [https://openalgo.in](https://openalgo.in) **GitHub**: [https://github.com/marketcalls/openalgo](https://github.com/marketcalls/openalgo) **Documentation**: [https://docs.openalgo.in](https://docs.openalgo.in)
-
 
 
 {% embed url="https://www.youtube.com/watch?v=kAS3jTb3OkI" %}
