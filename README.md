@@ -42,6 +42,10 @@ Order placed with your broker
 All in under 1 second!
 ```
 
+###
+
+{% embed url="https://www.youtube.com/watch?v=es6UUTWtG8Q" %}
+
 ### Who is OpenAlgo For?
 
 #### Retail Traders
