@@ -1,278 +1,139 @@
 # What is OpenAlgo?
 
-### Introduction
+### Overview
 
-**OpenAlgo** is a free, open-source algorithmic trading platform that bridges your trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 24+ Indian brokers, enabling seamless automation from TradingView, Amibroker, Python scripts, Excel, and AI agents.
+**OpenAlgo** is an **open-source, self-hosted algorithmic trading platform** that makes it easy to build, test, and run trading strategies across multiple Indian brokers using a **single, consistent interface**.
 
+Instead of working directly with different broker APIs, OpenAlgo provides a **unified trading layer** that standardizes order execution, market data, and portfolio access—allowing strategies to work the same way regardless of the broker being used.
 
+{% embed url="https://www.youtube.com/watch?v=LhbXWlUtCcM" %}
 
-{% embed url="https://www.youtube.com/watch?v=kAS3jTb3OkI" %}
+***
 
-**Download OpenAlgo from Github**
+### What Problem Does OpenAlgo Solve?
 
-{% embed url="https://github.com/marketcalls/openalgo" %}
+Most brokers expose their own APIs, each with unique:
 
-### The Problem OpenAlgo Solves
+* Authentication methods
+* Order parameters and formats
+* Market data structures
+* Limitations and edge cases
 
-#### Before OpenAlgo
+This creates complexity for both traders and developers.
 
-```
-You see a buy signal on TradingView
-        ↓
-You manually open your broker app
-        ↓
-You search for the stock
-        ↓
-You enter quantity and price
-        ↓
-You click buy
-        ↓
-Signal is 2 minutes old by now!
-```
+OpenAlgo removes this friction by offering:
 
-#### With OpenAlgo
+* One common API for all supported brokers
+* Consistent behavior across live trading and testing
+* The ability to switch brokers without rewriting strategies
 
-```
-TradingView sends a signal
-        ↓
-OpenAlgo receives it instantly
-        ↓
-Order placed with your broker
-        ↓
-All in under 1 second!
-```
+***
 
-###
+### Who Should Use OpenAlgo?
 
-{% embed url="https://www.youtube.com/watch?v=es6UUTWtG8Q" %}
+#### Traders
 
-### Who is OpenAlgo For?
+OpenAlgo is suitable for traders who want to:
 
-#### Retail Traders
-
-* Tired of manually placing orders
-* Want to trade multiple stocks simultaneously
-* Need faster execution than manual trading
-
-#### Technical Traders
-
-* Use TradingView for charting and alerts
-* Use Amibroker for backtesting strategies
-* Want to automate their proven strategies
-
-#### Algo Enthusiasts
-
-* Want to learn algorithmic trading
-* Need a platform to test strategies safely
-* Looking for a free alternative to expensive platforms
-
-#### Investment Advisors
-
-* Need order approval workflow (Action Center)
-* Require audit trails for compliance
-* Want semi-automated trading with client oversight
-
-#### Quant Developers
-
-* Need historical data for backtesting (Historify)
-* Want to build custom strategies in Python
-* Require real-time WebSocket data feeds
-
-### Key Features
-
-#### Trading Automation
-
-| Feature                    | Description                                                           |
-| -------------------------- | --------------------------------------------------------------------- |
-| **Smart Order Placement**  | Execute trades with position sizing, split orders, and bracket orders |
-| **Multi-Broker Support**   | Connect to 24+ Indian brokers through a unified API                   |
-| **Multi-Exchange Trading** | NSE, NFO, BSE, BFO, MCX, CDS, BCD, NCDEX                              |
-| **Real-Time Streaming**    | WebSocket-based live quotes, depth, and order updates                 |
-| **Auto Square-Off**        | Time-based and one-click position square-off                          |
-
-#### Strategy Building
-
-| Feature                     | Description                                              |
-| --------------------------- | -------------------------------------------------------- |
-| **Flow Visual Builder**     | No-code strategy builder with drag-and-drop nodes        |
-| **Python Strategy Hosting** | Host and schedule Python strategies directly in OpenAlgo |
-| **TradingView Integration** | Pine Script alerts to automatic orders via webhooks      |
-| **Amibroker Integration**   | AFL strategies with direct API communication             |
-| **ChartInk Integration**    | Stock scanner alerts to automated trades                 |
-
-#### Analysis & Testing
-
-| Feature             | Description                                        |
-| ------------------- | -------------------------------------------------- |
-| **Analyzer Mode**   | Sandbox trading with ₹1 Crore sandbox capital      |
-| **Historify**       | Download and store historical market data (DuckDB) |
-| **P\&L Tracker**    | Real-time profit/loss tracking with charts         |
-| **Latency Monitor** | Track API and order execution latency              |
-| **Traffic Logs**    | Comprehensive API request/response logging         |
-
-#### Risk & Security
-
-| Feature              | Description                                     |
-| -------------------- | ----------------------------------------------- |
-| **Action Center**    | Order approval workflow for managed accounts    |
-| **Two-Factor Auth**  | TOTP-based authentication for enhanced security |
-| **Rate Limiting**    | Configurable API rate limits per endpoint       |
-| **Order Validation** | Automatic validation of all order parameters    |
-| **Freeze Quantity**  | Exchange-mandated quantity limits enforcement   |
-
-#### Notifications & Monitoring
-
-| Feature               | Description                                  |
-| --------------------- | -------------------------------------------- |
-| **Telegram Bot**      | Real-time trade notifications and commands   |
-| **WebSocket Updates** | Live order status, positions, and P\&L       |
-| **Dashboard**         | Real-time monitoring of all trading activity |
-| **API Logs**          | Detailed logging for debugging and audit     |
-
-### Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Signal Sources                                   │
-│                                                                          │
-│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐           │
-│  │ TradingView│ │ Amibroker  │ │  ChartInk  │ │   Python   │           │
-│  │  Webhooks  │ │    AFL     │ │  Scanners  │ │  Scripts   │           │
-│  └─────┬──────┘ └─────┬──────┘ └─────┬──────┘ └─────┬──────┘           │
-│        │              │              │              │                    │
-│        └──────────────┴──────────────┴──────────────┘                    │
-│                              │                                           │
-│                              ▼                                           │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                         OpenAlgo Platform                          │  │
-│  │                                                                    │  │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │  │
-│  │  │  REST API   │  │  WebSocket  │  │    Flow     │               │  │
-│  │  │  /api/v1/   │  │   Server    │  │   Builder   │               │  │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘               │  │
-│  │                                                                    │  │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │  │
-│  │  │  Analyzer   │  │  Historify  │  │   Python    │               │  │
-│  │  │  (Sandbox)  │  │   (Data)    │  │  Strategies │               │  │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘               │  │
-│  │                                                                    │  │
-│  └───────────────────────────┬───────────────────────────────────────┘  │
-│                              │                                           │
-│                              ▼                                           │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                    Unified Broker Layer                            │  │
-│  │                                                                    │  │
-│  │  Zerodha │ Angel │ Dhan │ Fyers │ 5paisa │ Upstox │ 20+ more...  │  │
-│  │                                                                    │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### Supported Brokers (24+)
-
-| Category   | Brokers                                         |
-| ---------- | ----------------------------------------------- |
-| **Tier 1** | Zerodha, Angel One, Dhan, Fyers, Upstox         |
-| **Banks**  | ICICI Direct, HDFC Securities, Kotak Neo        |
-| **Others** | 5paisa, Finvasia, Flattrade, Firstock, and more |
-
-**Benefit**: Switch brokers without changing your strategy code - OpenAlgo's unified API handles the translation.
-
-### Supported Exchanges
-
-| Exchange  | Description                      |
-| --------- | -------------------------------- |
-| **NSE**   | National Stock Exchange (Equity) |
-| **NFO**   | NSE Futures & Options            |
-| **BSE**   | Bombay Stock Exchange (Equity)   |
-| **BFO**   | BSE Futures & Options            |
-| **MCX**   | Multi Commodity Exchange         |
-| **CDS**   | Currency Derivatives Segment     |
-| **BCD**   | BSE Currency Derivatives         |
-| **NCDEX** | National Commodity Exchange      |
-
-### Trading Modes
-
-#### Live Trading Mode
-
-Execute real trades with your connected broker. Orders are sent directly to the exchange through your broker's API.
-
-#### Analyzer Mode (Sandbox Trading)
-
-Test strategies with ₹1 Crore sandbox capital:
-
-* Realistic margin calculations
-* Position and holdings tracking
-* Auto square-off at exchange timings
-* Complete isolation from live trading
-* Perfect for strategy testing and validation
-
-### Platform Integration
-
-#### Signal Sources
-
-* **TradingView**: Pine Script alerts via webhooks
-* **Amibroker**: AFL strategies with HTTP calls
-* **ChartInk**: Stock scanner webhooks
-* **GoCharting**: Chart-based alerts
-* **MetaTrader 5**: EA integration
-* **Custom**: Any HTTP/Webhook capable platform
-
-#### Programming Languages
-
-* **Python**: Official SDK available
-* **Node.js**: REST API integration
-* **Excel/VBA**: API calls from spreadsheets
-* **Google Sheets**: Apps Script integration
-* **Any Language**: Standard REST API
-
-#### AI Integration
-
-* Works with AI assistants that can make API calls
-* Natural language to trading orders
-* Strategy automation via AI agents
-
-### Data & Privacy
-
-| Aspect              | Detail                                    |
-| ------------------- | ----------------------------------------- |
-| **Deployment**      | Self-hosted on your computer/server       |
-| **Data Storage**    | Local SQLite databases                    |
-| **Historical Data** | DuckDB for efficient storage (Historify)  |
-| **External Calls**  | Only to your broker's API                 |
-| **Open Source**     | Full code visibility and audit capability |
-
-### API Capabilities
-
-#### Order Management
-
-* Place, modify, cancel orders
-* Smart orders with position sizing
-* Basket orders for multiple symbols
-* Split orders for large quantities
-* Options orders with strike selection
-
-#### Market Data
-
-* Real-time quotes and depth
-* Historical OHLCV data
-* Option chain with Greeks
-* Multi-symbol batch quotes
-
-#### Account Information
-
-* Funds and margins
-* Order book and trade book
-* Positions and holdings
-* P\&L calculations
-
-#### WebSocket Streaming
-
-* Live LTP updates
-* Full quote streaming
-* Market depth (5/20 levels)
-* Order status updates
+* Automate rule-based or discretionary strategies
+* Execute TradingView, ChartInk, or Amibroker alerts
+* Test strategies safely using sandbox testing
+* Monitor orders, positions, and profit/loss in real time
+* Maintain full control over execution and data
+
+No coding expertise is required to get started, though advanced users can extend it further.
+
+***
+
+#### Developers
+
+OpenAlgo is designed for developers who need:
+
+* A stable and well-documented REST and WebSocket API
+* Uniform request and response formats across brokers
+* SDKs in multiple programming languages
+* A self-hosted, extensible trading backend
+* Support for advanced use cases such as AI-driven execution
+
+***
+
+### Key Capabilities
+
+#### Unified Trading API
+
+OpenAlgo exposes a standardized API that allows you to:
+
+* Place, modify, and cancel orders
+* Fetch positions, holdings, and funds
+* Access orderbook and tradebook
+* Retrieve real-time and historical market data
+
+All supported brokers follow the same API structure.
+
+***
+
+#### Multiple Ways to Run Strategies
+
+OpenAlgo supports different strategy workflows:
+
+* **Hosted Python strategies** running directly inside OpenAlgo
+* **Visual Flow strategies** built using a no-code, drag-and-drop interface
+* **External signals** from TradingView, Amibroker, ChartInk, Excel, or Google Sheets
+* **AI agents** connected through the MCP server
+
+This flexibility allows users to choose the approach that best fits their experience level.
+
+***
+
+#### Sandbox Testing Environment
+
+OpenAlgo includes a fully isolated **sandbox testing environment** for validating strategies before live deployment.
+
+Sandbox testing provides:
+
+* Live market data
+* Configurable **sandbox capital**
+* Realistic margin and order behavior
+* Automatic handling of exchange square-off rules
+* Complete isolation from live trading data
+
+***
+
+#### Order Control and Safety
+
+OpenAlgo offers optional order approval workflows:
+
+* Automatic execution for fully automated strategies
+* Manual approval for supervised or discretionary trading
+* Full audit trail of all actions
+
+This helps reduce execution risk and improves transparency.
+
+***
+
+#### Security and Privacy
+
+Security and data ownership are core principles of OpenAlgo:
+
+* Broker credentials are encrypted
+* Passwords are securely hashed
+* Two-factor authentication is supported
+* API access is rate-limited
+* No user data is collected or shared
+
+All data remains on infrastructure controlled by the user.
+
+***
+
+### Deployment and Usage
+
+OpenAlgo is designed to be self-hosted:
+
+* Run on a local machine
+* Deploy on a VPS or cloud server
+* Suitable for personal, professional, and team use
+
+Once installed, it can serve as a central execution engine for all trading strategies.
 
 ### What OpenAlgo is NOT
 
@@ -292,34 +153,19 @@ Let's be clear about what OpenAlgo doesn't do:
 | ----------- | ------------------------------------- | ---------------------------- |
 | **OS**      | Windows 10, macOS 10.15, Ubuntu 20.04 | Latest versions              |
 | **Python**  | 3.12+                                 | 3.12+                        |
-| **RAM**     | 4 GB                                  | 8 GB+                        |
+| **RAM**     | 2 GB                                  | 2 GB+                        |
 | **Storage** | 2 GB                                  | 10 GB+ (for historical data) |
 | **Network** | Stable internet                       | Low latency connection       |
 
-### Getting Started
 
-Ready to begin? Here's your path:
-
-1. **Next**: Learn Key Concepts
-2. Check System Requirements
-3. Follow Installation Guide
-4. Complete First-Time Setup
-5. Place your First Order!
-
-### Quick Links
-
-| Resource              | Link                                                                       |
-| --------------------- | -------------------------------------------------------------------------- |
-| **GitHub**            | [github.com/marketcalls/openalgo](https://github.com/marketcalls/openalgo) |
-| **Discord Community** | Join for support and discussions                                           |
 
 ### Summary
 
 | Aspect                | OpenAlgo                                         |
 | --------------------- | ------------------------------------------------ |
-| **Cost**              | Free (Open Source, MIT License)                  |
-| **Brokers**           | 24+ Indian brokers                               |
-| **Exchanges**         | NSE, NFO, BSE, BFO, MCX, CDS, BCD, NCDEX         |
+| **Cost**              | Free (Open Source, AGPL License)                 |
+| **Brokers**           | 25+ Indian brokers                               |
+| **Exchanges**         | NSE, NFO, BSE, BFO, MCX, CDS, BCD                |
 | **Signal Sources**    | TradingView, Amibroker, ChartInk, Python, AI     |
 | **Strategy Building** | Flow (Visual), Python Hosting, External Webhooks |
 | **Sandbox Trading**   | Analyzer Mode with ₹1 Crore sandbox capital      |
