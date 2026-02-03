@@ -55,6 +55,8 @@ OpenAlgo is designed for developers who need:
 * A self-hosted, extensible trading backend
 * Support for advanced use cases such as AI-driven execution
 
+{% embed url="https://www.youtube.com/watch?v=es6UUTWtG8Q" %}
+
 ***
 
 ### Key Capabilities
