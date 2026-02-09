@@ -109,7 +109,6 @@ NIFTYIT
 {% endcolumn %}
 
 {% column %}
-\
 NIFTYMEDIA\
 NIFTYMETAL\
 NIFTYMIDLIQ15\
