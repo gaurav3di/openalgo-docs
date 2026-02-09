@@ -1,5 +1,7 @@
 # What is OpenAlgo?
 
+**OpenAlgo** is a free, open-source algorithmic trading platform that bridges your trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 24+ Indian brokers, enabling seamless automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, GO, .NET. NodeJs, ChartInk, MetaTrader, Excel, or Google Sheets. And even receive your Strategy Alerts to Telegram.
+
 ### Overview
 
 **OpenAlgo** is an **open-source, self-hosted algorithmic trading platform** that makes it easy to build, test, and run trading strategies across multiple Indian brokers using a **single, consistent interface**.
