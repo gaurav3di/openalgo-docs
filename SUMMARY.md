@@ -41,6 +41,7 @@
   * [Kotak Securities](connect-brokers/brokers/kotak-securities.md)
   * [Motilal Oswal](connect-brokers/brokers/motilal-oswal.md)
   * [Mstock](connect-brokers/brokers/mstock.md)
+  * [Nubra](connect-brokers/brokers/nubra.md)
   * [Paytm](connect-brokers/brokers/paytm.md)
   * [Pocketful](connect-brokers/brokers/pocketful.md)
   * [Samco](connect-brokers/brokers/samco.md)
