@@ -148,6 +148,8 @@
 
 * [Playground](playground.md)
 * [Symbol Format](symbol-format.md)
+* [Skills](skills/README.md)
+  * [Backtesting](skills/backtesting.md)
 * [MCP](mcp.md)
 
 ## Trading Platform
