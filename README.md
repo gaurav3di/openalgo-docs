@@ -14,20 +14,9 @@ Beyond execution, OpenAlgo empowers traders to completely own their trading infr
 
 ### What Problem Does OpenAlgo Solve?
 
-Most brokers expose their own APIs, each with unique:
+OpenAlgo is built around one core idea: effortlessly create trading strategies using AI tools and run and monitor them like never before. Instead of learning multiple broker APIs and documentation, AI agentic coding tools such as Codex, Claude Code, Antigravity, and OpenCode understand OpenAlgo directly. Traders can build strategies faster, create their own algo features, design custom trading alerts, connect to any trading platform of their choice, store historical data, and run analytics or backtesting within a fully self hosted environment. There are no code tool offerings available, and you completely own your data and infrastructure.
 
-* Authentication methods
-* Order parameters and formats
-* Market data structures
-* Limitations and edge cases
-
-This creates complexity for both traders and developers.
-
-OpenAlgo removes this friction by offering:
-
-* One common API for all supported brokers
-* Consistent behavior across live trading and testing
-* The ability to switch brokers without rewriting strategies
+Most brokers expose their own APIs with different authentication methods, order parameters, market data structures, and operational limitations. This creates unnecessary complexity for traders and developers. OpenAlgo removes this friction by providing one common API layer across supported brokers, delivering consistent behavior across live trading and testing environments. Strategies work the same way regardless of the broker, allowing you to switch brokers without rewriting logic while maintaining full control over execution, data, and automation.
 
 ***
 
