@@ -1,12 +1,12 @@
 # What is OpenAlgo?
 
-**OpenAlgo** is a free, open-source algorithmic trading platform that bridges your trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 24+ Indian brokers, enabling seamless automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, GO, .NET. NodeJs, ChartInk, MetaTrader, Excel, or Google Sheets. And even receive your Strategy Alerts to Telegram.
+OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges your trading ideas with real execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 30+ Indian brokers, enabling seamless automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets. Traders can also receive strategy alerts directly on Telegram, ensuring real time visibility and control.
 
 ### Overview
 
 **OpenAlgo** is an **open-source, self-hosted algorithmic trading platform** that makes it easy to build, test, and run trading strategies across multiple Indian brokers using a **single, consistent interface**.
 
-Instead of working directly with different broker APIs, OpenAlgo provides a **unified trading layer** that standardizes order execution, market data, and portfolio access—allowing strategies to work the same way regardless of the broker being used.
+Beyond execution, OpenAlgo empowers traders to completely own their trading infrastructure. Traders can effortlessly build algorithmic strategies, indicators, and custom trading dashboards using AI agentic coding tools, connect with their favorite trading platforms, and deploy strategies without being tied to any single broker or vendor. By standardizing broker APIs into one consistent trading layer, OpenAlgo allows strategies to work the same way across brokers, making automation faster, scalable, and fully under the trader’s control.
 
 {% embed url="https://www.youtube.com/watch?v=LhbXWlUtCcM" %}
 
