@@ -149,6 +149,7 @@
 * [Playground](playground.md)
 * [Symbol Format](symbol-format.md)
 * [Skills](skills/README.md)
+  * [indicators](skills/indicators.md)
   * [Backtesting](skills/backtesting.md)
 * [MCP](mcp.md)
 
