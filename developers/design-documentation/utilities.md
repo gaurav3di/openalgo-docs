@@ -6,18 +6,7 @@ Historify is OpenAlgo's historical market data manager built on DuckDB. It downl
 
 ### Architecture
 
-```
-┌──────────────┐     ┌───────────────────┐     ┌─────────────────┐
-│  React UI    │────▶│ Historify Service │────▶│ Broker History  │
-│  /historify  │     │                   │     │     APIs        │
-└──────────────┘     └─────────┬─────────┘     └─────────────────┘
-                               │
-                               ▼
-                     ┌─────────────────────┐
-                     │  DuckDB             │
-                     │  historify.duckdb   │
-                     └─────────────────────┘
-```
+<figure><img src="../../.gitbook/assets/image (156).png" alt=""><figcaption></figcaption></figure>
 
 ### Database (DuckDB)
 

@@ -6,47 +6,7 @@ Flow is OpenAlgo's visual workflow automation system built with XYFlow (React Fl
 
 ### Architecture Diagram
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                           Flow Architecture                                   │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      React Flow Canvas (Frontend)                            │
-│                                                                              │
-│  ┌────────────┐     ┌────────────┐     ┌────────────┐     ┌────────────┐   │
-│  │  Trigger   │────▶│  Condition │────▶│   Action   │────▶│   Output   │   │
-│  │   Nodes    │     │   Nodes    │     │   Nodes    │     │   Nodes    │   │
-│  └────────────┘     └────────────┘     └────────────┘     └────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    │ Save/Execute
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Flow Blueprint (/flow)                               │
-│                                                                              │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐          │
-│  │  Workflow CRUD   │  │  Webhook Handler │  │  Scheduler Jobs  │          │
-│  │  /api/workflows  │  │  /webhook/{token}│  │  APScheduler     │          │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘          │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Flow Execution Engine                                   │
-│                                                                              │
-│  WorkflowContext ─── Variables, Conditions, Interpolation                   │
-│  NodeExecutor ────── 60+ Node Type Handlers                                 │
-│  FlowOpenAlgoClient ─ OpenAlgo API Wrapper                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Database (SQLite)                                    │
-│                                                                              │
-│  flow_workflows │ flow_workflow_executions │ flow_apscheduler_jobs          │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+<figure><img src="../../.gitbook/assets/image (158).png" alt=""><figcaption></figcaption></figure>
 
 ### Node Types
 

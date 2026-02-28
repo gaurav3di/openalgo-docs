@@ -1,24 +1,12 @@
 # 07 - Sandbox Architecture (Analyzer Mode)
 
-```
-
-## Overview
+### Overview
 
 OpenAlgo's Sandbox/Analyzer mode provides a production-grade walkforward testing environment with ₹1 Crore sandbox capital, realistic margin calculations, leverage-based trading, auto square-off, and T+1 settlement simulation. It runs completely isolated from live trading with its own database (`db/sandbox.db`).
 
-## Architecture Diagram
+### Architecture Diagram
 
-```
-
-┌──────────────────────────────────────────────────────────────────────────────┐ │ Sandbox Architecture │ └──────────────────────────────────────────────────────────────────────────────┘
-
-```
-                          API Request
-                              │
-                              ▼
-```
-
-┌──────────────────────────────────────────────────────────────────────────────┐ │ Mode Router (is\_sandbox\_mode()) │ │ │ │ ┌─────────────────────────────────────────────────────────────────────────┐ │ │ │ if is\_sandbox\_mode(): │ │ │ │ → Route to Sandbox Services (OrderManager, FundManager, etc.) │ │ │ │ else: │ │ │ │ → Route to Live Broker Services (broker/_/api/_) │ │ │ └─────────────────────────────────────────────────────────────────────────┘ │ └──────────────────────────────────────────────────────────────────────────────┘ │ │ Analyzer Mode ON Live Mode │ │ ▼ ▼ ┌───────────────────────────────────┐ ┌───────────────────────────────┐ │ Sandbox Services │ │ Live Broker Services │ │ │ │ │ │ ┌─────────────────────────────┐ │ │ ┌─────────────────────────┐ │ │ │ Order Manager │ │ │ │ Broker Order API │ │ │ │ - Validation │ │ │ │ (Real Orders) │ │ │ │ - Margin Check/Block │ │ │ └─────────────────────────┘ │ │ │ - Order CRUD │ │ │ │ │ └─────────────────────────────┘ │ └───────────────────────────────┘ │ │ │ ┌─────────────────────────────┐ │ │ │ Fund Manager │ │ ┌───────────────────────────────┐ │ │ - ₹1 Cr Sandbox Capital │ │ │ Background Workers │ │ │ - Margin Block/Release │ │ │ │ │ │ - P\&L Tracking │ │ │ ┌─────────────────────────┐ │ │ │ - Auto Reset │ │ │ │ Execution Engine │ │ │ └─────────────────────────────┘ │ │ │ (5 sec polling) │ │ │ │ │ │ - Fetch live quotes │ │ │ ┌─────────────────────────────┐ │ │ │ - Execute pending │ │ │ │ Execution Engine │ │ │ │ - Update positions │ │ │ │ - Quote Fetching │ │ │ └─────────────────────────┘ │ │ │ - Price Condition Check │ │ │ │ │ │ - Trade Execution │ │ │ ┌─────────────────────────┐ │ │ │ - Position Netting │ │ │ │ SquareOff Scheduler │ │ │ └─────────────────────────────┘ │ │ │ (APScheduler) │ │ │ │ │ │ - MIS auto square-off │ │ │ ┌─────────────────────────────┐ │ │ │ - T+1 settlement │ │ │ │ Position Manager │ │ │ │ - Weekly reset │ │ │ │ - MTM Updates │ │ │ └─────────────────────────┘ │ │ │ - P\&L Calculation │ │ │ │ │ │ - Session Filtering │ │ │ ┌─────────────────────────┐ │ │ │ - Expiry Handling │ │ │ │ MTM Update Worker │ │ │ └─────────────────────────────┘ │ │ │ (5 sec interval) │ │ │ │ │ │ - WebSocket data │ │ │ ┌─────────────────────────────┐ │ │ │ - REST API fallback │ │ │ │ Holdings Manager │ │ │ └─────────────────────────┘ │ │ │ - T+1 Settlement │ │ │ │ │ │ - CNC → Holdings │ │ └───────────────────────────────┘ │ │ - Holdings MTM │ │ │ └─────────────────────────────┘ │ │ │ │ ┌─────────────────────────────┐ │ │ │ Squareoff Manager │ │ │ │ - Exchange-wise timing │ │ │ │ - MIS position close │ │ │ │ - Open order cancel │ │ │ └─────────────────────────────┘ │ └───────────────────────────────────┘ │ ▼ ┌───────────────────────────────────┐ │ sandbox.db (Isolated) │ │ │ │ • sandbox\_orders │ │ • sandbox\_trades │ │ • sandbox\_positions │ │ • sandbox\_holdings │ │ • sandbox\_funds │ │ • sandbox\_daily\_pnl │ │ • sandbox\_config │ └───────────────────────────────────┘
+<figure><img src="../../.gitbook/assets/image (155).png" alt=""><figcaption></figcaption></figure>
 
 ````
 

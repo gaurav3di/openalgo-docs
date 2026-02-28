@@ -6,64 +6,7 @@ OpenAlgo implements a unified WebSocket proxy server that handles real-time mark
 
 ### Architecture Diagram
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                        WebSocket Architecture                                 │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
-  │ React Client  │  │ Python SDK   │  │ External Apps │
-  │ useMarketData │  │ ltp_example  │  │               │
-  └───────┬───────┘  └───────┬───────┘  └───────┬───────┘
-          │                  │                   │
-          │  WebSocket Connection (ws://localhost:8765)
-          └──────────────────┼───────────────────┘
-                             │
-                             ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                    WebSocket Proxy Server (:8765)                             │
-│                                                                               │
-│  ┌────────────────────────────────────────────────────────────────────────┐  │
-│  │                    Connection Management                                │  │
-│  │  clients: Dict[client_id, websocket]                                   │  │
-│  │  subscriptions: Dict[client_id, Set[subscriptions]]                    │  │
-│  │  user_mapping: Dict[client_id, user_id]                                │  │
-│  │  broker_adapters: Dict[user_id, adapter]                               │  │
-│  └────────────────────────────────────────────────────────────────────────┘  │
-│                                                                               │
-│  ┌────────────────────────────────────────────────────────────────────────┐  │
-│  │                    Performance Optimizations                            │  │
-│  │  subscription_index: Dict[(symbol,exchange,mode), Set[client_ids]]     │  │
-│  │  last_message_time: Dict[(symbol,exchange,mode), timestamp]            │  │
-│  │  message_throttle_interval: 50ms                                        │  │
-│  └────────────────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────────────────┘
-                             │
-                             │ ZeroMQ (tcp://127.0.0.1:5555)
-                             ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                    Broker Adapters (Connection Pool)                          │
-│                                                                               │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────┐  │
-│  │  Zerodha   │  │   Angel    │  │    Dhan    │  │   Fyers    │  │Nubra │  │
-│  │  Adapter   │  │  Adapter   │  │  Adapter   │  │  Adapter   │  │Adapt.│  │
-│  │            │  │            │  │            │  │            │  │      │  │
-│  │ 3000 sym   │  │ 1000 sym   │  │ 1000 sym   │  │ 2000 sym   │  │ ...  │  │
-│  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  └──┬───┘  │
-│        │               │               │               │                     │
-│        └───────────────┴───────────────┴───────────────┘                     │
-│                               │                                              │
-│                               │ Broker WebSocket APIs                        │
-│                               ▼                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-                               │
-              ┌────────────────┴────────────────┐
-              ▼                                 ▼
-    ┌─────────────────┐               ┌─────────────────┐
-    │ Zerodha Ticker  │               │  Angel Feed     │
-    │ (Kite WebSocket)│               │  (Smart API)    │   ...
-    └─────────────────┘               └─────────────────┘
-```
+<figure><img src="../../.gitbook/assets/image (154).png" alt=""><figcaption></figcaption></figure>
 
 ### Core Components
 

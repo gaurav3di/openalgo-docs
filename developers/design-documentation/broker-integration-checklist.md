@@ -10,41 +10,7 @@ OpenAlgo provides a comprehensive REST API built with Flask-RESTX at `/api/v1/`.
 
 ### Architecture Diagram
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                        REST API Architecture                                  │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-                         Client Request
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      /api/v1/ (Flask-RESTX)                                  │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Features:                                                           │   │
-│  │  - Automatic Swagger documentation (/api/docs)                       │   │
-│  │  - Request/response validation                                       │   │
-│  │  - Rate limiting per endpoint                                        │   │
-│  │  - API key authentication                                            │   │
-│  │  - CSRF exempt (uses API key auth)                                   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                              │
-         ┌────────────────────┼────────────────────┐
-         │                    │                    │
-         ▼                    ▼                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   Order APIs    │  │   Data APIs     │  │  Account APIs   │
-│                 │  │                 │  │                 │
-│ - placeorder    │  │ - quotes        │  │ - funds         │
-│ - modifyorder   │  │ - depth         │  │ - holdings      │
-│ - cancelorder   │  │ - history       │  │ - positions     │
-│ - placesmartord │  │ - optionchain   │  │ - orderbook     │
-│ - basketorder   │  │ - optiongreeks  │  │ - tradebook     │
-│ - splitorder    │  │ - intervals     │  │ - margin        │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
-```
+<figure><img src="../../.gitbook/assets/image (157).png" alt=""><figcaption></figcaption></figure>
 
 ### API Categories
 
