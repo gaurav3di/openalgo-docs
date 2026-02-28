@@ -11,53 +11,7 @@ This design ensures users first authenticate with OpenAlgo before connecting to 
 
 ### Authentication Flow Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                         Complete Authentication Flow                             │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────────┐
-│   User      │     │   Login     │     │   Broker    │     │   Dashboard     │
-│   Browser   │     │   Page      │     │   Select    │     │   (Protected)   │
-└──────┬──────┘     └──────┬──────┘     └──────┬──────┘     └────────┬────────┘
-       │                   │                   │                      │
-       │  1. GET /         │                   │                      │
-       ├──────────────────►│                   │                      │
-       │                   │                   │                      │
-       │  2. Check Setup   │                   │                      │
-       │◄──────────────────┤                   │                      │
-       │  (No users? → /setup)                 │                      │
-       │                   │                   │                      │
-       │  3. POST /auth/login                  │                      │
-       │  {username, password}                 │                      │
-       ├──────────────────►│                   │                      │
-       │                   │                   │                      │
-       │  4. Argon2 verify │                   │                      │
-       │  Set session['user']                  │                      │
-       │◄──────────────────┤                   │                      │
-       │                   │                   │                      │
-       │  5. Redirect /broker                  │                      │
-       ├───────────────────┼──────────────────►│                      │
-       │                   │                   │                      │
-       │  6. Select Broker │                   │                      │
-       │  (OAuth/TOTP/API) │                   │                      │
-       │◄──────────────────┼───────────────────┤                      │
-       │                   │                   │                      │
-       │  7. Broker Auth   │                   │                      │
-       │  /{broker}/callback                   │                      │
-       ├───────────────────┼──────────────────►│                      │
-       │                   │                   │                      │
-       │  8. handle_auth_success()             │                      │
-       │  - Set session['logged_in'] = True    │                      │
-       │  - Store auth_token (encrypted)       │                      │
-       │  - Start master contract download     │                      │
-       │◄──────────────────┼───────────────────┤                      │
-       │                   │                   │                      │
-       │  9. Redirect /dashboard               │                      │
-       ├───────────────────┼───────────────────┼─────────────────────►│
-       │                   │                   │                      │
-       └───────────────────┴───────────────────┴──────────────────────┘
-```
+<figure><img src="../../.gitbook/assets/image (151).png" alt=""><figcaption></figcaption></figure>
 
 ### Phase 1: User Authentication
 
