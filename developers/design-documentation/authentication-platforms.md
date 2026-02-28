@@ -1,47 +1,571 @@
-# Authentication Platforms
+# 06 - WebSockets Architecture
 
-## Platform Authentication & Authorization
+### Overview
 
-This section describes how users authenticate with the OpenAlgo platform itself (Web UI and API) and how authorization is managed, distinct from authenticating with external brokers.
+OpenAlgo implements a unified WebSocket proxy server that handles real-time market data streaming from 29 brokers. The architecture uses ZeroMQ for high-performance internal messaging and supports connection pooling for handling thousands of symbol subscriptions.
 
-### Authentication Mechanisms
+### Architecture Diagram
 
-OpenAlgo supports multiple ways for users/clients to authenticate:
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        WebSocket Architecture                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
 
-1. **Web UI Session Authentication (Username/Password):**
-   * **Library:** Uses `Flask-Login` (implied by session usage and typical Flask patterns) and `Flask-Bcrypt` or `Argon2` (explicitly used in `database/auth_db.py` and `database/user_db.py`) for password hashing.
-   * **Flow:**
-     1. User navigates to the login page (`/auth/login`).
-     2. User submits username and password via an HTML form.
-     3. The `auth.login` route in `blueprints/auth.py` receives the credentials.
-     4. `authenticate_user` function (in `database/user_db.py`) retrieves the user record and verifies the submitted password against the stored hash (using `bcrypt.check_password_hash` or `ph.verify`).
-     5. If valid, the username (or user ID) is stored in the Flask `session` (`session['user'] = username`).
-     6. Subsequent requests from the user's browser include the session cookie, allowing Flask to identify the logged-in user.
-   * **Session Management:** Flask's built-in session management (likely server-side sessions secured by `app.secret_key`) is used. The `@check_session_validity` decorator (`utils/session.py`) is used on protected routes to ensure a user is logged in.
-   * **Password Reset:** A password reset flow involving email and TOTP verification is implemented in `auth.reset_password`.
-2. **API Key Authentication:**
-   * **Purpose:** Allows programmatic access to the OpenAlgo API by external applications or scripts.
-   * **Generation:** Users can generate/manage their API keys via the Web UI (`/apikey` route handled by `blueprints/apikey.py`). Secure random keys are generated using `secrets.token_hex`.
-   * **Storage:** API keys are stored securely in the `api_keys` table (`database/auth_db.py`):
-     * A **hash** of the key (peppered with `API_KEY_PEPPER` and hashed using Argon2 `ph.hash`) is stored for verification (`api_key_hash`).
-     * The key itself is **encrypted** using Fernet (derived from `API_KEY_PEPPER`) for potential retrieval/display (`api_key_encrypted`).
-   * **Verification:** When an API request includes an API key (e.g., in an `Authorization` header or query parameter), the platform:
-     1. Retrieves the corresponding `ApiKeys` record based on the provided key (potentially requiring a lookup mechanism or verifying against all stored hashes if the key itself isn't indexed directly for lookup).
-     2. Uses `ph.verify(stored_hash, provided_key + PEPPER)` via the `verify_api_key` function to check if the provided key matches the stored hash.
-     3. If valid, the request is authenticated as the associated `user_id`.
+  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+  │ React Client  │  │ Python SDK   │  │ External Apps │
+  │ useMarketData │  │ ltp_example  │  │               │
+  └───────┬───────┘  └───────┬───────┘  └───────┬───────┘
+          │                  │                   │
+          │  WebSocket Connection (ws://localhost:8765)
+          └──────────────────┼───────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    WebSocket Proxy Server (:8765)                             │
+│                                                                               │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │                    Connection Management                                │  │
+│  │  clients: Dict[client_id, websocket]                                   │  │
+│  │  subscriptions: Dict[client_id, Set[subscriptions]]                    │  │
+│  │  user_mapping: Dict[client_id, user_id]                                │  │
+│  │  broker_adapters: Dict[user_id, adapter]                               │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+│                                                                               │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │                    Performance Optimizations                            │  │
+│  │  subscription_index: Dict[(symbol,exchange,mode), Set[client_ids]]     │  │
+│  │  last_message_time: Dict[(symbol,exchange,mode), timestamp]            │  │
+│  │  message_throttle_interval: 50ms                                        │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+                             │
+                             │ ZeroMQ (tcp://127.0.0.1:5555)
+                             ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    Broker Adapters (Connection Pool)                          │
+│                                                                               │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────┐  │
+│  │  Zerodha   │  │   Angel    │  │    Dhan    │  │   Fyers    │  │Nubra │  │
+│  │  Adapter   │  │  Adapter   │  │  Adapter   │  │  Adapter   │  │Adapt.│  │
+│  │            │  │            │  │            │  │            │  │      │  │
+│  │ 3000 sym   │  │ 1000 sym   │  │ 1000 sym   │  │ 2000 sym   │  │ ...  │  │
+│  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  └──┬───┘  │
+│        │               │               │               │                     │
+│        └───────────────┴───────────────┴───────────────┘                     │
+│                               │                                              │
+│                               │ Broker WebSocket APIs                        │
+│                               ▼                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+                               │
+              ┌────────────────┴────────────────┐
+              ▼                                 ▼
+    ┌─────────────────┐               ┌─────────────────┐
+    │ Zerodha Ticker  │               │  Angel Feed     │
+    │ (Kite WebSocket)│               │  (Smart API)    │   ...
+    └─────────────────┘               └─────────────────┘
+```
 
-### Authorization
+### Core Components
 
-Authorization (determining what an authenticated user is allowed to do) appears relatively simple in the current structure:
+#### 1. WebSocket Proxy Server
 
-* **Login Required:** Most blueprints/routes likely rely on `@check_session_validity` or API key verification to ensure a user is authenticated.
-* **Role-Based Access Control (RBAC):** There is no explicit evidence of a fine-grained RBAC system (e.g., different user roles like 'admin', 'trader', 'viewer'). Authorization seems primarily based on successful authentication – if a user is logged in or provides a valid API key, they likely have access to most features associated with their account.
-* **Ownership:** Authorization might be implicitly enforced by fetching data scoped to the authenticated `user_id` (e.g., only retrieving orders or strategies belonging to the logged-in user).
+**Location:** `websocket_proxy/server.py`
 
-### Security Considerations
+The central component that manages client connections, authentication, and message routing.
 
-* **Password Hashing:** Strong hashing (Argon2) is used for user passwords.
-* **API Key Security:** Keys are hashed for verification and encrypted at rest. A pepper is used.
-* **Session Security:** Flask sessions are signed with `app.secret_key`. Ensure this key is strong and kept secret.
-* **Rate Limiting:** Applied to login and password reset endpoints via `Flask-Limiter` to mitigate brute-force attacks.
-* **Input Validation:** Handled by Flask-WTF and Flask-RESTX.
+```python
+class WebSocketProxy:
+    """
+    WebSocket Proxy Server that handles client connections and authentication,
+    manages subscriptions, and routes market data from broker adapters to clients.
+    """
+
+    def __init__(self, host: str = "127.0.0.1", port: int = 8765):
+        self.host = host
+        self.port = port
+
+        # Client management
+        self.clients = {}              # client_id -> websocket
+        self.subscriptions = {}        # client_id -> set of subscriptions
+        self.broker_adapters = {}      # user_id -> broker adapter
+        self.user_mapping = {}         # client_id -> user_id
+        self.user_broker_mapping = {}  # user_id -> broker_name
+
+        # Performance: Subscription index for O(1) lookup
+        self.subscription_index: Dict[Tuple[str, str, int], Set[int]] = defaultdict(set)
+
+        # Performance: Message throttling (50ms minimum)
+        self.last_message_time: Dict[Tuple[str, str, int], float] = {}
+        self.message_throttle_interval = 0.05
+
+        # ZeroMQ connection
+        self.context = zmq.asyncio.Context()
+        self.socket = self.context.socket(zmq.SUB)
+        self.socket.connect(f"tcp://{ZMQ_HOST}:{ZMQ_PORT}")
+        self.socket.setsockopt(zmq.SUBSCRIBE, b"")
+```
+
+#### 2. Broker Adapters
+
+**Location:** `websocket_proxy/base_adapter.py`
+
+Abstract base class for broker-specific WebSocket implementations:
+
+```python
+class BaseBrokerWebSocketAdapter(ABC):
+    """
+    Base class for all broker-specific WebSocket adapters that implements
+    common functionality and defines the interface.
+    """
+
+    # Class variables for port management
+    _bound_ports = set()
+    _port_lock = threading.Lock()
+    _shared_context = None
+
+    def __init__(self, use_shared_zmq: bool = False, shared_publisher=None):
+        # Initialize ZeroMQ publisher
+        self.socket = self._create_socket()
+        self.zmq_port = self._bind_to_available_port()
+
+        # Subscription tracking
+        self.subscriptions = {}
+        self.connected = False
+
+    @abstractmethod
+    def connect(self, auth_token: str, feed_token: str = None):
+        """Connect to broker WebSocket"""
+        pass
+
+    @abstractmethod
+    def subscribe(self, symbols: list, mode: str = "LTP"):
+        """Subscribe to symbols"""
+        pass
+
+    @abstractmethod
+    def unsubscribe(self, symbols: list):
+        """Unsubscribe from symbols"""
+        pass
+```
+
+#### 3. Connection Pooling
+
+**Configuration:**
+
+```python
+# Environment variables
+MAX_SYMBOLS_PER_WEBSOCKET = int(os.getenv('MAX_SYMBOLS_PER_WEBSOCKET', '1000'))
+MAX_WEBSOCKET_CONNECTIONS = int(os.getenv('MAX_WEBSOCKET_CONNECTIONS', '3'))
+ENABLE_CONNECTION_POOLING = os.getenv('ENABLE_CONNECTION_POOLING', 'true')
+
+# Total capacity = 1000 × 3 = 3000 symbols per user
+```
+
+**Connection Pool Logic:**
+
+```
+When subscribing to symbols:
+1. Check current connection's symbol count
+2. If limit reached, create new connection
+3. Route subscription to available connection
+4. Max 3 connections × 1000 symbols = 3000 total
+```
+
+### Message Flow
+
+#### Client Authentication Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Authentication Flow                           │
+└─────────────────────────────────────────────────────────────────┘
+
+Client                  WebSocket Proxy               Database
+  │                          │                           │
+  │  1. Connect ws://        │                           │
+  ├─────────────────────────►│                           │
+  │                          │                           │
+  │  2. Send: {action:       │                           │
+  │     "authenticate",      │                           │
+  │     api_key: "..."}      │                           │
+  ├─────────────────────────►│                           │
+  │                          │                           │
+  │                          │  3. verify_api_key()      │
+  │                          ├──────────────────────────►│
+  │                          │                           │
+  │                          │  4. Return user_id        │
+  │                          │◄──────────────────────────┤
+  │                          │                           │
+  │                          │  5. Get broker from auth  │
+  │                          ├──────────────────────────►│
+  │                          │                           │
+  │  6. {status: "success",  │◄──────────────────────────┤
+  │     message: "Auth OK"}  │                           │
+  │◄─────────────────────────┤                           │
+  │                          │                           │
+```
+
+#### Subscription Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Subscription Flow                             │
+└─────────────────────────────────────────────────────────────────┘
+
+Client                  WebSocket Proxy            Broker Adapter
+  │                          │                          │
+  │  1. {action: "subscribe",│                          │
+  │     symbols: [{symbol:   │                          │
+  │     "SBIN", exchange:    │                          │
+  │     "NSE"}], mode: "LTP"}│                          │
+  ├─────────────────────────►│                          │
+  │                          │                          │
+  │                          │  2. Get/create adapter   │
+  │                          │     for user's broker    │
+  │                          ├─────────────────────────►│
+  │                          │                          │
+  │                          │  3. Convert to broker    │
+  │                          │     symbol format        │
+  │                          │─────────────────────────►│
+  │                          │                          │
+  │                          │  4. Subscribe via        │
+  │                          │     broker WebSocket     │
+  │                          │                          ├─── Broker API
+  │                          │                          │
+  │  5. {status: "success"}  │                          │
+  │◄─────────────────────────┤                          │
+  │                          │                          │
+```
+
+#### Data Streaming Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Data Streaming Flow                           │
+└─────────────────────────────────────────────────────────────────┘
+
+Broker API            Broker Adapter          ZeroMQ             Proxy             Client
+    │                      │                    │                  │                  │
+    │  1. Market data      │                    │                  │                  │
+    ├─────────────────────►│                    │                  │                  │
+    │                      │                    │                  │                  │
+    │                      │  2. Normalize to   │                  │                  │
+    │                      │     OpenAlgo format│                  │                  │
+    │                      │                    │                  │                  │
+    │                      │  3. Publish        │                  │                  │
+    │                      ├───────────────────►│                  │                  │
+    │                      │                    │                  │                  │
+    │                      │                    │  4. zmq_listener │                  │
+    │                      │                    │     receives     │                  │
+    │                      │                    ├─────────────────►│                  │
+    │                      │                    │                  │                  │
+    │                      │                    │                  │  5. Lookup       │
+    │                      │                    │                  │  subscribed      │
+    │                      │                    │                  │  clients         │
+    │                      │                    │                  │                  │
+    │                      │                    │                  │  6. Throttle     │
+    │                      │                    │                  │  (50ms min)      │
+    │                      │                    │                  │                  │
+    │                      │                    │                  │  7. Send to      │
+    │                      │                    │                  │  clients         │
+    │                      │                    │                  ├─────────────────►│
+    │                      │                    │                  │                  │
+```
+
+### Client Protocol
+
+#### Message Format
+
+**Authentication:**
+
+```json
+{
+  "action": "authenticate",
+  "api_key": "your-api-key"
+}
+```
+
+**Subscribe:**
+
+```json
+{
+  "action": "subscribe",
+  "symbols": [
+    {"symbol": "SBIN", "exchange": "NSE"},
+    {"symbol": "RELIANCE", "exchange": "NSE"},
+    {"symbol": "NIFTY30JAN25FUT", "exchange": "NFO"}
+  ],
+  "mode": "LTP"  // LTP, QUOTE, or DEPTH
+}
+```
+
+**Unsubscribe:**
+
+```json
+{
+  "action": "unsubscribe",
+  "symbols": [
+    {"symbol": "SBIN", "exchange": "NSE"}
+  ]
+}
+```
+
+#### Response Format
+
+**Market Data (LTP):**
+
+```json
+{
+  "symbol": "SBIN",
+  "exchange": "NSE",
+  "ltp": 625.50,
+  "timestamp": "2024-01-15T10:30:00+05:30"
+}
+```
+
+**Market Data (QUOTE):**
+
+```json
+{
+  "symbol": "SBIN",
+  "exchange": "NSE",
+  "ltp": 625.50,
+  "open": 620.00,
+  "high": 628.00,
+  "low": 618.50,
+  "close": 622.00,
+  "volume": 1500000,
+  "timestamp": "2024-01-15T10:30:00+05:30"
+}
+```
+
+**Market Data (DEPTH):**
+
+```json
+{
+  "symbol": "SBIN",
+  "exchange": "NSE",
+  "ltp": 625.50,
+  "depth": {
+    "buy": [
+      {"price": 625.45, "quantity": 1000, "orders": 5},
+      {"price": 625.40, "quantity": 2500, "orders": 8}
+    ],
+    "sell": [
+      {"price": 625.50, "quantity": 800, "orders": 3},
+      {"price": 625.55, "quantity": 1200, "orders": 4}
+    ]
+  }
+}
+```
+
+### Performance Optimizations
+
+#### 1. Subscription Index (O(1) Lookup)
+
+```python
+# Instead of nested loops:
+# for client_id, subs in subscriptions.items():
+#     for sub in subs:
+#         if matches(sub, message): ...
+
+# Use pre-computed index:
+self.subscription_index: Dict[Tuple[str, str, int], Set[int]] = defaultdict(set)
+
+# Lookup is O(1):
+key = (symbol, exchange, mode)
+client_ids = self.subscription_index.get(key, set())
+```
+
+#### 2. Message Throttling
+
+```python
+# Prevent spam by enforcing 50ms minimum between messages
+self.message_throttle_interval = 0.05  # 50ms
+
+current_time = time.time()
+key = (symbol, exchange, mode)
+
+if key in self.last_message_time:
+    elapsed = current_time - self.last_message_time[key]
+    if elapsed < self.message_throttle_interval:
+        return  # Skip this message
+
+self.last_message_time[key] = current_time
+# Send message...
+```
+
+#### 3. Mode Mapping Pre-computation
+
+```python
+# Pre-compute instead of string comparison each time
+self.MODE_MAP = {"LTP": 1, "QUOTE": 2, "DEPTH": 3}
+```
+
+### Broker Adapter Structure
+
+Each broker has a dedicated adapter in `broker/{broker_name}/streaming/`:
+
+```
+broker/zerodha/streaming/
+├── zerodha_adapter.py         # Main adapter class
+├── zerodha_websocket.py       # Kite WebSocket client
+└── zerodha_mapping.py         # Data normalization
+
+broker/angel/streaming/
+├── angel_adapter.py
+├── angel_websocket.py
+└── angel_mapping.py
+
+broker/nubra/streaming/
+├── nubra_adapter.py          # Nubra WebSocket adapter (gRPC-based)
+└── nubra_mapping.py          # Data normalization
+```
+
+**Adapter Implementation Example:**
+
+```python
+class ZerodhaAdapter(BaseBrokerWebSocketAdapter):
+    def connect(self, auth_token: str, feed_token: str = None):
+        api_key, access_token = auth_token.split(':')
+        self.kite_ws = KiteTicker(api_key, access_token)
+        self.kite_ws.on_ticks = self._on_ticks
+        self.kite_ws.connect()
+
+    def subscribe(self, symbols: list, mode: str = "LTP"):
+        tokens = [self._get_token(sym) for sym in symbols]
+        kite_mode = self._map_mode(mode)
+        self.kite_ws.subscribe(tokens)
+        self.kite_ws.set_mode(kite_mode, tokens)
+
+    def _on_ticks(self, ws, ticks):
+        for tick in ticks:
+            normalized = self._normalize_tick(tick)
+            self._publish_to_zmq(normalized)
+```
+
+### Configuration
+
+#### Environment Variables
+
+```bash
+# WebSocket Server
+WEBSOCKET_HOST=127.0.0.1
+WEBSOCKET_PORT=8765
+
+# ZeroMQ
+ZMQ_HOST=127.0.0.1
+ZMQ_PORT=5555
+
+# Connection Pool
+MAX_SYMBOLS_PER_WEBSOCKET=1000
+MAX_WEBSOCKET_CONNECTIONS=3
+ENABLE_CONNECTION_POOLING=true
+```
+
+#### Symbol Limits by Broker
+
+| Broker  | Max Symbols/Connection | Default Pool Size | Depth Levels |
+| ------- | ---------------------- | ----------------- | ------------ |
+| Zerodha | 3000                   | 1                 | 5            |
+| Angel   | 1000                   | 3                 | 5            |
+| Dhan    | 1000                   | 3                 | 20           |
+| Fyers   | 2000                   | 2                 | 5            |
+| Nubra   | 1000                   | 3                 | 5            |
+| Others  | 1000                   | 3                 | 5            |
+
+**Note:** Only Dhan supports 20-level market depth. All other brokers provide 5-level depth. The frontend provides depth level routes at `/websocket/test/20`, `/websocket/test/30`, and `/websocket/test/50` for testing different depth configurations.
+
+### Frontend Integration
+
+#### React Hook (useMarketData)
+
+```typescript
+// hooks/useMarketData.ts
+export function useMarketData(symbols: string[], mode: 'ltp' | 'quote' | 'depth') {
+  const [prices, setPrices] = useState<Record<string, MarketData>>({})
+  const wsRef = useRef<WebSocket | null>(null)
+
+  useEffect(() => {
+    // Get WebSocket config
+    const config = await fetch('/api/websocket/config')
+    const apiKey = await fetch('/api/websocket/apikey')
+
+    // Connect
+    wsRef.current = new WebSocket(config.url)
+
+    wsRef.current.onopen = () => {
+      // Authenticate
+      wsRef.current.send(JSON.stringify({
+        action: 'authenticate',
+        api_key: apiKey
+      }))
+    }
+
+    wsRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      if (data.status === 'authenticated') {
+        // Subscribe to symbols
+        wsRef.current.send(JSON.stringify({
+          action: 'subscribe',
+          symbols,
+          mode
+        }))
+      } else if (data.ltp) {
+        setPrices(prev => ({...prev, [data.symbol]: data}))
+      }
+    }
+
+    return () => wsRef.current?.close()
+  }, [symbols, mode])
+
+  return prices
+}
+```
+
+### websocket\_proxy/ Directory Structure
+
+```
+websocket_proxy/
+├── server.py              # WebSocketProxy class - main server
+├── base_adapter.py        # BaseBrokerWebSocketAdapter ABC
+├── broker_factory.py      # Creates broker-specific adapters
+├── connection_manager.py  # Connection pool management
+├── mapping.py             # Symbol mapping utilities
+├── port_check.py          # Port availability checking
+└── app_integration.py     # Flask app integration
+```
+
+#### App Integration (app\_integration.py)
+
+The WebSocket server runs as a **daemon thread** inside the main Flask application:
+
+```python
+# Called from app.py on startup
+start_websocket_proxy(app)
+
+# Lifecycle:
+# 1. Check if should start (skip in Flask debug parent process)
+# 2. Start WebSocket server in daemon thread
+# 3. Register cleanup handlers for SIGINT/SIGTERM
+# 4. WebSocket runs on port 8765 alongside Flask on port 5000
+```
+
+**Key Points:**
+
+* No separate service needed - WebSocket runs inside main process
+* Single worker (`-w 1`) required for Gunicorn
+* Thread automatically cleans up on application shutdown
+* ZeroMQ context shared for message routing
+
+### Key Files Reference
+
+| File                                    | Purpose                                   |
+| --------------------------------------- | ----------------------------------------- |
+| `websocket_proxy/server.py`             | Main WebSocket proxy server (port 8765)   |
+| `websocket_proxy/base_adapter.py`       | Base class for broker adapters            |
+| `websocket_proxy/broker_factory.py`     | Creates broker-specific adapters          |
+| `websocket_proxy/connection_manager.py` | Connection pool management                |
+| `websocket_proxy/app_integration.py`    | Flask app integration (thread management) |
+| `broker/*/streaming/*_adapter.py`       | Broker-specific implementations           |
+| `frontend/src/hooks/useMarketData.ts`   | React WebSocket hook                      |
