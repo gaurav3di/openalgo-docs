@@ -1,4 +1,4 @@
-# indicators
+# Indicators
 
 ## OpenAlgo Indicator Skills for Agentic Coding Tools
 
