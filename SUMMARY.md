@@ -54,10 +54,8 @@
 
 ## Crypto
 
-***
-
-* [Exchanges](exchanges/README.md)
-  * [Delta Exchange](exchanges/delta-exchange.md)
+* [Exchanges](crypto/exchanges/README.md)
+  * [Delta Exchange](crypto/exchanges/delta-exchange.md)
 
 ## Installation Guidelines
 
