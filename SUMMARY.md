@@ -52,6 +52,13 @@
   * [Zebu](connect-brokers/brokers/zebu.md)
   * [Zerodha](connect-brokers/brokers/zerodha.md)
 
+## Crypto
+
+***
+
+* [Exchanges](exchanges/README.md)
+  * [Delta Exchange](exchanges/delta-exchange.md)
+
 ## Installation Guidelines
 
 * [Getting Started](getting-started/README.md)
