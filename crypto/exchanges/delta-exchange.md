@@ -32,10 +32,10 @@ Once logged in, click on the **AlgoHub** menu in the top navigation bar. From th
 
 <figure><img src="../../.gitbook/assets/Delta6.png" alt=""><figcaption></figcaption></figure>
 
-Click the **Create API Key** button on the API page. You will be taken to the API key creation form at `delta.exchange/app/account/manageapikeys`. Fill in the following details:
+Click the **Create API Key** button on the API page. You will be taken to the API key creation form at delta.exchange/app/account/manageapikeys . Fill in the following details:
 
 * **Account Name** – Select **Main** (or the sub-account you want the key associated with)
-* **API Key Name** – Enter a recognisable name, e.g., `openalgotest`
+* **API Key Name** – Enter a recognisable name, e.g., openalgo
 * **Whitelisted IP** – Enter the IP address of your OpenAlgo server. Only whitelisted IPs will be permitted to interact with the trading API. Add the IP and select it from the **IPs to whitelist** dropdown.
 * **Permissions** – Enable both:
   * **Read Data** – Enabled by default for all API keys
