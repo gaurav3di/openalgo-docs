@@ -14,15 +14,31 @@ Before proceeding, ensure you have the following:
 
 ### Steps to Create the AliceBlue API Secret Key
 
-<figure><img src="../../.gitbook/assets/Screenshot 2024-07-16 at 10.32.22 PM.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/ab1.png" alt=""><figcaption></figcaption></figure>
 
-1. **Login to AliceBlue ANT Website**
-   * Navigate to the [AliceBlue ANT website.](https://ant.aliceblueonline.com/)
+1. **To register as a Individual trader/Vendor,**
+   * Navigate to the [https://a3.aliceblueonline.com/](https://a3.aliceblueonline.com/)
+   * Select **Login as Individual Trader**
    * Enter your credentials to log in.
-2. **Access API Key Section**
-   * On the top right corner, click on **Apps**.
-   * Select the **API Key** tab.
-3. **Generate API Key**
+
+<figure><img src="../../.gitbook/assets/ab2.PNG" alt=""><figcaption></figcaption></figure>
+
+2. **Access My Apps**
+
+* On the top right corner, click on **Create App**.
+
+<figure><img src="../../.gitbook/assets/ab3.png" alt=""><figcaption></figcaption></figure>
+
+* Fill up the Mandatory Fields.
+* Save it
+
+<figure><img src="../../.gitbook/assets/ab4.png" alt=""><figcaption></figcaption></figure>
+
+* Fill up the Ip address , select the IP Type from the drop down and submit it.
+
+<figure><img src="../../.gitbook/assets/ab5.png" alt=""><figcaption></figcaption></figure>
+
+1. **Generate API Key**
    * If you don’t already have an API key, generate a new one by following the on-screen instructions.
    * Note down the **API Secret Key** as it will be required for configuring the `.env` file.
 
@@ -32,7 +48,7 @@ The AliceBlue login user ID is used as the API key. Below is a sample configurat
 
 ```
 # AliceBlue Broker Configuration
-BROKER_API_KEY = 'your_client_id'
+BROKER_API_KEY = 'your_api_key'
 BROKER_API_SECRET = 'your_api_secret_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/aliceblue/callback'
 
