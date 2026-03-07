@@ -2,6 +2,8 @@
 
 Groww is currently the #1 stockbroker in India by active clients, offering a seamless digital investing experience to millions of retail investors. With its recent launch of trading APIs, Groww has opened the door for developers and fintech platforms to integrate custom trading workflows. In the context of OpenAlgo integration, Groww’s trading APIs provide capabilities for automated order placement, real-time market data access, and custom strategy execution for retail traders.
 
+{% embed url="https://www.youtube.com/watch?v=v22sneQGj1w" %}
+
 ### How to Get Groww API Key and Secret?
 
 <figure><img src="../../.gitbook/assets/image (109).png" alt=""><figcaption></figcaption></figure>
