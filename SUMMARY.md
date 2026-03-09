@@ -46,7 +46,7 @@
   * [Pocketful](connect-brokers/brokers/pocketful.md)
   * [Samco](connect-brokers/brokers/samco.md)
   * [Shoonya](connect-brokers/brokers/shoonya.md)
-  * [RMoney](connect-brokers/brokers/rmoney.md)
+  * [RMoney (XTS)](connect-brokers/brokers/rmoney-xts.md)
   * [Tradejini](connect-brokers/brokers/tradejini.md)
   * [Upstox](connect-brokers/brokers/upstox.md)
   * [Wisdom Capital](connect-brokers/brokers/wisdom-capital.md)
