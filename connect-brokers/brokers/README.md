@@ -28,8 +28,9 @@ List of OpenAlgo Supported Brokers
 22. Pocketful
 23. Samco
 24. Shoonya
-25. Tradejini
-26. Upstox
-27. Wisdom Capital (XTS)
-28. Zebu&#x20;
-29. Zerodha
+25. Rmoney (XTS)
+26. Tradejini
+27. Upstox
+28. Wisdom Capital (XTS)
+29. Zebu&#x20;
+30. Zerodha
