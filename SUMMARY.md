@@ -46,6 +46,7 @@
   * [Pocketful](connect-brokers/brokers/pocketful.md)
   * [Samco](connect-brokers/brokers/samco.md)
   * [Shoonya](connect-brokers/brokers/shoonya.md)
+  * [Rmoney (Raghunandan Capital Pvt Ltd)](connect-brokers/brokers/rmoney-raghunandan-capital-pvt-ltd.md)
   * [Tradejini](connect-brokers/brokers/tradejini.md)
   * [Upstox](connect-brokers/brokers/upstox.md)
   * [Wisdom Capital](connect-brokers/brokers/wisdom-capital.md)
