@@ -1,8 +1,8 @@
-# RMoney
+# RMoney (XTS)
 
 ### RMoney (XTS) - (Raghunandan Capital Pvt Ltd) Broker Integration
 
-RMoney is a Bangalore-based deep discount broker that provides API access via the XTS (Symphony Fintech) platform. This guide will help you integrate RMoney with OpenAlgo.
+RMoney is a Gandhinagar(Gujarat)-based deep discount broker that provides API access via the XTS (Symphony Fintech) platform. This guide will help you integrate RMoney with OpenAlgo.
 
 #### **Step 1: Create API Applications**
 
