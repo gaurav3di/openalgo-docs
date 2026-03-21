@@ -18,6 +18,8 @@ OpenAlgo is built around one core idea: effortlessly create trading strategies u
 
 Most brokers expose their own APIs with different authentication methods, order parameters, market data structures, and operational limitations. This creates unnecessary complexity for traders and developers. OpenAlgo removes this friction by providing one common API layer across supported brokers, delivering consistent behavior across live trading and testing environments. Strategies work the same way regardless of the broker, allowing you to switch brokers without rewriting logic while maintaining full control over execution, data, and automation.
 
+{% embed url="https://www.youtube.com/watch?v=ImQS-tz_GIo" %}
+
 ***
 
 ### Who Should Use OpenAlgo?
