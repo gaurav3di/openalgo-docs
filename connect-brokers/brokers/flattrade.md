@@ -10,38 +10,35 @@ To integrate Flattrade with OpenAlgo, follow these steps to obtain your API key 
 
 • Login to Wall [https://wall.flattrade.in](https://wall.flattrade.in/)
 
-Enter your Shoonya login credentials.
+Enter your Flattrade login credentials.
 
-2\. Navigate to Pi in top menu bar and click on “CREATE NEW API KEY”.
+2\. Navigate to Pi in top menu bar , select api(v2) and click on “CREATE NEW API KEY”.
 
-<figure><img src="../../.gitbook/assets/wall.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/flat1.PNG" alt=""><figcaption></figcaption></figure>
 
-3.Click on Create the New API Key
+3.Click on Create the New API Key, select Order Volume :
 
-<figure><img src="../../.gitbook/assets/Screenshot 2024-12-24 at 4.51.22 AM.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/flat4.PNG" alt=""><figcaption></figcaption></figure>
 
-4.Enter the Following Details in the Form
+4.Enter your IP Configuration (Primary IP is required, Secondary is optional) → Click Next
 
-| App Name      | Your App Name                                                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| App ShortName | Short Name of your APP                                                                                                                                   |
-| Redirect URL  | <p>URL to which we need to redirect after successful login authentication.<br>Note: Code to generate the token will be sent as parameter to this URL</p> |
-| Postback URL  | URL to which you will be reciving order updates for the orders placed through API.                                                                       |
-| Description   | Short description about your app                                                                                                                         |
+<figure><img src="../../.gitbook/assets/flat2.PNG" alt=""><figcaption></figcaption></figure>
 
-5.Click on CREATE  button
+5.Fill out the URL Configuration
 
-6.Your API key is now generated
+<figure><img src="../../.gitbook/assets/flat3.PNG" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../../.gitbook/assets/image (62).png" alt=""><figcaption></figcaption></figure>
+6.Review the Configuration Summary, tick the box to accept Terms & Conditions, and Submit
 
-7.Copy the APIKEY
+7.Your request will show as Pending — once approved, your API key is ready!
 
-Click the eye icon  to view the API secret key. Copy API secret key
+8.Your API key is now generated
 
-<figure><img src="../../.gitbook/assets/image (63).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/flat5.PNG" alt=""><figcaption></figcaption></figure>
 
-8\. Configure OpenAlgo:
+9.Click the eye icon to reveal your Secret Key — Copy both API and Secret Key and start building!
+
+10\. Configure OpenAlgo:
 
 • In your OpenAlgo .env file, set the following variables:
 
