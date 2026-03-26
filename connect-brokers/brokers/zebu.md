@@ -30,23 +30,13 @@ Press the API Key button next to the logout option.
 
 3\. Generate API Key and API Secret
 
-Select the validity period for the API key (choose a duration).
-
-<figure><img src="../../.gitbook/assets/image (58).png" alt=""><figcaption></figcaption></figure>
-
-Click the Generate API Key button to generate both the API Key (Vendor Code) and the API Secret (App Key).
-
-<figure><img src="../../.gitbook/assets/image (59).png" alt=""><figcaption></figcaption></figure>
-
-### Generating API Key and Secret
-
-<figure><img src="../../.gitbook/assets/image (60).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/zebu2 (1).PNG" alt=""><figcaption></figcaption></figure>
 
 Once generated, the Vendor Code and APP Key will be provided for the app. These keys are essential for authenticating API requests. Here’s how your .env file might look:
 
 ```
-BROKER_API_KEY = 'your_vendor_code_here'
-BROKER_API_SECRET = 'your_appkey_here'
+BROKER_API_KEY = 'your_userid_here':::'your_ClientId_here'
+BROKER_API_SECRET = 'your_Secretcode_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/zebu/callback'
 ```
 
