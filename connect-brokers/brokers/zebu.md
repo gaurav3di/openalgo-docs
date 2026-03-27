@@ -14,25 +14,21 @@ Before using the API, you need to generate an API key and API secret.
 
 1\. Login to Zebu MYNT
 
-Go to the [MYNT Web Application](https://mynt.in/#/) and log in with your Zebu credentials.
+Go to the [https://mynt.zebuetrade.com/login](https://mynt.zebuetrade.com/login) and log in with your Zebu credentials.
 
-<figure><img src="../../.gitbook/assets/image (55).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/zebu1.PNG" alt=""><figcaption></figcaption></figure>
 
 2\. Access API Key Generation
 
-Navigate to Profile and click on the Client Code at the top right corner.
-
-<figure><img src="../../.gitbook/assets/image (56).png" alt=""><figcaption></figcaption></figure>
-
-Press the API Key button next to the logout option.
-
-<figure><img src="../../.gitbook/assets/image (57).png" alt=""><figcaption></figcaption></figure>
-
-3\. Generate API Key and API Secret
+Navigate to Profile ,click on the Client Code at the top right corner and select setting.
 
 <figure><img src="../../.gitbook/assets/zebu2 (1).PNG" alt=""><figcaption></figcaption></figure>
 
-Once generated, the Vendor Code and APP Key will be provided for the app. These keys are essential for authenticating API requests. Here’s how your .env file might look:
+click the OAuth Key button and fill in the details and Update.
+
+<figure><img src="../../.gitbook/assets/zebu3.PNG" alt=""><figcaption></figcaption></figure>
+
+Once generated, the client Id and Secret Code will be provided for the app. These keys are essential for authenticating API requests. Here’s how your .env file might look:
 
 ```
 BROKER_API_KEY = 'your_userid_here':::'your_ClientId_here'
