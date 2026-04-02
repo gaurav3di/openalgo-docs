@@ -95,52 +95,13 @@ Once the one-time setup is complete (Steps 1-3), your daily login is simple:
 
 **Troubleshooting**
 
-
-
-{% columns %}
-{% column %}
-<p align="center">Problem</p>
-
-<p align="center">OTP not received</p>
-
-
-
-<p align="center">Secret API Key email not received</p>
-
-
-
-<p align="center">"Secret key does not match"</p>
-
-
-
-<p align="center">"The IP is not the registered static IP"</p>
-
-
-
-
-
-<p align="center">IP fields are locked</p>
-
-
-
-<p align="center">"Failed to save secret API key"</p>
-{% endcolumn %}
-
-{% column %}
-Solution
-
-Check your registered mobile and email. Wait a minute and try Resend OTP.
-
-Check your spam/junk folder. The OTP and secret key use different not received email services. Wait a few minutes.
-
-The saved key may be incorrect. Go to Step 1, generate a new OTP, match" get a fresh secret key from email, and save it again.
-
-Your server's public IP does not match what is registered with registered static IP" Samco. Check your server's IP and update it in Step 3 (if the weekly lock has expired).
-
-IPs can only be updated once per calendar week. Wait until the date shown in the warning message.
-
-Make sure you are logged into OpenAlgo first (via the login page) before starting the Samco auth wizard.
-{% endcolumn %}
-{% endcolumns %}
+| Problem                                  | Solution                                                                                                                                                                     |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OTP not received                         | Check your registered mobile and email. Wait a minute and try Resend OTP.                                                                                                    |
+| Secret API Key email not received        | Check your spam/junk folder. The OTP and secret key use different not received email services. Wait a few minutes.                                                           |
+| "Secret key does not match"              | The saved key may be incorrect. Go to Step 1, generate a new OTP, match" get a fresh secret key from email, and save it again.                                               |
+| "The IP is not the registered static IP" | Your server's public IP does not match what is registered with registered static IP" Samco. Check your server's IP and update it in Step 3 (if the weekly lock has expired). |
+| IP fields are locked                     | IPs can only be updated once per calendar week. Wait until the date shown in the warning message.                                                                            |
+| "Failed to save secret API key"          | Make sure you are logged into OpenAlgo first (via the login page) before starting the Samco auth wizard.                                                                     |
 
 Integrating with Samco **APIs** unlocks the ability to automate strategies, execute trades, and analyze data directly within your own infrastructure. When used with **OpenAlgo**, you can self-host and run your entire algo trading stack — with full control and zero vendor lock-in.
