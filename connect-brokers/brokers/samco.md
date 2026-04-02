@@ -38,8 +38,7 @@ REDIRECT_URL = 'http://127.0.0.1:5000/sao/callback'
 
 #### Step 5 : Process of Static IP Whitelisting&#x20;
 
-When you select Samco from the broker selection page, you will see a multi-step wizard with four\
-steps:
+When you select Samco from the broker selection page, you will see a multi-step wizard with four steps:
 
 <figure><img src="../../.gitbook/assets/samco1.png" alt=""><figcaption></figcaption></figure>
 
@@ -49,9 +48,7 @@ steps:
 2. An OTP will be sent to your registered mobile number and email
 3. Enter the OTP you received and click Generate Secret Key
 
-**Note :** If you have already completed the one-time setup before, this step will show a warning that a\
-Secret API Key is already saved. You only need to repeat this step if you want to generate a new\
-secret key.
+**Note :**&#x49;f you have already completed the one-time setup before, this step will show a warning that a Secret API Key is already saved. You only need to repeat this step if you want to generate a new secret key.
 
 **Step B : Save Secret API Key**
 
@@ -63,8 +60,7 @@ secret key.
 
 <figure><img src="../../.gitbook/assets/samco3 (1).png" alt=""><figcaption></figcaption></figure>
 
-**Important:** The Secret API Key never expires. Keep it secure and do not share it with anyone. You only need to do this step once. If you generate a new OTP and create a new secret key, you must\
-update the saved key as well.
+**Important:** The Secret API Key never expires. Keep it secure and do not share it with anyone. You only need to do this step once. If you generate a new OTP and create a new secret key, you must update the saved key as well.
 
 **Step 3: IP Management**
 
@@ -75,9 +71,7 @@ update the saved key as well.
 3. Click Register IP (or Update IP if already registered)
 4. A confirmation dialog will appear before submitting&#x20;
 
-**IP Update Restriction:** Samco allows IP changes only once per calendar week. If you have already\
-updated your IP this week, the fields will be locked and a message will show the next available\
-edit date. Make sure you enter the correct IP before confirming.
+**IP Update Restriction:** Samco allows IP changes only once per calendar week. If you have already updated your IP this week, the fields will be locked and a message will show the next available edit date. Make sure you enter the correct IP before confirming.
 
 **Note:** Only IPv4 addresses are supported. After registration, Samco will reject API requests from any IP address that is not registered.
 
@@ -101,33 +95,35 @@ Once the one-time setup is complete (Steps 1-3), your daily login is simple:
 
 **Troubleshooting**
 
+
+
 {% columns %}
 {% column %}
 <p align="center">Problem</p>
 
-OTP not received
+<p align="center">OTP not received</p>
 
 
 
-Secret API Key email not received
+<p align="center">Secret API Key email not received</p>
 
 
 
-"Secret key does not match"
+<p align="center">"Secret key does not match"</p>
 
 
 
-"The IP is not the registered static IP"
+<p align="center">"The IP is not the registered static IP"</p>
 
 
 
 
 
-IP fields are locked
+<p align="center">IP fields are locked</p>
 
 
 
-"Failed to save secret API key"
+<p align="center">"Failed to save secret API key"</p>
 {% endcolumn %}
 
 {% column %}
