@@ -80,8 +80,7 @@ When you select Samco from the broker selection page, you will see a multi-step 
 <figure><img src="../../.gitbook/assets/samco5.png" alt=""><figcaption></figcaption></figure>
 
 1. Click Login to Samco
-2. OpenAlgo will automatically generate an access token using your stored Secret API Key and log\
-   you in
+2. OpenAlgo will automatically generate an access token using your stored Secret API Key and log you in
 3. On success, you will be redirected to the Trading Dashboard
 
 **Daily Login**
