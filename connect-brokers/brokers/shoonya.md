@@ -8,26 +8,30 @@ To integrate Shoonya with OpenAlgo, follow these steps to obtain your API key an
 
 1\. Log in to Shoonya Prism:
 
-• Visit [https://prism.shoonya.com/api](https://prism.shoonya.com/api).
+• Visit [https://trade.shoonya.com/](https://trade.shoonya.com/).
 
 • Enter your Shoonya login credentials.
 
 2\. Generate API Credentials:
 
-<figure><img src="../../.gitbook/assets/Screenshot 2024-12-04 at 4.36.31 PM.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/shoonya4.PNG" alt=""><figcaption></figcaption></figure>
 
-• After logging in, navigate to the API Key section in your profile settings.
+• After logging in, navigate to the API Key section in your profile dropdown.
 
-• Click on Generate API Key.
+<figure><img src="../../.gitbook/assets/shoonya2.png" alt=""><figcaption></figcaption></figure>
 
-• Your Vendor Code and API Key will be displayed.
+• Click on API Key.
+
+<figure><img src="../../.gitbook/assets/shoonya6.PNG" alt=""><figcaption></figcaption></figure>
+
+• Your client ID and Secret code will be displayed.
 
 3\. Configure OpenAlgo:
 
 • In your OpenAlgo .env file, set the following variables:
 
 ```bash
-BROKER_API_KEY = 'Your Vendor Code'
-BROKER_API_SECRET = 'Your API Key'
+BROKER_API_KEY = 'your_userid_here:::your_ClientId_here'
+BROKER_API_SECRET = 'your_Secretcode_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/shoonya/callback'
 ```
