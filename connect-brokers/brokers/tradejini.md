@@ -24,13 +24,15 @@ Start by accessing the CubePlus Developer Portal at\
 After logging in:
 
 * Navigate to the **Apps** section.
-* Under **Individual Access**, click **Create New App**.
+* Under **Individual Access**, click **Create New App/Edit App .**
 * Click **Submit** to register your app.
 * An **API Key** will be created for authenticated API usage
 
 
 
 <figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="../../.gitbook/assets/tradejini2 (1).PNG" alt=""><figcaption></figcaption></figure>
 
 #### 3. Retrieve API Credentials
 
@@ -39,7 +41,7 @@ After generating the API Key:
 * **Client Code** will be your `api_key`.
 * **API Key** from the app will serve as your `api_secret`.
 
-<figure><img src="../../.gitbook/assets/3.JPG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/tradejini3.PNG" alt=""><figcaption></figcaption></figure>
 
 ### Configuration:
 
