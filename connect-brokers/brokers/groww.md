@@ -18,9 +18,13 @@ To integrate OpenAlgo with Groww, follow the steps below to generate your API ke
 
 Click on the **Generate API Keys** ,Enter the Token Name as "OpenAlgo" or any name of your choice and press **continue**
 
-### Now Generate the generated Grow API Key and API Secret from the Generate API Key
+#### Now Generate the generated Grow API Key and API Secret from the Generate API Key
 
 <figure><img src="../../.gitbook/assets/image (148).png" alt=""><figcaption></figcaption></figure>
+
+Click "**Add/Update Static IP**" next to Generate API Key
+
+<figure><img src="../../.gitbook/assets/Groww1.PNG" alt=""><figcaption></figcaption></figure>
 
 ### Important Points
 
