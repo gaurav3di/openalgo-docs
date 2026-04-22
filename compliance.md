@@ -17,9 +17,9 @@ OpenAlgo is not a service, a subscription platform, a hosted execution engine, a
 1. **The trader downloads the source code** from GitHub or installs the Python package from PyPI.
 2. **The trader deploys OpenAlgo on their own infrastructure**, such as a home PC, a VPS, a Mac Mini, or a Docker container they control.
 3. **The trader configures their own broker API credentials** in a local environment file on that infrastructure.
-4. **OpenAlgo makes API calls directly from the trader's machine to the trader's broker.** There is no intermediate server, proxy, relay, or observation point operated by OpenFlare Technologies or any affiliated entity.
+4. **OpenAlgo makes API calls directly from the trader's machine to the trader's broker.** There is no intermediate server, proxy, relay, or observation point operated by creator/maintainer or any affiliated entity.
 
-Order flow, credentials, positions, and trade data never leave the trader's infrastructure. OpenFlare Technologies has no technical visibility into any of these.
+Order flow, credentials, positions, and trade data never leave the trader's infrastructure. OpenAlgo or the creator/maintainer has no technical visibility into any of these.
 
 ### The Four Regulatory Facts
 
@@ -31,7 +31,7 @@ Under the SEBI framework for algorithmic trading (circular SEBI/HO/MIRSD/MIRSD-P
 
 **3. OpenAlgo does not distribute trading strategies.** OpenAlgo ships execution plumbing only. Traders write their own strategy logic or bring it from elsewhere. No strategies with performance claims are published or distributed through OpenAlgo. The SEBI Research Analyst licensing requirement for black-box strategy distribution does not apply because no such distribution takes place.
 
-**4. OpenAlgo has no commercial association with any broker, research analyst, investment adviser, or financial services entity.** There are no referral arrangements, no brokerage revenue shares, no co-marketing deals, no bundled advisory partnerships, and no "sign up with broker X to get OpenAlgo" promotions. Broker integrations in the source code exist solely because traders use those brokers, not because of any relationship between OpenFlare Technologies and the broker.
+**4. OpenAlgo has no commercial association with any broker, research analyst, investment adviser, or financial services entity.** There are no referral arrangements, no brokerage revenue shares, no co-marketing deals, no bundled advisory partnerships, and no "sign up with broker X to get OpenAlgo" promotions. Broker integrations in the source code exist solely because traders use those brokers, not because of any relationship between creator/maintainer and the broker.
 
 ### Trader Responsibilities
 
@@ -53,11 +53,11 @@ If you are a broker compliance or risk team evaluating OpenAlgo in connection wi
 * API calls originate from the client's own IP address
 * There is no OpenAlgo server, gateway, or relay in the path between the client and your API
 
-The source code is publicly available on GitHub for architectural verification. For any specific compliance questions, contact OpenFlare Technologies through the channels listed in the repository.
+The source code is publicly available on GitHub for architectural verification. For any specific compliance questions, contact creator of openalgo through the channels listed in the repository.
 
 ### Summary
 
-OpenAlgo is software. Traders run it on their own infrastructure using their own broker credentials and their own strategies. OpenFlare Technologies has no visibility into any trader's activity and no commercial relationship with any broker or advisory entity. Responsibility for SEBI, exchange, and broker API compliance rests with the individual trader operating the software.
+OpenAlgo is software. Traders run it on their own infrastructure using their own broker credentials and their own strategies. creator/maintainer has no visibility into any trader's activity and no commercial relationship with any broker or advisory entity. Responsibility for SEBI, exchange, and broker API compliance rests with the individual trader operating the software.
 
 ***
 
