@@ -8,6 +8,7 @@
 * [OpenAlgo GPT](openalgo-gpt.md)
 * [New Features](new-features/README.md)
   * [Fast Scalper](new-features/fast-scalper.md)
+  * [Python Strategy Hosting](new-features/python-strategy-hosting.md)
   * [Flow - Visual Strategy Builder](new-features/flow-visual-strategy-builder.md)
   * [Historify](new-features/historify.md)
   * [API Analyzer](new-features/api-analyzer.md)
@@ -293,6 +294,7 @@
 ## Change Log
 
 * [release](change-log/release/README.md)
+  * [Version 2.0.0.5 Released](change-log/release/version-2.0.0.5-released.md)
   * [Version 2.0.0.4 Released](change-log/release/version-2.0.0.4-released.md)
   * [Version 2.0.0.3 Released](change-log/release/version-2.0.0.3-released.md)
   * [Version 2.0.0.2 Released](change-log/release/version-2.0.0.2-released.md)
