@@ -16,6 +16,7 @@
   * [Chartink Integration](new-features/chartink-integration.md)
   * [Action Center](new-features/action-center.md)
 * [Responsibilities](responsibilities.md)
+* [Compliance](compliance.md)
 * [Contributors](contributors.md)
 * [Monetization](monetization.md)
 
