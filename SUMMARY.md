@@ -159,7 +159,8 @@
 * [Skills](skills/README.md)
   * [Indicators](skills/indicators.md)
   * [Backtesting](skills/backtesting.md)
-* [MCP](mcp.md)
+* [MCP](mcp/README.md)
+  * [Tool References](mcp/tool-references.md)
 
 ## Trading Platform
 
