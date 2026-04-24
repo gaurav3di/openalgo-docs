@@ -1,34 +1,60 @@
 # Windows Server Installation
 
-#### Why Choose a Server over a Desktop?
+Windows Server Installation (Updated)
 
-* **Reliability and Stability:** Servers provide a stable and dedicated environment for your trading software. Unlike a desktop, servers are designed for constant operation and are less susceptible to disruptions like power outages, system crashes, or internet issues.
-* **Scalability:** If your trading algorithms become more complex or require access to vast amounts of data, you can easily scale up your server resources to accommodate those needs.
-* **Security:** Servers offer enhanced security measures to protect your trading strategies and data. You can control access, enforce strict firewall rules, and implement encryption protocols for better data protection.
-* **Accessibility:** You can access your server and trading platform remotely, regardless of your location. This allows for greater flexibility and control over your operations.
+Why Choose a Server over a Desktop?
 
-This video tutorial guides you through installing OpenAlgo and [Amibroker](https://docs.openalgo.in/trading-platform/amibroker) on a Windows Server via AWS, specifically targeting the Mumbai data center for optimal trading latency. It covers the complete setup process, from launching an AWS instance to configuring necessary software and testing the trading setup. For troubleshooting use [community support](https://docs.openalgo.in/community-support) for assistance.
+* Reliability and Stability: Servers provide a stable and dedicated environment for your trading software. Unlike a desktop, servers are designed for constant operation and are less susceptible to disruptions like power outages, system crashes, or internet issues.
+* Scalability: If your trading algorithms become more complex or require access to vast amounts of data, you can easily scale up your server resources to accommodate those needs.
+* Security: Servers offer enhanced security measures to protect your trading strategies and data. You can control access, enforce strict firewall rules, and implement encryption protocols for better data protection.
+* Accessibility: You can access your server and trading platform remotely, regardless of your location. This allows for greater flexibility and control over your operations.
 
+This updated guide focuses on a minimal, high-performance installation of OpenAlgo on a Windows Server (Vultr/AWS/Azure), specifically targeting regions like Mumbai for optimal trading latency. It introduces the uv package manager for significantly faster dependency management compared to standard pip.
 
+{% embed url="https://www.youtube.com/watch?v=ZkXZ5yoQkUQ" %}
 
-{% embed url="https://www.youtube.com/watch?v=q3VD0hXO2Ps" %}
+Step-by-Step Installation Process:
 
-#### Step-by-Step Installation Process:
+1. Deploy a Cloud Instance: Deploy a Windows Server 2022 instance via your preferred cloud provider. For Indian markets, choose the Mumbai data center. A minimum of 8GB RAM is recommended.
+2. Access via RDP: Log into your instance using the Remote Desktop Connection tool with the Administrator credentials provided by your cloud console.
+3. Install Google Chrome: Open the default browser (Edge) to download and install Google Chrome for a better browsing experience on the server.
+4. Install Visual C++ Redistributable: Download and install the latest VC++ Redistributable (both x86 and x64). This is essential for libraries like Numba, which OpenAlgo uses for high-performance calculations.
+5. Install Python: Download the latest stable version of Python from python.org. Important: During installation, ensure you check the box "Add python.exe to PATH".
+6. Install Git: Download and install Git for Windows from git-scm.com. This is required to clone and update the OpenAlgo source code.
+7. Install uv Package Manager: Open Windows PowerShell as Administrator and run the following command to install uv: pip install uv
+8. Download OpenAlgo: Navigate to your C: drive in PowerShell (cd C:) and clone the repository: git clone https://github.com/marketcalls/openalgo
+9. Configure .env File:
+   * Enter the folder: cd openalgo
+   * Create a copy of the sample config: copy .sample.env .env
+   * Open the .env file in Notepad and enter your Broker API Key and API Secret. Save and close.
+10. Set Server Timezone: For Indian markets, adjust your server time settings to (UTC +05:30) Chennai, Kolkata, Mumbai, New Delhi. Ensure you click "Sync now" to align with exchange timings.
+11. Update Static IP at Broker: Copy your server's Public IP address. Log in to your broker's API portal and whitelist this IP in your App settings. This is a critical security step required by most brokers.
+12. Initial Launch: Run OpenAlgo for the first time by typing: uv run app.py Note: The first launch will take a few minutes as uv builds the virtual environment and installs 175+ dependencies.
 
-1. **Create an AWS Account:** If you don't have one already, sign up for an AWS account at [aws.amazon.com](https://aistudio.google.com/app/aws.amazon.com). AWS offers a free tier for new users, allowing you to try out the services without any initial cost.
-2. **Launch an EC2 Instance:** Navigate to the EC2 service within the AWS console. Choose a Windows Server 2022 Base image for your instance and select a suitable instance type (for example t2.medium).
-3. **Create a Key Pair:** This is crucial for securely connecting to your instance. Choose a unique key pair name (like "OpenAlgo-Server") and save the downloaded private key file in a secure location.
-4. **Install Python:** Download the appropriate version of Python (for Amibroker compatibility, 3.11.9 is recommended) from [python.org](https://aistudio.google.com/app/python.org). During installation, ensure you select "Add python.exe to PATH" for easy access.
-5. **Install VS Code:** Download VS Code from [code.visualstudio.com](https://aistudio.google.com/app/code.visualstudio.com). Once installed, go to the Extensions tab and search for "Python." Install the official Python extension to get all the required tools for coding.
-6. **Install Git:** Download Git for Windows from [git-scm.com](https://aistudio.google.com/app/git-scm.com) and install it on your EC2 instance. Git is essential for downloading and managing OpenAlgo, which is hosted on GitHub.
-7. **Installed Visual C++ Redistributable :** Download the [Visual C++ redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version) as sometimes Windows Server comes with minimal installation. Packages like Numba which is one of the dependent of OpenAlgo Python SDK requires compilation in Run time.
-8. **Download OpenAlgo:** Open your VS Code, open a new terminal window, and use the Git command to download OpenAlgo from GitHub:  This command will create a new folder named "OpenAlgo" containing the OpenAlgo codebase as shown in the video.
-9. **Install Dependencies:** Navigate to the "OpenAlgo" folder using the cd command. Open the "requirements.txt" file. This file contains all the necessary dependencies for OpenAlgo. In the VS Code terminal, run the command: **pip install -r requirements.txt**. This will install all the required libraries for OpenAlgo to run smoothly.
-10. **Obtain Broker API Credentials:** Log into your Broker and obtain the API key, API Secret key, and the redirect URL (could vary broker to broker. Hence,it is recommeded to refer the connect to the broker section). Remember to copy and paste these credentials without any spaces in the .env file.
-11. **Configure OpenAlgo:** Open the "OpenAlgo" folder in VS Code. Inside the "OpenAlgo" folder, you'll find a ".env" file. This file stores your broker configuration. Replace the placeholder values for API key, API Secret key, and the redirect URL with your actual Broker credentials.
-12. **Launch Amibroker:** Download Amibroker from [amibroker.com](https://aistudio.google.com/app/amibroker.com). Install it and get the openalgo amibroker module from openalgo documentation section as shown in the video.
-13. **Test your Setup:** You are now ready to test your setup. Open Amibroker and ensure that you have the correct data downloaded and configured. Place a test order using the "Market Order" option. You should be able to see the order ID, timestamp, and other details in your order book and OpenAlgo's trading dashboard.
+Create a One-Click Launch Script
 
-Remember, if you encounter any issues or have questions, the OpenAlgo community is a great resource. Utilize their Discord server or the documentation on OpenAlgo's website for assistance.
+To simplify the startup process, you can create a PowerShell script on your desktop:
 
-By following these steps, you can create a stable and secure environment on AWS for backtesting, developing, and implementing your own algorithmic trading strategies using OpenAlgo and Amibroker. Happy trading!
+1. Open Notepad and paste the following code:
+
+## Start OpenAlgo using uv on Windows Server 2022
+
+$OpenAlgoPath = "C:\openalgo"
+
+Write-Host "Starting OpenAlgo..." Write-Host "Folder: $OpenAlgoPath"
+
+## Go to OpenAlgo folder
+
+Set-Location $OpenAlgoPath
+
+## Check uv is available
+
+if (-not (Get-Command uv -ErrorAction SilentlyContinue)) { Write-Host "ERROR: uv is not installed or not available in PATH." -ForegroundColor Red exit 1 }
+
+## Run OpenAlgo
+
+uv run app.py
+
+2. Save the file to your Desktop as StartOpenAlgo.ps1.
+3. To start OpenAlgo, Right-click the file and select "Run with PowerShell".
+
