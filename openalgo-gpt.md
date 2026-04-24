@@ -1,8 +1,8 @@
 # OpenAlgo GPT
 
-## OpenAlgo GPT
-
 OpenAlgo GPT is an AI assistant built to help traders, investors, algo trading learners, and developers understand OpenAlgo and build trading strategies faster.
+
+<figure><img src=".gitbook/assets/openalgo customGPT.png" alt=""><figcaption></figcaption></figure>
 
 It is designed for both non-coders and coders. If you are a trader with a strategy idea, you can explain it in simple words. If you are a developer, you can use it to generate cleaner OpenAlgo code, improve existing scripts, debug issues, and speed up strategy development.
 
