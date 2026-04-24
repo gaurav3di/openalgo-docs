@@ -1,692 +1,93 @@
 # OpenAlgo GPT
 
-**OpenAlgo GPT** is a Custom GPT built to help traders, developers, and algo trading enthusiasts understand OpenAlgo faster and build trading strategies more efficiently.
+## OpenAlgo GPT
 
-<figure><img src=".gitbook/assets/openalgo customGPT.png" alt=""><figcaption></figcaption></figure>
+OpenAlgo GPT is an AI assistant built to help traders, investors, algo trading learners, and developers understand OpenAlgo and build trading strategies faster.
 
-You can access it here:
+It is designed for both non-coders and coders. If you are a trader with a strategy idea, you can explain it in simple words. If you are a developer, you can use it to generate cleaner OpenAlgo code, improve existing scripts, debug issues, and speed up strategy development.
+
+You can access OpenAlgo GPT here:
 
 [https://chatgpt.com/g/g-WK6vMYtbS-openalgo/](https://chatgpt.com/g/g-WK6vMYtbS-openalgo/)
 
-OpenAlgo GPT is designed as an AI coding and documentation assistant for the OpenAlgo ecosystem. It can help you explore OpenAlgo documentation, understand API usage, create trading strategies, generate Python code, work with indicators, build backtests, use WebSocket market data, and prepare strategies that can be hosted inside OpenAlgo.
-
-***
-
-### What is OpenAlgo GPT?
-
-OpenAlgo GPT is an AI assistant trained with OpenAlgo documentation, examples, symbol formats, order constants, indicator references, WebSocket formats, and Python strategy hosting workflows.
+OpenAlgo GPT helps bridge the gap between trading ideas and working code. Many traders know what they want to build but may not know how to convert that idea into Python. Many developers know Python but may need help understanding OpenAlgo APIs, symbol formats, order constants, technical indicators, WebSocket data, and strategy hosting. OpenAlgo GPT brings both worlds together.
 
-Instead of manually searching through multiple documentation pages, you can describe what you want to build in simple words.
-
-For example:
+With OpenAlgo GPT, you can describe a strategy in plain English and ask it to generate Python code using OpenAlgo. For example, you can say:
 
-```
-Create a Python strategy using EMA crossover on NIFTY 5 minute candles.
-Add stop loss, target, and avoid duplicate orders.
-```
 
-OpenAlgo GPT can help convert that idea into structured Python code using OpenAlgo APIs and best practices.
 
-***
+> Create a Python strategy for EMA crossover on NIFTY using 5 minute candles. Add stop loss, target, and duplicate-order prevention.
 
-### What Can OpenAlgo GPT Help With?
+Or:
 
-OpenAlgo GPT can assist with:
+> Build an RSI strategy for SBIN. Buy when RSI crosses above 30 and exit when RSI crosses below 70. Make it suitable for OpenAlgo Strategy Hosting.
 
-* Building Python trading strategies
-* Creating indicator-based strategies
-* Writing backtesting scripts
-* Generating Plotly candlestick charts
-* Creating TradingView Lightweight Charts examples
-* Fetching historical data using OpenAlgo
-* Using OpenAlgo technical indicators
-* Working with WebSocket live market data
-* Creating live or paper trading bots
-* Understanding symbol formats
-* Understanding order constants
-* Placing, modifying, and cancelling orders
-* Debugging OpenAlgo API code
-* Handling broker integration questions
-* Preparing strategies for OpenAlgo Python Strategy Hosting
-* Using APScheduler for scheduled strategies
-* Using SQLAlchemy for database-related workflows when required
+OpenAlgo GPT can help convert such ideas into structured Python code with historical data fetching, indicator calculation, signal generation, risk controls, order placement logic, and safer execution practices.
 
-***
+OpenAlgo GPT can help you build indicator-based strategies, intraday strategies, positional strategies, backtesting scripts, paper trading bots, live trading templates, WebSocket streaming scripts, Plotly charts, candlestick charts, indicator dashboards, scheduled strategies, and OpenAlgo-hosted Python strategy files.
 
-### Strategy Development Assistance
+For non-coders, OpenAlgo GPT can explain trading code in simple language. You can paste a strategy and ask it to explain what each part does. You can also ask it to change the symbol, timeframe, stop loss, target, quantity, or indicator conditions. This makes it easier for traders to understand and modify strategies without needing deep programming knowledge.
 
-OpenAlgo GPT can help users move from a strategy idea to working code.
+For coders, OpenAlgo GPT can help with OpenAlgo SDK usage, cleaner Python structure, DataFrame validation, technical indicator integration, backtesting logic, WebSocket callbacks, APScheduler jobs, SQLAlchemy workflows when needed, strategy hosting environment variables, and debugging OpenAlgo-related errors.
 
-You can ask for strategies such as:
+OpenAlgo GPT understands the OpenAlgo Python SDK and can help with historical data, quotes, market depth, order placement, smart orders, basket orders, split orders, order modification, order cancellation, positions, holdings, funds, and broker-related API usage.
 
-```
-Build an RSI strategy for SBIN using 5 minute candles.
-Buy when RSI crosses above 30 and sell when RSI crosses below 70.
-Add stop loss and target.
-```
+It can help generate historical data code using OpenAlgo’s standard format with symbol, exchange, interval, start date, and end date. For daily candles, it follows OpenAlgo’s convention of using interval as D. It can also help validate the historical data before using it by checking whether the data is empty, whether OHLCV columns are available, whether candles are sorted properly, and whether missing values need to be handled.
 
-```
-Create a Supertrend strategy using OpenAlgo indicators.
-Use historical data from start_date and end_date.
-Add duplicate order prevention.
-```
+OpenAlgo GPT can also help users work with OpenAlgo’s technical indicator library. It can assist with trend indicators such as SMA, EMA, WMA, HMA, Supertrend, Ichimoku, and Alligator. It can help with momentum indicators such as RSI, MACD, Stochastic, CCI, Williams Percent R, Fisher Transform, and Connors RSI. It can help with volatility indicators such as ATR, Bollinger Bands, Keltner Channel, Donchian Channel, Chandelier Exit, and Historical Volatility. It can help with volume indicators such as OBV, VWAP, MFI, ADL, CMF, and RVOL. It can also help with statistical, hybrid, and utility indicators such as Linear Regression, Correlation, Beta, ADX, Aroon, Pivot Points, Parabolic SAR, crossover, crossunder, highest, lowest, change, and rate of change.
 
-```
-Build a VWAP intraday strategy with market hours check and square-off logic.
-```
+Backtesting is another important area where OpenAlgo GPT can help. Users can ask it to create a backtest for a strategy using OpenAlgo historical data. A backtest can include entry rules, exit rules, indicator calculation, position tracking, trade list generation, profit and loss calculation, win rate, net profit or loss, drawdown, and summary statistics. Backtesting helps users study how a strategy behaved in the past, but it does not guarantee future results.
 
-OpenAlgo GPT can help structure the code with:
+OpenAlgo GPT can also help convert a backtest into a paper trading or live trading script. It can add practical safety controls such as stop loss, target, position sizing, max trades per day, duplicate-order prevention, candle-close confirmation, open position checks, order response validation, and graceful shutdown. Before using real capital, users should always test strategies in paper mode or in a controlled environment.
 
-* OpenAlgo client initialization
-* Historical data fetching
-* DataFrame validation
-* Indicator calculation
-* Signal generation
-* Entry and exit logic
-* Risk management
-* Order placement
-* Order response validation
-* Duplicate-order prevention
-* Graceful shutdown
+For real-time market data, OpenAlgo GPT can help users build WebSocket scripts. It can assist with LTP streaming, quote streaming, market depth streaming, authentication, symbol subscription, unsubscription, callback handling, verbose mode control, and graceful disconnect. This is useful for users who want to build real-time dashboards, live trading systems, or event-driven strategies.
 
-***
+OpenAlgo GPT can also help with data visualization. It can generate Plotly candlestick charts, OHLC charts, indicator overlays, buy and sell markers, volume charts, backtest equity curves, and strategy performance charts. For Plotly candlestick charts, it follows OpenAlgo’s working charting style and uses category-based x-axis formatting to avoid gaps caused by weekends and non-trading periods.
 
-### OpenAlgo Python SDK Support
+Another useful capability is symbol format support. OpenAlgo GPT can help users understand the correct OpenAlgo symbol format for equities, indices, futures, options, currencies, and commodities. It can explain how equity symbols are written, how futures symbols are constructed, and how options symbols include the base symbol, expiry date, strike price, and option type.
 
-OpenAlgo GPT can help users understand and use the OpenAlgo Python SDK.
+OpenAlgo GPT can also help users understand order constants. It can explain exchanges such as NSE, NFO, BSE, BFO, MCX, CDS, and NSE\_INDEX. It can explain product types such as CNC, MIS, and NRML. It can explain price types such as MARKET, LIMIT, SL, and SL-M. It can also explain actions such as BUY and SELL.
 
-It can assist with:
+One of the most useful workflows is preparing strategies for OpenAlgo Python Strategy Hosting. OpenAlgo allows users to host Python strategies inside OpenAlgo itself. Users can upload Python strategy files, start and stop strategies, schedule strategy execution, select exchange-specific calendars, pass custom parameters, monitor output, and run each strategy in an isolated process.
 
-* Installing the OpenAlgo Python package
-* Initializing the OpenAlgo client
-* Fetching historical data
-* Fetching quotes
-* Fetching market depth
-* Placing market orders
-* Placing limit orders
-* Using smart orders
-* Using basket orders
-* Using split orders
-* Modifying orders
-* Cancelling orders
-* Checking positions
-* Checking holdings
-* Understanding API responses
+OpenAlgo GPT can help create Python scripts that are suitable for this hosted environment. It can structure the code so that it reads environment variables such as the API key, host, WebSocket URL, symbol, exchange, and custom parameters. It can also help align the strategy’s exchange with the exchange calendar selected in OpenAlgo Strategy Hosting.
 
-Example prompt:
+For scheduled strategies, OpenAlgo GPT can help create APScheduler-based workflows using IST timezone. This can be useful for running signal checks every few minutes, starting strategies at market open, stopping near market close, or adding intraday square-off logic.
 
-```
-Show me how to place a market order in OpenAlgo using Python.
-```
+OpenAlgo GPT does not write to databases unless users ask for it. When database support is required, it can help create SQLAlchemy-based workflows for storing trades, signals, backtest results, or execution records.
 
-***
+The best way to use OpenAlgo GPT is to provide clear details about what you want to build. Include the symbol, exchange, timeframe, start date, end date, indicator rules, entry condition, exit condition, quantity or capital, product type, stop loss, target, and whether you want a backtest, paper trading script, live trading script, or OpenAlgo-hosted strategy.
 
-### Historical Data and DataFrame Handling
+For example, a good prompt would be:
 
-OpenAlgo GPT follows OpenAlgo historical data conventions.
+> Create a paper trading strategy for RELIANCE on NSE using 5 minute candles. Buy when EMA 20 crosses above EMA 50. Exit when EMA 20 crosses below EMA 50. Use MIS product, quantity 1, stop loss 1 percent, target 2 percent. Make it suitable for OpenAlgo Strategy Hosting.
 
-It can help generate code using:
+You can also ask simpler questions such as:
 
-```python
-df = client.history(
-    symbol="SBIN",
-    exchange="NSE",
-    interval="5m",
-    start_date="2025-04-01",
-    end_date="2025-04-08"
-)
-```
+> Explain this strategy code in simple language.
+>
+> Create a Plotly candlestick chart with EMA 20 and EMA 50.
+>
+> Create a WebSocket quote streaming script for NIFTY and INFY.
+>
+> Explain the correct OpenAlgo symbol format for BANKNIFTY options.
+>
+> Generate a Supertrend strategy using OpenAlgo indicators.
+>
+> Convert this strategy into a paper trading bot.
 
-For daily candles, OpenAlgo GPT uses:
+OpenAlgo GPT is a coding and documentation assistant for the OpenAlgo ecosystem. It helps users learn faster, code faster, and build trading workflows more confidently. It is not a profit-generating tool and should not be treated as financial advice. All generated strategies should be reviewed, tested, and validated before being used with real capital.
 
-```python
-interval="D"
-```
+The goal of OpenAlgo GPT is to make algo trading development more accessible. Traders can focus on their strategy ideas. Developers can focus on improving systems. Learners can understand how automated trading works. Together with OpenAlgo’s broker integration, Python SDK, technical indicators, WebSocket data, and strategy hosting, OpenAlgo GPT can help users move from idea to execution more efficiently.
 
-instead of:
+Explore OpenAlgo GPT here:
 
-```python
-interval="1d"
-```
+[https://chatgpt.com/g/g-WK6vMYtbS-openalgo/](https://chatgpt.com/g/g-WK6vMYtbS-openalgo/)
 
-It can also help validate historical data before use:
-
-* Check if the DataFrame is empty
-* Check required OHLCV columns
-* Sort candles
-* Handle missing values
-* Drop NaN values after indicator calculation
-
-***
-
-### OpenAlgo Technical Indicators
-
-OpenAlgo GPT can help users work with OpenAlgo’s technical indicator library.
-
-It can assist with indicator categories such as:
-
-#### Trend Indicators
-
-* SMA
-* EMA
-* WMA
-* HMA
-* Supertrend
-* Ichimoku
-* Alligator
-* Moving Average Envelopes
-
-#### Momentum Indicators
-
-* RSI
-* MACD
-* Stochastic
-* CCI
-* Williams %R
-* Fisher Transform
-* Connors RSI
-
-#### Volatility Indicators
-
-* ATR
-* Bollinger Bands
-* Keltner Channel
-* Donchian Channel
-* Chandelier Exit
-* Historical Volatility
-
-#### Volume Indicators
-
-* OBV
-* VWAP
-* MFI
-* ADL
-* CMF
-* RVOL
-
-#### Statistical Indicators
-
-* Linear Regression
-* Linear Regression Slope
-* Correlation
-* Beta
-* Variance
-* Z-Score
-
-#### Hybrid Indicators
-
-* ADX
-* Aroon
-* Pivot Points
-* Parabolic SAR
-
-#### Utility Functions
-
-* Crossover
-* Crossunder
-* Cross
-* Highest
-* Lowest
-* Change
-* Rate of Change
-
-Example prompt:
-
-```
-Create a strategy using EMA 20, EMA 50, RSI, and OpenAlgo crossover functions.
-```
-
-***
-
-### Backtesting Support
-
-OpenAlgo GPT can help users create simple and practical backtesting scripts.
-
-It can generate backtests with:
-
-* Historical data fetch
-* Indicator calculation
-* Signal generation
-* Entry logic
-* Exit logic
-* Position tracking
-* Trade list
-* Profit and loss calculation
-* Win rate
-* Net P\&L
-* Drawdown
-* Summary statistics
-
-Example prompt:
-
-```
-Backtest an EMA crossover strategy on NIFTY using OpenAlgo historical data.
-Show total trades, win rate, net P&L, and drawdown.
-```
-
-Backtesting examples are for research and educational purposes. Historical results do not guarantee future performance.
-
-***
-
-### Live and Paper Trading Strategy Support
-
-OpenAlgo GPT can help convert strategy logic into live or paper trading scripts.
-
-It can include practical safety controls such as:
-
-* Quantity or capital control
-* Stop loss
-* Target
-* Max trades per day
-* Duplicate-order prevention
-* Candle-close confirmation
-* Market-hours checks
-* Position checks
-* Open order checks
-* Safe shutdown handling
-
-Example prompt:
-
-```
-Convert this backtest into a paper trading strategy using OpenAlgo.
-Add duplicate order prevention and print all order responses.
-```
-
-For live trading, users should test in paper mode or a controlled environment before using real capital.
-
-***
-
-### WebSocket Market Data Support
-
-OpenAlgo GPT can help users work with OpenAlgo WebSocket feeds.
-
-It supports examples for:
-
-* LTP streaming
-* Quote streaming
-* Depth streaming
-* WebSocket authentication
-* Subscription format
-* Unsubscription format
-* Callback-based data handling
-* Verbose mode control
-* Graceful disconnect
-
-OpenAlgo WebSocket modes:
-
-```
-Mode 1: LTP
-Mode 2: Quote
-Mode 3: Depth
-```
-
-Example prompt:
-
-```
-Create a Python WebSocket script to subscribe to NIFTY and INFY quote data and print LTP updates.
-```
-
-***
-
-### Plotly and Data Visualization
-
-OpenAlgo GPT can help create charts for market data and indicators.
-
-It can generate:
-
-* Plotly candlestick charts
-* OHLC charts
-* Indicator overlays
-* Volume charts
-* Backtest equity curves
-* Signal markers
-* Strategy performance charts
-
-For Plotly candlestick charts, OpenAlgo GPT follows the working Plotly example and uses:
-
-```python
-fig.update_xaxes(type="category")
-```
-
-This helps avoid gaps in candle charts caused by non-trading periods.
-
-Example prompt:
-
-```
-Create a Plotly candlestick chart with EMA 20, EMA 50, buy signals, and sell signals.
-```
-
-***
-
-### OpenAlgo Symbol Format Support
-
-OpenAlgo GPT can help users understand the OpenAlgo symbol format across different instruments.
-
-It can assist with:
-
-* Equity symbols
-* Index symbols
-* Futures symbols
-* Options symbols
-* Currency symbols
-* Commodity symbols
-
-Examples:
-
-```
-SBIN
-INFY
-RELIANCE
-```
-
-Futures format:
-
-```
-[Base Symbol][Expiration Date]FUT
-```
-
-Options format:
-
-```
-[Base Symbol][Expiration Date][Strike Price][Option Type]
-```
-
-Example:
-
-```
-NIFTY28MAR2420800CE
-```
-
-***
-
-### Order Constants Support
-
-OpenAlgo GPT can help users use the correct OpenAlgo order constants.
-
-#### Exchanges
-
-```
-NSE
-NFO
-CDS
-BSE
-BFO
-BCD
-MCX
-NCDEX
-NSE_INDEX
-BSE_INDEX
-```
-
-#### Product Types
-
-```
-CNC
-NRML
-MIS
-```
-
-#### Price Types
-
-```
-MARKET
-LIMIT
-SL
-SL-M
-```
-
-#### Actions
-
-```
-BUY
-SELL
-```
-
-Example prompt:
-
-```
-Explain which exchange and product type I should use for NIFTY options intraday trading.
-```
-
-***
-
-### Python Strategy Hosting Inside OpenAlgo
-
-OpenAlgo GPT can help users prepare strategies that can be hosted inside OpenAlgo itself.
-
-OpenAlgo’s Python Strategy Hosting system allows users to:
-
-* Upload Python strategy files
-* Start and stop strategies
-* Schedule strategies
-* Select exchange-specific calendars
-* Pass custom parameters
-* Monitor strategy output
-* Run each strategy in an isolated process
-
-Example prompt:
-
-```
-Create a Python strategy that can be uploaded to OpenAlgo Strategy Hosting.
-Read SYMBOL, EXCHANGE, API key, and host from environment variables.
-```
-
-Hosted strategies can read environment variables such as:
-
-```python
-OPENALGO_API_KEY
-HOST_SERVER
-OPENALGO_HOST
-OPENALGO_STRATEGY_EXCHANGE
-WEBSOCKET_URL
-WEBSOCKET_HOST
-WEBSOCKET_PORT
-```
-
-For hosted strategies, OpenAlgo GPT encourages using:
-
-```python
-EXCHANGE = os.getenv(
-    "OPENALGO_STRATEGY_EXCHANGE",
-    os.getenv("EXCHANGE", "NSE")
-)
-```
-
-This helps keep the script’s order exchange aligned with the exchange calendar selected in OpenAlgo Strategy Hosting.
-
-***
-
-### Scheduler Support
-
-OpenAlgo GPT can help users build scheduled strategies using APScheduler.
-
-For Indian market strategies, it uses IST timezone with `pytz`.
-
-Example:
-
-```python
-IST = pytz.timezone("Asia/Kolkata")
-```
-
-It can help create scheduled jobs for:
-
-* Running strategies at fixed intervals
-* Starting at market open
-* Stopping near market close
-* Periodic signal checks
-* Scheduled square-off logic
-
-Example prompt:
-
-```
-Create an APScheduler strategy that checks signals every 5 minutes in IST.
-```
-
-***
-
-### Database Support
-
-OpenAlgo GPT does not write to a database unless the user asks.
-
-If database interaction is required, it uses SQLAlchemy.
-
-It can help with:
-
-* Storing trades
-* Storing signals
-* Storing backtest results
-* Creating SQLAlchemy models
-* Creating database sessions
-* Reading and writing trade records safely
-
-Example prompt:
-
-```
-Store my executed trades in a SQLite database using SQLAlchemy.
-```
-
-***
-
-### Practical Safety Practices
-
-OpenAlgo GPT encourages practical strategy safety.
-
-It can help add:
-
-* Stop loss
-* Target
-* Trailing stop
-* Position sizing
-* Max trades per day
-* Candle-close confirmation
-* Duplicate-order prevention
-* Order response validation
-* Graceful shutdown
-* Market-hours checks
-* Paper trading mode
-
-It avoids unsafe patterns such as:
-
-* Repeated order placement on the same candle
-* Repeated order placement on the same signal
-* Blind live trading loops
-* Hardcoded API keys
-* Unchecked order responses
-* Mixing backtest logic with live execution without clear separation
-
-***
-
-### Example Prompts
-
-You can try prompts like:
-
-```
-Create a Python strategy using OpenAlgo for EMA crossover on SBIN.
-Use 5 minute candles, start_date and end_date, and add stop loss and target.
-```
-
-```
-Build a backtest for RSI 30/70 strategy using OpenAlgo historical data.
-Show total trades, win rate, net P&L, and drawdown.
-```
-
-```
-Create a Plotly candlestick chart using OpenAlgo data with EMA 20 and EMA 50.
-```
-
-```
-Create a WebSocket quote streaming script for NIFTY and INFY.
-Print all incoming LTP updates.
-```
-
-```
-Create a Python strategy suitable for OpenAlgo Strategy Hosting.
-Read parameters from environment variables.
-```
-
-```
-Explain the correct OpenAlgo symbol format for NIFTY options.
-```
-
-```
-Generate a Supertrend strategy using OpenAlgo indicators with duplicate-order prevention.
-```
-
-```
-Convert this strategy into a paper trading bot.
-```
-
-***
-
-### Who Is OpenAlgo GPT For?
-
-OpenAlgo GPT is useful for:
-
-* Algo traders
-* Python developers
-* Quant learners
-* Trading system builders
-* OpenAlgo users
-* Strategy developers
-* Backtesting enthusiasts
-* Traders learning automation
-* Developers building broker-integrated workflows
-
-Whether you are writing your first Python strategy or improving a more advanced trading system, OpenAlgo GPT can help you move faster.
-
-***
-
-### Best Practices When Using OpenAlgo GPT
-
-For better results, include details such as:
-
-* Symbol
-* Exchange
-* Timeframe
-* Start date and end date
-* Indicator rules
-* Entry condition
-* Exit condition
-* Quantity or capital
-* Product type
-* Stop loss
-* Target
-* Backtest or live mode
-* Paper trading or real execution
-* Whether it should be hosted inside OpenAlgo
-
-Example:
-
-```
-Create a paper trading strategy for RELIANCE on NSE using 5 minute candles.
-Buy when EMA 20 crosses above EMA 50.
-Exit when EMA 20 crosses below EMA 50.
-Use MIS product, quantity 1, stop loss 1 percent, target 2 percent.
-Make it suitable for OpenAlgo Strategy Hosting.
-```
-
-***
-
-### Community
-
-We encourage OpenAlgo community members to explore, build, test, and share what they are working on.
-
-Sharing strategies, examples, improvements, and experiments helps others learn and strengthens the OpenAlgo ecosystem.
-
-Community Discord:
+Join the OpenAlgo community:
 
 [https://openalgo.in/discord](https://openalgo.in/discord)
 
-OpenAlgo Documentation:
+Read the OpenAlgo documentation:
 
 [https://docs.openalgo.in](https://docs.openalgo.in/)
-
-OpenAlgo GPT:
-
-[https://chatgpt.com/g/g-WK6vMYtbS-openalgo/](https://chatgpt.com/g/g-WK6vMYtbS-openalgo/)
-
-***
-
-```
-```
-
