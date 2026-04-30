@@ -124,6 +124,7 @@
     * [ModifyOrder](api-documentation/v1/orders-api/modifyorder.md)
     * [ModifyGttOrder](api-documentation/v1/orders-api/modifygttorder.md)
     * [CancelOrder](api-documentation/v1/orders-api/cancelorder.md)
+    * [CancelGttOrder](api-documentation/v1/orders-api/cancelgttorder.md)
     * [CancelAllOrder](api-documentation/v1/orders-api/cancelallorder.md)
     * [ClosePosition](api-documentation/v1/orders-api/closeposition.md)
     * [OrderStatus](api-documentation/v1/orders-api/orderstatus.md)

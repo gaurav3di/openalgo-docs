@@ -1,8 +1,8 @@
 # ModifyGttOrder
 
-### **Endpoint URL**
+### ~~**Endpoint URL**~~
 
-This API Function modifies an active GTT trigger. The body is a **full replacement** of the trigger spec — same shape as placegttorder plus trigger\_id. Send every field you want to keep — modify is not a patch.
+~~This API Function modifies an active GTT trigger. The body is a **full replacement** of the trigger spec — same shape as placegttorder plus trigger\_id. Send every field you want to keep — modify is not a patch.~~
 
 ```json
 Local Host   :  POST http://127.0.0.1:5000/api/v1/modifygttorder
@@ -30,9 +30,9 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/modifygttorder
 }
 ```
 
-### **Sample API Request**
+### ~~**Sample API Request**~~
 
-**SINGLE — move the IDEA dip-buy from 9.55 → 9.65, raise the limit to 9.60**
+~~**SINGLE — move the IDEA dip-buy from 9.55 → 9.65, raise the limit to 9.60**~~
 
 ```json
 {
@@ -54,7 +54,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/modifygttorder
 }
 ```
 
-**OCO — tighten the INFY bracket: stop 1480 → 1485, target 1620 → 1625**
+~~**OCO — tighten the INFY bracket: stop 1480 → 1485, target 1620 → 1625**~~
 
 ```json
 {
@@ -76,7 +76,7 @@ Custom Domain:  POST https://<your-custom-domain>/api/v1/modifygttorder
 }
 ```
 
-### **Sample API Response**
+### ~~**Sample API Response**~~
 
 ```json
 {
