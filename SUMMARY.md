@@ -108,6 +108,7 @@
     * [Funds](api-documentation/v1/accounts-api/funds.md)
     * [Margin](api-documentation/v1/accounts-api/margin.md)
     * [Orderbook](api-documentation/v1/accounts-api/orderbook.md)
+    * [GttOrderBook](api-documentation/v1/accounts-api/gttorderbook.md)
     * [Tradebook](api-documentation/v1/accounts-api/tradebook.md)
     * [PositionBook](api-documentation/v1/accounts-api/positionbook.md)
     * [Holdings](api-documentation/v1/accounts-api/holdings.md)
