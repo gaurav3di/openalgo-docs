@@ -126,6 +126,7 @@
     * [ClosePosition](api-documentation/v1/orders-api/closeposition.md)
     * [OrderStatus](api-documentation/v1/orders-api/orderstatus.md)
     * [OpenPosition](api-documentation/v1/orders-api/openposition.md)
+    * [PlaceGttOrder](api-documentation/v1/orders-api/placegttorder.md)
   * [Data API](api-documentation/v1/data-api/README.md)
     * [Quotes](api-documentation/v1/data-api/quotes.md)
     * [MultiQuotes](api-documentation/v1/data-api/multiquotes.md)
