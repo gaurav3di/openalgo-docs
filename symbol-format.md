@@ -194,9 +194,28 @@ BSESMEIPO\
 BSETECK\
 BSETELECOM
 
+
+
+#### Common Global Index Symbols (Exchange Code : GLOBAL\_INDEX)
+
+Quote-only feed for global indices. No trading is supported — use these symbols for `quotes`, `ltp`, `history`, and websocket subscriptions only. Currently sourced from Zerodha.
+
+AUS200\
+FRANCE40\
+GERMANY40\
+HANGSENG\
+JAPAN225\
+SHANGHAICHINA\
+UK100\
+US100\
+US10YRYIELD\
+US30\
+US500\
+USCOMPOSITE
+
 ### Exchange  Codes
 
-The supported exchange symbol formats in OpenAlgo allow for an identification system that denotes where the instrument is traded, along with specific details that vary by instrument type:
+The supported exchange symbol formats in OpenAlgo allow for an identification system that denotes where the instrument is traded, along with specific details that vary by instrument type:<br>
 
 * **NSE:** `NSE` for National Stock Exchange equities.
 * **BSE:** `BSE` for Bombay Stock Exchange equities.
@@ -205,8 +224,10 @@ The supported exchange symbol formats in OpenAlgo allow for an identification sy
 * **BCD:** `BCD` for BSE Currency Derivatives.
 * **CDS:** `CDS` for NSE Currency Derivatives.
 * **MCX:** `MCX` for commodities traded on the Multi Commodity Exchange.
+* **NCO:** `NCO` for NSE Commodities (futures + options). Zerodha only.
 * **NSE\_INDEX:** `NSE_INDEX` for indices on the National Stock Exchange.
 * **BSE\_INDEX:** `BSE_INDEX` for indices on the Bombay Stock Exchange.
+* **GLOBAL\_INDEX:** `GLOBAL_INDEX` for global indices (US30, JAPAN225, HANGSENG, FRANCE40, AUS200, GIFTNIFTY, ...). Quote-only. Zerodha only.
 
 ### Database Schema (Common Symbols)
 
