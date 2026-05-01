@@ -1,7 +1,5 @@
 # Version 2.0.0.8 Released
 
-## Version 2.0.0.8 Released
-
 **Date: 1st May 2026**
 
 **GTT Orders for Zerodha & Dhan, Telegram `/StopPython` Command, Historify Parquet Aggregation Fix, Codebase-Wide bare-except Sweep & Critical Docker Upgrade Hotfix**
