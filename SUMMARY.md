@@ -164,6 +164,7 @@
   * [Indicators](skills/indicators.md)
   * [Backtesting](skills/backtesting.md)
 * [MCP](mcp/README.md)
+  * [Remote MCP](mcp/remote-mcp.md)
   * [Tool References](mcp/tool-references.md)
 
 ## Trading Platform
