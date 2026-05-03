@@ -8,7 +8,7 @@ OpenAlgo is a free, open source, self hosted algorithmic trading platform that b
 
 Beyond execution, OpenAlgo empowers traders to completely own their trading infrastructure. Traders can effortlessly build algorithmic strategies, indicators, and custom trading dashboards using AI agentic coding tools, connect with their favorite trading platforms, and deploy strategies without being tied to any single broker or vendor. By standardizing broker APIs into one consistent trading layer, OpenAlgo allows strategies to work the same way across brokers, making automation faster, scalable, and fully under the trader’s control.
 
-{% embed url="https://www.youtube.com/watch?v=LhbXWlUtCcM" %}
+{% embed url="https://www.youtube.com/watch?v=S5myMo9WUdQ" %}
 
 ***
 
