@@ -2,6 +2,8 @@
 
 Lets hosted AI clients — ChatGPT, Claude.ai, Claude mobile — talk to your OpenAlgo install over the internet so you can ask them to fetch quotes, summarise positions, or place orders in plain English.
 
+{% embed url="https://www.youtube.com/watch?v=iq0Tbq22u0c" %}
+
 Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your install) keeps working unchanged. Remote MCP is a parallel, opt-in transport that shares the same 40 tools but reaches them over HTTPS.
 
 | You want to...                                                   | Use                                |
