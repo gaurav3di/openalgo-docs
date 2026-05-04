@@ -202,31 +202,32 @@ You should see the OpenAlgo login screen with a valid lock icon next to the URL.
 Now that OpenAlgo runs on HTTPS, update the redirect URL in your `.env` file:
 
 ```dotenv
-REDIRECT_URL = 'https://openalgo.local/zerodha/callback'
+REDIRECT_URL = 'https://openalgo.local/shoonya/callback'
 ```
 
 Match this exactly in your broker's developer console:
 
-* **Zerodha Kite Connect:** Edit your app and set the Redirect URL to `https://openalgo.local/zerodha/callback`
-* **Upstox / Fyers / others:** Same pattern with their respective callback paths
+* **Shoonya API Portal:** Edit your app and set the Redirect URL to `https://openalgo.local/shoonya/callback`
 
 Restart OpenAlgo after editing `.env`.
 
+All the brokers the procedure remains the same.
+
 ### Daily workflow after setup
 
-Once everything is set up, your daily workflow is just two terminals:
+Once everything is set up, your daily workflow is just two terminals:\
+\
+Run this from the openalgo root folder
 
 **Terminal 1 (Caddy):**
 
 ```powershell
-cd D:\openalgo-remote\openalgo
 C:\caddy\caddy.exe run
 ```
 
 **Terminal 2 (OpenAlgo):**
 
 ```powershell
-cd D:\openalgo-remote\openalgo
 uv run app.py
 ```
 
