@@ -66,7 +66,7 @@ Begin by launching your OpenAlgo application locally from your VS Code. Open you
 * In the alert settings, navigate to the **“Notifications”** tab.
 * Enable the **“Webhook URL”** option and paste your custom OpenAlgo webhook URL from the previous step.
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 #### 7. Configure the TradingView Alert Message (JSON Payload)
 

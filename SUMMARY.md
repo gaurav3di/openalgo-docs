@@ -73,6 +73,7 @@
     * [SSL Verification Failed](getting-started/windows-installation/ssl-verification-failed.md)
     * [Accessing OpenAlgo](getting-started/windows-installation/accessing-openalgo.md)
   * [Windows Server Installation](getting-started/windows-server-installation.md)
+  * [Windows with Caddy](installation-guidelines/getting-started/windows-with-caddy.md)
   * [Mac OS Installation](getting-started/mac-os-installation/README.md)
     * [Pre-Requesties](getting-started/mac-os-installation/pre-requesties.md)
     * [Setup](getting-started/mac-os-installation/setup.md)
