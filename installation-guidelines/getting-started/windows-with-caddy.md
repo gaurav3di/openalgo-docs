@@ -47,7 +47,7 @@ In PowerShell:
 
 ```powershell
 cd C:\caddy
-Rename-Item caddy_windows_amd64_custom.exe caddy.exe
+Rename-Item caddy_windows_amd64.exe caddy.exe
 ```
 
 Verify it works:
