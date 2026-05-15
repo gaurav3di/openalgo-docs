@@ -17,20 +17,21 @@ List of OpenAlgo Supported Brokers
 11. Fyers
 12. Groww
 13. IIFL (XTS)
-14. IndiaBulls
-15. IndMoney
-16. JainamXTS
-17. Kotak Securities
-18. Motilal Oswal
-19. Mstock
-20. Nubra
-21. Paytm
-22. Pocketful
-23. Samco
-24. Shoonya
-25. Rmoney (XTS)
-26. Tradejini
-27. Upstox
-28. Wisdom Capital (XTS)
-29. Zebu&#x20;
-30. Zerodha
+14. IIFL Capital
+15. IndiaBulls
+16. IndMoney
+17. JainamXTS
+18. Kotak Securities
+19. Motilal Oswal
+20. Mstock
+21. Nubra
+22. Paytm
+23. Pocketful
+24. Samco
+25. Shoonya
+26. Rmoney (XTS)
+27. Tradejini
+28. Upstox
+29. Wisdom Capital (XTS)
+30. Zebu&#x20;
+31. Zerodha
