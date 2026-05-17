@@ -152,6 +152,7 @@
     * [Holidays](api-documentation/v1/utilities-api/holidays.md)
     * [Timings](api-documentation/v1/utilities-api/timings.md)
     * [Telegram](api-documentation/v1/utilities-api/telegram.md)
+    * [WhatsApp](api-documentation/v1/utilities-api/whatsapp.md)
   * [Websockets](api-documentation/v1/websockets.md)
   * [Order Constants](api-documentation/v1/order-constants.md)
   * [HTTP Status Codes](api-documentation/v1/http-status-codes.md)
