@@ -230,6 +230,7 @@
 * [Google Spreadsheets](trading-platform/google-spreadsheets.md)
 * [N8N](trading-platform/n8n.md)
 * [Telegram](trading-platform/telegram.md)
+* [Whatsapp](trading-platform/whatsapp.md)
 * [Chrome Extension](trading-platform/chrome-extension.md)
 
 ***
@@ -302,6 +303,7 @@
 ## Change Log
 
 * [release](change-log/release/README.md)
+  * [Version 2.0.1.1 Released](change-log/release/version-2.0.1.1-released.md)
   * [Version 2.0.1.0 Released](change-log/release/version-2.0.1.0-released.md)
   * [Version 2.0.0.9 Released](change-log/release/version-2.0.0.9-released.md)
   * [Version 2.0.0.8 Released](change-log/release/version-2.0.0.8-released.md)
