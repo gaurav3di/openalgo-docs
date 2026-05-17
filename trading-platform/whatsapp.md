@@ -7,6 +7,8 @@ The OpenAlgo WhatsApp Bot connects your OpenAlgo install to a WhatsApp account t
 1. **Outbound** — fires real-time order alerts to you (and optionally to a small list of recipients) via the same event bus that already drives Telegram, so a `/api/v1/placeorder` call lands as a WhatsApp message on your phone moments later.
 2. **Inbound** — accepts slash-command queries (`/orderbook`, `/positions`, `/quote`, …) that you type from your **own phone** in the "Message yourself" chat. The bot replies in the same chat. Commands are gated by WhatsApp's own multi-device protocol — random contacts who message your number cannot drive the bot.
 
+{% embed url="https://www.youtube.com/watch?v=vxvlxlk6AdA" %}
+
 Unlike Telegram, WhatsApp has no separate "bot account" concept. The OpenAlgo server runs as a **linked device** on your personal WhatsApp account — the same way WhatsApp Web does. You pair once with a QR scan and the encrypted session lives in `openalgo.db`.
 
 #### Features
