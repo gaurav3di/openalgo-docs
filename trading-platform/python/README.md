@@ -4,10 +4,7 @@ To install the OpenAlgo Python library, use pip:
 
 ```bash
 # Trading API only  
-pip install openalgo 
-
-# JIT-accelerated indicators                                                                 
-pip install openalgo[indicators]  
+pip install openalgo  
 ```
 
 ### Get the OpenAlgo apikey
