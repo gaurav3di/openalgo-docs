@@ -1,9 +1,5 @@
 # Upgrade
 
-
-
-## Upgrade
-
 Follow the steps for **your installation method**. The procedure differs depending on how you installed OpenAlgo.
 
 {% hint style="danger" %}
