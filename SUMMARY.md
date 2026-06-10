@@ -28,6 +28,7 @@
   * [5paisa (XTS)](connect-brokers/brokers/5paisa-xts.md)
   * [AliceBlue](connect-brokers/brokers/aliceblue.md)
   * [AngelOne](connect-brokers/brokers/angelone.md)
+  * [Arrow](connect-brokers/brokers/arrow.md)
   * [Compositedge](connect-brokers/brokers/compositedge.md)
   * [Definedge](connect-brokers/brokers/definedge.md)
   * [Dhan](connect-brokers/brokers/dhan.md)
