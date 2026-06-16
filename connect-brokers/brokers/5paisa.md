@@ -36,7 +36,7 @@ Here is a sample of how the details would appear in a .env file for reference:
 **Sample .env File:** Here is a sample of how the details should appear in a `.env` file for reference:
 
 ```
-BROKER_API_KEY = 'API_Key:::User_ID:::client_cod'
+BROKER_API_KEY = 'API_Key:::User_ID:::client_code'
 BROKER_API_SECRET = 'Encryption_Key'
 REDIRECT_URL = 'http://127.0.0.1:5000/fivepaisa/callback'
 ```
