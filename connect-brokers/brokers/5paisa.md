@@ -27,9 +27,13 @@ Keep this page open and navigate to the Dashboard - Create New App.
 
 ### **Save API Details**
 
-* Save the generated User Key, User ID. Encryption Key, Later, you will add these details to the environmental variables along with the redirect URL.
+Save the generated User Key, User ID. Encryption Key, Later, you will add these details to the environmental variables along with the redirect URL.
 
 <figure><img src="../../.gitbook/assets/five_7.PNG" alt=""><figcaption></figcaption></figure>
+
+click on the profile dropdown on the top right corner to know your client code
+
+<figure><img src="../../.gitbook/assets/five_8.PNG" alt=""><figcaption></figcaption></figure>
 
 Here is a sample of how the details would appear in a .env file for reference:
 
