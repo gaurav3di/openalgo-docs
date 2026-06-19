@@ -52,7 +52,7 @@
   * [Shoonya](connect-brokers/brokers/shoonya.md)
   * [RMoney (XTS)](connect-brokers/brokers/rmoney.md)
   * [Tradejini](connect-brokers/brokers/tradejini.md)
-  * [TradeSmartOnline](connect-brokers/brokers/tradesmartonline.md)
+  * [TradeSmart](connect-brokers/brokers/tradesmart.md)
   * [Upstox](connect-brokers/brokers/upstox.md)
   * [Wisdom Capital](connect-brokers/brokers/wisdom-capital.md)
   * [Zebu](connect-brokers/brokers/zebu.md)

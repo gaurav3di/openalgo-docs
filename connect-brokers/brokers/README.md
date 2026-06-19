@@ -32,7 +32,7 @@ List of OpenAlgo Supported Brokers
 26. Shoonya
 27. Rmoney (XTS)
 28. Tradejini
-29. TradeSmartOnline
+29. TradeSmart
 30. Upstox
 31. Wisdom Capital (XTS)
 32. Zebu&#x20;
