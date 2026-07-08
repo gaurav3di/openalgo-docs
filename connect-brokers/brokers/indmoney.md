@@ -35,7 +35,7 @@ Click **Save IP Address**
 
 <figure><img src="../../.gitbook/assets/Indstocks_5.PNG" alt=""><figcaption></figcaption></figure>
 
-5. Copy the token shown on screen
+4. Copy the token shown on screen
 
 <figure><img src="../../.gitbook/assets/Indstocks_6.PNG" alt=""><figcaption></figcaption></figure>
 
