@@ -17,27 +17,32 @@ Visit [**https://www.indstocks.com/app/api-trading**](https://www.indstocks.com/
 
 <figure><img src="../../.gitbook/assets/ind2.PNG" alt=""><figcaption></figcaption></figure>
 
-2. Open the **API Dashboard**
+<figure><img src="../../.gitbook/assets/Indstocks_1.PNG" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../../.gitbook/assets/ind5.PNG" alt=""><figcaption></figcaption></figure>
+2. Open the **Algo Trading** above the chart view
 
-3. Click **New Token** and generate token
+<figure><img src="../../.gitbook/assets/Indstocks_2.PNG" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../../.gitbook/assets/ind3.PNG" alt=""><figcaption></figcaption></figure>
+3. Click **Access Tokens ,**  generate token and Configure Static IP&#x20;
 
-4. Copy the token shown on screen
+<figure><img src="../../.gitbook/assets/Indstocks_3.PNG" alt=""><figcaption></figcaption></figure>
+
+Click **New Token**
+
+<figure><img src="../../.gitbook/assets/Indstocks_4.PNG" alt=""><figcaption></figcaption></figure>
+
+Click **Save IP Address**
+
+<figure><img src="../../.gitbook/assets/Indstocks_5.PNG" alt=""><figcaption></figcaption></figure>
+
+5. Copy the token shown on screen
+
+<figure><img src="../../.gitbook/assets/Indstocks_6.PNG" alt=""><figcaption></figcaption></figure>
 
 This token will be used in OpenAlgo for all authenticated API requests.
 
 **Note:**\
 Tokens usually expire within **24 hours**. You must generate a fresh token when expired.
-
-5. **Setup Static IP:**\
-   Click the small **hexagon icon** next to **New Token** to enable and assign your **static IP**, and then save it.
-
-<figure><img src="../../.gitbook/assets/ind4.PNG" alt=""><figcaption></figcaption></figure>
-
-**Note :**&#x41; static IP is mandatory, and it must be whitelisted for all API calls to work. Without whitelisting, INDmoney will reject your API requests.
 
 ### Environment Configuration
 
