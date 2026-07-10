@@ -72,17 +72,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/whatsapp/notify \
 
 ## Sample API Response
 
-### Fire-and-forget (default)
-
-```json
-{
-  "status": "success",
-  "message": "Queued for 1 recipient(s)",
-  "queued": 1
-}
-```
-
-### `wait_for_delivery: true`
+### Synchronous delivery (default)
 
 ```json
 {
@@ -93,6 +83,16 @@ curl -X POST http://127.0.0.1:5000/api/v1/whatsapp/notify \
     "failed":  [],
     "skipped": 0
   }
+}
+```
+
+### `wait_for_delivery: false` (fire-and-forget)
+
+```json
+{
+  "status": "success",
+  "message": "Queued for 1 recipient(s)",
+  "queued": 1
 }
 ```
 
@@ -110,12 +110,12 @@ curl -X POST http://127.0.0.1:5000/api/v1/whatsapp/notify \
 | `document_path` | string | Server-local path to a document file (PDF, CSV, etc.). |
 | `caption` | string | Caption attached to the image. For documents, sent as a follow-up text. |
 | `filename` | string | Override the document's display name on the recipient's device. |
-| `wait_for_delivery` | boolean | Default `false`. When `true`, block until wars returns and include per-recipient delivery report. |
+| `wait_for_delivery` | boolean | Default `true`. Blocks until wars returns and includes a per-recipient delivery report. Set explicitly to `false` for fire-and-forget queuing. |
 
 Exactly one recipient form is required: `self`, `username`, `phone`, or
 `phones`. Combining is not supported.
 
-## Response Fields (async)
+## Response Fields (`wait_for_delivery: false`)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -123,7 +123,7 @@ Exactly one recipient form is required: `self`, `username`, `phone`, or
 | `message` | string | Human-readable summary |
 | `queued` | int | Number of recipients dispatched to the alert pool |
 
-## Response Fields (`wait_for_delivery: true`)
+## Response Fields (default, synchronous)
 
 `data` contains the per-recipient report from `send_sync`:
 

@@ -38,7 +38,7 @@ Automatic bans are controlled by the persisted Security settings, not environmen
 | Invalid API-key ban duration | 0 hours (permanent) |
 | Repeat-offender limit | 2 bans |
 
-The authenticated Security dashboard can change thresholds from 1 to 10,000, durations from 0 to 8,760 hours, and repeat limit from 1 to 10. A duration of zero means permanent.
+The authenticated Security dashboard can change the 404 threshold from 1 to 1,000, the invalid API-key threshold from 1 to 100, durations from 0 to 8,760 hours, and repeat limit from 1 to 10. A duration of zero means permanent.
 
 When automatic banning is enabled and a tracker reaches its threshold, localhost addresses are never banned. The tracker resets after its 24-hour window. Existing ban records increment `ban_count`; reaching the configured repeat limit makes the ban permanent. Durations are not automatically doubled.
 
