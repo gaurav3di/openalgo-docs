@@ -1,10 +1,10 @@
 # 11 - Docker Configuration
 
-### Overview
+## Overview
 
 OpenAlgo provides Docker support for containerized deployment with **3-stage builds** (Python builder, Frontend builder, Production), IST timezone configuration, and proper security isolation. The Docker setup uses Python 3.12, Gunicorn with Eventlet workers, and runs as a non-root user. It includes Railway/cloud deployment support with automatic `.env` generation.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -26,11 +26,11 @@ OpenAlgo provides Docker support for containerized deployment with **3-stage bui
                                      │
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        Stage 2: Frontend Builder                             │
-│                        (node:20-bullseye-slim)                               │
+│                        (node:22-bullseye-slim)                               │
 │                                                                              │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │  1. Copy frontend/package*.json                                       │  │
-│  │  2. npm install                                                       │  │
+│  │  2. npm ci                                                            │  │
 │  │  3. Copy frontend source                                              │  │
 │  │  4. npm run build (React production build)                            │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
@@ -81,7 +81,7 @@ OpenAlgo provides Docker support for containerized deployment with **3-stage bui
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Dockerfile
+## Dockerfile
 
 ```dockerfile
 # ------------------------------ Python Builder Stage ----------------------- #
@@ -100,10 +100,10 @@ RUN pip install --no-cache-dir uv && \
     rm -rf /root/.cache
 
 # ------------------------------ Frontend Builder Stage --------------------- #
-FROM node:20-bullseye-slim AS frontend-builder
+FROM node:22-bullseye-slim AS frontend-builder
 WORKDIR /app
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install
+RUN cd frontend && npm ci
 COPY frontend/ ./frontend/
 RUN cd frontend && npm run build
 
@@ -161,7 +161,7 @@ EXPOSE 5000
 CMD ["/app/start.sh"]
 ```
 
-### Docker Compose
+## Docker Compose
 
 ```yaml
 # docker-compose.yaml (note: .yaml extension, not .yml)
@@ -203,14 +203,14 @@ volumes:
   openalgo_tmp:
 ```
 
-#### Named Volumes vs Bind Mounts
+### Named Volumes vs Bind Mounts
 
-| Approach                         | Pros                                  | Cons                              |
-| -------------------------------- | ------------------------------------- | --------------------------------- |
-| **Named Volumes** (recommended)  | Better performance, managed by Docker | Data in Docker's volume directory |
-| **Bind Mounts** (`./db:/app/db`) | Easy access to files                  | Permission issues possible        |
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Named Volumes** (recommended) | Better performance, managed by Docker | Data in Docker's volume directory |
+| **Bind Mounts** (`./db:/app/db`) | Easy access to files | Permission issues possible |
 
-### Directory Structure
+## Directory Structure
 
 ```
 Container /app/
@@ -239,7 +239,7 @@ Container /app/
 └── app.py                 # Main application
 ```
 
-### Start Script
+## Start Script
 
 The `start.sh` script is a sophisticated 246-line entrypoint that handles:
 
@@ -314,19 +314,19 @@ exec /app/.venv/bin/gunicorn \
     app:app
 ```
 
-#### Key Differences from Simple Script
+### Key Differences from Simple Script
 
-| Feature          | Old (6 lines) | Actual (246 lines)           |
-| ---------------- | ------------- | ---------------------------- |
-| Cloud Support    | None          | Full Railway/Render support  |
-| .env Generation  | None          | 40+ variables auto-generated |
-| Migrations       | None          | Auto-runs on startup         |
-| Signal Handling  | None          | Graceful shutdown            |
-| Timeout          | 120s          | 300s                         |
-| Graceful Timeout | None          | 30s                          |
-| Worker Temp Dir  | Default       | /tmp/gunicorn\_workers       |
+| Feature | Old (6 lines) | Actual (246 lines) |
+|---------|---------------|-------------------|
+| Cloud Support | None | Full Railway/Render support |
+| .env Generation | None | 40+ variables auto-generated |
+| Migrations | None | Auto-runs on startup |
+| Signal Handling | None | Graceful shutdown |
+| Timeout | 120s | 300s |
+| Graceful Timeout | None | 30s |
+| Worker Temp Dir | Default | /tmp/gunicorn_workers |
 
-### Build Commands
+## Build Commands
 
 ```bash
 # Build image
@@ -352,7 +352,7 @@ docker stop openalgo
 docker rm openalgo
 ```
 
-### Docker Compose Commands
+## Docker Compose Commands
 
 ```bash
 # Start services
@@ -368,7 +368,7 @@ docker-compose down
 docker-compose up -d --build
 ```
 
-### Environment Variables for Docker
+## Environment Variables for Docker
 
 ```bash
 # .env for Docker deployment
@@ -390,32 +390,32 @@ APP_KEY=your_32_byte_hex_key
 API_KEY_PEPPER=your_32_byte_hex_pepper
 ```
 
-### Resource Configuration for Python Strategies
+## Resource Configuration for Python Strategies
 
 Running Python strategies with numerical libraries (NumPy, SciPy, Numba) in Docker requires careful resource configuration to prevent `RLIMIT_NPROC` exhaustion errors.
 
-#### Thread Limiting Environment Variables
+### Thread Limiting Environment Variables
 
 OpenBLAS, NumPy, and other numerical libraries spawn threads by default. In containers with limited process/thread limits, this causes crashes. The Dockerfile and docker-compose.yaml include these limits:
 
-| Variable               | Purpose                | Default |
-| ---------------------- | ---------------------- | ------- |
-| `OPENBLAS_NUM_THREADS` | OpenBLAS thread limit  | 2       |
-| `OMP_NUM_THREADS`      | OpenMP thread limit    | 2       |
-| `MKL_NUM_THREADS`      | Intel MKL thread limit | 2       |
-| `NUMEXPR_NUM_THREADS`  | NumExpr thread limit   | 2       |
-| `NUMBA_NUM_THREADS`    | Numba JIT thread limit | 2       |
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `OPENBLAS_NUM_THREADS` | OpenBLAS thread limit | 2 |
+| `OMP_NUM_THREADS` | OpenMP thread limit | 2 |
+| `MKL_NUM_THREADS` | Intel MKL thread limit | 2 |
+| `NUMEXPR_NUM_THREADS` | NumExpr thread limit | 2 |
+| `NUMBA_NUM_THREADS` | Numba JIT thread limit | 2 |
 
-#### Resource Scaling by Container RAM
+### Resource Scaling by Container RAM
 
 | Container RAM | Thread Limit | Strategy Memory | SHM Size | Max Strategies |
-| ------------- | ------------ | --------------- | -------- | -------------- |
-| 2GB           | 1            | 256MB           | 256MB    | 5              |
-| 4GB           | 2            | 512MB           | 512MB    | 5-8            |
-| 8GB           | 2-4          | 1024MB          | 1GB      | 10+            |
-| 16GB+         | 4            | 1024MB          | 2GB      | 20+            |
+|---------------|--------------|-----------------|----------|----------------|
+| 2GB | 1 | 256MB | 256MB | 5 |
+| 4GB | 2 | 512MB | 512MB | 5-8 |
+| 8GB | 2-4 | 1024MB | 1GB | 10+ |
+| 16GB+ | 4 | 1024MB | 2GB | 20+ |
 
-#### Configuration in docker-compose.yaml
+### Configuration in docker-compose.yaml
 
 ```yaml
 services:
@@ -433,9 +433,9 @@ services:
     shm_size: ${SHM_SIZE:-512m}
 ```
 
-#### Install Script Dynamic Calculation
+### Install Script Dynamic Calculation
 
-The `install-docker.sh` script automatically calculates optimal values:
+The `install/install-docker.sh` script automatically calculates optimal values:
 
 ```bash
 # Thread limits based on RAM
@@ -449,32 +449,32 @@ else
 fi
 ```
 
-> **Reference**: See [GitHub Issue #822](https://github.com/marketcalls/openalgo/issues/822) for details on the RLIMIT\_NPROC fix.
+> **Reference**: See [GitHub Issue #822](https://github.com/marketcalls/openalgo/issues/822) for details on the RLIMIT_NPROC fix.
 
-### Security Considerations
+## Security Considerations
 
-| Aspect           | Implementation            |
-| ---------------- | ------------------------- |
-| Non-root user    | Runs as `appuser`         |
-| Read-only .env   | Mounted with `:ro` flag   |
-| Keys directory   | 700 permissions           |
-| No build tools   | Slim production image     |
+| Aspect | Implementation |
+|--------|----------------|
+| Non-root user | Runs as `appuser` |
+| Read-only .env | Mounted with `:ro` flag |
+| Keys directory | 700 permissions |
+| No build tools | Slim production image |
 | Minimal packages | Only runtime dependencies |
 
-### Volume Persistence
+## Volume Persistence
 
-| Volume            | Purpose          | Required    |
-| ----------------- | ---------------- | ----------- |
-| `/app/db`         | SQLite databases | Yes         |
-| `/app/log`        | Application logs | Recommended |
-| `/app/strategies` | User strategies  | Optional    |
-| `/app/.env`       | Configuration    | Yes         |
+| Volume | Purpose | Required |
+|--------|---------|----------|
+| `/app/db` | SQLite databases | Yes |
+| `/app/log` | Application logs | Recommended |
+| `/app/strategies` | User strategies | Optional |
+| `/app/.env` | Configuration | Yes |
 
-### Key Files Reference
+## Key Files Reference
 
-| File                 | Purpose                         |
-| -------------------- | ------------------------------- |
-| `Dockerfile`         | Multi-stage build configuration |
-| `docker-compose.yml` | Service orchestration           |
-| `start.sh`           | Container entrypoint            |
-| `.dockerignore`      | Build exclusions                |
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Multi-stage build configuration |
+| `docker-compose.yaml` | Service orchestration |
+| `start.sh` | Container entrypoint |
+| `.dockerignore` | Build exclusions |

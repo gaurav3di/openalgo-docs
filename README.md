@@ -1,6 +1,6 @@
 # What is OpenAlgo?
 
-OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges your trading ideas with real execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 30+ Indian brokers, enabling seamless automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets. Traders can also receive strategy alerts directly on Telegram, ensuring real time visibility and control.
+OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 34 broker plugins: 33 securities integrations and Delta Exchange for crypto derivatives. It supports automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets.
 
 ### Overview
 
@@ -16,7 +16,7 @@ Beyond execution, OpenAlgo empowers traders to completely own their trading infr
 
 OpenAlgo is built around one core idea: effortlessly create trading strategies using AI tools and run and monitor them like never before. Instead of learning multiple broker APIs and documentation, AI agentic coding tools such as Codex, Claude Code, Antigravity, and OpenCode understand OpenAlgo directly. Traders can build strategies faster, create their own algo features, design custom trading alerts, connect to any trading platform of their choice, store historical data, and run analytics or backtesting within a fully self hosted environment. There are no code tool offerings available, and you completely own your data and infrastructure.
 
-Most brokers expose their own APIs with different authentication methods, order parameters, market data structures, and operational limitations. This creates unnecessary complexity for traders and developers. OpenAlgo removes this friction by providing one common API layer across supported brokers, delivering consistent behavior across live trading and testing environments. Strategies work the same way regardless of the broker, allowing you to switch brokers without rewriting logic while maintaining full control over execution, data, and automation.
+Most brokers expose their own APIs with different authentication methods, order parameters, market data structures, and operational limitations. OpenAlgo reduces this friction with common request and response shapes. Exchange coverage, authentication, market-data entitlement, GTT support, and other optional capabilities still vary by plugin and broker account.
 
 {% embed url="https://www.youtube.com/watch?v=ImQS-tz_GIo" %}
 
@@ -63,7 +63,7 @@ OpenAlgo exposes a standardized API that allows you to:
 * Access orderbook and tradebook
 * Retrieve real-time and historical market data
 
-All supported brokers follow the same API structure.
+Broker plugins follow the common API structure for the operations they support.
 
 ***
 
@@ -88,9 +88,9 @@ Sandbox testing provides:
 
 * Live market data
 * Configurable **sandbox capital**
-* Realistic margin and order behavior
-* Automatic handling of exchange square-off rules
-* Complete isolation from live trading data
+* Configurable sandbox margin and order behavior
+* Configurable MIS square-off schedules
+* Simulated order and account state isolated from live broker execution
 
 ***
 
@@ -110,7 +110,7 @@ This helps reduce execution risk and improves transparency.
 
 Security and data ownership are core principles of OpenAlgo:
 
-* Broker credentials are encrypted
+* Broker session tokens are encrypted; `.env` credentials must be protected by the operator
 * Passwords are securely hashed
 * Two-factor authentication is supported
 * API access is rate-limited
@@ -159,7 +159,7 @@ Let's be clear about what OpenAlgo doesn't do:
 | Aspect                | OpenAlgo                                         |
 | --------------------- | ------------------------------------------------ |
 | **Cost**              | Free (Open Source, AGPL License)                 |
-| **Brokers**           | 25+ Indian brokers                               |
+| **Brokers**           | 34 plugins: 33 securities integrations + Delta Exchange |
 | **Exchanges**         | NSE, NFO, BSE, BFO, MCX, CDS, BCD                |
 | **Signal Sources**    | TradingView, Amibroker, ChartInk, Python, AI     |
 | **Strategy Building** | Flow (Visual), Python Hosting, External Webhooks |

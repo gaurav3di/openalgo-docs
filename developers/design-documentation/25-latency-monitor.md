@@ -1,10 +1,10 @@
 # 25 - Latency Monitor
 
-### Overview
+## Overview
 
 OpenAlgo tracks order execution latency at multiple stages to help identify performance bottlenecks and ensure SLA compliance.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -47,19 +47,19 @@ OpenAlgo tracks order execution latency at multiple stages to help identify perf
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Metrics Tracked
+## Metrics Tracked
 
-#### Latency Components
+### Latency Components
 
-| Metric                  | Description                |
-| ----------------------- | -------------------------- |
-| rtt\_ms                 | Broker API round-trip time |
-| validation\_latency\_ms | Pre-request validation     |
-| response\_latency\_ms   | Post-response processing   |
-| overhead\_ms            | Total OpenAlgo overhead    |
-| total\_latency\_ms      | End-to-end time            |
+| Metric | Description |
+|--------|-------------|
+| rtt_ms | Broker API round-trip time |
+| validation_latency_ms | Pre-request validation |
+| response_latency_ms | Post-response processing |
+| overhead_ms | Total OpenAlgo overhead |
+| total_latency_ms | End-to-end time |
 
-#### Database Schema
+### Database Schema
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -86,9 +86,9 @@ OpenAlgo tracks order execution latency at multiple stages to help identify perf
 └──────────────────┴──────────────┴──────────────────┘
 ```
 
-### Implementation
+## Implementation
 
-#### Latency Tracker Class
+### Latency Tracker Class
 
 ```python
 class LatencyTracker:
@@ -122,7 +122,7 @@ class LatencyTracker:
         }
 ```
 
-#### Decorator Usage
+### Decorator Usage
 
 ```python
 from utils.latency_monitor import track_latency
@@ -134,15 +134,14 @@ def place_order():
     pass
 ```
 
-### Dashboard
+## Dashboard
 
-#### Access
-
+### Access
 ```
 /logs/latency
 ```
 
-#### Dashboard View
+### Dashboard View
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -173,18 +172,18 @@ def place_order():
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### SLA Targets
+## SLA Targets
 
-#### Performance Thresholds
+### Performance Thresholds
 
-| Metric | Target  | Description     |
-| ------ | ------- | --------------- |
-| P50    | < 100ms | 50% of requests |
-| P90    | < 150ms | 90% of requests |
-| P95    | < 175ms | 95% of requests |
-| P99    | < 200ms | 99% of requests |
+| Metric | Target | Description |
+|--------|--------|-------------|
+| P50 | < 100ms | 50% of requests |
+| P90 | < 150ms | 90% of requests |
+| P95 | < 175ms | 95% of requests |
+| P99 | < 200ms | 99% of requests |
 
-#### SLA Calculation
+### SLA Calculation
 
 ```python
 def calculate_sla_compliance():
@@ -196,9 +195,9 @@ def calculate_sla_compliance():
     return (within_sla / total) * 100 if total > 0 else 100
 ```
 
-### Broker Comparison
+## Broker Comparison
 
-#### Per-Broker Stats
+### Per-Broker Stats
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -214,9 +213,9 @@ def calculate_sla_compliance():
 └────────────────────────────────────────────────────────────────┘
 ```
 
-### Alerting
+## Alerting
 
-#### Threshold Alerts
+### Threshold Alerts
 
 ```python
 def check_latency_alerts(metrics):
@@ -229,9 +228,9 @@ def check_latency_alerts(metrics):
         send_alert('Broker timeout detected')
 ```
 
-### HTTP Client Integration
+## HTTP Client Integration
 
-#### Connection Timing
+### Connection Timing
 
 ```python
 def _on_request(request):
@@ -244,9 +243,9 @@ def _on_response(response):
         logger.debug(f"HTTP Request: {latency:.2f}ms")
 ```
 
-### Analytics Queries
+## Analytics Queries
 
-#### Common Queries
+### Common Queries
 
 ```python
 # Average latency by broker
@@ -270,12 +269,12 @@ ORDER BY total_latency_ms DESC
 LIMIT 10
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                             | Purpose            |
-| -------------------------------- | ------------------ |
-| `utils/latency_monitor.py`       | Tracking utilities |
-| `database/latency_db.py`         | Latency model      |
-| `blueprints/logs.py`             | Dashboard routes   |
-| `utils/httpx_client.py`          | HTTP timing hooks  |
-| `frontend/src/pages/Latency.tsx` | React dashboard    |
+| File | Purpose |
+|------|---------|
+| `utils/latency_monitor.py` | Tracking utilities |
+| `database/latency_db.py` | Latency model |
+| `blueprints/latency.py` | Dashboard and export routes |
+| `utils/httpx_client.py` | HTTP timing hooks |
+| `frontend/src/pages/monitoring/LatencyDashboard.tsx` | React dashboard |

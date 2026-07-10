@@ -1,10 +1,8 @@
 # MultiQuotes
 
-## Multi Quotes
+Get real-time quotes for multiple symbols in a single API call.
 
-### Endpoint URL
-
-This API Function fetches quotes for multiple symbols from the Broker in a single API call
+## Endpoint URL
 
 ```http
 Local Host   :  POST http://127.0.0.1:5000/api/v1/multiquotes
@@ -12,188 +10,147 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/multiquot
 Custom Domain:  POST https://<your-custom-domain>/api/v1/multiquotes
 ```
 
-### Sample API Request
+## Sample API Request
 
 ```json
 {
   "apikey": "<your_app_apikey>",
   "symbols": [
-    {
-      "symbol": "SBIN",
-      "exchange": "NSE"
-    },
-    {
-      "symbol": "NIFTY25NOV25FUT",
-      "exchange": "NFO"
-    },
-    {
-      "symbol": "INFY",
-      "exchange": "BSE"
-    }
+    {"symbol": "RELIANCE", "exchange": "NSE"},
+    {"symbol": "TCS", "exchange": "NSE"},
+    {"symbol": "INFY", "exchange": "NSE"}
   ]
 }
 ```
 
-### Sample API Response
+## Sample cURL Request
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/multiquotes \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "symbols": [
+    {"symbol": "RELIANCE", "exchange": "NSE"},
+    {"symbol": "TCS", "exchange": "NSE"},
+    {"symbol": "INFY", "exchange": "NSE"}
+  ]
+}'
+```
+
+## Sample API Response
 
 ```json
 {
   "status": "success",
   "results": [
     {
-      "symbol": "SBIN",
+      "symbol": "RELIANCE",
       "exchange": "NSE",
       "data": {
-        "ask": 972.6,
+        "open": 1542.3,
+        "high": 1571.6,
+        "low": 1540.5,
+        "ltp": 1569.9,
+        "prev_close": 1539.7,
+        "ask": 1569.9,
         "bid": 0,
-        "high": 980.6,
-        "low": 971.05,
-        "ltp": 972.6,
         "oi": 0,
-        "open": 979.7,
-        "prev_close": 981.55,
-        "volume": 5377241
+        "volume": 14054299
       }
     },
     {
-      "symbol": "NIFTY25NOV25FUT",
-      "exchange": "NFO",
+      "symbol": "TCS",
+      "exchange": "NSE",
       "data": {
-        "ask": 26074.6,
-        "bid": 26070.2,
-        "high": 26195,
-        "low": 26061.3,
-        "ltp": 26074,
+        "open": 3118.8,
+        "high": 3178,
+        "low": 3117,
+        "ltp": 3162.9,
+        "prev_close": 3119.2,
+        "ask": 0,
+        "bid": 3162.9,
         "oi": 0,
-        "open": 26136.3,
-        "prev_close": 26220.8,
-        "volume": 8618175
+        "volume": 2508527
       }
     },
     {
       "symbol": "INFY",
-      "exchange": "BSE",
+      "exchange": "NSE",
       "data": {
+        "open": 1532.1,
+        "high": 1560.3,
+        "low": 1532.1,
+        "ltp": 1557.9,
+        "prev_close": 1530.6,
         "ask": 0,
-        "bid": 0,
-        "high": 1551.5,
-        "low": 1527.5,
-        "ltp": 1544.6,
+        "bid": 1557.9,
         "oi": 0,
-        "open": 1530,
-        "prev_close": 1536.75,
-        "volume": 699948
+        "volume": 7575038
       }
     }
   ]
 }
 ```
 
-### Request Fields
+## Request Body
 
-| Parameters | Description                      | Mandatory/Optional | Default Value |
-| ---------- | -------------------------------- | ------------------ | ------------- |
-| apikey     | App API key                      | Mandatory          | -             |
-| symbols    | Array of symbol/exchange objects | Mandatory          | -             |
+| Parameter | Description | Mandatory/Optional | Default Value |
+|-----------|-------------|-------------------|---------------|
+| apikey | Your OpenAlgo API key | Mandatory | - |
+| symbols | Array of symbol objects | Mandatory | - |
 
-#### Symbol Object Fields
+### Symbol Object Fields
 
-| Parameters | Description    | Mandatory/Optional | Default Value |
-| ---------- | -------------- | ------------------ | ------------- |
-| symbol     | Trading symbol | Mandatory          | -             |
-| exchange   | Exchange code  | Mandatory          | -             |
+| Field | Description |
+|-------|-------------|
+| symbol | Trading symbol |
+| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX |
 
-### Response Fields
+## Response Fields
 
-| Field   | Type   | Description                                      |
-| ------- | ------ | ------------------------------------------------ |
-| status  | string | Response status (success/error)                  |
-| results | array  | Array of quote results for each requested symbol |
+| Field | Type | Description |
+|-------|------|-------------|
+| status | string | "success" or "error" |
+| results | array | Array of quote results |
 
-#### Result Object Fields
+### Results Array Fields
 
-| Field    | Type   | Description                               |
-| -------- | ------ | ----------------------------------------- |
-| symbol   | string | Trading symbol                            |
-| exchange | string | Exchange code                             |
-| data     | object | Quote data object (see Quote Data Fields) |
+| Field | Type | Description |
+|-------|------|-------------|
+| symbol | string | Trading symbol |
+| exchange | string | Exchange code |
+| data | object | Quote data (same as Quotes endpoint) |
+| error | string | Error message if symbol lookup failed |
 
-#### Quote Data Fields
+### Data Object Fields
 
-| Field       | Type   | Description                  |
-| ----------- | ------ | ---------------------------- |
-| bid         | number | Best bid price               |
-| ask         | number | Best ask price               |
-| open        | number | Opening price                |
-| high        | number | High price                   |
-| low         | number | Low price                    |
-| ltp         | number | Last traded price            |
-| oi          | number | Open Interest                |
-| prev\_close | number | Previous day's closing price |
-| volume      | number | Total traded volume          |
+| Field | Type | Description |
+|-------|------|-------------|
+| open | number | Day's open price |
+| high | number | Day's high price |
+| low | number | Day's low price |
+| ltp | number | Last traded price |
+| ask | number | Best ask price |
+| bid | number | Best bid price |
+| prev_close | number | Previous day's close |
+| oi | number | Open interest (for F&O) |
+| volume | number | Total traded volume |
 
-### Important Notes
+## Notes
 
-* **Performance**: Multi quotes API is more efficient than making multiple individual quote requests
-* **Broker Support**:
-  * Fyers: Uses native multi-symbol API for optimal performance
-  * Other brokers: Automatically falls back to fetching quotes individually
-* **Error Handling**: If individual symbols fail, the response will include error information for those specific symbols while still returning data for successful symbols
-* **Rate Limiting**: Same rate limits apply as single quote API (default: 10 requests per second)
+- More efficient than making multiple [Quotes](./quotes.md) calls
+- Invalid symbols are returned with an error field
+- Maximum symbols per request depends on broker limits
+- If broker doesn't support multiquotes natively, the API fetches quotes individually
+- For F&O symbols, **oi** (open interest) field is populated
 
-### Use Cases
+## Use Cases
 
-1. **Portfolio Monitoring**: Fetch quotes for all holdings in a single request
-2. **Watchlist Updates**: Get real-time quotes for watchlist symbols efficiently
-3. **Multi-Asset Trading**: Monitor positions across different exchanges (NSE, BSE, NFO, etc.)
-4. **Strategy Execution**: Get quotes for multiple instruments before executing complex strategies
+- **Watchlist updates**: Refresh quotes for all watchlist symbols
+- **Portfolio valuation**: Get LTP for all holdings
+- **Multi-symbol strategies**: Monitor multiple correlated symbols
 
-### Example Usage Scenarios
+---
 
-#### Fetching Portfolio Quotes
-
-```json
-{
-  "apikey": "<your_app_apikey>",
-  "symbols": [
-    {"symbol": "SBIN", "exchange": "NSE"},
-    {"symbol": "RELIANCE", "exchange": "NSE"},
-    {"symbol": "TCS", "exchange": "NSE"},
-    {"symbol": "INFY", "exchange": "BSE"}
-  ]
-}
-```
-
-#### Monitoring Derivatives and Cash
-
-```json
-{
-  "apikey": "<your_app_apikey>",
-  "symbols": [
-    {"symbol": "NIFTY", "exchange": "NSE_INDEX"},
-    {"symbol": "NIFTY25DEC24FUT", "exchange": "NFO"},
-    {"symbol": "NIFTY25DEC2425000CE", "exchange": "NFO"},
-    {"symbol": "NIFTY25DEC2425000PE", "exchange": "NFO"}
-  ]
-}
-```
-
-### Error Response
-
-In case of an error, the API will return:
-
-```json
-{
-  "status": "error",
-  "message": "Error description"
-}
-```
-
-#### Common Error Scenarios
-
-| Error Message               | Cause                                     | Solution                          |
-| --------------------------- | ----------------------------------------- | --------------------------------- |
-| Invalid openalgo apikey     | Invalid or expired API key                | Check your API key                |
-| Validation error            | Missing required fields or invalid format | Verify request format             |
-| Failed to fetch multiquotes | Broker API error                          | Check broker connectivity         |
-| Maximum 50 symbols allowed  | Too many symbols requested                | Split request into multiple calls |
+**Back to**: [API Documentation](../README.md)

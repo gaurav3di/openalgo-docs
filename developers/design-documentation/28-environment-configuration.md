@@ -1,26 +1,26 @@
 # 28 - Environment Configuration
 
-### Overview
+## Overview
 
 OpenAlgo uses environment variables for configuration, managed through a `.env` file with validation at startup. For cloud deployments (Railway/Render), the `start.sh` script can auto-generate `.env` from environment variables.
 
-### Configuration Files
+## Configuration Files
 
 ```
 .env                # Active configuration (not in git)
 .sample.env         # Reference template with all variables
 ```
 
-### Environment Variables (65+ Variables)
+## Environment Variables (65+ Variables)
 
-#### Version Tracking
+### Version Tracking
 
 ```bash
 # Configuration version - compare with .sample.env when updating
 ENV_CONFIG_VERSION = '1.0.6'
 ```
 
-#### Core Security (Required)
+### Core Security (Required)
 
 ```bash
 # Application secret key (required, 32+ characters)
@@ -32,7 +32,7 @@ APP_KEY = 'your_32_character_secret_key_here'
 API_KEY_PEPPER = 'your_32_character_pepper_here'
 ```
 
-#### Broker Configuration
+### Broker Configuration
 
 ```bash
 # Broker API credentials
@@ -47,10 +47,10 @@ BROKER_API_SECRET_MARKET = 'YOUR_BROKER_MARKET_API_SECRET'
 REDIRECT_URL = 'http://127.0.0.1:5000/<broker>/callback'
 
 # Enabled brokers (comma-separated)
-VALID_BROKERS = 'fivepaisa,fivepaisaxts,aliceblue,angel,compositedge,dhan,dhan_sandbox,definedge,firstock,flattrade,fyers,groww,ibulls,iifl,indmoney,jainamxts,kotak,motilal,mstock,nubra,paytm,pocketful,samco,shoonya,tradejini,upstox,wisdom,zebu,zerodha'
+VALID_BROKERS = 'fivepaisa,fivepaisaxts,aliceblue,angel,arrow,compositedge,dhan,dhan_sandbox,definedge,deltaexchange,firstock,flattrade,fyers,groww,ibulls,iifl,iiflcapital,indmoney,jainamxts,kotak,motilal,mstock,nubra,paytm,pocketful,rmoney,samco,shoonya,tradejini,tradesmart,upstox,wisdom,zebu,zerodha'
 ```
 
-#### Database Configuration
+### Database Configuration
 
 ```bash
 # Main database
@@ -59,11 +59,14 @@ DATABASE_URL = 'sqlite:///db/openalgo.db'
 # Additional databases
 LATENCY_DATABASE_URL = 'sqlite:///db/latency.db'
 LOGS_DATABASE_URL = 'sqlite:///db/logs.db'
+HEALTH_DATABASE_URL = 'sqlite:///db/health.db'
 SANDBOX_DATABASE_URL = 'sqlite:///db/sandbox.db'
 HISTORIFY_DATABASE_URL = 'db/historify.duckdb'
 ```
 
-#### Flask Application
+`HISTORIFY_DATABASE_URL` is the sample-env name, but the current implementation reads `HISTORIFY_DATABASE_PATH`. Do not assume they are aliases; this remains a known configuration conflict.
+
+### Flask Application
 
 ```bash
 # Host and port
@@ -78,7 +81,7 @@ FLASK_ENV = 'development'  # or 'production'
 HOST_SERVER = 'http://127.0.0.1:5000'
 ```
 
-#### WebSocket Configuration
+### WebSocket Configuration
 
 ```bash
 # WebSocket server
@@ -91,7 +94,7 @@ ZMQ_HOST = '127.0.0.1'
 ZMQ_PORT = '5555'
 ```
 
-#### Connection Pooling
+### Connection Pooling
 
 ```bash
 # Maximum symbols per WebSocket connection (default: 1000)
@@ -105,14 +108,14 @@ MAX_WEBSOCKET_CONNECTIONS = '3'
 ENABLE_CONNECTION_POOLING = 'true'
 ```
 
-#### Ngrok Configuration
+### Ngrok Configuration
 
 ```bash
 # Enable ngrok tunnel
 NGROK_ALLOW = 'FALSE'
 ```
 
-#### Logging Configuration
+### Logging Configuration
 
 ```bash
 # File logging
@@ -127,7 +130,7 @@ LOG_COLORS = 'True'
 FORCE_COLOR = '1'
 ```
 
-#### Python Strategy Logging
+### Python Strategy Logging
 
 ```bash
 # Maximum log files per strategy (oldest deleted first)
@@ -140,7 +143,7 @@ STRATEGY_LOG_MAX_SIZE_MB = '50'
 STRATEGY_LOG_RETENTION_DAYS = '7'
 ```
 
-#### Rate Limiting
+### Rate Limiting
 
 ```bash
 # Login rate limits
@@ -151,24 +154,21 @@ RESET_RATE_LIMIT = '15 per hour'
 # API rate limits
 API_RATE_LIMIT = '50 per second'
 ORDER_RATE_LIMIT = '10 per second'
-SMART_ORDER_RATE_LIMIT = '2 per second'
+SMART_ORDER_RATE_LIMIT = '10 per second'
 
 # Webhook rate limits
 WEBHOOK_RATE_LIMIT = '100 per minute'
 STRATEGY_RATE_LIMIT = '200 per minute'
 ```
 
-#### API Configuration
+### API Configuration
 
 ```bash
-# Delay between multi-leg option orders (seconds)
-SMART_ORDER_DELAY = '0.5'
-
 # Session expiry time (24-hour format, IST)
 SESSION_EXPIRY_TIME = '03:00'
 ```
 
-#### CORS Configuration
+### CORS Configuration
 
 ```bash
 # Enable/disable CORS
@@ -193,7 +193,7 @@ CORS_ALLOW_CREDENTIALS = 'FALSE'
 CORS_MAX_AGE = '86400'
 ```
 
-#### Content Security Policy (CSP)
+### Content Security Policy (CSP)
 
 ```bash
 # Enable/disable CSP
@@ -219,7 +219,7 @@ CSP_UPGRADE_INSECURE_REQUESTS = 'FALSE'
 CSP_REPORT_URI = ''
 ```
 
-#### CSRF Protection
+### CSRF Protection
 
 ```bash
 # Enable/disable CSRF protection
@@ -229,7 +229,7 @@ CSRF_ENABLED = 'TRUE'
 CSRF_TIME_LIMIT = ''
 ```
 
-#### Cookie Configuration
+### Cookie Configuration
 
 ```bash
 # Cookie names (customize for multiple instances)
@@ -237,33 +237,32 @@ SESSION_COOKIE_NAME = 'session'
 CSRF_COOKIE_NAME = 'csrf_token'
 ```
 
-### Railway/Cloud Deployment
+## Railway/Cloud Deployment
 
 When deploying to Railway or Render, set these environment variables in the platform dashboard:
 
-#### Required Variables
+### Required Variables
 
-| Variable            | Description                                            |
-| ------------------- | ------------------------------------------------------ |
-| `HOST_SERVER`       | Your app URL (e.g., `https://your-app.up.railway.app`) |
-| `REDIRECT_URL`      | Broker OAuth callback URL                              |
-| `BROKER_API_KEY`    | Broker API key                                         |
-| `BROKER_API_SECRET` | Broker API secret                                      |
-| `APP_KEY`           | Generated secret key                                   |
-| `API_KEY_PEPPER`    | Generated pepper                                       |
+| Variable | Description |
+|----------|-------------|
+| `HOST_SERVER` | Your app URL (e.g., `https://your-app.up.railway.app`) |
+| `REDIRECT_URL` | Broker OAuth callback URL |
+| `BROKER_API_KEY` | Broker API key |
+| `BROKER_API_SECRET` | Broker API secret |
+| `APP_KEY` | Generated secret key |
+| `API_KEY_PEPPER` | Generated pepper |
 
-#### Auto-Generated by start.sh
+### Auto-Generated by start.sh
 
 When `HOST_SERVER` is set and no `.env` exists, `start.sh` automatically generates `.env` with:
+- All security settings
+- CORS configured for your domain
+- CSP with secure WebSocket URLs
+- Railway's `PORT` environment variable support
 
-* All security settings
-* CORS configured for your domain
-* CSP with secure WebSocket URLs
-* Railway's `PORT` environment variable support
+## Validation
 
-### Validation
-
-#### Startup Validation
+### Startup Validation
 
 ```python
 from utils.env_check import load_and_check_env_variables
@@ -277,19 +276,19 @@ def validate_env():
         sys.exit(1)
 ```
 
-#### Validation Rules
+### Validation Rules
 
-| Variable              | Validation                        |
-| --------------------- | --------------------------------- |
-| `APP_KEY`             | Must be 32+ characters            |
-| `API_KEY_PEPPER`      | Must be 32+ characters            |
-| `*_PORT`              | 0-65535                           |
-| `*_RATE_LIMIT*`       | Format: "X per Y"                 |
-| `SESSION_EXPIRY_TIME` | Format: HH:MM                     |
-| `WEBSOCKET_URL`       | Starts with ws:// or wss://       |
-| `LOG_LEVEL`           | DEBUG/INFO/WARNING/ERROR/CRITICAL |
+| Variable | Validation |
+|----------|------------|
+| `APP_KEY` | Must be 32+ characters |
+| `API_KEY_PEPPER` | Must be 32+ characters |
+| `*_PORT` | 0-65535 |
+| `*_RATE_LIMIT*` | Format: "X per Y" |
+| `SESSION_EXPIRY_TIME` | Format: HH:MM |
+| `WEBSOCKET_URL` | Starts with ws:// or wss:// |
+| `LOG_LEVEL` | DEBUG/INFO/WARNING/ERROR/CRITICAL |
 
-### Generating Secrets
+## Generating Secrets
 
 ```bash
 # Generate 32-character hex key for APP_KEY and API_KEY_PEPPER
@@ -299,9 +298,9 @@ python -c "import secrets; print(secrets.token_hex(32))"
 # a1b2c3d4e5f6789012345678901234567890123456789012345678901234
 ```
 
-### Environment Comparison
+## Environment Comparison
 
-#### Development
+### Development
 
 ```bash
 FLASK_DEBUG = 'True'
@@ -312,7 +311,7 @@ FLASK_HOST_IP = '127.0.0.1'
 CSP_UPGRADE_INSECURE_REQUESTS = 'FALSE'
 ```
 
-#### Production (Local)
+### Production (Local)
 
 ```bash
 FLASK_DEBUG = 'False'
@@ -323,7 +322,7 @@ FLASK_HOST_IP = '0.0.0.0'
 CSP_UPGRADE_INSECURE_REQUESTS = 'TRUE'
 ```
 
-#### Production (Railway)
+### Production (Railway)
 
 ```bash
 # Set in Railway dashboard, start.sh generates .env:
@@ -334,16 +333,16 @@ WEBSOCKET_HOST = '0.0.0.0'  # Auto-set
 ZMQ_HOST = '0.0.0.0'  # Auto-set
 ```
 
-### Security Best Practices
+## Security Best Practices
 
-#### File Permissions
+### File Permissions
 
 ```bash
 # Restrict .env access
 chmod 600 .env
 ```
 
-#### Never Commit Secrets
+### Never Commit Secrets
 
 ```gitignore
 # .gitignore
@@ -352,16 +351,16 @@ chmod 600 .env
 *.key
 ```
 
-#### Version Check
+### Version Check
 
 Compare `ENV_CONFIG_VERSION` in your `.env` with `.sample.env` after updates. If they differ, copy new variables from the sample.
 
-### Key Files Reference
+## Key Files Reference
 
-| File                 | Purpose                       |
-| -------------------- | ----------------------------- |
-| `.env`               | Active configuration          |
-| `.sample.env`        | Reference template            |
-| `start.sh`           | Auto-generates .env for cloud |
-| `utils/env_check.py` | Validation logic              |
-| `utils/config.py`    | Config helpers                |
+| File | Purpose |
+|------|---------|
+| `.env` | Active configuration |
+| `.sample.env` | Reference template |
+| `start.sh` | Auto-generates .env for cloud |
+| `utils/env_check.py` | Validation logic |
+| `utils/config.py` | Config helpers |

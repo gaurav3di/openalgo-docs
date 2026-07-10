@@ -4,7 +4,7 @@
 
 Companion reference to the main MCP setup guide. Once the MCP server is wired into Claude Desktop, Cursor, Windsurf, Antigravity, or any other MCP-capable client, you can ask for these operations in plain English — the client decides which tool to call.
 
-All **40 tools** shipped by the server are listed below with:
+The supported tools are grouped below. The live MCP `tools/list` response is authoritative for the exact registry and schemas exposed by a running version. Each entry includes:
 
 * What the tool does
 * Key parameters (required / optional)
@@ -419,17 +419,6 @@ Exchange open/close epoch timestamps for a given date (date optional → default
 
 ***
 
-#### `check_holiday`
-
-Quick pre-trade check: is a given date a holiday on a specific exchange?
-
-**Prompts:**
-
-* _"Is 26 Jan 2026 a holiday on NSE?"_
-* _"Is tomorrow a trading day on MCX?"_
-
-***
-
 ### 🛠️ Utilities
 
 #### `get_openalgo_version`
@@ -457,6 +446,66 @@ Push a Telegram notification via the OpenAlgo Telegram bot (must be configured i
 
 ***
 
+### Technical Research
+
+Research tools fetch broker or Historify history and calculate compact results on the OpenAlgo server. Common optional controls are `interval`, `start_date`, `end_date`, `lookback_bars`, `lookback_days`, and `source` (`api` or `db`).
+
+#### `calculate_indicator`
+
+Run an `openalgo.ta` indicator by name. Supply `symbol`, `exchange`, and `indicator`; use `params` for indicator arguments, `inputs` when automatic OHLCV input detection is insufficient, and `bars` to limit returned rows.
+
+**Prompt:** _"Calculate RSI(14) and the latest 20 values for RELIANCE daily candles"_
+
+#### `get_trend_snapshot`
+
+Return a one-call trend bundle containing SMA, EMA, Supertrend, ADX/DMI, and Ichimoku values.
+
+**Prompt:** _"Give me a daily trend snapshot for NIFTY"_
+
+#### `get_momentum_snapshot`
+
+Return RSI, MACD, Stochastic, CCI, and Williams %R values for one symbol and interval.
+
+**Prompt:** _"Show a 15-minute momentum snapshot for SBIN"_
+
+#### `get_volatility_snapshot`
+
+Return ATR, NATR, Bollinger, Keltner, Donchian, and historical-volatility values.
+
+**Prompt:** _"Compare the current volatility measures for INFY on daily candles"_
+
+#### `get_support_resistance`
+
+Calculate pivot points, Donchian levels, and rolling highest-high and lowest-low values. `period` defaults to 20.
+
+**Prompt:** _"Find 20-day support and resistance levels for RELIANCE"_
+
+#### `detect_signals`
+
+Find recent bullish and bearish events for `ema_cross`, `sma_cross`, `macd_cross`, `supertrend_flip`, or `rsi_threshold`. Use `limit` to bound returned events.
+
+**Prompt:** _"Find the latest EMA 20/50 cross signals for TCS"_
+
+#### `screen_instruments`
+
+Evaluate a modest list of `{symbol, exchange}` pairs against RSI, price-versus-SMA, or Supertrend conditions. History is fetched per symbol, so keep broker-backed lists small.
+
+**Prompt:** _"Screen RELIANCE, INFY, TCS, and SBIN for RSI below 35"_
+
+#### `multi_timeframe_analysis`
+
+Compute one indicator across several timeframes. The default timeframes are `5m`, `15m`, `1h`, and `D`.
+
+**Prompt:** _"Check RSI confluence for NIFTY across 5m, 15m, 1h, and daily"_
+
+#### `correlation_beta`
+
+Align two symbols on common timestamps and return rolling correlation, rolling beta, linear-regression slope, and full-sample Pearson correlation.
+
+**Prompt:** _"Calculate 60-day correlation and beta for RELIANCE versus NIFTY"_
+
+***
+
 ### 🧠 Worked Multi-Tool Workflows
 
 Real strength shows when the assistant chains tools on its own. Example prompts:
@@ -471,7 +520,7 @@ The assistant will chain: `get_expiry_dates` → `get_option_chain` → `get_opt
 
 > _"Before I start trading: is the market open today on NSE and MCX, what's my free cash, what's my current position book, and what's NIFTY spot right now?"_
 
-Chains: `check_holiday` → `get_timings` → `get_funds` → `get_position_book` → `get_quote`.
+Chains: `get_timings` → `get_funds` → `get_position_book` → `get_quote`.
 
 **3. Options greeks scan:**
 

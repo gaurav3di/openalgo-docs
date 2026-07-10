@@ -1,110 +1,71 @@
-# Architecture
+# Security Architecture
 
-### OpenAlgo Security Architecture
+OpenAlgo is a self-hosted trading application. Its controls protect the application boundary, but operators remain responsible for host security, TLS, proxy configuration, secret handling, backups, and broker-account controls.
 
-OpenAlgo implements multiple layers of security to protect your trading operations, data, and infrastructure.
+### Authentication and Sessions
 
-***
+* Application passwords are Argon2-hashed with the installation pepper.
+* TOTP can be required independently for login, Remote MCP write authorization, and password reset.
+* Application sessions use HTTP-only, SameSite cookies; the Secure attribute is enabled for HTTPS deployments.
+* A user can have at most five active application sessions.
+* Session-status polling refreshes `last_seen` no more than once every 30 seconds.
+* Broker-session expiry preserves a valid application session and redirects the user to reconnect the broker.
+* Password changes revoke active device sessions.
 
-1. **Authentication & Session Management**
+The application session and the installation-wide active broker session are distinct.
 
-* Encrypted Password Storage: User passwords are hashed using Argon2 (industry-standard, resistant to GPU attacks)
-* Session Expiry: Automatic daily session expiration at configurable time (default 3:30 AM IST)
-* Secure Session Cookies: HTTPOnly, SameSite, and Secure flags enabled for HTTPS deployments
-* Token Revocation: Automatic token revocation on session expiry or logout
+### API Keys and Broker Tokens
 
-***
+OpenAlgo generates one current 64-character hexadecimal API key per user. The database stores an Argon2 hash for verification and an encrypted copy for authenticated retrieval. Regenerating the key invalidates the previous value immediately.
 
-2. **API Security**
+Broker authentication and feed tokens are encrypted before database storage. Broker API credentials configured in `.env` are not an encrypted database secret; protect the file with host permissions and exclude it from source control and support bundles.
 
-* API Key Authentication: Unique API keys for each user with Argon2 hashing + pepper
-* Encrypted Token Storage: All broker tokens encrypted using Fernet symmetric encryption
-* API Rate Limiting: Configurable rate limits on all API endpoints (default 10-60 requests/minute)
-* Invalid API Key Tracking: Auto-bans IPs after 10 invalid API key attempts
+Most `/api/v1` routes require `apikey` in the JSON body. The REST namespace is exempt from browser CSRF because it uses API-key authentication, while session-authenticated state-changing routes retain CSRF protection unless explicitly exempted for a documented callback or webhook.
 
-***
+### Request Boundary and IP Controls
 
-3. **Network Security**
+`SecurityMiddleware` checks the resolved client IP against bans stored in `logs.db` before Flask handles a request. Automatic banning is disabled by default. Current persisted defaults are:
 
-* IP Ban System: Automatic and manual IP blocking for malicious traffic
-* 404 Attack Detection: Auto-bans after 20 suspicious 404 errors per day
-* CSRF Protection: Built-in CSRF tokens on all forms and state-changing operations
-* CORS Configuration: Restrictive cross-origin policies with configurable allowed origins
-* Content Security Policy (CSP): Prevents XSS attacks through strict CSP headers
+| Setting | Default |
+| --- | ---: |
+| 404 threshold in 24 hours | 100 |
+| 404 ban duration | 0 hours (permanent) |
+| Invalid-key threshold in 24 hours | 100 |
+| Invalid-key ban duration | 0 hours (permanent) |
+| Repeat-offender limit | 2 bans |
 
-***
+The dashboard can change these values and enable automatic banning. Localhost addresses are excluded from automatic bans.
 
-4. **Data Protection**
+`TRUST_PROXY_HEADERS` is false by default. Enable it only when a controlled reverse proxy is the sole route to OpenAlgo; otherwise a direct client can spoof forwarded IP headers. The application does not implement a CIDR allowlist.
 
-* Database Encryption: Sensitive data (API keys, broker tokens, SMTP passwords) encrypted at rest
-* No Credential Logging: API keys and passwords never logged in plaintext
-* Secure Configuration: Environment variables for sensitive configuration
-* Pepper-based Hashing: Additional pepper secret for password and API key hashing
+### Browser and Transport Controls
 
-***
+OpenAlgo configures CSRF, CORS, CSP, referrer, permissions, frame, and related response headers in the application. Public deployments should terminate TLS at a maintained reverse proxy and restrict direct access to Flask, WebSocket, and ZeroMQ ports.
 
-5. **Infrastructure Security**
+Security cookies become HTTPS-only when the configured public URL uses HTTPS. A misconfigured HTTP deployment does not gain transport security merely because the application supports secure-cookie settings.
 
-* Security Middleware: Request validation and IP checking before processing
-* Traffic Logging: Complete audit trail of all requests with anonymized sensitive data
-* Performance Monitoring: Latency tracking to detect DoS attempts
-* Error Handling: Generic error messages to prevent information leakage
-* File Upload Restrictions: Limited file types and size restrictions
+### Traffic and Audit Data
 
-***
+Traffic logging stores metadata: timestamp, client IP, method, path, status, duration, host, optional middleware error, and user ID when available. It does not store request bodies, response bodies, headers, user agents, or a processing timeline.
 
-6. **Broker Integration Security**
+Order, analyzer, login, MCP, latency, health, and notification domains have their own event or persistence paths. No single traffic table is a complete audit trail of every application action.
 
-* OAuth 2.0 Support: Secure authorization flow for broker connections
-* Token Refresh: Automatic token refresh without storing credentials
-* Broker-specific Encryption: Each broker's tokens encrypted separately
-* Revocation Support: Ability to immediately revoke broker access
+### WebSocket and MCP Boundaries
 
-***
+The public market-data WebSocket requires an OpenAlgo API-key authentication message within the configured grace period. Subscription capacity, queue size, ping interval, and timeout are bounded by configuration. The internal ZeroMQ endpoint is unauthenticated and must remain private.
 
-7. **WebSocket Security**
+Remote MCP is opt-in. Its OAuth implementation uses exact redirect-URI validation, S256-only PKCE, signed access tokens, refresh-token rotation, and token-family revocation when refresh-token reuse is detected. `.sample.env` keeps the transport off but has approval off and write scope enabled if only the master switch is changed; the Docker helper applies the stricter inverse. Write scope can require fresh TOTP.
 
-* Authentication Required: WebSocket connections require valid session
-* Message Validation: All WebSocket messages validated before processing
-* Connection Limits: Maximum concurrent connections per user
-* Heartbeat Monitoring: Automatic disconnection of idle connections
+### Data Stores
 
-***
+OpenAlgo uses five SQLite databases and one DuckDB store. Isolation limits unrelated lock contention and persistence scope; it is not database-wide encryption. Back up and protect all six stores together with `.env`, Fernet salt/key material, and MCP signing keys.
 
-8. **Operational Security**
+### Operational Baseline
 
-* Security Dashboard: Real-time monitoring at /security
-* Audit Logs: Comprehensive logging of all security events
-* Configurable Thresholds: Adjust security settings without code changes
-* Multiple Ban Durations: Temporary (24hr, 48hr, 1 week) or permanent bans
-* Repeat Offender Detection: Escalating penalties for repeat violations
-
-***
-
-9. **Development Security**
-
-* No Hardcoded Secrets: All sensitive data in environment variables or database
-* Input Validation: All user inputs sanitized and validated
-* SQL Injection Prevention: Using SQLAlchemy ORM with parameterized queries
-* XSS Prevention: Template auto-escaping and CSP headers
-* Dependency Management: Regular updates and security patches
-
-***
-
-10. **Deployment Security**
-
-* HTTPS Support: Automatic secure cookie configuration for HTTPS
-* Docker Security: Non-root user in container, minimal base images
-
-***
-
-**Security Best Practices for Users**
-
-1. Use Strong API Keys: Generate complex, random API keys
-2. Enable HTTPS: Always use SSL certificates in production
-3. Regular Updates: Keep OpenAlgo updated for latest security patches
-4. Monitor Security Dashboard: Regular checks at /security
-5. Backup Before Bans: Export data before applying permanent bans
-6. Whitelist Trusted IPs: (Coming soon) Add trusted IPs to whitelist
-7. Review Logs: Regularly check /logs for suspicious activity
-8. Secure Environment: Protect your .env file and database
+1. Use the supported installer and keep OpenAlgo, the OS, reverse proxy, and dependencies updated.
+2. Enable TLS and TOTP before exposing a deployment publicly.
+3. Keep `TRUST_PROXY_HEADERS` off unless the proxy boundary is enforced.
+4. Protect `.env`, databases, keys, strategy files, and backups.
+5. Review `/logs/security`, `/logs/traffic`, login activity, and broker activity after unexpected events.
+6. Test automatic-ban thresholds before enabling permanent bans.
+7. Retain direct access to the broker terminal and host console for incident response.

@@ -1,334 +1,78 @@
 # Historify
 
-***
-
-### 1. Overview
-
-**Historify** is a built-in feature in OpenAlgo (Version 2) that transforms the platform into a **full-stack historical market data management system**.
-
-It allows you to:
-
-* Download historical data directly from supported brokers
-* Store the data locally inside OpenAlgo
-* Validate and visualize stored data
-* Export and import datasets
-* Schedule automatic downloads
-* Use the stored data as a source for backtesting engines
-
-In short, Historify lets you **own, manage, and reuse your historical market data** efficiently.
+Historify downloads normalized broker candles into a local DuckDB database for reuse in charts, research, exports, and backtests. It also manages a symbol watchlist, data catalog, background download jobs, metadata, and recurring schedules.
 
 {% embed url="https://www.youtube.com/watch?v=NgRdbs0Xr5Q" %}
 
-***
+## Access
 
-### 2. Why Historify Exists
+Open **Profile -> Historify**, or navigate to `/historify` after signing in. The page and its `/historify/api` administration routes use the OpenAlgo browser session.
 
-Most traders and quants face these common challenges:
+Historify administration is not part of the public `/api/v1` namespace. Public API clients can read stored candles through `/api/v1/history` with `source: "db"`.
 
-* Repeatedly downloading the same historical data
-* Slow backtesting due to API latency
-* No centralized place to store and organize market data
-* Dependency on third-party vendors
+## Storage
 
-Historify solves these problems by acting as:
+OpenAlgo uses six primary configured stores for separate application concerns. Historify owns `db/historify.duckdb`; it does not replace the main, traffic, latency, health, or sandbox databases.
 
-> A **local historical data warehouse** + **API layer** + **backtesting data source**
+The DuckDB schema stores:
 
-***
+- OHLCV and open-interest candles.
+- Watchlist entries and symbol metadata.
+- Catalog ranges and record counts.
+- Download jobs and per-symbol job items.
+- Schedules and schedule execution history.
 
-### 3. System Architecture (Simplified)
+Candles are upserted by symbol, exchange, interval, and timestamp to avoid duplicate rows. DuckDB connections use the application's locking and retry behavior.
 
-OpenAlgo internally uses two databases:
+## Watchlist And Discovery
 
-#### 3.1 SQLite Database
+Use the watchlist as the symbol source for bulk downloads and schedules. Symbols are validated against current contract data before persistence. The Historify page also exposes exchange and interval discovery plus futures and options contract selectors.
 
-Stores:
+## Download Jobs
 
-* Master contracts
-* Orders
-* Logs
-* Configuration and metadata
+You can download one symbol or create a multi-symbol job from a watchlist, custom selection, option chain, or futures chain. Jobs run in a bounded background pool and report progress to the page through Socket.IO.
 
-#### 3.2 DuckDB Database (High-Performance Analytics DB)
+Supported job operations include:
 
-Stores:
+- Pause, resume, cancel, retry, and delete.
+- Incremental downloads for missing data before or after the stored range.
+- Per-symbol status, downloaded records, timestamps, and broker errors.
+- Restart recovery that marks orphaned active jobs failed so they can be retried.
 
-* Daily historical market data
-* 1-minute historical market data
+Historical availability depends on the active broker, requested interval, and requested date range. A completed job can still contain symbol-level no-data or broker errors.
 
-DuckDB is optimized for analytical workloads and is extremely fast, making it ideal for:
+## Intervals And Charts
 
-* Large dataset queries
-* Backtesting
-* Timeframe aggregation
+`1m` and `D` are the primary downloaded and stored intervals. Supported higher and calendar intervals can be derived from stored candles for charts, API queries, and exports. The running application exposes the exact current list through its Historify interval-discovery route.
 
-All historical data stored in DuckDB is exposed through the **Historify API**.
+Charts display stored historical candles, not a real-time feed. Use them to inspect gaps, range coverage, and unexpected values before relying on a dataset.
 
-***
+## Import And Export
 
-### 4. Accessing Historify
+Historify accepts validated CSV and Parquet uploads. Sample-file endpoints show the required structure.
 
-Path inside OpenAlgo:
+Exports support CSV, TXT, ZIP, and Parquet with symbol, exchange, interval, and date filters. The preview reports matching records and estimated size. Generated temporary files are streamed and removed after download.
 
-**Profile → Historify**
+## Scheduling
 
-You will see a complete historical data management interface with options for:
+Schedules use the Historify watchlist as their symbol source. Create interval-based or daily schedules, enable or disable them, pause or resume them, trigger them manually, and inspect execution history and the next run time.
 
-* Watchlists
-* Downloads
-* Jobs
-* Charts
-* Scheduler
-* Export
-* Import
+OpenAlgo and the broker session must be available when a scheduled download runs. Broker token lifetime and market-data history limits remain broker-specific.
 
-***
+## Public History API
 
-### 5. Supported Base Data Types
+Choose the history source per request:
 
-Currently supported base intervals:
+| Source | Behavior |
+|---|---|
+| `api` | Fetch normalized candles from the active broker |
+| `db` | Query locally stored Historify candles |
 
-* **Daily**
-* **1 Minute**
+See [History](../api-documentation/v1/data-api/history.md) for the public request and response contract.
 
-All higher timeframes (5m, 15m, 1h, etc.) are generated by aggregating the 1-minute data.
+## Operational Notes
 
-***
-
-### 6. Using Watchlists
-
-Watchlists act as symbol containers for bulk operations.
-
-#### Example Flow:
-
-1. Create a watchlist
-2. Add symbols (e.g., SBIN, INFY, TCS)
-3. Use this watchlist for downloads, scheduling, or exports
-
-Once added, symbols automatically appear in the selected watchlist.
-
-***
-
-### 7. Downloading Historical Data
-
-#### Steps
-
-1. Select a watchlist
-2. Choose:
-   * Data type: Daily or 1-Minute
-   * Lookback period (e.g., 1 year, 3 months)
-3. Start download
-
-#### What Happens Internally
-
-* OpenAlgo fetches data from broker APIs
-* Data is stored inside DuckDB
-* A background job is created
-* Progress and status are shown in the Jobs section
-
-After completion, data is permanently available locally.
-
-***
-
-### 8. Validating Data Using Charts
-
-Historify includes an integrated charting view (TradingView Lightweight Charts).
-
-You can:
-
-* Select a symbol
-* Choose timeframe
-* Visually confirm price data
-
-This step helps verify:
-
-* Missing candles
-* Abnormal spikes
-* Data alignment
-
-Note: Charts display **stored historical data**, not real-time prices.
-
-***
-
-### 9. Timeframe Generation
-
-If 1-minute data exists, Historify can create:
-
-* 3-minute
-* 5-minute
-* 7-minute
-* 15-minute
-* Custom intervals
-
-These are dynamically aggregated from 1-minute data—no separate downloads needed.
-
-***
-
-### 10. Scheduler (Automatic Downloads)
-
-The Scheduler allows fully automated data collection.
-
-#### Common Use Case
-
-Download new data automatically after market close every day.
-
-#### Scheduler Options
-
-* Type: Daily or Interval-based
-* Time: Example 18:00
-* Lookback Days: Usually set to 1 (incremental update)
-
-#### Important Notes
-
-* OpenAlgo must remain logged in
-* Schedules should be created before 3:00 AM (token validity window)
-* Multiple schedules can be created
-
-Result: Data refresh happens without human intervention.
-
-***
-
-### 11. Exporting Data
-
-Stored historical data can be exported into multiple formats.
-
-#### Supported Exports
-
-* Daily / 1-minute / aggregated timeframes
-* CSV
-* ZIP
-* Parquet
-
-#### Use Cases
-
-* Import into Amibroker
-* Import into NinjaTrader
-* External research
-* Machine learning pipelines
-
-***
-
-### 12. Importing External Data
-
-You can import your own datasets into Historify.
-
-#### Current Capabilities
-
-* One symbol at a time
-* Daily or 1-minute base interval
-
-#### Example Use Case
-
-Import 10–15 years of index futures data from another provider, then:
-
-* Store inside DuckDB
-* Use like native Historify data
-* Backtest instantly
-
-***
-
-### 13. Historify as an API Data Source
-
-Historify exposes all stored data through the same historical data API used by OpenAlgo.
-
-#### Two Possible Sources
-
-* **API** → Fetch directly from broker
-* **DB** → Fetch from DuckDB (Historify)
-
-Switching source to **DB** enables ultra-fast retrieval.
-
-#### Benefits
-
-* Millisecond-level response times
-* No broker rate limits
-* Perfect for large backtests
-
-***
-
-### 14. Backtesting Workflow Using Historify
-
-High-level flow:
-
-1. Download historical data into Historify
-2. Verify via charts
-3. Set data source to DB
-4. Connect your backtesting engine
-5. Run simulations
-
-Because both:
-
-* Data retrieval (DuckDB)
-* Backtesting engine
-
-are optimized, overall performance becomes significantly faster.
-
-***
-
-### 15. Performance Advantages
-
-* DuckDB optimized for analytics
-* Columnar storage
-* Fast aggregations
-* Low memory overhead
-
-Typical large historical queries return in **tens of milliseconds**.
-
-***
-
-### 16. Typical Use Cases
-
-* Strategy research
-* Quant backtesting
-* Market structure analysis
-* Data warehousing
-* Indicator optimization
-* Academic research
-
-***
-
-### 17. Key Benefits Summary
-
-* Local ownership of historical data
-* No repeated downloads
-* Broker-independent after storage
-* Fast backtesting
-* Centralized data management
-* Import, export, schedule, visualize
-
-***
-
-### 18. Limitations (Current)
-
-* Base intervals limited to Daily and 1-Minute
-* One-symbol-at-a-time import
-* Broker integrations still expanding
-* External data vendors planned for future
-
-***
-
-### 19. Future Direction
-
-Planned improvements include:
-
-* Additional broker integrations
-* External data vendor support
-* Bulk import
-* More export formats
-* Advanced validation tools
-
-***
-
-### 20. Final Thoughts
-
-Historify turns OpenAlgo into more than a trading bridge—it becomes a **personal market data platform**.
-
-You can:
-
-* Build your own historical database
-* Maintain it automatically
-* Validate it visually
-* Use it across strategies and backtesting engines
-
-This foundation enables faster research, better strategies, and complete control over your market data.
-
+- Stored data is broker-independent after download, but its original quality and availability depend on the broker response.
+- Analyzer and live trading databases are separate from Historify.
+- The current configuration names are not fully standardized: some setup paths use `HISTORIFY_DATABASE_URL`, while the database implementation reads `HISTORIFY_DATABASE_PATH`.
+- Back up the DuckDB file before destructive maintenance or host migration.

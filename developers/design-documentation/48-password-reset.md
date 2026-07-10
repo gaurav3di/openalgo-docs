@@ -1,10 +1,10 @@
 # 48 - Password Reset
 
-### Overview
+## Overview
 
 OpenAlgo provides a secure multi-step password reset flow that supports both email-based reset tokens and TOTP verification for accounts with 2FA enabled.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -91,9 +91,9 @@ OpenAlgo provides a secure multi-step password reset flow that supports both ema
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Database Schema
+## Database Schema
 
-#### password\_reset\_tokens Table
+### password_reset_tokens Table
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -112,9 +112,9 @@ OpenAlgo provides a secure multi-step password reset flow that supports both ema
 └──────────────────┴──────────────┴──────────────────────────────┘
 ```
 
-### Token Generation
+## Token Generation
 
-#### Secure Token Creation
+### Secure Token Creation
 
 ```python
 import secrets
@@ -145,7 +145,7 @@ def generate_reset_token(user_id, ip_address, user_agent):
     return token
 ```
 
-#### Token Validation
+### Token Validation
 
 ```python
 def validate_reset_token(token):
@@ -169,9 +169,9 @@ def validate_reset_token(token):
     return record, None
 ```
 
-### Password Security
+## Password Security
 
-#### Argon2 Hashing with Pepper
+### Argon2 Hashing with Pepper
 
 ```python
 from argon2 import PasswordHasher
@@ -205,7 +205,7 @@ def verify_password(stored_hash, password):
         return False
 ```
 
-#### Password Requirements
+### Password Requirements
 
 ```python
 import re
@@ -232,9 +232,9 @@ def validate_password_strength(password):
     return len(errors) == 0, errors
 ```
 
-### TOTP Integration
+## TOTP Integration
 
-#### Reset with 2FA
+### Reset with 2FA
 
 ```python
 def process_reset_with_totp(user_id, totp_code, new_password):
@@ -261,9 +261,9 @@ def process_reset_with_totp(user_id, totp_code, new_password):
     return True, "Password reset successful"
 ```
 
-### API Endpoints
+## API Endpoints
 
-#### Request Reset
+### Request Reset
 
 ```
 POST /api/auth/forgot-password
@@ -275,7 +275,6 @@ Content-Type: application/json
 ```
 
 **Response:**
-
 ```json
 {
     "status": "success",
@@ -283,14 +282,13 @@ Content-Type: application/json
 }
 ```
 
-#### Validate Token
+### Validate Token
 
 ```
 GET /api/auth/reset-password/validate?token=abc123
 ```
 
 **Response:**
-
 ```json
 {
     "status": "success",
@@ -302,7 +300,7 @@ GET /api/auth/reset-password/validate?token=abc123
 }
 ```
 
-#### Reset Password
+### Reset Password
 
 ```
 POST /api/auth/reset-password
@@ -317,7 +315,6 @@ Content-Type: application/json
 ```
 
 **Response:**
-
 ```json
 {
     "status": "success",
@@ -325,9 +322,9 @@ Content-Type: application/json
 }
 ```
 
-### Reset Flow Implementation
+## Reset Flow Implementation
 
-#### Full Reset Service
+### Full Reset Service
 
 ```python
 def initiate_password_reset(email, ip_address, user_agent):
@@ -399,9 +396,9 @@ def complete_password_reset(token, new_password, totp_code=None):
     return True, "Password reset successful"
 ```
 
-### Security Measures
+## Security Measures
 
-#### Rate Limiting
+### Rate Limiting
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -421,7 +418,7 @@ def complete_password_reset(token, new_password, totp_code=None):
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Audit Logging
+### Audit Logging
 
 ```python
 def log_password_reset_event(user_id, event_type, ip_address, success):
@@ -435,19 +432,19 @@ def log_password_reset_event(user_id, event_type, ip_address, success):
     )
 ```
 
-#### Token Security
+### Token Security
 
-| Measure       | Implementation                        |
-| ------------- | ------------------------------------- |
-| Token entropy | 256 bits (secrets.token\_urlsafe(32)) |
-| Token storage | SHA-256 hash only                     |
-| Expiration    | 1 hour                                |
-| Single use    | Marked used after completion          |
-| IP logging    | Request IP recorded                   |
+| Measure | Implementation |
+|---------|---------------|
+| Token entropy | 256 bits (secrets.token_urlsafe(32)) |
+| Token storage | SHA-256 hash only |
+| Expiration | 1 hour |
+| Single use | Marked used after completion |
+| IP logging | Request IP recorded |
 
-### Frontend Components
+## Frontend Components
 
-#### Forgot Password Form
+### Forgot Password Form
 
 ```typescript
 function ForgotPasswordForm() {
@@ -484,7 +481,7 @@ function ForgotPasswordForm() {
 }
 ```
 
-#### Reset Password Form
+### Reset Password Form
 
 ```typescript
 function ResetPasswordForm({ token }: { token: string }) {
@@ -546,15 +543,14 @@ function ResetPasswordForm({ token }: { token: string }) {
 }
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                                    | Purpose                        |
-| --------------------------------------- | ------------------------------ |
-| `blueprints/auth.py`                    | Reset endpoints and core logic |
-| `database/user_db.py`                   | User model with password hash  |
-| `utils/email_utils.py`                  | Password reset email sending   |
-| `database/settings_db.py`               | SMTP settings for email        |
-| `frontend/src/pages/ForgotPassword.tsx` | Request form                   |
-| `frontend/src/pages/ResetPassword.tsx`  | Reset form                     |
+| File | Purpose |
+|------|---------|
+| `blueprints/auth.py` | Reset endpoints and core logic |
+| `database/user_db.py` | User model with password hash |
+| `utils/email_utils.py` | Password reset email sending |
+| `database/settings_db.py` | SMTP settings for email |
+| `frontend/src/pages/ResetPassword.tsx` | Request, TOTP, email-link, and password steps |
 
 > **Note**: Password reset logic is implemented directly in `blueprints/auth.py`. There are no separate `password_reset_db.py` or `password_reset_service.py` files. Reset tokens are stored in the session rather than a dedicated database table.

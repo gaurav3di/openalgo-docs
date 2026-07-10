@@ -1,10 +1,10 @@
 # 22 - Log Section
 
-### Overview
+## Overview
 
 OpenAlgo provides comprehensive log viewing and management through the web interface, supporting both API order logs and general application logs.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -18,7 +18,7 @@ OpenAlgo provides comprehensive log viewing and management through the web inter
 │  │   API Logs      │  │  Analyzer Logs  │  │  Application    │             │
 │  │   /logs         │  │                 │  │  Logs           │             │
 │  │                 │  │                 │  │                 │             │
-│  │  - placeorder   │  │  - Virtual      │  │  - log/*.log    │             │
+│  │  - placeorder   │  │  - Analyzer     │  │  - log/*.log    │             │
 │  │  - cancelorder  │  │    orders       │  │  - Console      │             │
 │  │  - modifyorder  │  │  - Sandbox      │  │  - Rotating     │             │
 │  │  - Response     │  │    trades       │  │                 │             │
@@ -28,15 +28,15 @@ OpenAlgo provides comprehensive log viewing and management through the web inter
 │                                │                                             │
 │                                ▼                                             │
 │           ┌─────────────────────────────────────────────────────────┐       │
-│           │               Logs Database (logs.db)                    │       │
+│           │               Main Database (openalgo.db)                │       │
 │           │               order_logs / analyzer_logs                 │       │
 │           └─────────────────────────────────────────────────────────┘       │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Log Types
+## Log Types
 
-#### 1. API Order Logs
+### 1. API Order Logs
 
 **Route:** `/logs`
 
@@ -61,21 +61,21 @@ Displays all API request/response pairs for order operations.
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### 2. Analyzer Logs
+### 2. Analyzer Logs
 
 **Route:** `/analyzer-logs`
 
-Logs from sandbox/paper trading mode.
+Logs from sandbox/sandbox trading mode.
 
-#### 3. Application Logs
+### 3. Application Logs
 
 **Location:** `log/openalgo.log`
 
 File-based logs for debugging and monitoring.
 
-### Database Schema
+## Database Schema
 
-#### order\_logs Table
+### order_logs Table
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -91,7 +91,7 @@ File-based logs for debugging and monitoring.
 └──────────────┴──────────────┴──────────────────────┘
 ```
 
-#### analyzer\_logs Table
+### analyzer_logs Table
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -107,9 +107,9 @@ File-based logs for debugging and monitoring.
 └──────────────┴──────────────┴──────────────────────┘
 ```
 
-### API Endpoints
+## API Endpoints
 
-#### Get Order Logs
+### Get Order Logs
 
 ```
 GET /logs/api/orders
@@ -117,14 +117,14 @@ GET /logs/api/orders
 
 **Query Parameters:**
 
-| Parameter   | Type   | Description                  |
-| ----------- | ------ | ---------------------------- |
-| page        | int    | Page number (default: 1)     |
-| per\_page   | int    | Items per page (default: 50) |
-| api\_type   | string | Filter by API type           |
-| start\_date | string | Start date (YYYY-MM-DD)      |
-| end\_date   | string | End date (YYYY-MM-DD)        |
-| search      | string | Search in request/response   |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| page | int | Page number (default: 1) |
+| per_page | int | Items per page (default: 50) |
+| api_type | string | Filter by API type |
+| start_date | string | Start date (YYYY-MM-DD) |
+| end_date | string | End date (YYYY-MM-DD) |
+| search | string | Search in request/response |
 
 **Response:**
 
@@ -149,20 +149,20 @@ GET /logs/api/orders
 }
 ```
 
-### Log Filtering
+## Log Filtering
 
-#### By API Type
+### By API Type
 
-| API Type        | Description         |
-| --------------- | ------------------- |
-| placeorder      | Order placements    |
-| placesmartorder | Smart orders        |
-| modifyorder     | Order modifications |
-| cancelorder     | Order cancellations |
-| cancelallorders | Bulk cancellations  |
-| closeposition   | Position closures   |
+| API Type | Description |
+|----------|-------------|
+| placeorder | Order placements |
+| placesmartorder | Smart orders |
+| modifyorder | Order modifications |
+| cancelorder | Order cancellations |
+| cancelallorders | Bulk cancellations |
+| closeposition | Position closures |
 
-#### By Date Range
+### By Date Range
 
 ```javascript
 // React component example
@@ -172,13 +172,13 @@ const [dateRange, setDateRange] = useState({
 });
 ```
 
-#### By Search Term
+### By Search Term
 
 Searches in both request and response JSON data.
 
-### Async Logging
+## Async Logging
 
-#### Non-Blocking Log Writes
+### Non-Blocking Log Writes
 
 ```python
 from concurrent.futures import ThreadPoolExecutor
@@ -189,15 +189,15 @@ def async_log_order(api_type, request_data, response_data):
     executor.submit(_write_log, api_type, request_data, response_data)
 ```
 
-#### Benefits
+### Benefits
 
-* Request thread not blocked
-* No impact on order latency
-* Guaranteed log capture
+- Request thread not blocked
+- No impact on order latency
+- Guaranteed log capture
 
-### Log Viewer Features
+## Log Viewer Features
 
-#### React Component
+### React Component
 
 ```typescript
 // frontend/src/pages/Logs.tsx
@@ -220,18 +220,18 @@ export function Logs() {
 }
 ```
 
-#### Features
+### Features
 
-* Real-time updates
-* Pagination
-* Filtering by type/date
-* Search functionality
-* JSON pretty-print
-* Export capability
+- Real-time updates
+- Pagination
+- Filtering by type/date
+- Search functionality
+- JSON pretty-print
+- Export capability
 
-### File Logging
+## File Logging
 
-#### Configuration
+### Configuration
 
 ```bash
 # .env
@@ -241,15 +241,15 @@ LOG_DIR=log
 LOG_RETENTION=14
 ```
 
-#### Rotation Settings
+### Rotation Settings
 
-| Setting      | Value | Description          |
-| ------------ | ----- | -------------------- |
-| Max Size     | 10 MB | Rotate when exceeded |
-| Backup Count | 14    | Files to keep        |
-| Compression  | None  | Plain text           |
+| Setting | Value | Description |
+|---------|-------|-------------|
+| Max Size | 10 MB | Rotate when exceeded |
+| Backup Count | 14 | Files to keep |
+| Compression | None | Plain text |
 
-#### Log Format
+### Log Format
 
 ```
 [2024-01-15 09:30:15] INFO in place_order: Order placed - SBIN BUY 100 MIS
@@ -257,16 +257,16 @@ LOG_RETENTION=14
 [2024-01-15 09:31:00] WARNING in session: Session expiring in 5 minutes
 ```
 
-### Viewing Logs
+## Viewing Logs
 
-#### Via Web UI
+### Via Web UI
 
 1. Navigate to `/logs`
 2. Apply filters as needed
 3. Click row to expand details
 4. Use export for download
 
-#### Via Command Line
+### Via Command Line
 
 ```bash
 # View current log
@@ -279,9 +279,9 @@ grep ERROR log/openalgo.log
 tail -100 log/openalgo.log
 ```
 
-### Security Considerations
+## Security Considerations
 
-#### API Key Redaction
+### API Key Redaction
 
 ```python
 def sanitize_log_data(request_data):
@@ -292,18 +292,18 @@ def sanitize_log_data(request_data):
     return json.dumps(data)
 ```
 
-#### Access Control
+### Access Control
 
-* Logs only visible to authenticated users
-* Session validation required
-* No public access
+- Logs only visible to authenticated users
+- Session validation required
+- No public access
 
-### Key Files Reference
+## Key Files Reference
 
-| File                          | Purpose               |
-| ----------------------------- | --------------------- |
-| `blueprints/logs.py`          | Log viewer routes     |
-| `database/apilog_db.py`       | Order logs model      |
-| `database/analyzer_db.py`     | Analyzer logs model   |
-| `utils/logging.py`            | Logging configuration |
-| `frontend/src/pages/Logs.tsx` | React log viewer      |
+| File | Purpose |
+|------|---------|
+| `blueprints/log.py` | Log viewer routes |
+| `database/apilog_db.py` | Order logs model |
+| `database/analyzer_db.py` | Analyzer logs model |
+| `utils/logging.py` | Logging configuration |
+| `frontend/src/pages/Logs.tsx` | React log viewer |

@@ -1,222 +1,144 @@
-# Websockets
+# WebSocket API
 
-## OpenAlgo WebSocket Protocol Documentation
+OpenAlgo exposes normalized real-time market data through a separate WebSocket proxy. It is not mounted below the REST `/api/v1` prefix.
 
-### Overview
+## Connection URL
 
-The OpenAlgo WebSocket protocol allows clients to receive **real-time market data** using a standardized and broker-agnostic interface. It supports data streaming for **LTP (Last Traded Price)**, **Quotes (OHLC + Volume)**, and **Market Depth** (up to 50 levels depending on broker capability).
-
-The protocol ensures efficient, scalable, and secure communication between client applications (such as trading bots, dashboards, or analytics tools) and the OpenAlgo platform. Authentication is handled using the OpenAlgo API key, and subscriptions are maintained per session.
-
-### Version
-
-* Protocol Version: 1.0
-* Last Updated: May 28, 2025
-* Platform: OpenAlgo Trading Framework
-
-### WebSocket URL
-
-```
-ws://<host>:8765
+```text
+Local:      ws://127.0.0.1:8765
+Production: wss://<your-domain>/ws
 ```
 
-Replace `<host>` with the IP/domain of your OpenAlgo instance. For local development setups, use thee hostname as`127.0.0.1`
+The direct host and port come from `WEBSOCKET_HOST` and `WEBSOCKET_PORT`. A production reverse proxy normally exposes the service at `/ws` over TLS.
 
-```
-ws://127.0.0.1:8765
-```
+## Authenticate
 
-
-
-In the production ubuntu server if your host is https://yourdomain.com then&#x20;
-
-WebSocket url will be
-
-```
-wss://yourdomain.com/ws
-```
-
-In the production ubuntu server if your host is https://sub.yourdomain.com then&#x20;
-
-WebSocket url will be
-
-```
-wss://sub.yourdomain.com/ws
-```
-
-### Authentication
-
-All WebSocket sessions must begin with API key authentication:
+Send authentication immediately after connecting. The default authentication grace period is 15 seconds.
 
 ```json
 {
-  "action": "authenticate", 
-  "api_key": "YOUR_OPENALGO_API_KEY"
+  "action": "authenticate",
+  "api_key": "<your_app_apikey>"
 }
 ```
 
-On success, the server confirms authentication. On failure, the connection is closed or an error message is returned.
-
-### Data Modes
-
-Clients can subscribe to different types of market data using the `mode` parameter. Each mode corresponds to a specific level of detail:
-
-| Mode | Description    | Details                                    |
-| ---- | -------------- | ------------------------------------------ |
-| 1    | **LTP Mode**   | Last traded price and timestamp only       |
-| 2    | **Quote Mode** | Includes OHLC, LTP, volume, change, etc.   |
-| 3    | **Depth Mode** | Includes buy/sell order book (5–50 levels) |
-
-> Note: Mode 3 supports optional parameter `depth_level` to define the number of depth levels requested (e.g., 5, 20, 30, 50). Actual support depends on the broker.
-
-### Subscription Format
-
-#### Basic Subscription
+`apikey` is also accepted as the key field. A successful response identifies the active broker:
 
 ```json
 {
-  "action": "subscribe",
-  "symbol": "RELIANCE",
-  "exchange": "NSE",
-  "mode": 1
-}
-```
-
-#### Depth Subscription (with levels)
-
-```json
-{
-  "action": "subscribe",
-  "symbol": "RELIANCE",
-  "exchange": "NSE",
-  "mode": 3,
-  "depth_level": 5
-}
-```
-
-### Unsubscription
-
-To unsubscribe from a stream:
-
-```json
-{
-  "action": "unsubscribe",
-  "symbol": "RELIANCE",
-  "exchange": "NSE",
-  "mode": 2
-}
-```
-
-### Error Handling
-
-If a client requests a depth level not supported by their broker:
-
-```json
-{
-  "type": "error",
-  "code": "UNSUPPORTED_DEPTH_LEVEL",
-  "message": "Depth level 50 is not supported by broker Angel for exchange NSE",
-  "symbol": "RELIANCE",
-  "exchange": "NSE",
-  "requested_mode": 3,
-  "requested_depth": 50,
-  "supported_depths": [5, 20]
-}
-```
-
-### Market Data Format
-
-#### LTP (Mode 1)
-
-```json
-{
-  "type": "market_data",
-  "mode": 1,
-  "topic": "RELIANCE.NSE",
-  "data": {
-    "symbol": "RELIANCE",
-    "exchange": "NSE",
-    "ltp": 1424.0,
-    "timestamp": "2025-05-28T10:30:45.123Z"
+  "type": "auth",
+  "status": "success",
+  "message": "Authentication successful",
+  "broker": "zerodha",
+  "user_id": "openalgo-user",
+  "supported_features": {
+    "ltp": true,
+    "quote": true,
+    "depth": true
   }
 }
 ```
 
-#### Quote (Mode 2)
+## Subscribe
+
+Use `LTP`, `Quote`, or `Depth`. Mode names are case-insensitive; integers `1`, `2`, and `3` are accepted respectively. The optional `depth` field defaults to 5. `request_id` is echoed in the acknowledgement when supplied.
+
+```json
+{
+  "action": "subscribe",
+  "mode": "Quote",
+  "symbols": [
+    {"exchange": "NSE", "symbol": "RELIANCE"},
+    {"exchange": "NSE", "symbol": "INFY"}
+  ],
+  "request_id": "quotes-1"
+}
+```
+
+A single `symbol` and `exchange` pair can be sent instead of `symbols`. The acknowledgement reports success or failure for each requested instrument:
+
+```json
+{
+  "type": "subscribe",
+  "status": "success",
+  "subscriptions": [
+    {
+      "symbol": "RELIANCE",
+      "exchange": "NSE",
+      "status": "success",
+      "mode": "Quote",
+      "depth": 5,
+      "broker": "zerodha"
+    }
+  ],
+  "message": "Subscription processing complete",
+  "broker": "zerodha",
+  "request_id": "quotes-1"
+}
+```
+
+## Market-Data Messages
+
+Ticks use a common wrapper. The nested `data` object is the normalized broker payload for the requested mode.
 
 ```json
 {
   "type": "market_data",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
   "mode": 2,
-  "topic": "RELIANCE.NSE",
+  "broker": "zerodha",
   "data": {
-    "symbol": "RELIANCE",
-    "exchange": "NSE",
     "ltp": 1424.0,
-    "change": 6.0,
-    "change_percent": 0.42,
-    "volume": 100000,
     "open": 1415.0,
     "high": 1432.5,
     "low": 1408.0,
     "close": 1418.0,
-    "last_trade_quantity": 50,
-    "avg_trade_price": 1419.35,
-    "timestamp": "2025-05-28T10:30:45.123Z"
+    "volume": 100000
   }
 }
 ```
 
-#### Depth (Mode 3 with depth\_level = 5)
+| Mode | Value | Payload |
+|---|---:|---|
+| LTP | 1 | Last traded price and tick fields |
+| Quote | 2 | LTP plus normalized OHLC and volume fields |
+| Depth | 3 | Quote fields plus available bid and ask levels |
+
+Depth availability and the number of levels depend on the active broker. Higher-mode broker ticks can satisfy subscribers to lower modes.
+
+## Unsubscribe
+
+For selected subscriptions, put the mode on each symbol object:
 
 ```json
 {
-  "type": "market_data",
-  "mode": 3,
-  "depth_level": 5,
-  "topic": "RELIANCE.NSE",
-  "data": {
-    "symbol": "RELIANCE",
-    "exchange": "NSE",
-    "ltp": 1424.0,
-    "depth": {
-      "buy": [
-        {"price": 1423.9, "quantity": 50, "orders": 3},
-        {"price": 1423.5, "quantity": 35, "orders": 2},
-        {"price": 1423.0, "quantity": 42, "orders": 4},
-        {"price": 1422.5, "quantity": 28, "orders": 1},
-        {"price": 1422.0, "quantity": 33, "orders": 5}
-      ],
-      "sell": [
-        {"price": 1424.1, "quantity": 47, "orders": 2},
-        {"price": 1424.5, "quantity": 39, "orders": 3},
-        {"price": 1425.0, "quantity": 41, "orders": 4},
-        {"price": 1425.5, "quantity": 32, "orders": 2},
-        {"price": 1426.0, "quantity": 30, "orders": 1}
-      ]
-    },
-    "timestamp": "2025-05-28T10:30:45.123Z",
-    "broker_supported": true
-  }
+  "action": "unsubscribe",
+  "symbols": [
+    {"exchange": "NSE", "symbol": "RELIANCE", "mode": "Quote"}
+  ],
+  "request_id": "quotes-2"
 }
 ```
 
-### Heartbeat and Reconnection
+Remove every subscription owned by the connection with:
 
-* Server sends `ping` messages every 30 seconds.
-* Clients must respond with `pong` or will be disconnected.
-* Upon reconnection, clients must re-authenticate and re-subscribe to streams.
-* Proxy may automatically restore prior subscriptions if supported by broker.
+```json
+{
+  "action": "unsubscribe_all"
+}
+```
 
-### Security & Compliance
+## Other Actions
 
-* All clients must authenticate with an API key.
-* Unauthorized or malformed requests are rejected.
-* Rate limits may apply to prevent abuse.
-* TLS encryption recommended for production deployments.
+| Action | Purpose |
+|---|---|
+| `get_broker_info` | Return the authenticated broker and adapter state |
+| `get_supported_brokers` | Return brokers supported by the proxy configuration |
+| `ping` | Return a `pong` with the server timestamp |
 
+The `ping` action echoes an optional `timestamp` and `_pingId`, which can be used for latency measurement.
 
+## Reconnection
 
-
-
-The OpenAlgo WebSocket feed provides a reliable and structured method for receiving real-time trading data. Proper mode selection and parsing allow efficient integration into trading algorithms and monitoring systems.
+WebSocket transport pings are configured by `WS_PING_INTERVAL` and `WS_PING_TIMEOUT`, both 20 seconds by default. After a disconnect, reconnect, authenticate again, and restore the required subscriptions.

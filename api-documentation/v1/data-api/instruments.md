@@ -1,116 +1,73 @@
 # Instruments
 
-## Instruments API
+Download the locally stored instrument master for every exchange or for one exchange. This is the only v1 market-data resource that returns CSV as an alternative to JSON.
 
-### Endpoint URL
-
-Download all trading symbols and instruments with exchange-wise filtering in JSON or CSV format.
+## Endpoint
 
 ```http
-GET http://127.0.0.1:5000/api/v1/instruments
+GET /api/v1/instruments?apikey=<key>&exchange=NFO&format=json
 ```
 
-### Parameters
+## Query Parameters
 
-| Parameter | Type   | Required | Description                                                                   | Default |
-| --------- | ------ | -------- | ----------------------------------------------------------------------------- | ------- |
-| apikey    | string | Yes      | API Key for authentication                                                    | -       |
-| exchange  | string | No       | Filter by exchange: NSE, BSE, NFO, BFO, BCD, CDS, MCX, NSE\_INDEX, BSE\_INDEX | All     |
-| format    | string | No       | Output format: json or csv                                                    | json    |
+| Parameter | Required | Values | Default |
+|---|---:|---|---|
+| `apikey` | Yes | OpenAlgo API key | - |
+| `exchange` | No | Any exchange accepted by `VALID_EXCHANGES` | all exchanges |
+| `format` | No | `json`, `csv` | `json` |
 
-### Browser Examples
+## JSON Example
 
-Replace `your_api_key_here` with your actual API key and paste in browser:
-
-**Download All Exchanges - All Instruments (JSON)**
-
+```bash
+curl --get 'http://127.0.0.1:5000/api/v1/instruments' \
+  --data-urlencode 'apikey=<your_app_apikey>' \
+  --data-urlencode 'exchange=NFO' \
+  --data-urlencode 'format=json'
 ```
-http://127.0.0.1:5000/api/v1/instruments?apikey=your_api_key_here
-```
-
-**Download All Exchanges - All Instruments (CSV)**
-
-```
-http://127.0.0.1:5000/api/v1/instruments?apikey=your_api_key_here&format=csv
-```
-
-**Download NSE Equities Only (CSV)**
-
-```
-http://127.0.0.1:5000/api/v1/instruments?apikey=your_api_key_here&exchange=NSE&format=csv
-```
-
-**Download NFO Derivatives Only (CSV)**
-
-```
-http://127.0.0.1:5000/api/v1/instruments?apikey=your_api_key_here&exchange=NFO&format=csv
-```
-
-**Download BSE Equities Only (CSV)**
-
-```
-http://127.0.0.1:5000/api/v1/instruments?apikey=your_api_key_here&exchange=BSE&format=csv
-```
-
-**Download MCX Commodities Only (CSV)**
-
-```
-http://127.0.0.1:5000/api/v1/instruments?apikey=your_api_key_here&exchange=MCX&format=csv
-```
-
-### Response Fields
-
-| Field          | Description                             |
-| -------------- | --------------------------------------- |
-| symbol         | OpenAlgo standard symbol                |
-| brsymbol       | Broker-specific symbol                  |
-| name           | Instrument name                         |
-| exchange       | Exchange code                           |
-| token          | Instrument identifier                   |
-| expiry         | Expiry date (F\&O only)                 |
-| strike         | Strike price (options only)             |
-| lotsize        | Lot size                                |
-| instrumenttype | Instrument type (EQ, FUT, CE, PE, etc.) |
-| tick\_size     | Minimum price movement                  |
-
-### JSON Response
 
 ```json
 {
-    "status": "success",
-    "message": "Found 5000 instruments",
-    "data": [
-        {
-            "symbol": "RELIANCE",
-            "name": "Reliance Industries Ltd",
-            "exchange": "NSE",
-            "token": "2885",
-            "lotsize": 1,
-            "instrumenttype": "EQ"
-        }
-    ]
+  "status": "success",
+  "message": "Found 1 instruments",
+  "data": [
+    {
+      "symbol": "NIFTY30JUL2625000CE",
+      "brsymbol": "NIFTY26JUL25000CE",
+      "name": "NIFTY",
+      "exchange": "NFO",
+      "brexchange": "NFO",
+      "token": "12345",
+      "expiry": "30-JUL-26",
+      "strike": 25000,
+      "lotsize": 65,
+      "instrumenttype": "CE",
+      "tick_size": 0.05
+    }
+  ]
 }
 ```
 
-### CSV Response
+The exact symbols, broker symbols, token types, and row count depend on the active broker's downloaded master contract.
 
-```csv
-symbol,brsymbol,name,exchange,token,expiry,strike,lotsize,instrumenttype,tick_size
-RELIANCE,RELIANCE-EQ,Reliance Industries Ltd,NSE,2885,,,1,EQ,0.05
+## CSV Example
+
+```bash
+curl --get 'http://127.0.0.1:5000/api/v1/instruments' \
+  --data-urlencode 'apikey=<your_app_apikey>' \
+  --data-urlencode 'exchange=NSE' \
+  --data-urlencode 'format=csv' \
+  --output instruments_NSE.csv
 ```
 
-### Error Codes
+CSV responses use `Content-Type: text/csv` and a download filename of `instruments_<exchange>.csv` (or `instruments_all.csv`).
 
-| Code | Message                    |
-| ---- | -------------------------- |
-| 401  | API key is required        |
-| 403  | Invalid openalgo apikey    |
-| 400  | Invalid exchange or format |
+## Errors
 
-### Notes
+| Status | Condition |
+|---:|---|
+| 400 | Invalid query parameter |
+| 401 | API key is missing |
+| 403 | API key is invalid |
+| 500 | Instrument database query failed |
 
-* **Without exchange parameter**: Downloads ALL exchanges in one shot (NSE, BSE, NFO, BFO, BCD, CDS, MCX, NSE\_INDEX, BSE\_INDEX)
-* **With exchange parameter**: Downloads only specified exchange
-* CSV format auto-downloads in browser
-* Rate limit: 50 requests/second
-* Data updates when master contracts are downloaded
+**Back to**: [API documentation](../README.md)

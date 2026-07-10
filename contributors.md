@@ -40,7 +40,7 @@ OpenAlgo uses a **Python Flask** backend with a **React 19** single-page applica
 * **Python 3.12+** - Core programming language
 * **uv** - Fast Python package manager (replaces pip/venv)
 * **Flask 3.1+** - Lightweight web framework
-* **Flask-RESTX** - RESTful API with auto-generated Swagger documentation
+* **Flask-RESTX** - RESTful API resources and schema validation; Swagger UI is intentionally disabled
 * **SQLAlchemy 2.0+** - Database ORM for data persistence
 * **Flask-SocketIO 5.6+** - Real-time WebSocket connections for live updates
 * **Flask-Login** - User session management and authentication
@@ -51,7 +51,7 @@ OpenAlgo uses a **Python Flask** backend with a **React 19** single-page applica
 
 * **React 19** - Component-based UI library
 * **TypeScript 5.9+** - Type-safe JavaScript
-* **Vite 7+** - Fast build tool and dev server
+* **Vite 8+** - Fast build tool and dev server
 * **TailwindCSS 4** - Utility-first CSS framework
 * **shadcn/ui** (Radix UI) - Accessible component primitives
 * **TanStack Query 5** - Server state management
@@ -196,7 +196,7 @@ uv run gunicorn --worker-class eventlet -w 1 app:app
 
 * **Main app**: http://127.0.0.1:5000
 * **React frontend**: http://127.0.0.1:5000/react
-* **Swagger API docs**: http://127.0.0.1:5000/api/docs
+* **API documentation**: [OpenAlgo API v1](api-documentation/v1/README.md)
 * **API Analyzer**: http://127.0.0.1:5000/analyzer
 
 ***
@@ -227,7 +227,7 @@ openalgo/
 │   ├── auth.py               # Authentication routes
 │   ├── react_app.py          # Serves React SPA from frontend/dist/
 │   └── ...
-├── broker/                   # Broker integrations (24+ brokers)
+├── broker/                   # 34 broker plugin directories
 │   ├── zerodha/              # Reference implementation
 │   ├── dhan/                 # Modern API design
 │   ├── angel/                # AngelOne integration
@@ -247,11 +247,11 @@ openalgo/
 
 * **`frontend/`**: React 19 SPA with TypeScript, built with Vite and served by Flask via `blueprints/react_app.py`
 * **`broker/`**: Each subdirectory contains a complete broker integration with `api/`, `database/`, `mapping/`, `streaming/`, and `plugin.json`
-* **`restx_api/`**: RESTful API endpoints with automatic Swagger documentation at `/api/docs`
+* **`restx_api/`**: RESTful API resources and schemas mounted at `/api/v1`; the maintained contract is in this GitBook
 * **`blueprints/`**: Flask route handlers for UI pages and webhooks
 * **`services/`**: Business logic separated from route handlers
 * **`websocket_proxy/`**: Real-time market data streaming via unified WebSocket proxy
-* **`database/`**: 5 separate databases for isolation (main, logs, latency, sandbox, historify)
+* **`database/`**: Six primary stores for isolation (main, traffic logs, latency, health, sandbox, and Historify)
 
 ***
 
@@ -393,7 +393,7 @@ npm run e2e
 # Manual testing:
 # 1. Web UI: http://127.0.0.1:5000
 # 2. React UI: http://127.0.0.1:5000/react
-# 3. API Docs: http://127.0.0.1:5000/api/docs
+# 3. API: run documented requests against http://127.0.0.1:5000/api/v1
 # 4. API Analyzer: http://127.0.0.1:5000/analyzer
 ```
 
@@ -738,7 +738,7 @@ def get_historical_data(symbol, interval, start_date, end_date):
 1. Add broker to `VALID_BROKERS` in `.env`
 2. Configure broker credentials in `.env`
 3. Test authentication flow
-4. Test each API endpoint via Swagger UI at `/api/docs`
+4. Test each implemented endpoint with its documented request shape and automated API coverage
 5. Test WebSocket streaming (if supported)
 6. Validate error handling
 

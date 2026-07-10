@@ -1,10 +1,10 @@
 # 31 - Utils Functionalities
 
-### Overview
+## Overview
 
 The utils directory contains shared utility functions used across the OpenAlgo platform for authentication, logging, configuration, and common operations.
 
-### Utils Directory Structure
+## Utils Directory Structure
 
 ```
 utils/
@@ -31,9 +31,9 @@ utils/
 └── health_monitor.py       # Background health monitoring daemon
 ```
 
-### Key Utilities
+## Key Utilities
 
-#### 1. Authentication Utilities (auth\_utils.py)
+### 1. Authentication Utilities (auth_utils.py)
 
 ```python
 # Password validation
@@ -65,7 +65,7 @@ def async_master_contract_download(broker):
     """Background contract download"""
 ```
 
-#### 2. Session Management (session.py)
+### 2. Session Management (session.py)
 
 ```python
 # Session expiry
@@ -82,7 +82,7 @@ def revoke_user_tokens():
     """Revoke all auth tokens on logout"""
 ```
 
-#### 3. IP Helper (ip\_helper.py)
+### 3. IP Helper (ip_helper.py)
 
 ```python
 def get_real_ip():
@@ -95,7 +95,7 @@ def get_real_ip():
     # 5. remote_addr
 ```
 
-#### 4. HTTP Client (httpx\_client.py)
+### 4. HTTP Client (httpx_client.py)
 
 ```python
 def get_httpx_client():
@@ -116,7 +116,7 @@ def post(url, **kwargs):
     """HTTP POST shortcut"""
 ```
 
-#### 5. Logging (logging.py)
+### 5. Logging (logging.py)
 
 ```python
 # Get logger instance
@@ -131,7 +131,7 @@ def log_startup_banner(logger, title, url):
     """Display startup banner"""
 ```
 
-#### 6. Market Price Protection (mpp\_slab.py)
+### 6. Market Price Protection (mpp_slab.py)
 
 ```python
 def calculate_protected_price(price, action, symbol, instrument_type, tick_size):
@@ -145,7 +145,7 @@ def round_to_tick_size(price, tick_size):
     """Round to valid tick size"""
 ```
 
-#### 7. Number Formatter (number\_formatter.py)
+### 7. Number Formatter (number_formatter.py)
 
 ```python
 def format_indian_number(value):
@@ -158,7 +158,7 @@ def format_indian_currency(value):
     # 10000000 → ₹1.00Cr
 ```
 
-#### 8. Constants (constants.py)
+### 8. Constants (constants.py)
 
 ```python
 # Valid exchanges
@@ -183,7 +183,7 @@ REQUIRED_ORDER_FIELDS = [
 ]
 ```
 
-#### 9. Environment Validation (env\_check.py)
+### 9. Environment Validation (env_check.py)
 
 ```python
 def load_and_check_env_variables():
@@ -195,7 +195,7 @@ def load_and_check_env_variables():
     # - Broker API key formats
 ```
 
-#### 10. Latency Monitor (latency\_monitor.py)
+### 10. Latency Monitor (latency_monitor.py)
 
 ```python
 class LatencyTracker:
@@ -219,7 +219,7 @@ def api_endpoint():
     """Decorator for latency tracking"""
 ```
 
-#### 11. Plugin Loader (plugin\_loader.py)
+### 11. Plugin Loader (plugin_loader.py)
 
 ```python
 def load_broker_auth_functions(broker_directory):
@@ -229,7 +229,7 @@ def load_broker_auth_functions(broker_directory):
         yield broker, module
 ```
 
-#### 12. Ngrok Manager (ngrok\_manager.py)
+### 12. Ngrok Manager (ngrok_manager.py)
 
 ```python
 def start_ngrok_tunnel(port):
@@ -245,7 +245,7 @@ def cleanup_ngrok():
     """Gracefully disconnect tunnel"""
 ```
 
-#### 13. Email Utilities (email\_utils.py)
+### 13. Email Utilities (email_utils.py)
 
 ```python
 def send_test_email(recipient_email, sender_name):
@@ -254,7 +254,7 @@ def send_test_email(recipient_email, sender_name):
     # Returns success/error with details
 ```
 
-#### 14. API Analyzer (api\_analyzer.py)
+### 14. API Analyzer (api_analyzer.py)
 
 ```python
 def generate_order_id():
@@ -268,9 +268,9 @@ def analyze_api_request(order_data):
     """Validate API request before processing"""
 ```
 
-### Usage Examples
+## Usage Examples
 
-#### Using Logger
+### Using Logger
 
 ```python
 from utils.logging import get_logger
@@ -282,7 +282,7 @@ logger.error("Broker connection failed")
 logger.debug("Request data: %s", data)
 ```
 
-#### Using Session Decorator
+### Using Session Decorator
 
 ```python
 from utils.session import check_session_validity
@@ -293,7 +293,7 @@ def dashboard():
     return render_template('dashboard.html')
 ```
 
-#### Using HTTP Client
+### Using HTTP Client
 
 ```python
 from utils.httpx_client import get_httpx_client
@@ -302,7 +302,7 @@ client = get_httpx_client()
 response = client.post(url, json=data)
 ```
 
-#### Using Constants
+### Using Constants
 
 ```python
 from utils.constants import VALID_EXCHANGES, VALID_ACTIONS
@@ -315,15 +315,15 @@ def validate_order(data):
     return True, "Valid"
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                 | Purpose                |
-| -------------------- | ---------------------- |
-| `auth_utils.py`      | Authentication helpers |
-| `session.py`         | Session management     |
-| `logging.py`         | Logging configuration  |
-| `httpx_client.py`    | HTTP client            |
-| `constants.py`       | Order constants        |
-| `config.py`          | Config helpers         |
-| `ip_helper.py`       | IP resolution          |
-| `latency_monitor.py` | Performance tracking   |
+| File | Purpose |
+|------|---------|
+| `auth_utils.py` | Authentication helpers |
+| `session.py` | Session management |
+| `logging.py` | Logging configuration |
+| `httpx_client.py` | HTTP client |
+| `constants.py` | Order constants |
+| `config.py` | Config helpers |
+| `ip_helper.py` | IP resolution |
+| `latency_monitor.py` | Performance tracking |

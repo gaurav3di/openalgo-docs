@@ -1,10 +1,10 @@
 # 44 - PnL Tracker
 
-### Overview
+## Overview
 
-The PnL (Profit & Loss) Tracker provides real-time intraday P\&L monitoring by combining tradebook data with historical price data. It calculates mark-to-market (MTM) P\&L for all positions throughout the trading day and displays it via interactive charts.
+The PnL (Profit & Loss) Tracker provides real-time intraday P&L monitoring by combining tradebook data with historical price data. It calculates mark-to-market (MTM) P&L for all positions throughout the trading day and displays it via interactive charts.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -82,9 +82,9 @@ The PnL (Profit & Loss) Tracker provides real-time intraday P\&L monitoring by c
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Implementation Details
+## Implementation Details
 
-#### Position Window Tracking
+### Position Window Tracking
 
 The PnL tracker creates "position windows" to track when positions were opened and closed:
 
@@ -100,7 +100,7 @@ position_window = {
 }
 ```
 
-#### Trade Timestamp Parsing
+### Trade Timestamp Parsing
 
 The system handles multiple timestamp formats from different brokers:
 
@@ -115,7 +115,7 @@ formats = [
 ]
 ```
 
-#### Rate Limiting
+### Rate Limiting
 
 Historical data API calls are rate-limited to avoid broker rate limits:
 
@@ -143,7 +143,7 @@ class RateLimiter:
 history_rate_limiter = RateLimiter(calls_per_second=2)
 ```
 
-#### Carry-Forward Position PnL Tracking
+### Carry-Forward Position PnL Tracking
 
 The PnL tracker handles carry-forward positions — positions opened on previous days that are still open today. This is critical for NRML/CNC positions that span multiple trading sessions.
 
@@ -158,20 +158,18 @@ The PnL tracker handles carry-forward positions — positions opened on previous
 ```
 
 **Position Detection:**
+- Compares current positions (from positionbook) against today's trades
+- Positions with quantities but no matching entry trades are carry-forward
+- Historical data fetched from 9:15 AM to calculate intraday P&L movement
 
-* Compares current positions (from positionbook) against today's trades
-* Positions with quantities but no matching entry trades are carry-forward
-* Historical data fetched from 9:15 AM to calculate intraday P\&L movement
+**P&L Calculation for Carry-Forward:**
+- Uses previous day's close price as the reference
+- Tracks MTM from market open using 1-minute historical bars
+- Merges carry-forward PnL series with regular trade PnL series
 
-**P\&L Calculation for Carry-Forward:**
+## API Endpoint
 
-* Uses previous day's close price as the reference
-* Tracks MTM from market open using 1-minute historical bars
-* Merges carry-forward PnL series with regular trade PnL series
-
-### API Endpoint
-
-#### Get P\&L Data
+### Get P&L Data
 
 ```
 POST /pnltracker/api/pnl
@@ -180,7 +178,6 @@ Cookie: session=...
 ```
 
 **Response:**
-
 ```json
 {
     "status": "success",
@@ -205,20 +202,20 @@ Cookie: session=...
 }
 ```
 
-#### Response Fields
+### Response Fields
 
-| Field             | Type   | Description                            |
-| ----------------- | ------ | -------------------------------------- |
-| `current_mtm`     | number | Current mark-to-market P\&L            |
-| `max_mtm`         | number | Maximum P\&L reached during the day    |
-| `max_mtm_time`    | string | Time when max P\&L was reached (HH:MM) |
-| `min_mtm`         | number | Minimum P\&L during the day            |
-| `min_mtm_time`    | string | Time when min P\&L was reached (HH:MM) |
-| `max_drawdown`    | number | Largest drawdown from peak (negative)  |
-| `pnl_series`      | array  | Time series data for P\&L chart        |
-| `drawdown_series` | array  | Time series data for drawdown chart    |
+| Field | Type | Description |
+|-------|------|-------------|
+| `current_mtm` | number | Current mark-to-market P&L |
+| `max_mtm` | number | Maximum P&L reached during the day |
+| `max_mtm_time` | string | Time when max P&L was reached (HH:MM) |
+| `min_mtm` | number | Minimum P&L during the day |
+| `min_mtm_time` | string | Time when min P&L was reached (HH:MM) |
+| `max_drawdown` | number | Largest drawdown from peak (negative) |
+| `pnl_series` | array | Time series data for P&L chart |
+| `drawdown_series` | array | Time series data for drawdown chart |
 
-### Calculation Flow
+## Calculation Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -267,39 +264,36 @@ Request arrives at /pnltracker/api/pnl
 └─────────────────────────┘
 ```
 
-### Data Dependencies
+## Data Dependencies
 
 The PnL tracker relies on these services (no dedicated database):
 
-| Service                            | Purpose                         |
-| ---------------------------------- | ------------------------------- |
-| `services/tradebook_service.py`    | Get today's executed trades     |
-| `services/positionbook_service.py` | Get current positions           |
-| `services/history_service.py`      | Get 1-minute historical bars    |
-| `database/auth_db.py`              | Get user auth token and API key |
+| Service | Purpose |
+|---------|---------|
+| `services/tradebook_service.py` | Get today's executed trades |
+| `services/positionbook_service.py` | Get current positions |
+| `services/history_service.py` | Get 1-minute historical bars |
+| `database/auth_db.py` | Get user auth token and API key |
 
-### Frontend Components
+## Frontend Components
 
-#### React Page
+### React Page
 
 **Location:** `frontend/src/pages/PnLTracker.tsx`
 
 The React frontend:
+- Polls `/pnltracker/api/pnl` periodically
+- Renders metrics cards (current MTM, max, min, drawdown)
+- Uses LightWeight Charts for interactive P&L visualization
+- Shows separate drawdown chart below main chart
 
-* Polls `/pnltracker/api/pnl` periodically
-* Renders metrics cards (current MTM, max, min, drawdown)
-* Uses LightWeight Charts for interactive P\&L visualization
-* Shows separate drawdown chart below main chart
+### Legacy Compatibility Route
 
-#### Legacy Jinja Template
+`/pnltracker/legacy` is still registered, but the referenced `templates/pnltracker.html` file is absent from the current tree. Treat this route as unavailable until the route is removed or a template is restored. The supported UI is the React `/pnltracker` page.
 
-**Location:** `templates/pnltracker.html`
+## Edge Cases Handled
 
-Available at `/pnltracker/legacy` for backwards compatibility.
-
-### Edge Cases Handled
-
-#### Sub-Minute Trades
+### Sub-Minute Trades
 
 When a position is opened and closed within the same minute (no historical data points):
 
@@ -312,11 +306,11 @@ if is_closed_position:
         realized = (window["price"] - window["exit_price"]) * window["qty"]
 ```
 
-#### Pre-Trade Period
+### Pre-Trade Period
 
-Zero P\&L data is added from market open (9:15 AM IST) to first trade time for complete visualization.
+Zero P&L data is added from market open (9:15 AM IST) to first trade time for complete visualization.
 
-#### Timezone Handling
+### Timezone Handling
 
 All timestamps are converted to IST (Asia/Kolkata) timezone:
 
@@ -326,7 +320,7 @@ if df["datetime"].dt.tz is None:
     df["datetime"] = df["datetime"].dt.tz_localize("UTC").dt.tz_convert(ist)
 ```
 
-### Drawdown Calculation
+## Drawdown Calculation
 
 ```python
 # Drawdown = Current P&L - Peak P&L (running maximum)
@@ -337,13 +331,12 @@ portfolio_pnl["Drawdown"] = portfolio_pnl["Total_PnL"] - portfolio_pnl["Peak"]
 max_drawdown = portfolio_pnl["Drawdown"].min()
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                                | Purpose                               |
-| ----------------------------------- | ------------------------------------- |
-| `blueprints/pnltracker.py`          | Blueprint with P\&L calculation logic |
-| `services/tradebook_service.py`     | Fetches tradebook from broker         |
-| `services/positionbook_service.py`  | Fetches current positions             |
-| `services/history_service.py`       | Fetches historical price data         |
-| `frontend/src/pages/PnLTracker.tsx` | React UI component                    |
-| `templates/pnltracker.html`         | Legacy Jinja template                 |
+| File | Purpose |
+|------|---------|
+| `blueprints/pnltracker.py` | Blueprint with P&L calculation logic |
+| `services/tradebook_service.py` | Fetches tradebook from broker |
+| `services/positionbook_service.py` | Fetches current positions |
+| `services/history_service.py` | Fetches historical price data |
+| `frontend/src/pages/PnLTracker.tsx` | React UI component |

@@ -1,8 +1,8 @@
 # SplitOrder
 
-## Endpoint URL
+Split a large order into multiple smaller orders to reduce market impact or comply with freeze quantity limits.
 
-This API Function Place Split Orders to the Broker
+## Endpoint URL
 
 ```http
 Local Host   :  POST http://127.0.0.1:5000/api/v1/splitorder
@@ -10,90 +10,153 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/splitorde
 Custom Domain:  POST https://<your-custom-domain>/api/v1/splitorder
 ```
 
-
-
 ## Sample API Request
 
 ```json
 {
-    "apikey": "<your_app_apikey>",
-    "strategy": "Test Strategy",
-    "exchange": "NSE",
-    "symbol": "YESBANK",
-    "action": "SELL",
-    "quantity": "105",
-    "splitsize": "20",
-    "pricetype": "MARKET",
-    "product": "MIS"
+  "apikey": "<your_app_apikey>",
+  "strategy": "Python",
+  "symbol": "YESBANK",
+  "exchange": "NSE",
+  "action": "SELL",
+  "quantity": "105",
+  "splitsize": "20",
+  "pricetype": "MARKET",
+  "product": "MIS"
 }
 ```
 
-###
+## Sample cURL Request
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/splitorder \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy": "Python",
+  "symbol": "YESBANK",
+  "exchange": "NSE",
+  "action": "SELL",
+  "quantity": "105",
+  "splitsize": "20",
+  "pricetype": "MARKET",
+  "product": "MIS"
+}'
+```
 
 ## Sample API Response
 
 ```json
 {
+  "status": "success",
+  "split_size": 20,
+  "total_quantity": 105,
   "results": [
     {
       "order_num": 1,
-      "orderid": "24120900343417",
+      "orderid": "250408001021467",
       "quantity": 20,
       "status": "success"
     },
     {
       "order_num": 2,
-      "orderid": "24120900343419",
+      "orderid": "250408001021459",
       "quantity": 20,
       "status": "success"
     },
     {
       "order_num": 3,
-      "orderid": "24120900343420",
+      "orderid": "250408001021466",
       "quantity": 20,
       "status": "success"
     },
     {
       "order_num": 4,
-      "orderid": "24120900343418",
+      "orderid": "250408001021470",
       "quantity": 20,
       "status": "success"
     },
     {
       "order_num": 5,
-      "orderid": "24120900343421",
+      "orderid": "250408001021471",
       "quantity": 20,
       "status": "success"
     },
     {
       "order_num": 6,
-      "orderid": "24120900343416",
+      "orderid": "250408001021472",
       "quantity": 5,
       "status": "success"
     }
-  ],
-  "split_size": 20,
-  "status": "success",
-  "total_quantity": 105
+  ]
 }
 ```
 
-###
+## Request Body
 
-## Parameter Description
+| Parameter | Description | Mandatory/Optional | Default Value |
+|-----------|-------------|-------------------|---------------|
+| apikey | Your OpenAlgo API key | Mandatory | - |
+| strategy | Strategy identifier | Mandatory | - |
+| symbol | Trading symbol | Mandatory | - |
+| exchange | Exchange code accepted by the shared validation constants | Mandatory | - |
+| action | Order action: BUY or SELL | Mandatory | - |
+| quantity | Positive numeric quantity to split | Mandatory | - |
+| splitsize | Size of each split order | Mandatory | - |
+| pricetype | Price type: MARKET, LIMIT, SL, SL-M | Optional | MARKET |
+| product | Product type: MIS, CNC, NRML | Optional | MIS |
+| price | Order price (for LIMIT orders) | Optional | 0 |
+| trigger_price | Trigger price (for SL orders) | Optional | 0 |
 
+## Response Fields
 
+| Field | Type | Description |
+|-------|------|-------------|
+| status | string | "success" or "error" |
+| split_size | number | Size used for splitting |
+| total_quantity | number | Total quantity processed |
+| results | array | Array of individual order results |
 
-| Parameters          | Description        | Mandatory/Optional | Default Value |
-| ------------------- | ------------------ | ------------------ | ------------- |
-| apikey              | App API key        | Mandatory          | -             |
-| strategy            | Strategy name      | Mandatory          | -             |
-| exchange            | Exchange code      | Mandatory          | -             |
-| symbol              | Trading symbol     | Mandatory          | -             |
-| action              | Action (BUY/SELL)  | Mandatory          | -             |
-| product             | Product type       | Optional           | MIS           |
-| pricetype           | Price type         | Optional           | MARKET        |
-| quantity            | Quantity           | Mandatory          | -             |
-| price               | Price              | Optional           | 0             |
-| trigger\_price      | Trigger price      | Optional           | 0             |
-| disclosed\_quantity | Disclosed quantity | Optional           | 0             |
+### Results Array Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| order_num | number | Order sequence number (1, 2, 3...) |
+| orderid | string | Order ID from broker |
+| quantity | number | Quantity for this order |
+| status | string | "success" or "error" |
+| message | string | Error message (on failure) |
+
+## How Split Orders Work
+
+For a total quantity of 105 with splitsize of 20:
+
+```
+Order 1: 20 units
+Order 2: 20 units
+Order 3: 20 units
+Order 4: 20 units
+Order 5: 20 units
+Order 6: 5 units (remainder)
+-----------------
+Total: 105 units
+```
+
+## Notes
+
+- **Maximum 100 orders** per split request
+- The last order contains the **remainder** (quantity % splitsize)
+- Live child orders are placed sequentially using a delay derived from `ORDER_RATE_LIMIT`; analyzer mode prefetches one quote and uses the sandbox path.
+- Fractional total quantities are accepted only for `CRYPTO`; non-crypto total quantities must be whole numbers. `splitsize` is always a positive integer.
+- Use for:
+  - **Large F&O orders**: Splitting to stay within freeze quantity limits
+  - **Reducing market impact**: Spreading execution over multiple orders
+  - **TWAP strategies**: Time-weighted average price execution
+- If splitsize is larger than quantity, a single order is placed
+- All split orders share the same price type and price
+
+Freeze quantities change and are loaded from `data/qtyfreeze.csv`; do not hard-code the example values from older releases.
+
+---
+
+**Back to**: [API Documentation](../README.md)

@@ -1,10 +1,10 @@
 # 19 - PlaceOrder Call Flow
 
-### Overview
+## Overview
 
 The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles order validation, authentication, broker routing, and response processing through multiple layers.
 
-### Complete Flow Diagram
+## Complete Flow Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -65,7 +65,7 @@ The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles 
 │  │                                                                      │    │
 │  │  if get_analyze_mode() == True:                                     │    │
 │  │      → Route to sandbox_place_order()                               │    │
-│  │      → Virtual trading with ₹1 Crore capital                        │    │
+│  │      → Sandbox trading with ₹1 Crore capital                        │    │
 │  │  else:                                                              │    │
 │  │      → Continue to live broker                                      │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
@@ -141,9 +141,12 @@ The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles 
 │            ▼                              ▼                                  │
 │  ┌──────────────────┐          ┌──────────────────┐                         │
 │  │ Extract order_id │          │ Extract error    │                         │
-│  │ Emit SocketIO    │          │ message          │                         │
-│  │ Log order async  │          │ Log failure      │                         │
-│  │ Telegram alert   │          │ Return error     │                         │
+│  │ bus.publish(     │          │ message          │                         │
+│  │  OrderPlacedEvent│          │ bus.publish(     │                         │
+│  │ )                │          │  OrderFailedEvent│                         │
+│  │ → log+socketio+  │          │ )                │                         │
+│  │   telegram via   │          │ Return error     │                         │
+│  │   subscribers    │          │                  │                         │
 │  └──────────────────┘          └──────────────────┘                         │
 │                                                                              │
 │  Success Response:              Error Response:                              │
@@ -154,9 +157,9 @@ The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles 
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Request Format
+## Request Format
 
-#### Basic Order Request
+### Basic Order Request
 
 ```json
 {
@@ -171,7 +174,7 @@ The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles 
 }
 ```
 
-#### Limit Order
+### Limit Order
 
 ```json
 {
@@ -187,7 +190,7 @@ The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles 
 }
 ```
 
-#### Stop-Loss Order
+### Stop-Loss Order
 
 ```json
 {
@@ -204,20 +207,20 @@ The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles 
 }
 ```
 
-### Validation Rules
+## Validation Rules
 
-#### Mandatory Fields
+### Mandatory Fields
 
-| Field    | Type    | Description         |
-| -------- | ------- | ------------------- |
-| apikey   | string  | OpenAlgo API key    |
-| strategy | string  | Strategy identifier |
-| symbol   | string  | Trading symbol      |
-| exchange | string  | Exchange code       |
-| action   | string  | BUY or SELL         |
+| Field | Type | Description |
+|-------|------|-------------|
+| apikey | string | OpenAlgo API key |
+| strategy | string | Strategy identifier |
+| symbol | string | Trading symbol |
+| exchange | string | Exchange code |
+| action | string | BUY or SELL |
 | quantity | integer | Order quantity (≥1) |
 
-#### Valid Values
+### Valid Values
 
 ```
 Exchanges: NSE, BSE, NFO, BFO, CDS, BCD, MCX, NCDEX, NSE_INDEX, BSE_INDEX
@@ -229,9 +232,9 @@ Price Types: MARKET, LIMIT, SL, SL-M
 Products: CNC (delivery), MIS (intraday), NRML (F&O carryforward)
 ```
 
-### Order Routing Modes
+## Order Routing Modes
 
-#### Auto Mode (Default)
+### Auto Mode (Default)
 
 ```
 Request → Validate → Authenticate → Execute → Response
@@ -239,7 +242,7 @@ Request → Validate → Authenticate → Execute → Response
 
 Orders are executed immediately without manual intervention.
 
-#### Semi-Auto Mode
+### Semi-Auto Mode
 
 ```
 Request → Validate → Queue to Action Center → Await Approval
@@ -254,7 +257,7 @@ Request → Validate → Queue to Action Center → Await Approval
 
 Orders require manual approval before execution.
 
-### Analyzer Mode (Sandbox)
+## Analyzer Mode (Sandbox)
 
 When `analyze_mode = True`:
 
@@ -263,18 +266,18 @@ When `analyze_mode = True`:
 │                    Sandbox Execution                             │
 │                                                                  │
 │  1. Initialize OrderManager(user_id)                            │
-│  2. Check virtual funds (₹1 Crore default)                      │
+│  2. Check sandbox funds (₹1 Crore default)                      │
 │  3. Calculate margin requirements                                │
 │  4. Simulate order execution                                     │
-│  5. Update virtual positions                                     │
+│  5. Update sandbox positions                                     │
 │  6. Log to analyzer_db                                          │
 │  7. Return same response format as live                          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Broker Integration
+## Broker Integration
 
-#### Dynamic Module Loading
+### Dynamic Module Loading
 
 ```python
 def import_broker_module(broker_name):
@@ -282,7 +285,7 @@ def import_broker_module(broker_name):
     return importlib.import_module(module_path)
 ```
 
-#### Broker-Specific Implementation
+### Broker-Specific Implementation
 
 Each broker implements:
 
@@ -303,52 +306,53 @@ def place_order_api(data, auth):
     return (response, response_data, order_id)
 ```
 
-### Error Handling
+## Error Handling
 
-| Error            | HTTP Code | Response                                                               |
-| ---------------- | --------- | ---------------------------------------------------------------------- |
-| Missing field    | 400       | `{"status": "error", "message": "Missing mandatory field(s): symbol"}` |
-| Invalid exchange | 400       | `{"status": "error", "message": "Invalid exchange"}`                   |
-| Invalid API key  | 403       | `{"status": "error", "message": "Invalid openalgo apikey"}`            |
-| Broker not found | 404       | `{"status": "error", "message": "Broker module not found"}`            |
-| Broker API error | 500       | `{"status": "error", "message": "Failed to place order"}`              |
-| Rate limit       | 429       | Rate limiter response                                                  |
+| Error | HTTP Code | Response |
+|-------|-----------|----------|
+| Missing field | 400 | `{"status": "error", "message": "Missing mandatory field(s): symbol"}` |
+| Invalid exchange | 400 | `{"status": "error", "message": "Invalid exchange"}` |
+| Invalid API key | 403 | `{"status": "error", "message": "Invalid openalgo apikey"}` |
+| Broker not found | 404 | `{"status": "error", "message": "Broker module not found"}` |
+| Broker API error | 500 | `{"status": "error", "message": "Failed to place order"}` |
+| Rate limit | 429 | Rate limiter response |
 
-### Async Operations
+## Event Bus Side-Effects
 
-#### Order Logging
+All post-order side-effects (logging, SocketIO, Telegram) are dispatched through the Event Bus. The service publishes a single typed event; subscribers handle each concern independently.
 
-```python
-# Non-blocking log to database
-executor.submit(async_log_order, 'placeorder', request_data, response)
-```
-
-#### SocketIO Events
+### Publishing
 
 ```python
-# Real-time order event emission
-socketio.emit('order_event', {
-    'symbol': symbol,
-    'action': action,
-    'orderid': order_id,
-    'exchange': exchange,
-    'mode': 'live' or 'analyzer'
-})
+from events import OrderPlacedEvent
+from utils.event_bus import bus
+
+# After successful broker call — one line replaces three
+bus.publish(OrderPlacedEvent(
+    mode="live",
+    api_type="placeorder",
+    symbol=order_data["symbol"],
+    action=order_data["action"],
+    orderid=str(order_id),
+    request_data=cleaned_request,
+    response_data={"status": "success", "orderid": order_id},
+    api_key=api_key,
+))
 ```
 
-#### Telegram Alerts
+### What Subscribers Do
 
-```python
-# Background notification
-socketio.start_background_task(
-    telegram_alert_service.send_order_alert,
-    'placeorder', order_data, response, api_key
-)
-```
+| Subscriber | Action |
+|------------|--------|
+| `log_subscriber` | Writes to `order_logs` (live) or `analyzer_logs` (analyze) |
+| `socketio_subscriber` | Emits `order_event` (live) or `analyzer_update` (analyze) |
+| `telegram_subscriber` | Sends Telegram alert via `send_order_alert()` |
 
-### Security Layers
+See [53-event-bus](53-event-bus.md) for full architecture details.
 
-#### API Key Verification
+## Security Layers
+
+### API Key Verification
 
 ```
 ┌─────────────────────────────────────────┐
@@ -369,30 +373,32 @@ socketio.start_background_task(
 └─────────────────────────────────────────┘
 ```
 
-#### Request Sanitization
+### Request Sanitization
 
-* API keys removed from logs
-* Sensitive data encrypted at rest
-* Rate limiting per endpoint
+- API keys removed from logs
+- Sensitive data encrypted at rest
+- Rate limiting per endpoint
 
-### Performance Optimizations
+## Performance Optimizations
 
-| Optimization       | Description                     |
-| ------------------ | ------------------------------- |
-| Connection pooling | HTTP clients reuse connections  |
-| API key caching    | Reduce Argon2 hashing overhead  |
-| Async logging      | Non-blocking order logs         |
-| Thread pool        | 10 worker threads for async ops |
+| Optimization | Description |
+|--------------|-------------|
+| Connection pooling | HTTP clients reuse connections |
+| API key caching | Reduce Argon2 hashing overhead |
+| Async logging | Non-blocking order logs |
+| Thread pool | 10 worker threads for async ops |
 
-### Key Files Reference
+## Key Files Reference
 
-| File                                      | Purpose               |
-| ----------------------------------------- | --------------------- |
-| `restx_api/place_order.py`                | REST endpoint         |
-| `services/place_order_service.py`         | Core logic            |
-| `services/order_router_service.py`        | Semi-auto routing     |
-| `services/sandbox_service.py`             | Analyzer mode         |
-| `database/auth_db.py`                     | Authentication        |
-| `broker/{name}/api/order_api.py`          | Broker implementation |
-| `broker/{name}/mapping/transform_data.py` | Data transformation   |
-| `database/apilog_db.py`                   | Order logging         |
+| File | Purpose |
+|------|---------|
+| `restx_api/place_order.py` | REST endpoint |
+| `services/place_order_service.py` | Core logic |
+| `services/order_router_service.py` | Semi-auto routing |
+| `services/sandbox_service.py` | Analyzer mode |
+| `database/auth_db.py` | Authentication |
+| `broker/{name}/api/order_api.py` | Broker implementation |
+| `broker/{name}/mapping/transform_data.py` | Data transformation |
+| `utils/event_bus.py` | Event bus (side-effect dispatch) |
+| `events/order_events.py` | Order event types |
+| `subscribers/` | Log, SocketIO, Telegram subscribers |

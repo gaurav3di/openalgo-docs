@@ -1,88 +1,53 @@
-# Fast Scalper
+# Scalping Terminal
 
-## FastScalper: A New Rust-Based Tool for Scalping
+The Scalping Terminal is a built-in, session-authenticated OpenAlgo workspace at `/scalping`. It combines contract selection, live prices, market-order entry, order and position books, optional charts, and server-managed stop protection in one browser page. No separate desktop installer or API-key configuration is required.
 
-**FastScalper** is an innovative desktop application designed specifically for scalpers who need a lightweight, fast, and robust trading tool. Built using Rust, this cross-platform app integrates seamlessly with Open Algo, providing an intuitive interface to place and manage orders efficiently.
+## Supported Markets
 
-This guide will walk you through the installation, configuration, and key features of FastScalper.
+| Market | Exchanges | Products |
+|---|---|---|
+| Equity | NSE, BSE | MIS, CNC |
+| Futures and options | NFO, BFO, MCX, CDS | MIS, NRML |
 
-***
+For derivatives, select an underlying and expiry. Options mode provides independent call and put strike selectors; futures mode resolves the selected futures contract. Equity mode uses symbol search.
 
-### Key Features
+## Live Workspace
 
-1. **Cross-Platform Compatibility**\
-   FastScalper is compatible with all major operating systems:
-   * **Windows**: Supports multiple instances for tracking and managing various instruments.
-   * **macOS**: Compatible with both Intel and Apple Silicon processors.
-   * **Linux**: Available for distributions like Ubuntu, Debian, and Fedora.
-2. **Tiny and Lightweight**\
-   A small, portable application optimized for speed, making it ideal for scalpers requiring instant order execution.
-3. **Robust Order Management**
-   * Supports multiple product types:
-     * **CNC**: Cash and Carry (carry-forward trades).
-     * **MIS**: Intraday trading for equities and derivatives.
-     * **NRML**: Positional trading for derivatives.
-   * Easy-to-use controls:
-     * **L**: Place a long position.
-     * **LX**: Close long positions.
-     * **SE**: Place a short position.
-     * **SX**: Close short positions.
-4. **Voice Alerts**\
-   Configurable voice alerts provide audio confirmation for order placement.
-5. **Seamless Integration**
-   * Connects to Open Algo via an API key for real-time trading.
-   * Orders can be monitored through trading terminals (desktop, mobile, or web).
-6. **Customizable Settings**
-   * API key and host URL configuration.
-   * Exchange and product setup options.
-   * Enable/disable voice alerts as needed.
+The terminal shows live LTP and normalized quote fields through OpenAlgo's shared WebSocket feed. When the feed is unavailable, the page identifies its slower REST polling fallback so stale-data risk is visible.
 
-***
+Charts are optional and disabled by default. Enable them to view 1-minute, 5-minute, or 15-minute candles with volume. The chart toggle and timeframe are saved in the browser.
 
-### Installation
+## Order Entry
 
-#### Prerequisites
+All entries are market orders stamped with the `Scalping` strategy name. Configure quantity in shares for equities or lots for derivatives, select the product, and arm One-Click before sending entries.
 
-* Ensure Open Algo is installed and running.
-* Obtain the FastScalper installer from the **Downloads** section in Open Algo.
+| Market | Keyboard action |
+|---|---|
+| Equity or futures | Up/Right buys; Down/Left sells |
+| Options | Up buys call; Down sells call; Right buys put; Left sells put |
+| All modes | F6 closes scalping positions; F7 cancels open orders |
 
-#### Steps
+Held-key auto-repeat is ignored. Entry shortcuts are ignored while typing in an input. F6 and F7 remain risk-reducing actions even when One-Click is off; the on-screen buttons are available when an operating system intercepts function keys.
 
-1. **Download FastScalper**\
-   Navigate to the **Downloads** section and select the appropriate installer for your operating system.
-2. **Install FastScalper**\
-   Follow the platform-specific installation steps. Launch the application once installed.
-3. **Configure FastScalper**
-   * Open FastScalper and go to **Settings**.
-   * Enter the following details:
-     * **API Key**: Obtainable from the Open Algo API Key section.
-     * **Host URL**: The URL where Open Algo is running.
-     * Configure additional preferences (e.g., exchange, product type, and voice alerts).
-4. **Start Trading**\
-   Begin placing and managing orders directly through the FastScalper interface.
+Server validation limits manual derivative entries to 20 lots and all requests to 100,000 units. Derivative quantity must match the contract lot size. Exit operations derive the reducing side from the actual position and cannot increase exposure.
 
-***
+## Stops And Targets
 
-### Usage
+Predefined stop-loss and target values can be applied to new entries in points or percent. An open leg can also be assigned an exact stop price, optional target, and optional trailing step.
 
-1. **Launching Multiple Instances (Windows)**\
-   Open several instances to manage multiple instruments simultaneously.
-2. **Order Placement**
-   * Enter the symbol and quantity.
-   * Use dedicated controls for:
-     * **L**: Place a long order.
-     * **LX**: Close long positions.
-     * **SE**: Place a short order.
-     * **SX**: Close short positions.
-3. **Error Handling**\
-   FastScalper prevents invalid actions, such as attempting to close positions when none exist.
-4. **Monitoring Orders**
-   * View order status in the order book.
-   * Monitor trades via trading terminals or web interfaces.
+Stop configuration is persisted by symbol, exchange, product, application mode, and position side. The browser displays and edits this state, but a server-side risk monitor evaluates live ticks and sends a reducing exit when a stop or target is breached. Protection therefore continues after leaving the page or closing the browser, provided OpenAlgo and its market-data feed remain running.
 
-***
+Trailing stops move only in the favorable direction. Before an exit, the monitor rechecks the live position and submits whole-lot, freeze-safe reducing orders.
 
-### Known Limitations
+## Books And Mode
 
-* **Single Instance Support**: macOS and Linux currently support only one instance at a time.
-* **Feature Requests**: Additional features or configurations can be suggested via the Open Algo GitHub repository.
+The workspace includes current positions, today's scalping orders, and today's scalping trades. Tracked legs remain visible while their persisted stop or tracking state is active.
+
+Live and Analyzer modes are separated in the database. Analyzer mode uses sandbox positions and orders; live mode uses the authenticated broker session. Always confirm the mode badge before arming One-Click.
+
+## Operational Notes
+
+- A broker login and valid OpenAlgo API key are still required by the application, but the terminal resolves the key from the signed-in session.
+- The terminal's session APIs are under `/scalping/api`; they are not public `/api/v1` API-key endpoints.
+- Closing all positions only targets positions attributed to the scalping strategy. Cancel All cancels eligible open orders.
+- If OpenAlgo or the broker feed is stopped, server-side stop evaluation cannot continue.
