@@ -1,12 +1,8 @@
 # Delta Exchange
 
-Delta Exchange is a global cryptocurrency derivatives exchange founded in 2018 by Pankaj Balani, Jitender Tokas, and Saurabh Goyal, offering futures, perpetual swaps, and options trading on Bitcoin, Ethereum, and leading altcoins. Registered with India's Financial Intelligence Unit (FIU-India) and fully compliant with AML and KYC regulations, Delta Exchange stands as the first platform in India to offer crypto options trading.
+OpenAlgo's `deltaexchange` plugin is the repository's crypto-derivatives adapter. Its `plugin.json` declares broker type `crypto`, exchange `CRYPTO`, and leverage configuration support. The adapter maps supported Delta Exchange order, account, data, and streaming operations into OpenAlgo's normalized interfaces.
 
-The platform specialises in cryptocurrency derivatives with INR settlement, allowing Indian traders to deposit and withdraw funds directly from their bank accounts without needing to hold any stablecoins or crypto tokens. Its derivatives trading model, settled entirely in INR, means trades are classified as speculative business income — exempting users from the 30% capital gains tax and 1% TDS that typically apply to direct crypto transactions in India.
-
-Delta Exchange offers a diverse product suite covering futures with daily, weekly, and monthly expiries on BTC, ETH, XRP, XLM, AAVE, and BNB; perpetual swaps for indefinite position holding; and options on BTC and ETH — the only platform in India to offer this. The exchange also launched "Trackers" in August 2025 — innovative derivative contracts that mirror crypto price movements without requiring direct asset ownership, available at a trading fee of just 0.05% compared to roughly 0.5% on spot markets.
-
-For developers and algo traders looking to integrate Delta Exchange into OpenAlgo, the platform provides a comprehensive REST API and WebSocket feed.
+Product availability, fees, settlement, API-key requirements, and account eligibility are controlled by Delta Exchange and can change. OpenAlgo does not provide legal or tax classification; verify current exchange documentation and the rules that apply to your location before trading.
 
 ### API Key Registration
 
@@ -53,4 +49,4 @@ BROKER_API_SECRET = 'your_api_secret_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/deltaexchange/callback'
 ```
 
-Integrating OpenAlgo with Delta Exchange opens up possibilities for automated crypto derivatives trading — futures, perpetuals, and options — within a fully compliant Indian regulatory framework. As with all broker integrations, it is essential to follow best practices including secure API key management, IP whitelisting, robust error handling, and thorough testing on the testnet environment before going live.
+The Delta Exchange plugin supports automated crypto-derivatives workflows where the connected account and instrument are available. Protect API credentials, use the exchange's current network controls, handle API failures explicitly, and test with the exchange's test environment before live use. Users remain responsible for verifying the legal, tax, and account rules that apply to their location and activity.

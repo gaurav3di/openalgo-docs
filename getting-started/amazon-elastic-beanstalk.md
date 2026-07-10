@@ -47,7 +47,7 @@
 * Provide an application name (e.g., openalgo) and an environment name (e.g., openalgo-env).
 * Ensure the domain name is available (e.g., openalgo.ap-south-1.elasticbeanstalk.com).
 * Provide a description for your environment (optional).
-* Select “Python” as the platform and choose the “Python 3.11” platform branch.
+* Select a Python platform branch that provides Python 3.12 or newer.
 * Select “4.1.0 (Recommended)” as the platform version.
 * For “Application code”, choose “Upload your code”.
 * Give a version label (e.g., 1.0.0.1).

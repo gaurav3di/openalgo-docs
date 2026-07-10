@@ -19,7 +19,7 @@ Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your 
 1. **OpenAlgo on your own domain with HTTPS.** Dashboard reachable at `https://yourdomain.com`, login + broker auth + orders all working through the web UI. If you're not there yet, start with one of the install scripts: `install/install.sh`, `install/install-multi.sh`, `install/install-docker.sh`, or `install/install-docker-multi-custom-ssl.sh`.
 2. **OpenAlgo 2.0.1.0 or later.** The dashboard footer shows the version; `GET https://yourdomain.com/auth/app-info` returns it as JSON. On older builds run `install/update.sh` first.
 3. **An OpenAlgo API key.** Generate one at **Profile → API Keys**. The MCP server uses it server-side; hosted clients never see it — they get OAuth tokens instead.
-4. **A paid AI plan.** ChatGPT Plus / Team / Enterprise, or Claude Pro / Team / Enterprise. Custom MCP servers aren't on the free tiers.
+4. **A hosted client account that supports custom MCP connectors.** Check the client's current plan and workspace requirements; these are controlled by the client vendor.
 
 ***
 
@@ -142,11 +142,9 @@ ChatGPT calls `get_quote` and shows the price. With `read:account` granted, also
 
 > _"What's my account balance and current open positions?"_
 
-**What works on ChatGPT**
+**Client policy and tool availability**
 
-* All read-only tools work cleanly: quotes, depth, holdings, positions, funds, history, orderbook
-* `modify_order`, `cancel_order`, `cancel_all_orders` usually go through
-* `place_order` is often blocked by ChatGPT's own safety policy even when `write:orders` was granted. If you need order placement from a hosted client, use Claude.ai
+OpenAlgo exposes tools allowed by the granted OAuth scopes. ChatGPT can apply additional product policy, confirmation, plan, and connector restrictions, so the tools visible or executable in a client can differ from the server's `tools/list` response. Verify sensitive operations in Analyzer Mode and do not treat a granted `write:orders` scope as a guarantee that a hosted client will execute every write tool.
 
 **Useful ChatGPT prompts**
 
@@ -208,16 +206,14 @@ In any chat, click the **Tools** icon below the message box → toggle **OpenAlg
 
 Claude shows expandable tool-call cards. _Ask me_ tools surface a permission prompt with **Allow once / Always allow / Deny**.
 
-**What works on Claude.ai**
+**Client policy and tool availability**
 
-* All read-only tools work
-* All write tools work — `place_order`, `modify_order`, `cancel_order`, `cancel_all_orders`
-* The same OAuth tokens work in the **Claude iOS / Android apps** — chat-trade from your phone, no extra setup
+OpenAlgo exposes the same scoped registry to Claude.ai, but Claude can apply client-side permissions, plan limits, confirmations, or policy restrictions. Check the connector's current tool list and require confirmation for destructive operations.
 
 **Recommended posture for write tools**
 
 * Start in **Sandbox / Analyzer mode** (`/analyzer`) and dry-run prompts before turning live trading on
-* Keep **MCP 2FA** on — every fresh authorization demands a TOTP code
+* Keep **MCP 2FA** on — fresh authorization for `write:orders` then requires TOTP
 * Set a tight `MCP_RATE_LIMIT_WRITE` (e.g. `5 per minute`) so a runaway model can't fire a flurry of orders before you intervene
 * Tail `log/mcp.jsonl` while testing — every call recorded with timestamp, scope, outcome, latency
 * Keep the **Kill switch** at `/admin/remote-mcp` one click away

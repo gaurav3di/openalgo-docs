@@ -1,35 +1,33 @@
-# Traffic/Latency Monitor
+# Traffic and Latency Monitoring
 
-OpenAlgo introduces powerful tools for performance monitoring:
+OpenAlgo provides separate views for HTTP traffic metadata and measured API/order latency.
 
-1\. Latency Monitor (/latency):
+### Traffic Monitor
 
-• Real-Time Tracking: Monitors Round-Trip Time (RTT) for order execution.
+Open **Logs > Traffic** or visit `/logs/traffic`.
 
-• Broker Comparison: Evaluate broker performance and latency breakdown.
+The traffic table stores:
 
-• Benefits:
+* timestamp;
+* client IP;
+* HTTP method and path;
+* response status;
+* middleware duration;
+* request host;
+* an unhandled error field, when present.
 
-• Optimize execution strategies.
+It does **not** store request bodies, response bodies, headers, user agents, or a processing timeline. This avoids persisting API keys and order payloads in the traffic table.
 
-• Detect and troubleshoot delays.
+Summary panels show total requests, errors, average duration, and selected endpoint statistics. Filters can limit the view to all traffic or `/api/v1` traffic and to all, successful, or error responses. CSV export contains the same stored metadata.
 
-• Compare brokers for better reliability.
+Traffic rows live in `logs.db`. `TRAFFIC_LOG_RETENTION_DAYS` defaults to 30 days in `.sample.env`, and expired rows are purged when logging initializes.
 
-2\. Traffic Monitor (/traffic):
+### Latency Monitor
 
-• API Analytics: Track API usage, errors, and response times.
+Open the Latency page to review timing records produced by instrumented OpenAlgo operations. The view is useful for comparing observed request durations and identifying changes on the actual deployment.
 
-• Endpoint Insights: Identify heavily-used endpoints and optimize requests.
+Latency depends on host load, network distance, broker response time, market conditions, connection reuse, and the operation being measured. The monitor reports observations; it does not guarantee an execution time or isolate exchange latency from every other component.
 
-• Benefits:
+### Security Boundary
 
-• Monitor system health.
-
-• Resolve performance bottlenecks.
-
-• Plan scaling based on actual usage.
-
-<br>
-
-These tools provide essential visibility to optimize system performance, ensuring reliable and efficient trading operations.
+Both dashboards require an authenticated application session. Proxy-derived client IPs are trusted only when `TRUST_PROXY_HEADERS` is enabled; use that setting only behind a controlled reverse proxy.

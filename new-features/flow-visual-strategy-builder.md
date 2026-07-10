@@ -244,7 +244,7 @@ Flow webhooks need to be accessible from the internet for external triggers (Tra
 **Recommended**: Deploy OpenAlgo on an Ubuntu server with your domain using `install.sh`:
 
 ```
-https://yourdomain.com/api/v1/flow/{flow-id}/webhook
+https://yourdomain.com/flow/webhook/<token>
 ```
 
 **Alternative**: Use tunneling services **for webhooks only**:
@@ -260,8 +260,10 @@ See Installation Guide for detailed setup.
 #### Webhook URL Format
 
 ```
-https://your-openalgo-url/api/v1/flow/{flow-id}/webhook
+https://your-openalgo-url/flow/webhook/<token>
 ```
+
+Flows that use a symbol path parameter also accept `https://your-openalgo-url/flow/webhook/<token>/<symbol>`.
 
 #### TradingView Alert Message
 

@@ -4,7 +4,7 @@
 
 Companion reference to the main MCP setup guide. Once the MCP server is wired into Claude Desktop, Cursor, Windsurf, Antigravity, or any other MCP-capable client, you can ask for these operations in plain English — the client decides which tool to call.
 
-All **40 tools** shipped by the server are listed below with:
+The supported tools are grouped below. The live MCP `tools/list` response is authoritative for the exact registry and schemas exposed by a running version. Each entry includes:
 
 * What the tool does
 * Key parameters (required / optional)

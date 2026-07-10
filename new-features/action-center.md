@@ -2,7 +2,7 @@
 
 ### What is Action Center?
 
-**Action Center** is like a "shopping cart approval system" for your trading orders. Instead of orders executing immediately, they wait in a queue for you to manually review and approve them before they go to your broker.
+**Action Center** is an approval queue for eligible live order requests in semi-auto mode. Supported queued orders wait for review before the approval executor sends them to the broker.
 
 <figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
@@ -124,7 +124,7 @@ For each pending order:
 
 #### Auto-Refresh
 
-The "Pending" tab refreshes every 30 seconds automatically, so you always see the latest orders.
+Socket.IO events refresh the list when pending orders are created or updated. A manual refresh control is also available.
 
 #### Statistics Dashboard
 
@@ -158,15 +158,17 @@ Every action is logged:
 
 **A:** Yes! Just toggle the switch OFF in API Key settings. New orders will execute immediately again.
 
-#### Q: Does this work with all order types?
+#### Q: Which order types can the approval executor dispatch?
 
-**A:** Yes! Works with:
+**A:** The current executor supports:
 
 * Regular orders (`placeorder`)
 * Smart orders (`placesmartorder`)
 * Basket orders (`basketorder`)
 * Split orders (`splitorder`)
 * Options orders (`optionsorder`)
+
+`optionsmultiorder` and `placegttorder` services can currently create pending rows, but the approval executor has no dispatch branch for them. Approval reports `Unknown order type` and marks broker execution rejected. Close, cancel, cancel-all, modify, modify-GTT, and cancel-GTT operations are blocked by their services in semi-auto live mode rather than queued.
 
 #### Q: Can I see which orders my strategy generated vs which I approved?
 

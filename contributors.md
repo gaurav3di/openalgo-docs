@@ -227,7 +227,7 @@ openalgo/
 │   ├── auth.py               # Authentication routes
 │   ├── react_app.py          # Serves React SPA from frontend/dist/
 │   └── ...
-├── broker/                   # Broker integrations (24+ brokers)
+├── broker/                   # 34 broker plugin directories
 │   ├── zerodha/              # Reference implementation
 │   ├── dhan/                 # Modern API design
 │   ├── angel/                # AngelOne integration
