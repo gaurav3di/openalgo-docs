@@ -1,61 +1,29 @@
-# Ping
+# Authenticated Ping
 
-### Endpoint URL
+Verify that the OpenAlgo API key resolves to an active broker session.
 
-This API Function checks connectivity and validates the API key authentication with the OpenAlgo platform
+## Endpoint
 
 ```http
-Local Host   :  POST http://127.0.0.1:5000/api/v1/ping
-Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/ping
-Custom Domain:  POST https://<your-custom-domain>/api/v1/ping
+POST /api/v1/ping
 ```
 
-### Sample API Request
-
-```json
-{ 
-"apikey": "<your_app_apikey>" 
-}
+```bash
+curl -X POST 'http://127.0.0.1:5000/api/v1/ping' \
+  -H 'Content-Type: application/json' \
+  -d '{"apikey":"<your_app_apikey>"}'
 ```
-
-### Sample API Response
 
 ```json
 {
+  "status": "success",
   "data": {
-    "broker": "upstox",
-    "message": "pong"
-  },
-  "status": "success"
+    "message": "pong",
+    "broker": "zerodha"
+  }
 }
 ```
 
-### Request Body
+This is not an anonymous process-health endpoint. An invalid key or revoked/missing broker session returns HTTP 403.
 
-| Parameters | Description | Mandatory/Optional | Default Value |
-| ---------- | ----------- | ------------------ | ------------- |
-| apikey     | App API key | Mandatory          | -             |
-
-### Response Fields
-
-| Field   | Type   | Description                                        |
-| ------- | ------ | -------------------------------------------------- |
-| status  | string | Status of the request (success/error)              |
-| message | string | Response message ("pong" on successful connection) |
-| broker  | string | Name of the connected broker                       |
-
-### Error Response
-
-```json
-{ 
-"status": "error", "message": "Invalid openalgo apikey" 
-}
-```
-
-Notes
-
-1. Use this endpoint to verify API connectivity before making other API calls
-2. Validates that the API key is correctly configured and active
-3. Returns the broker name associated with the validated API key
-4. Rate limited to 10 requests per second (configurable via API\_RATE\_LIMIT)
-5. Useful for health checks and monitoring API availability
+**Back to**: [API documentation](../README.md)

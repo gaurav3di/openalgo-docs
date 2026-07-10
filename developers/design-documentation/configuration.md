@@ -1,14 +1,97 @@
 # 07 - Sandbox Architecture (Analyzer Mode)
 
-### Overview
+## Overview
 
-OpenAlgo's Sandbox/Analyzer mode provides a production-grade walkforward testing environment with ₹1 Crore sandbox capital, realistic margin calculations, leverage-based trading, auto square-off, and T+1 settlement simulation. It runs completely isolated from live trading with its own database (`db/sandbox.db`).
+OpenAlgo's Sandbox/Analyzer mode provides a local walk-forward execution environment with ₹1 Crore default sandbox capital, margin/leverage simulation, auto square-off, and T+1 settlement behavior. It stores trading state separately from live broker state in `db/sandbox.db`.
 
-### Architecture Diagram
+Analyzer mode does not implement GTT place, modify, cancel, or orderbook services; those operations currently return 501 even though sandbox GTT tables exist.
 
-<figure><img src="../../.gitbook/assets/image (155).png" alt=""><figcaption></figcaption></figure>
+## Architecture Diagram
 
-````
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        Sandbox Architecture                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+                              API Request
+                                  │
+                                  ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         Mode Router (is_sandbox_mode())                       │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │  if is_sandbox_mode():                                                   │ │
+│  │      → Route to Sandbox Services (OrderManager, FundManager, etc.)       │ │
+│  │  else:                                                                   │ │
+│  │      → Route to Live Broker Services (broker/*/api/*)                    │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────────────────┘
+                    │                               │
+           Analyzer Mode ON                    Live Mode
+                    │                               │
+                    ▼                               ▼
+┌───────────────────────────────────┐    ┌───────────────────────────────┐
+│      Sandbox Services              │    │      Live Broker Services      │
+│                                   │    │                               │
+│  ┌─────────────────────────────┐  │    │  ┌─────────────────────────┐  │
+│  │    Order Manager            │  │    │  │   Broker Order API      │  │
+│  │    - Validation             │  │    │  │   (Real Orders)         │  │
+│  │    - Margin Check/Block     │  │    │  └─────────────────────────┘  │
+│  │    - Order CRUD             │  │    │                               │
+│  └─────────────────────────────┘  │    └───────────────────────────────┘
+│                                   │
+│  ┌─────────────────────────────┐  │
+│  │    Fund Manager             │  │    ┌───────────────────────────────┐
+│  │    - ₹1 Cr Sandbox Capital  │  │    │     Background Workers        │
+│  │    - Margin Block/Release   │  │    │                               │
+│  │    - P&L Tracking           │  │    │  ┌─────────────────────────┐  │
+│  │    - Auto Reset             │  │    │  │  Execution Engine       │  │
+│  └─────────────────────────────┘  │    │  │  (5 sec polling)        │  │
+│                                   │    │  │  - Fetch live quotes    │  │
+│  ┌─────────────────────────────┐  │    │  │  - Execute pending      │  │
+│  │    Execution Engine         │  │    │  │  - Update positions     │  │
+│  │    - Quote Fetching         │  │    │  └─────────────────────────┘  │
+│  │    - Price Condition Check  │  │    │                               │
+│  │    - Trade Execution        │  │    │  ┌─────────────────────────┐  │
+│  │    - Position Netting       │  │    │  │  SquareOff Scheduler    │  │
+│  └─────────────────────────────┘  │    │  │  (APScheduler)          │  │
+│                                   │    │  │  - MIS auto square-off  │  │
+│  ┌─────────────────────────────┐  │    │  │  - T+1 settlement       │  │
+│  │    Position Manager         │  │    │  │  - Weekly reset         │  │
+│  │    - MTM Updates            │  │    │  └─────────────────────────┘  │
+│  │    - P&L Calculation        │  │    │                               │
+│  │    - Session Filtering      │  │    │  ┌─────────────────────────┐  │
+│  │    - Expiry Handling        │  │    │  │  MTM Update Worker      │  │
+│  └─────────────────────────────┘  │    │  │  (5 sec interval)       │  │
+│                                   │    │  │  - WebSocket data       │  │
+│  ┌─────────────────────────────┐  │    │  │  - REST API fallback    │  │
+│  │    Holdings Manager         │  │    │  └─────────────────────────┘  │
+│  │    - T+1 Settlement         │  │    │                               │
+│  │    - CNC → Holdings         │  │    └───────────────────────────────┘
+│  │    - Holdings MTM           │  │
+│  └─────────────────────────────┘  │
+│                                   │
+│  ┌─────────────────────────────┐  │
+│  │    Squareoff Manager        │  │
+│  │    - Exchange-wise timing   │  │
+│  │    - MIS position close     │  │
+│  │    - Open order cancel      │  │
+│  └─────────────────────────────┘  │
+└───────────────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────┐
+│       sandbox.db (Isolated)       │
+│                                   │
+│  • sandbox_orders                 │
+│  • sandbox_trades                 │
+│  • sandbox_positions              │
+│  • sandbox_holdings               │
+│  • sandbox_funds                  │
+│  • sandbox_daily_pnl              │
+│  • sandbox_config                 │
+└───────────────────────────────────┘
+```
 
 ## Core Components
 
@@ -53,15 +136,14 @@ class SandboxOrders(Base):
     # Timestamps
     order_timestamp = Column(DateTime, default=datetime.now)
     update_timestamp = Column(DateTime, onupdate=datetime.now)
-````
+```
 
 **Why `margin_blocked` is critical:**
+- Stores exact margin calculated at order placement
+- Prevents over/under-release when execution price ≠ order price
+- Ensures margin consistency across async execution
 
-* Stores exact margin calculated at order placement
-* Prevents over/under-release when execution price ≠ order price
-* Ensures margin consistency across async execution
-
-**SandboxTrades Table**
+#### SandboxTrades Table
 
 Records executed trades linked to orders.
 
@@ -85,9 +167,9 @@ class SandboxTrades(Base):
     trade_timestamp = Column(DateTime, default=datetime.now)
 ```
 
-**SandboxPositions Table**
+#### SandboxPositions Table
 
-Tracks open positions with comprehensive P\&L tracking.
+Tracks open positions with comprehensive P&L tracking.
 
 ```python
 class SandboxPositions(Base):
@@ -121,13 +203,12 @@ class SandboxPositions(Base):
     )
 ```
 
-**P\&L Field Semantics:**
+**P&L Field Semantics:**
+- `pnl`: Display field for unrealized P&L (varies by context)
+- `accumulated_realized_pnl`: All-time realized, never decrements
+- `today_realized_pnl`: Daily realized, resets at session boundary (03:00 IST)
 
-* `pnl`: Display field for unrealized P\&L (varies by context)
-* `accumulated_realized_pnl`: All-time realized, never decrements
-* `today_realized_pnl`: Daily realized, resets at session boundary (03:00 IST)
-
-**SandboxHoldings Table**
+#### SandboxHoldings Table
 
 T+1 settled CNC positions (delivery holdings).
 
@@ -153,7 +234,7 @@ class SandboxHoldings(Base):
     )
 ```
 
-**SandboxFunds Table**
+#### SandboxFunds Table
 
 Sandbox capital management per user.
 
@@ -180,14 +261,13 @@ class SandboxFunds(Base):
 ```
 
 **Fund Balance Equation:**
-
 ```
 total_capital = available_balance + used_margin + realized_pnl
 ```
 
-**SandboxDailyPnL Table**
+#### SandboxDailyPnL Table
 
-EOD snapshots for historical P\&L reporting.
+EOD snapshots for historical P&L reporting.
 
 ```python
 class SandboxDailyPnL(Base):
@@ -209,7 +289,7 @@ class SandboxDailyPnL(Base):
     )
 ```
 
-**SandboxConfig Table**
+#### SandboxConfig Table
 
 Global configuration for all sandbox settings.
 
@@ -226,26 +306,26 @@ class SandboxConfig(Base):
 
 **Default Configuration Values:**
 
-| Key                       | Default  | Description                            |
-| ------------------------- | -------- | -------------------------------------- |
-| `starting_capital`        | 10000000 | ₹1 Crore sandbox capital               |
-| `reset_day`               | Never    | Weekly reset day (Never/Monday-Sunday) |
-| `reset_time`              | 00:00    | Reset time in IST                      |
-| `equity_mis_leverage`     | 5        | 5x leverage for equity intraday        |
-| `equity_cnc_leverage`     | 1        | 1x for equity delivery                 |
-| `futures_leverage`        | 10       | 10x for futures                        |
-| `option_buy_leverage`     | 1        | Full premium for option buy            |
-| `option_sell_leverage`    | 1        | Full premium for option sell           |
-| `nse_bse_square_off_time` | 15:15    | NSE/BSE MIS square-off                 |
-| `cds_bcd_square_off_time` | 16:45    | Currency MIS square-off                |
-| `mcx_square_off_time`     | 23:30    | MCX MIS square-off                     |
-| `ncdex_square_off_time`   | 17:00    | NCDEX MIS square-off                   |
-| `order_check_interval`    | 5        | Execution engine polling (seconds)     |
-| `mtm_update_interval`     | 5        | Position MTM update (seconds)          |
+| Key | Default | Description |
+|-----|---------|-------------|
+| `starting_capital` | 10000000 | ₹1 Crore sandbox capital |
+| `reset_day` | Never | Weekly reset day (Never/Monday-Sunday) |
+| `reset_time` | 00:00 | Reset time in IST |
+| `equity_mis_leverage` | 5 | 5x leverage for equity intraday |
+| `equity_cnc_leverage` | 1 | 1x for equity delivery |
+| `futures_leverage` | 10 | 10x for futures |
+| `option_buy_leverage` | 1 | Full premium for option buy |
+| `option_sell_leverage` | 1 | Full premium for option sell |
+| `nse_bse_square_off_time` | 15:15 | NSE/BSE MIS square-off |
+| `cds_bcd_square_off_time` | 16:45 | Currency MIS square-off |
+| `mcx_square_off_time` | 23:30 | MCX MIS square-off |
+| `ncdex_square_off_time` | 17:00 | NCDEX MIS square-off |
+| `order_check_interval` | 5 | Execution engine polling (seconds) |
+| `mtm_update_interval` | 5 | Position MTM update (seconds) |
 
-***
+---
 
-#### 2. Fund Manager
+### 2. Fund Manager
 
 **Location:** `sandbox/fund_manager.py`
 
@@ -262,7 +342,7 @@ class FundManager:
         self.starting_capital = Decimal(get_config('starting_capital', '10000000.00'))
 ```
 
-**Margin Calculation**
+#### Margin Calculation
 
 ```python
 def calculate_margin_required(self, symbol, exchange, price, quantity, product, action):
@@ -299,7 +379,7 @@ def calculate_margin_required(self, symbol, exchange, price, quantity, product, 
     return margin_required.quantize(Decimal('0.01'))
 ```
 
-**Margin Block/Release Flow**
+#### Margin Block/Release Flow
 
 ```python
 def block_margin(self, amount, description="Order placement"):
@@ -341,7 +421,7 @@ def release_margin(self, amount, realized_pnl=Decimal('0'), description="Positio
         logger.info(f"Released ₹{amount}, P&L: ₹{realized_pnl}")
 ```
 
-**Margin Reconciliation**
+#### Margin Reconciliation
 
 Detects and fixes margin inconsistencies.
 
@@ -386,7 +466,7 @@ def reconcile_margin(self, auto_fix=False):
         logger.info(f"Reconciled: Released ₹{discrepancy} stuck margin")
 ```
 
-**Auto-Reset Feature**
+#### Auto-Reset Feature
 
 ```python
 def _check_and_reset_funds(self):
@@ -433,9 +513,9 @@ def _reset_funds(self):
         logger.info(f"Reset funds for user {self.user_id}, count: {funds.reset_count}")
 ```
 
-***
+---
 
-#### 3. Execution Engine
+### 3. Execution Engine
 
 **Location:** `sandbox/execution_engine.py`
 
@@ -456,7 +536,7 @@ class ExecutionEngine:
         self._thread = None
 ```
 
-**Main Execution Loop**
+#### Main Execution Loop
 
 ```python
 def check_and_execute_pending_orders(self):
@@ -514,7 +594,7 @@ def check_and_execute_pending_orders(self):
         self._process_batch(batch)
 ```
 
-**Order Execution Logic by Price Type**
+#### Order Execution Logic by Price Type
 
 ```python
 def _process_order(self, order, quote):
@@ -575,7 +655,7 @@ def _process_order(self, order, quote):
         self._execute_order(order, execution_price)
 ```
 
-**Trade Execution and Position Update**
+#### Trade Execution and Position Update
 
 ```python
 def _execute_order(self, order, execution_price):
@@ -713,7 +793,7 @@ def _update_position(self, order, execution_price):
     fund_manager.validate_margin_consistency()
 ```
 
-**Execution Flow Diagram**
+#### Execution Flow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -777,15 +857,15 @@ def _update_position(self, order, execution_price):
                 └───────────────────────────┘
 ```
 
-***
+---
 
-#### 4. Position Manager
+### 4. Position Manager
 
 **Location:** `sandbox/position_manager.py`
 
 Handles position tracking, MTM updates, session filtering, and expired contract handling.
 
-**MTM (Mark-to-Market) Updates**
+#### MTM (Mark-to-Market) Updates
 
 ```python
 def _update_positions_mtm(self):
@@ -854,7 +934,7 @@ def _update_positions_mtm(self):
     db_session.commit()
 ```
 
-**Session Filtering**
+#### Session Filtering
 
 ```python
 def get_open_positions(self, user_id):
@@ -919,7 +999,7 @@ def _reset_today_pnl(self, position):
     db_session.commit()
 ```
 
-**Expired Contract Handling**
+#### Expired Contract Handling
 
 ```python
 def _check_and_close_expired_positions(self):
@@ -1003,9 +1083,9 @@ def _settle_expired_position(self, position, expiry_date):
     logger.info(f"Settled expired {position.symbol}, P&L: ₹{realized_pnl}")
 ```
 
-***
+---
 
-#### 5. Square-Off Manager
+### 5. Square-Off Manager
 
 **Location:** `sandbox/squareoff_manager.py`
 
@@ -1033,7 +1113,7 @@ class SquareoffManager:
         }
 ```
 
-**Main Square-Off Logic**
+#### Main Square-Off Logic
 
 ```python
 def check_and_square_off(self):
@@ -1118,7 +1198,7 @@ def _square_off_positions(self, positions):
             logger.error(f"Square-off failed for {position.symbol}: {response}")
 ```
 
-**APScheduler Jobs**
+#### APScheduler Jobs
 
 ```python
 def start_squareoff_scheduler(self):
@@ -1180,15 +1260,15 @@ def start_squareoff_scheduler(self):
     self.scheduler = scheduler
 ```
 
-***
+---
 
-#### 6. Holdings Manager
+### 6. Holdings Manager
 
 **Location:** `sandbox/holdings_manager.py`
 
 Handles T+1 settlement and holdings MTM.
 
-**T+1 Settlement Process**
+#### T+1 Settlement Process
 
 ```python
 def process_t1_settlement(self):
@@ -1298,15 +1378,15 @@ def _settle_sell_proceeds(self, position, fund_manager):
     db_session.delete(position)
 ```
 
-***
+---
 
-#### 7. Order Manager
+### 7. Order Manager
 
 **Location:** `sandbox/order_manager.py`
 
 Handles order placement, modification, and cancellation.
 
-**Order Placement**
+#### Order Placement
 
 ```python
 class OrderManager:
@@ -1439,7 +1519,7 @@ class OrderManager:
         return {'valid': True}
 ```
 
-**Order Modification**
+#### Order Modification
 
 ```python
 def modify_order(self, orderid, new_data):
@@ -1495,7 +1575,7 @@ def modify_order(self, orderid, new_data):
     return True, {'orderid': orderid, 'status': 'modified'}, 200
 ```
 
-**Order Cancellation**
+#### Order Cancellation
 
 ```python
 def cancel_order(self, orderid):
@@ -1524,9 +1604,9 @@ def cancel_order(self, orderid):
     return True, {'orderid': orderid, 'status': 'cancelled'}, 200
 ```
 
-***
+---
 
-#### 8. API Integration
+### 8. API Integration
 
 **Location:** `restx_api/analyzer.py`, `services/sandbox_service.py`
 
@@ -1553,7 +1633,7 @@ def getfunds():
         return broker_api.get_funds()
 ```
 
-**Analyzer Toggle Endpoint**
+#### Analyzer Toggle Endpoint
 
 ```python
 # POST /api/v1/analyzer/toggle
@@ -1587,9 +1667,9 @@ def toggle_analyzer_mode(mode: bool):
     return {'status': 'success', 'mode': 'analyze' if mode else 'live'}
 ```
 
-***
+---
 
-### Complete Order Flow Diagram
+## Complete Order Flow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -1721,9 +1801,9 @@ Service       API
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-***
+---
 
-### Session and Settlement Flow
+## Session and Settlement Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -1773,45 +1853,42 @@ Service       API
 ─── Next Trading Day ───
 ```
 
-***
+---
 
-### Key Files Reference
+## Key Files Reference
 
-| File                                    | Purpose                                |
-| --------------------------------------- | -------------------------------------- |
-| `database/sandbox_db.py`                | All database models and initialization |
-| `sandbox/fund_manager.py`               | Capital and margin management          |
-| `sandbox/execution_engine.py`           | Order execution background worker      |
-| `sandbox/position_manager.py`           | Position tracking and MTM              |
-| `sandbox/squareoff_manager.py`          | Auto square-off scheduling             |
-| `sandbox/holdings_manager.py`           | T+1 settlement logic                   |
-| `sandbox/order_manager.py`              | Order CRUD operations                  |
-| `sandbox/catch_up_processor.py`         | Startup catch-up for missed events     |
-| `sandbox/execution_thread.py`           | Execution engine thread management     |
-| `sandbox/websocket_execution_engine.py` | WebSocket-based order execution        |
-| `sandbox/squareoff_thread.py`           | APScheduler management                 |
-| `services/sandbox_service.py`           | API integration layer                  |
-| `services/analyzer_service.py`          | Analyzer mode toggle                   |
-| `restx_api/analyzer.py`                 | REST API endpoints                     |
-| `blueprints/analyzer.py`                | Web UI routes                          |
-| `blueprints/sandbox.py`                 | Configuration UI routes                |
+| File | Purpose |
+|------|---------|
+| `database/sandbox_db.py` | All database models and initialization |
+| `sandbox/fund_manager.py` | Capital and margin management |
+| `sandbox/execution_engine.py` | Order execution background worker |
+| `sandbox/position_manager.py` | Position tracking and MTM |
+| `sandbox/squareoff_manager.py` | Auto square-off scheduling |
+| `sandbox/holdings_manager.py` | T+1 settlement logic |
+| `sandbox/order_manager.py` | Order CRUD operations |
+| `sandbox/catch_up_processor.py` | Startup catch-up for missed events |
+| `sandbox/execution_thread.py` | Execution engine thread management |
+| `sandbox/websocket_execution_engine.py` | WebSocket-based order execution |
+| `sandbox/squareoff_thread.py` | APScheduler management |
+| `services/sandbox_service.py` | API integration layer |
+| `services/analyzer_service.py` | Analyzer mode toggle |
+| `restx_api/analyzer.py` | REST API endpoints |
+| `blueprints/analyzer.py` | Web UI routes |
+| `blueprints/sandbox.py` | Configuration UI routes |
 
-***
+---
 
-### Configuration Blueprint
+## Configuration Blueprint
 
 **Location:** `/sandbox` web routes
 
-| Endpoint                    | Method | Purpose                    |
-| --------------------------- | ------ | -------------------------- |
-| `/sandbox/`                 | GET    | Configuration page         |
-| `/sandbox/api/configs`      | GET    | Get all config values      |
-| `/sandbox/update`           | POST   | Update config value        |
-| `/sandbox/reset`            | POST   | Reset all sandbox data     |
-| `/sandbox/reload-squareoff` | POST   | Reload square-off schedule |
-| `/sandbox/squareoff-status` | GET    | Current square-off status  |
-| `/sandbox/mypnl`            | GET    | P\&L history page          |
-| `/sandbox/mypnl/api/data`   | GET    | P\&L history data (JSON)   |
-
-```
-```
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/sandbox/` | GET | Configuration page |
+| `/sandbox/api/configs` | GET | Get all config values |
+| `/sandbox/update` | POST | Update config value |
+| `/sandbox/reset` | POST | Reset all sandbox data |
+| `/sandbox/reload-squareoff` | POST | Reload square-off schedule |
+| `/sandbox/squareoff-status` | GET | Current square-off status |
+| `/sandbox/mypnl` | GET | P&L history page |
+| `/sandbox/mypnl/api/data` | GET | P&L history data (JSON) |

@@ -1,10 +1,10 @@
 # 42 - Action Center
 
-### Overview
+## Overview
 
 The Action Center is a centralized order approval system for semi-automated trading. When enabled, orders are queued for manual approval before execution, essential for managed accounts and regulatory compliance (RA - Relationship Advisor mode).
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -73,9 +73,9 @@ The Action Center is a centralized order approval system for semi-automated trad
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Order Mode Configuration
+## Order Mode Configuration
 
-#### Setting Order Mode
+### Setting Order Mode
 
 ```python
 # Via API Key settings page
@@ -83,7 +83,7 @@ order_mode = 'auto'       # Direct execution (default)
 order_mode = 'semi_auto'  # Queue for approval
 ```
 
-#### Mode Toggle API
+### Mode Toggle API
 
 ```
 POST /apikey/mode
@@ -92,7 +92,7 @@ Content-Type: application/json
 {"mode": "semi_auto"}
 ```
 
-### Semi-Auto Workflow
+## Semi-Auto Workflow
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -131,9 +131,9 @@ Content-Type: application/json
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Database Schema
+## Database Schema
 
-#### pending\_orders Table
+### pending_orders Table
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -160,51 +160,50 @@ Content-Type: application/json
 └──────────────────┴──────────────┴──────────────────────────────┘
 ```
 
-#### Indexes
+### Indexes
 
 ```sql
 CREATE INDEX idx_user_status ON pending_orders(user_id, status);
 CREATE INDEX idx_created_at ON pending_orders(created_at);
 ```
 
-### Supported Order Types
+## Supported Order Types
 
-| API Type     | Description          |
-| ------------ | -------------------- |
-| placeorder   | Standard order       |
-| smartorder   | Position-aware order |
-| basketorder  | Multiple orders      |
-| splitorder   | Split large orders   |
-| optionsorder | Options contracts    |
+| API Type | Description |
+|----------|-------------|
+| placeorder | Standard order |
+| smartorder | Position-aware order |
+| basketorder | Multiple orders |
+| splitorder | Split large orders |
+| optionsorder | Options contracts |
 
-### Restricted Operations
+## Restricted Operations
 
 These operations ALWAYS execute immediately, even in semi-auto mode:
 
-| Operation         | Reason                  |
-| ----------------- | ----------------------- |
-| closeposition     | Prevent stuck positions |
-| closeallpositions | Emergency close         |
-| cancelorder       | Order management        |
-| cancelallorder    | Bulk cancel             |
-| modifyorder       | Order adjustment        |
-| orderstatus       | Status query            |
-| orderbook         | Data retrieval          |
-| tradebook         | Data retrieval          |
-| positions         | Data retrieval          |
-| holdings          | Data retrieval          |
-| funds             | Data retrieval          |
+| Operation | Reason |
+|-----------|--------|
+| closeposition | Prevent stuck positions |
+| closeallpositions | Emergency close |
+| cancelorder | Order management |
+| cancelallorder | Bulk cancel |
+| modifyorder | Order adjustment |
+| orderstatus | Status query |
+| orderbook | Data retrieval |
+| tradebook | Data retrieval |
+| positions | Data retrieval |
+| holdings | Data retrieval |
+| funds | Data retrieval |
 
-### API Endpoints
+## API Endpoints
 
-#### Get Orders
+### Get Orders
 
 ```
 POST /action-center/api/data?status=pending
 ```
 
 **Response:**
-
 ```json
 {
     "status": "success",
@@ -234,14 +233,13 @@ POST /action-center/api/data?status=pending
 }
 ```
 
-#### Approve Order
+### Approve Order
 
 ```
 POST /action-center/approve/{order_id}
 ```
 
 **Response:**
-
 ```json
 {
     "status": "success",
@@ -250,7 +248,7 @@ POST /action-center/approve/{order_id}
 }
 ```
 
-#### Reject Order
+### Reject Order
 
 ```
 POST /action-center/reject/{order_id}
@@ -259,14 +257,13 @@ Content-Type: application/json
 {"reason": "Invalid price level"}
 ```
 
-#### Approve All
+### Approve All
 
 ```
 POST /action-center/approve-all
 ```
 
 **Response:**
-
 ```json
 {
     "status": "success",
@@ -276,7 +273,7 @@ POST /action-center/approve-all
 }
 ```
 
-#### Delete Order
+### Delete Order
 
 ```
 DELETE /action-center/delete/{order_id}
@@ -284,30 +281,29 @@ DELETE /action-center/delete/{order_id}
 
 Note: Only approved or rejected orders can be deleted.
 
-#### Get Pending Count
+### Get Pending Count
 
 ```
 GET /action-center/count
 ```
 
 **Response:**
-
 ```json
 {
     "count": 3
 }
 ```
 
-### Real-Time Updates
+## Real-Time Updates
 
-#### SocketIO Events
+### SocketIO Events
 
-| Event                   | Trigger          | Data                |
-| ----------------------- | ---------------- | ------------------- |
-| pending\_order\_created | New order queued | order\_id, user\_id |
-| pending\_order\_updated | Approve/Reject   | order\_id, status   |
+| Event | Trigger | Data |
+|-------|---------|------|
+| pending_order_created | New order queued | order_id, user_id |
+| pending_order_updated | Approve/Reject | order_id, status |
 
-#### Frontend Handling
+### Frontend Handling
 
 ```typescript
 // Listen for new orders
@@ -323,9 +319,9 @@ socket.on('pending_order_updated', () => {
 });
 ```
 
-### React Component Features
+## React Component Features
 
-#### Tabbed Interface
+### Tabbed Interface
 
 ```
 [Pending (3)]  [Approved]  [Rejected]  [All Orders]
@@ -333,7 +329,7 @@ socket.on('pending_order_updated', () => {
   (pulse animation when pending > 0)
 ```
 
-#### Statistics Dashboard
+### Statistics Dashboard
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -342,22 +338,22 @@ socket.on('pending_order_updated', () => {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### Order Table Columns
+### Order Table Columns
 
-| Column     | Content                       |
-| ---------- | ----------------------------- |
-| Strategy   | Strategy name                 |
-| Symbol     | Trading symbol                |
-| Exchange   | NSE/NFO/MCX badge             |
-| Action     | BUY (green) / SELL (red)      |
-| Quantity   | Order quantity                |
-| Price      | Price or "MARKET"             |
-| Order Type | placeorder/smartorder/etc     |
-| Product    | CNC/MIS/NRML badge            |
-| Created    | Relative time ("5 min ago")   |
-| Actions    | Approve/Reject/Delete buttons |
+| Column | Content |
+|--------|---------|
+| Strategy | Strategy name |
+| Symbol | Trading symbol |
+| Exchange | NSE/NFO/MCX badge |
+| Action | BUY (green) / SELL (red) |
+| Quantity | Order quantity |
+| Price | Price or "MARKET" |
+| Order Type | placeorder/smartorder/etc |
+| Product | CNC/MIS/NRML badge |
+| Created | Relative time ("5 min ago") |
+| Actions | Approve/Reject/Delete buttons |
 
-#### Expandable Details
+### Expandable Details
 
 Click chevron to view raw order data:
 
@@ -376,9 +372,9 @@ Click chevron to view raw order data:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Service Implementation
+## Service Implementation
 
-#### Order Router
+### Order Router
 
 ```python
 def should_route_to_pending(api_key, api_type=None):
@@ -394,7 +390,7 @@ def should_route_to_pending(api_key, api_type=None):
     return order_mode == 'semi_auto'
 ```
 
-#### Queue Order
+### Queue Order
 
 ```python
 def queue_order(api_key, order_data, api_type):
@@ -421,7 +417,7 @@ def queue_order(api_key, order_data, api_type):
     }, 200
 ```
 
-#### Execute Approved Order
+### Execute Approved Order
 
 ```python
 def execute_approved_order(pending_order_id):
@@ -445,35 +441,34 @@ def execute_approved_order(pending_order_id):
     return result
 ```
 
-### Security & Compliance
+## Security & Compliance
 
-#### Audit Trail
+### Audit Trail
 
 All actions are logged with:
+- Timestamp (IST)
+- Username
+- Action taken
+- Reason (for rejections)
 
-* Timestamp (IST)
-* Username
-* Action taken
-* Reason (for rejections)
+### API Key Security
 
-#### API Key Security
+- API keys never stored in pending_orders
+- Only user_id reference maintained
+- Keys retrieved at execution time
 
-* API keys never stored in pending\_orders
-* Only user\_id reference maintained
-* Keys retrieved at execution time
+### Analyzer Mode Restriction
 
-#### Analyzer Mode Restriction
+When in semi_auto mode, analyzer toggle is blocked to ensure RA compliance.
 
-When in semi\_auto mode, analyzer toggle is blocked to ensure RA compliance.
+## Key Files Reference
 
-### Key Files Reference
-
-| File                                          | Purpose              |
-| --------------------------------------------- | -------------------- |
-| `database/action_center_db.py`                | PendingOrder model   |
-| `services/action_center_service.py`           | Order parsing, stats |
-| `services/order_router_service.py`            | Route decisions      |
-| `services/pending_order_execution_service.py` | Execute approved     |
-| `blueprints/orders.py`                        | Action center routes |
-| `blueprints/apikey.py`                        | Mode toggle          |
-| `frontend/src/pages/ActionCenter.tsx`         | React UI             |
+| File | Purpose |
+|------|---------|
+| `database/action_center_db.py` | PendingOrder model |
+| `services/action_center_service.py` | Order parsing, stats |
+| `services/order_router_service.py` | Route decisions |
+| `services/pending_order_execution_service.py` | Execute approved |
+| `blueprints/orders.py` | Action center routes |
+| `blueprints/apikey.py` | Mode toggle |
+| `frontend/src/pages/ActionCenter.tsx` | React UI |

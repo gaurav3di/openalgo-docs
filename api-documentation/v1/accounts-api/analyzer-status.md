@@ -1,8 +1,8 @@
-# Analyzer Status
+# AnalyzerStatus
+
+Get the current status of the analyzer (sandbox) mode.
 
 ## Endpoint URL
-
-This API Function fetches the stock holdings details from the broker
 
 ```http
 Local Host   :  POST http://127.0.0.1:5000/api/v1/analyzer
@@ -10,55 +10,93 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/analyzer
 Custom Domain:  POST https://<your-custom-domain>/api/v1/analyzer
 ```
 
-
-
 ## Sample API Request
 
 ```json
 {
-    "apikey": "<your_app_apikey>"
+  "apikey": "<your_app_apikey>"
 }
-
 ```
 
+## Sample cURL Request
 
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/analyzer \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>"
+}'
+```
 
-## Sample API Response
+## Sample API Response (Analyzer Mode ON)
 
 ```json
 {
+  "status": "success",
   "data": {
-    "analyze_mode": false,
-    "mode": "live",
+    "analyze_mode": true,
+    "mode": "analyze",
     "total_logs": 2
-  },
-  "status": "success"
+  }
 }
 ```
 
+## Sample API Response (Live Mode)
 
+```json
+{
+  "status": "success",
+  "data": {
+    "analyze_mode": false,
+    "mode": "live",
+    "total_logs": 0
+  }
+}
+```
 
-### Request Body
+## Request Body
 
-| Parameter | Type   | Required | Description           |
-| --------- | ------ | -------- | --------------------- |
-| apikey    | string | Yes      | Your OpenAlgo API key |
+| Parameter | Description | Mandatory/Optional | Default Value |
+|-----------|-------------|-------------------|---------------|
+| apikey | Your OpenAlgo API key | Mandatory | - |
 
-### Response Fields
+## Response Fields
 
-| Field         | Type    | Description                                                 |
-| ------------- | ------- | ----------------------------------------------------------- |
-| status        | string  | Status of the API call (success/error)                      |
-| data          | object  | Container for response data                                 |
-| mode          | string  | Current mode in human-readable format ("analyze" or "live") |
-| analyze\_mode | boolean | Current analyzer mode flag (true = analyze, false = live)   |
-| total\_logs   | integer | Total number of analyzer logs stored                        |
+| Field | Type | Description |
+|-------|------|-------------|
+| status | string | "success" or "error" |
+| data | object | Analyzer status data |
 
-### Notes
+### Data Object Fields
 
-* **Live Mode**: When `analyze_mode` is `false`, all API calls execute actual broker operations
-* **Analyze Mode**: When `analyze_mode` is `true`, all API calls return simulated responses without executing real trades
-* The `total_logs` field shows the cumulative count of all analyzer mode operations logged in the system
-* This endpoint is useful for checking the current mode before executing trading operations
-* Rate limited to 10 requests per second per API key
+| Field | Type | Description |
+|-------|------|-------------|
+| analyze_mode | boolean | true if analyzer mode is active |
+| mode | string | "analyze" or "live" |
+| total_logs | number | Number of orders logged in analyzer mode |
 
+## What is Analyzer Mode?
+
+Analyzer mode (sandbox mode) allows you to test your trading strategies without placing real orders:
+
+| Feature | Live Mode | Analyzer Mode |
+|---------|-----------|---------------|
+| Orders sent to broker | Yes | No |
+| Real money at risk | Yes | No |
+| Order IDs | Real broker IDs | Simulated IDs |
+| Response format | Same | Same (with mode: "analyze") |
+| Uses sandbox capital | No | Yes (₹1 Crore) |
+
+## Notes
+
+- Check analyzer status before placing important orders
+- **total_logs** shows how many simulated orders have been placed
+- Use [AnalyzerToggle](./analyzer-toggle.md) to switch between modes
+- Analyzer mode is ideal for:
+  - Strategy testing
+  - API integration testing
+  - Demo purposes
+
+---
+
+**Back to**: [API Documentation](../README.md)

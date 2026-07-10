@@ -1,8 +1,8 @@
 # Funds
 
-## Endpoint URL
+Get account funds information including available cash, collateral, and margin utilization.
 
-This API Function Fetches Funds and Margin Details of the Connected Trading Account
+## Endpoint URL
 
 ```http
 Local Host   :  POST http://127.0.0.1:5000/api/v1/funds
@@ -10,63 +10,80 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/funds
 Custom Domain:  POST https://<your-custom-domain>/api/v1/funds
 ```
 
-
-
 ## Sample API Request
 
 ```json
 {
-    "apikey": "<your_app_apikey>"
+  "apikey": "<your_app_apikey>"
 }
-
 ```
 
-###
+## Sample cURL Request
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/funds \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>"
+}'
+```
 
 ## Sample API Response
 
 ```json
 {
+  "status": "success",
   "data": {
-    "availablecash": "18083.01",
+    "availablecash": "320.66",
     "collateral": "0.00",
-    "m2mrealized": "0.00",
-    "m2munrealized": "0.00",
-    "utiliseddebits": "0.00"
-  },
-  "status": "success"
+    "m2mrealized": "3.27",
+    "m2munrealized": "-7.88",
+    "utiliseddebits": "679.34"
+  }
 }
 ```
 
-
-
 ## Request Body
 
-
-
-| Parameters | Description | Mandatory/Optional | Default Value |
-| ---------- | ----------- | ------------------ | ------------- |
-| apikey     | App API key | Mandatory          | -             |
-
-
+| Parameter | Description | Mandatory/Optional | Default Value |
+|-----------|-------------|-------------------|---------------|
+| apikey | Your OpenAlgo API key | Mandatory | - |
 
 ## Response Fields
 
-| Field   | Type  | Description                              |
-| ------- | ----- | ---------------------------------------- |
-| seconds | array | List of supported second-based intervals |
-| minutes | array | List of supported minute-based intervals |
-| hours   | array | List of supported hour-based intervals   |
-| days    | array | List of supported daily intervals        |
-| weeks   | array | List of supported weekly intervals       |
-| months  | array | List of supported monthly intervals      |
+| Field | Type | Description |
+|-------|------|-------------|
+| status | string | "success" or "error" |
+| data | object | Funds data object |
 
+### Data Object Fields
 
+| Field | Type | Description |
+|-------|------|-------------|
+| availablecash | string | Available cash for trading |
+| collateral | string | Collateral margin (pledged holdings) |
+| m2mrealized | string | Realized Mark-to-Market profit/loss |
+| m2munrealized | string | Unrealized Mark-to-Market profit/loss |
+| utiliseddebits | string | Margin utilized for positions |
+
+## Understanding Funds
+
+| Field | Description |
+|-------|-------------|
+| **Available Cash** | Free cash available for new trades |
+| **Collateral** | Margin from pledged stocks/securities |
+| **Realized M2M** | Profit/loss from closed positions today |
+| **Unrealized M2M** | Profit/loss from open positions (not booked) |
+| **Utilized Debits** | Margin blocked for existing positions |
 
 ## Notes
 
+- Values are returned as **strings** for precision
+- **availablecash** is the amount available for new orders
+- **collateral** is margin from pledged holdings (varies by broker)
+- M2M values update in real-time with market prices
+- Total margin = availablecash + collateral
 
+---
 
-1. Always check supported intervals first using the intervals API
-2. Use exact interval strings from intervals API response
-3. All timestamps are in Unix epoch format
+**Back to**: [API Documentation](../README.md)

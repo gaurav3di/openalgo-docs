@@ -1,10 +1,10 @@
 # 26 - Traffic Logs
 
-### Overview
+## Overview
 
 OpenAlgo logs all HTTP traffic for monitoring, debugging, and security analysis. Traffic logs capture request/response metadata without sensitive data.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -44,9 +44,9 @@ OpenAlgo logs all HTTP traffic for monitoring, debugging, and security analysis.
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Database Schema
+## Database Schema
 
-#### traffic\_logs Table
+### traffic_logs Table
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -67,7 +67,7 @@ OpenAlgo logs all HTTP traffic for monitoring, debugging, and security analysis.
 └──────────────┴──────────────┴──────────────────────┘
 ```
 
-#### Indexes
+### Indexes
 
 ```sql
 CREATE INDEX idx_traffic_timestamp ON traffic_logs(timestamp);
@@ -77,9 +77,9 @@ CREATE INDEX idx_traffic_user_id ON traffic_logs(user_id);
 CREATE INDEX idx_traffic_ip_timestamp ON traffic_logs(client_ip, timestamp);
 ```
 
-### Implementation
+## Implementation
 
-#### WSGI Middleware
+### WSGI Middleware
 
 ```python
 class TrafficLoggerMiddleware:
@@ -112,7 +112,7 @@ class TrafficLoggerMiddleware:
         return response
 ```
 
-#### Initialization
+### Initialization
 
 ```python
 from utils.traffic_logger import init_traffic_logging
@@ -121,15 +121,14 @@ app = Flask(__name__)
 init_traffic_logging(app)
 ```
 
-### Dashboard
+## Dashboard
 
-#### Access
-
+### Access
 ```
 /logs/traffic
 ```
 
-#### Dashboard View
+### Dashboard View
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -166,15 +165,15 @@ init_traffic_logging(app)
 │ ├───────────┼────────┼───────────────────┼────────┼──────────┼────────────┤│
 │ │ 09:30:15  │ POST   │ /api/v1/placeorder│ 200    │ 85ms     │ 192.168.1.5││
 │ │ 09:30:16  │ GET    │ /dashboard        │ 200    │ 15ms     │ 192.168.1.5││
-│ │ 09:30:20  │ POST   │ /api/v1/positions │ 200    │ 45ms     │ 10.0.0.25  ││
+│ │ 09:30:20  │ POST   │ /api/v1/positionbook │ 200  │ 45ms     │ 10.0.0.25  ││
 │ │ 09:30:25  │ GET    │ /api/v1/invalid   │ 404    │ 5ms      │ 172.16.0.1 ││
 │ └─────────────────────────────────────────────────────────────────────────┘│
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Filtering Options
+## Filtering Options
 
-#### By Status Code
+### By Status Code
 
 ```python
 # Filter 5xx errors
@@ -188,7 +187,7 @@ logs = TrafficLog.query.filter(
 ).all()
 ```
 
-#### By Time Range
+### By Time Range
 
 ```python
 from datetime import datetime, timedelta
@@ -200,7 +199,7 @@ logs = TrafficLog.query.filter(
 ).all()
 ```
 
-#### By IP Address
+### By IP Address
 
 ```python
 # Specific IP
@@ -209,9 +208,9 @@ logs = TrafficLog.query.filter(
 ).all()
 ```
 
-### Analytics Queries
+## Analytics Queries
 
-#### Request Volume by Hour
+### Request Volume by Hour
 
 ```sql
 SELECT
@@ -223,7 +222,7 @@ GROUP BY hour
 ORDER BY hour
 ```
 
-#### Top Endpoints
+### Top Endpoints
 
 ```sql
 SELECT
@@ -236,7 +235,7 @@ ORDER BY hits DESC
 LIMIT 10
 ```
 
-#### Error Rate
+### Error Rate
 
 ```sql
 SELECT
@@ -249,7 +248,7 @@ GROUP BY hour
 ORDER BY hour
 ```
 
-#### Slowest Endpoints
+### Slowest Endpoints
 
 ```sql
 SELECT
@@ -262,9 +261,9 @@ ORDER BY avg_duration DESC
 LIMIT 10
 ```
 
-### Data Exclusions
+## Data Exclusions
 
-#### Not Logged
+### Not Logged
 
 To protect privacy and reduce noise:
 
@@ -280,16 +279,16 @@ def should_log(path):
     return not any(path.startswith(p) for p in EXCLUDED_PATHS)
 ```
 
-#### Sensitive Data
+### Sensitive Data
 
-* Request body NOT logged
-* Response body NOT logged
-* Headers NOT logged (except Host)
-* Cookies NOT logged
+- Request body NOT logged
+- Response body NOT logged
+- Headers NOT logged (except Host)
+- Cookies NOT logged
 
-### Retention
+## Retention
 
-#### Automatic Cleanup
+### Automatic Cleanup
 
 ```python
 def cleanup_old_logs(days=30):
@@ -300,7 +299,7 @@ def cleanup_old_logs(days=30):
     db.session.commit()
 ```
 
-#### Scheduled Task
+### Scheduled Task
 
 ```python
 # Run daily cleanup
@@ -312,12 +311,12 @@ scheduler.add_job(
 )
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                             | Purpose          |
-| -------------------------------- | ---------------- |
-| `utils/traffic_logger.py`        | WSGI middleware  |
-| `database/traffic_db.py`         | Traffic model    |
-| `utils/ip_helper.py`             | IP resolution    |
-| `blueprints/logs.py`             | Dashboard routes |
-| `frontend/src/pages/Traffic.tsx` | React dashboard  |
+| File | Purpose |
+|------|---------|
+| `utils/traffic_logger.py` | WSGI middleware |
+| `database/traffic_db.py` | Traffic model |
+| `utils/ip_helper.py` | IP resolution |
+| `blueprints/traffic.py` | Dashboard, stats, and export routes |
+| `frontend/src/pages/monitoring/TrafficDashboard.tsx` | React dashboard |

@@ -1,27 +1,78 @@
 # 04 - Cache Architecture
 
-### Overview
+## Overview
 
 OpenAlgo implements a multi-layer caching system to achieve high performance with 100,000+ trading symbols. The caching architecture minimizes database queries, reduces latency, and ensures fast API responses during high-frequency trading operations.
 
-### Cache Architecture Diagram
+## Cache Architecture Diagram
 
-<figure><img src="../../.gitbook/assets/image (152).png" alt=""><figcaption></figcaption></figure>
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          Cache Architecture                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
 
-### Cache Types
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Application Layer                                  │
+│                                                                              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
+│  │  REST API   │  │  WebSocket  │  │  Services   │  │  Broker Callbacks   │ │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
+│         │                │                │                     │            │
+│         └────────────────┴────────────────┴─────────────────────┘            │
+│                                   │                                          │
+└───────────────────────────────────┼──────────────────────────────────────────┘
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         In-Memory Cache Layer                                 │
+│                                                                               │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌────────────────────┐  │
+│  │   Symbol Cache       │  │    Auth Caches       │  │   API Key Caches   │  │
+│  │   (BrokerSymbolCache)│  │                      │  │                    │  │
+│  │                      │  │  ┌────────────────┐  │  │  ┌──────────────┐  │  │
+│  │  • 100K+ symbols     │  │  │  auth_cache    │  │  │  │  verified_   │  │  │
+│  │  • Multi-index maps  │  │  │  TTL: session  │  │  │  │  api_key     │  │  │
+│  │  • O(1) lookups      │  │  └────────────────┘  │  │  │  TTL: 10hr   │  │  │
+│  │  • ~50MB memory      │  │                      │  │  └──────────────┘  │  │
+│  │                      │  │  ┌────────────────┐  │  │                    │  │
+│  │  Indexes:            │  │  │ feed_token_    │  │  │  ┌──────────────┐  │  │
+│  │  • by_symbol_exchange│  │  │ cache          │  │  │  │  invalid_    │  │  │
+│  │  • by_token_exchange │  │  │ TTL: session   │  │  │  │  api_key     │  │  │
+│  │  • by_brsymbol       │  │  └────────────────┘  │  │  │  TTL: 5min   │  │  │
+│  │  • by_token          │  │                      │  │  └──────────────┘  │  │
+│  │                      │  │  ┌────────────────┐  │  │                    │  │
+│  │                      │  │  │ broker_cache   │  │  │                    │  │
+│  │                      │  │  │ TTL: 50min     │  │  │                    │  │
+│  │                      │  │  └────────────────┘  │  │                    │  │
+│  └──────────────────────┘  └──────────────────────┘  └────────────────────┘  │
+│                                                                               │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Cache Miss
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          Database Layer                                       │
+│                                                                               │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐                  │
+│  │   symtoken     │  │     auth       │  │   api_keys     │                  │
+│  │   (symbols)    │  │   (tokens)     │  │   (hashes)     │                  │
+│  └────────────────┘  └────────────────┘  └────────────────┘                  │
+│                                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
-#### 1. Symbol Cache (BrokerSymbolCache)
+## Cache Types
+
+### 1. Symbol Cache (BrokerSymbolCache)
 
 High-performance in-memory cache for 100,000+ trading symbols.
 
 **Location:** `database/token_db_enhanced.py`
 
 **Features:**
-
-* O(1) lookups via multiple indexes
-* \~50MB memory for 100K symbols
-* Session-based TTL (resets at 3:00 AM IST)
-* Cache statistics tracking
+- O(1) lookups via multiple indexes
+- ~50MB memory for 100K symbols
+- Session-based TTL (resets at 3:00 AM IST)
+- Cache statistics tracking
 
 ```python
 @dataclass
@@ -55,7 +106,6 @@ class BrokerSymbolCache:
 ```
 
 **Cache Population:**
-
 ```python
 def load_all_symbols(self, broker: str) -> bool:
     """Load all symbols for the active broker into memory"""
@@ -76,7 +126,6 @@ def load_all_symbols(self, broker: str) -> bool:
 ```
 
 **Lookup Example:**
-
 ```python
 def get_token(self, symbol: str, exchange: str) -> Optional[str]:
     """Get token for symbol and exchange - O(1) lookup"""
@@ -88,7 +137,7 @@ def get_token(self, symbol: str, exchange: str) -> Optional[str]:
     return None
 ```
 
-#### 2. Authentication Caches
+### 2. Authentication Caches
 
 **Location:** `database/auth_db.py`
 
@@ -106,7 +155,6 @@ broker_cache = TTLCache(maxsize=1024, ttl=3000)
 ```
 
 **Session-Based TTL Calculation:**
-
 ```python
 def get_session_based_cache_ttl():
     """Calculate cache TTL based on daily session expiry time"""
@@ -123,7 +171,7 @@ def get_session_based_cache_ttl():
     return max(300, min(time_until_expiry, 24 * 3600))  # 5min - 24hr bounds
 ```
 
-#### 3. API Key Caches
+### 3. API Key Caches
 
 **Three-Level API Key Verification:**
 
@@ -162,7 +210,6 @@ API Request with Key
 ```
 
 **Implementation:**
-
 ```python
 # Valid API keys - long TTL (10 hours)
 # Only stores user_id, not the key itself
@@ -195,9 +242,9 @@ def verify_api_key(api_key: str) -> Optional[str]:
     return user_id
 ```
 
-### Cache Lifecycle
+## Cache Lifecycle
 
-#### 1. Startup Restoration
+### 1. Startup Restoration
 
 On application startup, caches are restored from database:
 
@@ -230,7 +277,7 @@ def restore_symbol_cache():
         cache.load_all_symbols(auth_record.broker)
 ```
 
-#### 2. Login Population
+### 2. Login Population
 
 After successful broker authentication:
 
@@ -247,7 +294,6 @@ def async_master_contract_download(broker):
 ```
 
 **Cache Hook:**
-
 ```python
 # database/master_contract_cache_hook.py
 def load_symbols_to_cache(broker: str) -> bool:
@@ -267,7 +313,7 @@ def load_symbols_to_cache(broker: str) -> bool:
     return success
 ```
 
-#### 3. Logout Cleanup
+### 3. Logout Cleanup
 
 On logout, caches are cleared:
 
@@ -285,9 +331,9 @@ def logout():
     clear_cache_on_logout()
 ```
 
-### Cache Statistics & Health
+## Cache Statistics & Health
 
-#### Statistics Tracking
+### Statistics Tracking
 
 ```python
 @dataclass
@@ -306,7 +352,7 @@ class CacheStats:
         return (self.hits / total * 100) if total > 0 else 0.0
 ```
 
-#### Health Monitoring
+### Health Monitoring
 
 ```python
 # database/master_contract_cache_hook.py
@@ -336,9 +382,9 @@ def get_cache_health() -> dict:
     }
 ```
 
-### Cache Configuration
+## Cache Configuration
 
-#### Environment Variables
+### Environment Variables
 
 ```bash
 # Session expiry time (cache reset time)
@@ -352,47 +398,47 @@ SESSION_EXPIRY_TIME=03:00
 # invalid_api_key_cache: maxsize=512
 ```
 
-#### TTL Summary
+### TTL Summary
 
-| Cache                    | TTL                  | Purpose                 |
-| ------------------------ | -------------------- | ----------------------- |
-| `auth_cache`             | Until session expiry | Auth token storage      |
-| `feed_token_cache`       | Until session expiry | WebSocket feed tokens   |
-| `broker_cache`           | 50 minutes           | Broker name lookups     |
-| `verified_api_key_cache` | 10 hours             | Valid API key user IDs  |
-| `invalid_api_key_cache`  | 5 minutes            | Failed API key attempts |
-| `symbol_cache`           | Until session expiry | Trading symbols         |
+| Cache | TTL | Purpose |
+|-------|-----|---------|
+| `auth_cache` | Until session expiry | Auth token storage |
+| `feed_token_cache` | Until session expiry | WebSocket feed tokens |
+| `broker_cache` | 50 minutes | Broker name lookups |
+| `verified_api_key_cache` | 10 hours | Valid API key user IDs |
+| `invalid_api_key_cache` | 5 minutes | Failed API key attempts |
+| `symbol_cache` | Until session expiry | Trading symbols |
 
-### Performance Characteristics
+## Performance Characteristics
 
-#### Memory Usage
+### Memory Usage
 
-| Component                    | Size               | Memory      |
-| ---------------------------- | ------------------ | ----------- |
-| Symbol Cache (100K symbols)  | \~500 bytes/symbol | \~50 MB     |
-| Auth Cache (1024 entries)    | \~1 KB/entry       | \~1 MB      |
-| API Key Cache (1024 entries) | \~100 bytes/entry  | \~100 KB    |
-| **Total**                    |                    | **\~52 MB** |
+| Component | Size | Memory |
+|-----------|------|--------|
+| Symbol Cache (100K symbols) | ~500 bytes/symbol | ~50 MB |
+| Auth Cache (1024 entries) | ~1 KB/entry | ~1 MB |
+| API Key Cache (1024 entries) | ~100 bytes/entry | ~100 KB |
+| **Total** | | **~52 MB** |
 
-#### Lookup Performance
+### Lookup Performance
 
-| Operation                     | Complexity    | Latency  |
-| ----------------------------- | ------------- | -------- |
-| Symbol lookup (cached)        | O(1)          | <1 ms    |
-| Auth token lookup (cached)    | O(1)          | <1 ms    |
-| API key verification (cached) | O(1)          | <1 ms    |
-| API key verification (DB)     | O(1) + Argon2 | \~100 ms |
-| Symbol lookup (DB fallback)   | O(log n)      | \~5 ms   |
+| Operation | Complexity | Latency |
+|-----------|------------|---------|
+| Symbol lookup (cached) | O(1) | <1 ms |
+| Auth token lookup (cached) | O(1) | <1 ms |
+| API key verification (cached) | O(1) | <1 ms |
+| API key verification (DB) | O(1) + Argon2 | ~100 ms |
+| Symbol lookup (DB fallback) | O(log n) | ~5 ms |
 
-### Cache Invalidation
+## Cache Invalidation
 
-#### Automatic Invalidation
+### Automatic Invalidation
 
 1. **TTL Expiry** - Caches auto-expire based on TTL
 2. **Session Expiry** - Symbol and auth caches reset at 3:00 AM IST
 3. **Logout** - All user-specific caches cleared
 
-#### Manual Invalidation
+### Manual Invalidation
 
 ```python
 # Clear symbol cache
@@ -407,16 +453,16 @@ del feed_token_cache[f"feed-{username}"]
 # (Handled automatically by clearing verified_api_key_cache)
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                                     | Purpose                     |
-| ---------------------------------------- | --------------------------- |
-| `database/token_db_enhanced.py`          | Symbol cache implementation |
-| `database/auth_db.py`                    | Auth and API key caches     |
-| `database/cache_restoration.py`          | Startup cache restoration   |
-| `database/master_contract_cache_hook.py` | Cache lifecycle hooks       |
+| File | Purpose |
+|------|---------|
+| `database/token_db_enhanced.py` | Symbol cache implementation |
+| `database/auth_db.py` | Auth and API key caches |
+| `database/cache_restoration.py` | Startup cache restoration |
+| `database/master_contract_cache_hook.py` | Cache lifecycle hooks |
 
-### Best Practices
+## Best Practices
 
 1. **Always check cache first** - Use cache methods before DB queries
 2. **Invalidate on mutation** - Clear relevant cache entries on data changes

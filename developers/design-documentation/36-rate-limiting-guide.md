@@ -1,10 +1,10 @@
 # 36 - Rate Limiting Guide
 
-### Overview
+## Overview
 
 OpenAlgo uses Flask-Limiter with a moving-window strategy to protect endpoints from abuse. Different rate limits apply to different endpoint categories based on their sensitivity and resource usage.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -52,9 +52,9 @@ OpenAlgo uses Flask-Limiter with a moving-window strategy to protect endpoints f
            └───────────────┘          └───────────────┘
 ```
 
-### Rate Limit Categories
+## Rate Limit Categories
 
-#### Environment Variables
+### Environment Variables
 
 ```bash
 # Login endpoints (authentication security)
@@ -68,7 +68,7 @@ API_RATE_LIMIT=50 per second
 ORDER_RATE_LIMIT=10 per second
 
 # Smart order endpoints (AI/automated trading)
-SMART_ORDER_RATE_LIMIT=2 per second
+SMART_ORDER_RATE_LIMIT=10 per second
 
 # Webhook endpoints (external integrations)
 WEBHOOK_RATE_LIMIT=100 per minute
@@ -77,20 +77,20 @@ WEBHOOK_RATE_LIMIT=100 per minute
 STRATEGY_RATE_LIMIT=200 per minute
 ```
 
-#### Limit Breakdown
+### Limit Breakdown
 
-| Category        | Rate Limit   | Endpoints                                                          | Purpose                 |
-| --------------- | ------------ | ------------------------------------------------------------------ | ----------------------- |
-| **Login**       | 5/min, 25/hr | `/auth/login`, `/auth/reset-password`                              | Prevent brute force     |
-| **API**         | 50/sec       | `/api/v1/quotes`, `/api/v1/positions`, etc.                        | General data access     |
-| **Order**       | 10/sec       | `/api/v1/placeorder`, `/api/v1/modifyorder`, `/api/v1/cancelorder` | Trading rate control    |
-| **Smart Order** | 2/sec        | `/api/v1/placesmartorder`                                          | Prevent automated abuse |
-| **Webhook**     | 100/min      | `/chartink/webhook`, `/strategy/webhook`                           | External integrations   |
-| **Strategy**    | 200/min      | Strategy-related operations                                        | Strategy execution      |
+| Category | Rate Limit | Endpoints | Purpose |
+|----------|------------|-----------|---------|
+| **Login** | 5/min, 25/hr | `/auth/login`, `/auth/reset-password` | Prevent brute force |
+| **API** | 50/sec | `/api/v1/quotes`, `/api/v1/positionbook`, etc. | General data access |
+| **Order** | 10/sec | `/api/v1/placeorder`, `/api/v1/modifyorder`, `/api/v1/cancelorder` | Trading rate control |
+| **Smart Order** | 10/sec | `/api/v1/placesmartorder` | Automated order rate control |
+| **Webhook** | 100/min | `/chartink/webhook`, `/strategy/webhook` | External integrations |
+| **Strategy** | 200/min | Strategy-related operations | Strategy execution |
 
-### Implementation
+## Implementation
 
-#### Limiter Initialization
+### Limiter Initialization
 
 **Location:** `limiter.py`
 
@@ -105,7 +105,7 @@ limiter = Limiter(
 )
 ```
 
-#### Applying Rate Limits
+### Applying Rate Limits
 
 **Login Endpoint Example:**
 
@@ -156,22 +156,22 @@ class Quotes(Resource):
         ...
 ```
 
-### Rate Limit Format
+## Rate Limit Format
 
 ```
 <number> per <timeunit>
 ```
 
-#### Valid Timeunits
+### Valid Timeunits
 
 | Timeunit | Alias |
-| -------- | ----- |
-| `second` | `s`   |
-| `minute` | `m`   |
-| `hour`   | `h`   |
-| `day`    | `d`   |
+|----------|-------|
+| `second` | `s` |
+| `minute` | `m` |
+| `hour` | `h` |
+| `day` | `d` |
 
-#### Examples
+### Examples
 
 ```bash
 # Valid formats
@@ -186,9 +186,9 @@ class Quotes(Resource):
 five per minute # Must be number
 ```
 
-### Error Handling
+## Error Handling
 
-#### 429 Response Handler
+### 429 Response Handler
 
 **Location:** `app.py`
 
@@ -213,7 +213,7 @@ def rate_limit_exceeded(e):
     return redirect('/rate-limited')
 ```
 
-#### Client-Side Handling
+### Client-Side Handling
 
 ```python
 # Python client example
@@ -239,47 +239,47 @@ def place_order_with_retry(order_data, max_retries=3):
     raise Exception("Max retries exceeded")
 ```
 
-### Endpoint Limits Map
+## Endpoint Limits Map
 
-#### REST API Endpoints
+### REST API Endpoints
 
-| Endpoint                     | Rate Limit Variable       | Default |
-| ---------------------------- | ------------------------- | ------- |
-| `/api/v1/placeorder`         | ORDER\_RATE\_LIMIT        | 10/sec  |
-| `/api/v1/modifyorder`        | ORDER\_RATE\_LIMIT        | 10/sec  |
-| `/api/v1/cancelorder`        | ORDER\_RATE\_LIMIT        | 10/sec  |
-| `/api/v1/cancelallorder`     | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/placesmartorder`    | SMART\_ORDER\_RATE\_LIMIT | 2/sec   |
-| `/api/v1/quotes`             | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/multiquotes`        | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/positions`          | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/orderbook`          | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/tradebook`          | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/holdings`           | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/funds`              | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/history`            | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/depth`              | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/ping`               | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/intervals`          | API\_RATE\_LIMIT          | 50/sec  |
-| `/api/v1/options/multiorder` | ORDER\_RATE\_LIMIT        | 10/sec  |
+| Endpoint | Rate Limit Variable | Default |
+|----------|---------------------|---------|
+| `/api/v1/placeorder` | ORDER_RATE_LIMIT | 10/sec |
+| `/api/v1/modifyorder` | ORDER_RATE_LIMIT | 10/sec |
+| `/api/v1/cancelorder` | ORDER_RATE_LIMIT | 10/sec |
+| `/api/v1/cancelallorder` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/placesmartorder` | SMART_ORDER_RATE_LIMIT | 10/sec |
+| `/api/v1/quotes` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/multiquotes` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/positionbook` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/orderbook` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/tradebook` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/holdings` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/funds` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/history` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/depth` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/ping` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/intervals` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/optionsmultiorder` | ORDER_RATE_LIMIT | 10/sec |
 
-#### Authentication Endpoints
+### Authentication Endpoints
 
-| Endpoint               | Rate Limit Variable            | Default      |
-| ---------------------- | ------------------------------ | ------------ |
-| `/auth/login`          | LOGIN\_RATE\_LIMIT\_MIN + HOUR | 5/min, 25/hr |
-| `/auth/reset-password` | LOGIN\_RATE\_LIMIT\_HOUR       | 25/hr        |
-| `/<broker>/callback`   | LOGIN\_RATE\_LIMIT\_MIN + HOUR | 5/min, 25/hr |
+| Endpoint | Rate Limit Variable | Default |
+|----------|---------------------|---------|
+| `/auth/login` | LOGIN_RATE_LIMIT_MIN + HOUR | 5/min, 25/hr |
+| `/auth/reset-password` | LOGIN_RATE_LIMIT_HOUR | 25/hr |
+| `/<broker>/callback` | LOGIN_RATE_LIMIT_MIN + HOUR | 5/min, 25/hr |
 
-#### Webhook Endpoints
+### Webhook Endpoints
 
-| Endpoint            | Rate Limit Variable   | Default |
-| ------------------- | --------------------- | ------- |
-| `/chartink/webhook` | WEBHOOK\_RATE\_LIMIT  | 100/min |
-| `/strategy/webhook` | STRATEGY\_RATE\_LIMIT | 200/min |
-| `/flow/trigger/*`   | WEBHOOK\_RATE\_LIMIT  | 100/min |
+| Endpoint | Rate Limit Variable | Default |
+|----------|---------------------|---------|
+| `/chartink/webhook` | WEBHOOK_RATE_LIMIT | 100/min |
+| `/strategy/webhook` | STRATEGY_RATE_LIMIT | 200/min |
+| `/flow/trigger/*` | WEBHOOK_RATE_LIMIT | 100/min |
 
-### Moving Window Strategy
+## Moving Window Strategy
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -301,16 +301,16 @@ Old requests fall out, new ones enter.
 More accurate than fixed-window approach.
 ```
 
-#### Algorithm Benefits
+### Algorithm Benefits
 
-| Aspect           | Moving Window   | Fixed Window                  |
-| ---------------- | --------------- | ----------------------------- |
-| Accuracy         | Higher          | Lower                         |
-| Burst protection | Better          | Prone to bursts at boundaries |
-| Memory           | Slightly higher | Lower                         |
-| Implementation   | More complex    | Simpler                       |
+| Aspect | Moving Window | Fixed Window |
+|--------|---------------|--------------|
+| Accuracy | Higher | Lower |
+| Burst protection | Better | Prone to bursts at boundaries |
+| Memory | Slightly higher | Lower |
+| Implementation | More complex | Simpler |
 
-### Configuration Validation
+## Configuration Validation
 
 **Location:** `utils/env_check.py`
 
@@ -338,9 +338,9 @@ for var in rate_limit_vars:
         sys.exit(1)
 ```
 
-### Tuning Recommendations
+## Tuning Recommendations
 
-#### For High-Frequency Trading
+### For High-Frequency Trading
 
 ```bash
 # Increase order limits for HFT
@@ -349,7 +349,7 @@ SMART_ORDER_RATE_LIMIT=10 per second
 API_RATE_LIMIT=200 per second
 ```
 
-#### For Webhook-Heavy Usage
+### For Webhook-Heavy Usage
 
 ```bash
 # Increase webhook limits for multiple signal sources
@@ -357,7 +357,7 @@ WEBHOOK_RATE_LIMIT=500 per minute
 STRATEGY_RATE_LIMIT=1000 per minute
 ```
 
-#### For Multi-User Deployments
+### For Multi-User Deployments
 
 Consider using Redis for distributed rate limiting:
 
@@ -370,14 +370,14 @@ limiter = Limiter(
 )
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                     | Purpose                      |
-| ------------------------ | ---------------------------- |
-| `limiter.py`             | Flask-Limiter initialization |
-| `utils/env_check.py`     | Rate limit validation        |
-| `restx_api/*.py`         | API endpoint rate limits     |
-| `blueprints/auth.py`     | Login rate limits            |
-| `blueprints/chartink.py` | Webhook rate limits          |
-| `blueprints/strategy.py` | Strategy rate limits         |
-| `app.py`                 | 429 error handler            |
+| File | Purpose |
+|------|---------|
+| `limiter.py` | Flask-Limiter initialization |
+| `utils/env_check.py` | Rate limit validation |
+| `restx_api/*.py` | API endpoint rate limits |
+| `blueprints/auth.py` | Login rate limits |
+| `blueprints/chartink.py` | Webhook rate limits |
+| `blueprints/strategy.py` | Strategy rate limits |
+| `app.py` | 429 error handler |

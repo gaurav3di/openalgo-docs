@@ -1,8 +1,8 @@
-# Tradebook
+# TradeBook
+
+Get all executed trades for the current trading day.
 
 ## Endpoint URL
-
-This API Function fetches the TradeBook details from the broker
 
 ```http
 Local Host   :  POST http://127.0.0.1:5000/api/v1/tradebook
@@ -10,60 +10,99 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/tradebook
 Custom Domain:  POST https://<your-custom-domain>/api/v1/tradebook
 ```
 
-
-
 ## Sample API Request
 
 ```json
 {
-    "apikey": "<your_app_apikey>"
+  "apikey": "<your_app_apikey>"
 }
-
 ```
 
+## Sample cURL Request
 
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/tradebook \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>"
+}'
+```
 
 ## Sample API Response
 
 ```json
 {
+  "status": "success",
   "data": [
     {
       "action": "BUY",
-      "average_price": 1914.4,
+      "symbol": "RELIANCE",
       "exchange": "NSE",
-      "orderid": "24120900009388",
+      "orderid": "250408000989443",
       "product": "MIS",
-      "quantity": 1,
-      "symbol": "INFY",
-      "timestamp": "09-Dec-2024 09:16:48",
-      "trade_value": 1914.4
+      "quantity": 0.0,
+      "average_price": 1180.1,
+      "timestamp": "13:58:03",
+      "trade_value": 1180.1
     },
     {
       "action": "SELL",
-      "average_price": 21.61,
+      "symbol": "NHPC",
       "exchange": "NSE",
-      "orderid": "24120900010875",
+      "orderid": "250408001086129",
       "product": "MIS",
-      "quantity": 20,
-      "symbol": "YESBANK",
-      "timestamp": "09-Dec-2024 09:17:30",
-      "trade_value": 432.2
+      "quantity": 0.0,
+      "average_price": 83.74,
+      "timestamp": "14:28:49",
+      "trade_value": 83.74
     }
-  ],
-  "status": "success"
+  ]
 }
 ```
 
-
-
 ## Request Body
 
+| Parameter | Description | Mandatory/Optional | Default Value |
+|-----------|-------------|-------------------|---------------|
+| apikey | Your OpenAlgo API key | Mandatory | - |
 
+## Response Fields
 
-| Parameters | Description | Mandatory/Optional | Default Value |
-| ---------- | ----------- | ------------------ | ------------- |
-| apikey     | App API key | Mandatory          | -             |
+| Field | Type | Description |
+|-------|------|-------------|
+| status | string | "success" or "error" |
+| data | array | Array of trade objects |
 
+### Trade Object Fields
 
+| Field | Type | Description |
+|-------|------|-------------|
+| orderid | string | Order ID that generated this trade |
+| symbol | string | Trading symbol |
+| exchange | string | Exchange code |
+| action | string | BUY or SELL |
+| quantity | number | Traded quantity |
+| average_price | number | Execution price |
+| product | string | MIS, CNC, NRML |
+| timestamp | string | Trade execution time |
+| trade_value | number | Total trade value (quantity × price) |
 
+## Notes
+
+- Contains only **executed trades** (not pending orders)
+- A single order may have **multiple trades** (partial fills)
+- **trade_value** is the monetary value of the trade
+- Use for trade reconciliation and P&L calculation
+- Trades are sorted by execution time
+
+## Difference: OrderBook vs TradeBook
+
+| Aspect | OrderBook | TradeBook |
+|--------|-----------|-----------|
+| Contains | All orders (including pending) | Only executed trades |
+| Multiple entries | One per order | One per fill (partial fills) |
+| Shows | Order status | Execution details |
+
+---
+
+**Back to**: [API Documentation](../README.md)

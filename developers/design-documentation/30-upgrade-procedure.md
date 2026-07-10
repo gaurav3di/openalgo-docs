@@ -1,10 +1,10 @@
 # 30 - Upgrade Procedure
 
-### Overview
+## Overview
 
 Guidelines for upgrading OpenAlgo to new versions while preserving data and configurations.
 
-### Pre-Upgrade Checklist
+## Pre-Upgrade Checklist
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -20,9 +20,9 @@ Guidelines for upgrading OpenAlgo to new versions while preserving data and conf
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Backup Procedure
+## Backup Procedure
 
-#### Database Backup
+### Database Backup
 
 ```bash
 # Create backup directory
@@ -36,7 +36,7 @@ cp db/sandbox.db backups/$(date +%Y%m%d)/
 cp db/historify.duckdb backups/$(date +%Y%m%d)/
 ```
 
-#### Configuration Backup
+### Configuration Backup
 
 ```bash
 # Backup environment file
@@ -46,9 +46,9 @@ cp .env backups/$(date +%Y%m%d)/
 cp -r strategies/ backups/$(date +%Y%m%d)/
 ```
 
-### Upgrade Steps
+## Upgrade Steps
 
-#### Step 1: Stop OpenAlgo
+### Step 1: Stop OpenAlgo
 
 ```bash
 # Stop running instance
@@ -58,7 +58,7 @@ cp -r strategies/ backups/$(date +%Y%m%d)/
 sudo systemctl stop openalgo
 ```
 
-#### Step 2: Pull Latest Changes
+### Step 2: Pull Latest Changes
 
 ```bash
 # Update from repository
@@ -66,7 +66,7 @@ git fetch origin
 git pull origin main
 ```
 
-#### Step 3: Update Dependencies
+### Step 3: Update Dependencies
 
 ```bash
 # Sync Python dependencies
@@ -79,7 +79,7 @@ npm run build
 cd ..
 ```
 
-#### Step 4: Update Environment
+### Step 4: Update Environment
 
 ```bash
 # Compare with sample.env
@@ -88,7 +88,7 @@ diff .env .sample.env
 # Add any new variables from .sample.env to .env
 ```
 
-#### Step 5: Database Initialization
+### Step 5: Database Initialization
 
 OpenAlgo uses automatic database initialization on startup. New tables are created automatically when the application starts - no manual migrations are required.
 
@@ -100,26 +100,25 @@ uv run app.py
 
 > **Note**: There is no `migrations/` directory. Database schema updates are handled automatically by SQLAlchemy's `create_all()` during app startup.
 
-#### Step 6: Start OpenAlgo
+### Step 6: Start OpenAlgo
 
 ```bash
 # Start application
 uv run app.py
 ```
 
-### Version-Specific Upgrades
+## Version-Specific Upgrades
 
-#### Upgrading to v2.0.0
+### Upgrading to v2.0.0
 
 **CRITICAL**: v2.0.0 requires building the React frontend. The `frontend/dist/` directory is gitignored and must be built locally.
 
 Major changes:
-
-* React 19 frontend replaces Jinja2 templates for most UIs
-* New database tables (flow\_workflows, action\_center, etc.)
-* 40+ new environment variables (CORS, CSP, ZeroMQ, etc.)
-* Flow Visual Builder with 53 node types
-* Historify (DuckDB-based historical data)
+- React 19 frontend replaces Jinja2 templates for most UIs
+- New database tables (flow_workflows, action_center, etc.)
+- 40+ new environment variables (CORS, CSP, ZeroMQ, etc.)
+- Flow Visual Builder with 53 node types
+- Historify (DuckDB-based historical data)
 
 ```bash
 # REQUIRED: Build React frontend
@@ -132,12 +131,12 @@ cd ..
 diff .env .sample.env
 
 # Add missing variables from .sample.env (especially CORS, ZeroMQ settings)
-# See docs/design/28-environment-config/ for full variable list
+# See 28-environment-configuration.md for the current variable groups
 ```
 
 > **Important**: Check `docs/CHANGELOG.md` for detailed v2.0.0 release notes.
 
-#### Database Schema Changes
+### Database Schema Changes
 
 ```python
 # Check if tables need updates
@@ -147,9 +146,9 @@ from database import init_all_databases
 init_all_databases()
 ```
 
-### Rollback Procedure
+## Rollback Procedure
 
-#### If Upgrade Fails
+### If Upgrade Fails
 
 ```bash
 # Stop current version
@@ -166,9 +165,9 @@ cp backups/YYYYMMDD/.env ./
 uv run app.py
 ```
 
-### Docker Upgrade
+## Docker Upgrade
 
-#### Pull New Image
+### Pull New Image
 
 ```bash
 # Stop container
@@ -181,18 +180,18 @@ docker-compose pull
 docker-compose up -d
 ```
 
-#### Volume Preservation
+### Volume Preservation
 
 ```yaml
-# docker-compose.yml
+# docker-compose.yaml
 volumes:
   - ./db:/app/db          # Database persisted
   - ./.env:/app/.env      # Config persisted
 ```
 
-### Systemd Service Update
+## Systemd Service Update
 
-#### For Ubuntu Server
+### For Ubuntu Server
 
 ```bash
 # Stop service
@@ -209,9 +208,9 @@ sudo systemctl start openalgo
 sudo systemctl status openalgo
 ```
 
-### Post-Upgrade Verification
+## Post-Upgrade Verification
 
-#### Health Checks
+### Health Checks
 
 ```bash
 # Check application logs
@@ -224,7 +223,7 @@ curl http://127.0.0.1:5000/health
 uv run python -c "from database import init_all_databases; print('OK')"
 ```
 
-#### Functional Tests
+### Functional Tests
 
 1. Log in to web interface
 2. Check broker connection
@@ -232,9 +231,9 @@ uv run python -c "from database import init_all_databases; print('OK')"
 4. Verify WebSocket connection
 5. Check API endpoint
 
-### Changelog Review
+## Changelog Review
 
-#### Check Release Notes
+### Check Release Notes
 
 ```bash
 # View release tags
@@ -247,19 +246,19 @@ cat CHANGELOG.md
 git show v2.0.0
 ```
 
-### Troubleshooting
+## Troubleshooting
 
-#### Common Upgrade Issues
+### Common Upgrade Issues
 
-| Issue                | Solution                 |
-| -------------------- | ------------------------ |
-| Missing dependency   | Run `uv sync`            |
-| Database error       | Check schema migration   |
-| Frontend not loading | Run `npm run build`      |
-| .env missing vars    | Compare with .sample.env |
-| Permission errors    | Check file ownership     |
+| Issue | Solution |
+|-------|----------|
+| Missing dependency | Run `uv sync` |
+| Database error | Check schema migration |
+| Frontend not loading | Run `npm run build` |
+| .env missing vars | Compare with .sample.env |
+| Permission errors | Check file ownership |
 
-#### Reset to Clean State
+### Reset to Clean State
 
 ```bash
 # CAUTION: This removes all data
@@ -271,9 +270,9 @@ rm -rf db/*.db
 uv run python -c "from database import init_all_databases; init_all_databases()"
 ```
 
-### Automated Upgrade Script
+## Automated Upgrade Script
 
-#### upgrade.sh
+### upgrade.sh
 
 ```bash
 #!/bin/bash
@@ -303,11 +302,11 @@ echo "Upgrade complete!"
 echo "Backup stored in: $BACKUP_DIR"
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                    | Purpose                     |
-| ----------------------- | --------------------------- |
-| `.sample.env`           | Reference for new variables |
-| `CHANGELOG.md`          | Version changes             |
-| `pyproject.toml`        | Python dependencies         |
-| `frontend/package.json` | Frontend dependencies       |
+| File | Purpose |
+|------|---------|
+| `.sample.env` | Reference for new variables |
+| `CHANGELOG.md` | Version changes |
+| `pyproject.toml` | Python dependencies |
+| `frontend/package.json` | Frontend dependencies |

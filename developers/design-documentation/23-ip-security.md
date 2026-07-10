@@ -1,10 +1,10 @@
 # 23 - IP Security
 
-### Overview
+## Overview
 
 OpenAlgo implements IP-based security measures to protect against brute-force attacks, bot abuse, and unauthorized access through automatic detection and banning mechanisms.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -41,9 +41,9 @@ OpenAlgo implements IP-based security measures to protect against brute-force at
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Detection Mechanisms
+## Detection Mechanisms
 
-#### 1. 404 Error Tracking
+### 1. 404 Error Tracking
 
 Detects bots probing for vulnerabilities.
 
@@ -76,7 +76,7 @@ Detects bots probing for vulnerabilities.
 └────────────────────────────────────────────────────────────────┘
 ```
 
-#### 2. Invalid API Key Tracking
+### 2. Invalid API Key Tracking
 
 Detects brute-force API key attacks.
 
@@ -109,9 +109,9 @@ Detects brute-force API key attacks.
 └────────────────────────────────────────────────────────────────┘
 ```
 
-### Configuration
+## Configuration
 
-#### Security Thresholds
+### Security Thresholds
 
 ```bash
 # .env or settings table
@@ -122,9 +122,9 @@ SECURITY_API_BAN_DURATION=48     # Ban duration in hours
 SECURITY_REPEAT_OFFENDER_LIMIT=3 # Bans before permanent
 ```
 
-### Database Schema
+## Database Schema
 
-#### ip\_bans Table
+### ip_bans Table
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -143,7 +143,7 @@ SECURITY_REPEAT_OFFENDER_LIMIT=3 # Bans before permanent
 └──────────────┴──────────────┴──────────────────────┘
 ```
 
-#### error\_404\_tracker Table
+### error_404_tracker Table
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -160,9 +160,9 @@ SECURITY_REPEAT_OFFENDER_LIMIT=3 # Bans before permanent
 └──────────────────┴──────────────┴──────────────────┘
 ```
 
-### IP Resolution
+## IP Resolution
 
-#### Proxy Header Priority
+### Proxy Header Priority
 
 ```python
 def get_real_ip():
@@ -183,9 +183,9 @@ def get_real_ip():
     return request.remote_addr
 ```
 
-### Security Middleware
+## Security Middleware
 
-#### WSGI Implementation
+### WSGI Implementation
 
 ```python
 class SecurityMiddleware:
@@ -203,7 +203,7 @@ class SecurityMiddleware:
         return self.app(environ, start_response)
 ```
 
-#### Route Decorator
+### Route Decorator
 
 ```python
 @bp.route('/api/v1/placeorder')
@@ -213,9 +213,9 @@ def place_order():
     pass
 ```
 
-### Admin Interface
+## Admin Interface
 
-#### Security Dashboard
+### Security Dashboard
 
 **Route:** `/logs/security`
 
@@ -237,7 +237,7 @@ def place_order():
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Manual Ban/Unban
+### Manual Ban/Unban
 
 ```python
 # Ban an IP manually
@@ -252,7 +252,7 @@ add_ip_ban(
 remove_ip_ban('192.168.1.100')
 ```
 
-### Repeat Offender Escalation
+## Repeat Offender Escalation
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -267,9 +267,9 @@ remove_ip_ban('192.168.1.100')
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Best Practices
+## Best Practices
 
-#### Rate Limiting Integration
+### Rate Limiting Integration
 
 IP bans work alongside rate limiting:
 
@@ -284,7 +284,7 @@ if repeated_violations(ip):
     ban_ip(ip)
 ```
 
-#### Whitelisting
+### Whitelisting
 
 For trusted IPs:
 
@@ -295,11 +295,11 @@ def is_whitelisted(ip):
     return any(ip_in_range(ip, range) for range in WHITELIST)
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                           | Purpose                       |
-| ------------------------------ | ----------------------------- |
-| `utils/security_middleware.py` | WSGI middleware               |
-| `utils/ip_helper.py`           | IP resolution                 |
-| `database/traffic_db.py`       | Ban tables                    |
-| `blueprints/security.py`       | Security dashboard and routes |
+| File | Purpose |
+|------|---------|
+| `utils/security_middleware.py` | WSGI middleware |
+| `utils/ip_helper.py` | IP resolution |
+| `database/traffic_db.py` | Ban tables |
+| `blueprints/security.py` | Security dashboard and routes |

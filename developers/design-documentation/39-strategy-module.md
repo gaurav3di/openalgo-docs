@@ -1,10 +1,10 @@
 # 39 - Strategy Module
 
-### Overview
+## Overview
 
 The Strategy Module provides a webhook-based system for receiving trading signals from external platforms (TradingView, Amibroker, ChartInk) and executing orders through OpenAlgo. It features time-based controls, symbol mappings, automatic square-off, and rate-limited order queuing.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -62,9 +62,9 @@ The Strategy Module provides a webhook-based system for receiving trading signal
                     └────────────────┘
 ```
 
-### Strategy Configuration
+## Strategy Configuration
 
-#### Database Schema
+### Database Schema
 
 **Location:** `database/strategy_db.py`
 
@@ -96,7 +96,7 @@ class StrategySymbolMapping(Base):
     quantity = Column(Integer)            # Override quantity
 ```
 
-#### Time Validation
+### Time Validation
 
 ```python
 def validate_strategy_times(start_time, end_time, squareoff_time):
@@ -113,9 +113,9 @@ def validate_strategy_times(start_time, end_time, squareoff_time):
     # 4. Start < End < Square off
 ```
 
-### Webhook Signal Format
+## Webhook Signal Format
 
-#### TradingView Format
+### TradingView Format
 
 ```json
 {
@@ -126,7 +126,7 @@ def validate_strategy_times(start_time, end_time, squareoff_time):
 }
 ```
 
-#### Amibroker Format
+### Amibroker Format
 
 ```json
 {
@@ -138,14 +138,14 @@ def validate_strategy_times(start_time, end_time, squareoff_time):
 }
 ```
 
-#### Supported Actions
+### Supported Actions
 
-| Action | Description             |
-| ------ | ----------------------- |
-| `BUY`  | Long entry / Short exit |
+| Action | Description |
+|--------|-------------|
+| `BUY` | Long entry / Short exit |
 | `SELL` | Long exit / Short entry |
 
-### Symbol Mapping
+## Symbol Mapping
 
 Allows mapping external symbols to OpenAlgo format:
 
@@ -169,9 +169,9 @@ External Signal: "SBIN"
 Place Order: NSE:SBIN, Qty: 50, Product: MIS
 ```
 
-### Order Queuing System
+## Order Queuing System
 
-#### Dual Queue Architecture
+### Dual Queue Architecture
 
 ```python
 # Separate queues for different order types
@@ -202,16 +202,16 @@ def process_orders():
         time.sleep(0.1)  # Prevent CPU spinning
 ```
 
-#### Rate Limiting
+### Rate Limiting
 
-| Order Type    | Rate Limit | Queue                 |
-| ------------- | ---------- | --------------------- |
-| Regular Order | 10/second  | `regular_order_queue` |
-| Smart Order   | 1/second   | `smart_order_queue`   |
+| Order Type | Rate Limit | Queue |
+|------------|------------|-------|
+| Regular Order | 10/second | `regular_order_queue` |
+| Smart Order | 1/second | `smart_order_queue` |
 
-### Automatic Square-Off
+## Automatic Square-Off
 
-#### APScheduler Integration
+### APScheduler Integration
 
 ```python
 scheduler = BackgroundScheduler(
@@ -239,7 +239,7 @@ def schedule_squareoff(strategy_id):
     )
 ```
 
-#### Square-Off Logic
+### Square-Off Logic
 
 ```python
 def squareoff_positions(strategy_id):
@@ -262,28 +262,28 @@ def squareoff_positions(strategy_id):
         queue_order('placesmartorder', payload)
 ```
 
-### API Endpoints
+## API Endpoints
 
-| Endpoint                         | Method   | Description             |
-| -------------------------------- | -------- | ----------------------- |
-| `/strategy/`                     | GET      | List all strategies     |
-| `/strategy/new`                  | GET/POST | Create new strategy     |
-| `/strategy/<id>`                 | GET      | View strategy details   |
-| `/strategy/<id>/edit`            | GET/POST | Edit strategy           |
-| `/strategy/<id>/delete`          | POST     | Delete strategy         |
-| `/strategy/<id>/toggle`          | POST     | Enable/disable strategy |
-| `/strategy/<id>/symbols`         | GET/POST | Manage symbol mappings  |
-| `/strategy/webhook/<webhook_id>` | POST     | Receive trading signal  |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/strategy/` | GET | List all strategies |
+| `/strategy/new` | GET/POST | Create new strategy |
+| `/strategy/<id>` | GET | View strategy details |
+| `/strategy/<id>/edit` | GET/POST | Edit strategy |
+| `/strategy/<id>/delete` | POST | Delete strategy |
+| `/strategy/<id>/toggle` | POST | Enable/disable strategy |
+| `/strategy/<id>/symbols` | GET/POST | Manage symbol mappings |
+| `/strategy/webhook/<webhook_id>` | POST | Receive trading signal |
 
-### Trading Modes
+## Trading Modes
 
-| Mode    | Allowed Actions | Use Case              |
-| ------- | --------------- | --------------------- |
-| `LONG`  | BUY only        | Long-only strategies  |
-| `SHORT` | SELL only       | Short-only strategies |
-| `BOTH`  | BUY and SELL    | Bidirectional trading |
+| Mode | Allowed Actions | Use Case |
+|------|-----------------|----------|
+| `LONG` | BUY only | Long-only strategies |
+| `SHORT` | SELL only | Short-only strategies |
+| `BOTH` | BUY and SELL | Bidirectional trading |
 
-### Strategy Time Window
+## Strategy Time Window
 
 ```
 Market Hours: 09:15 ─────────────────────────────────────── 15:30
@@ -300,9 +300,9 @@ Square-off:         │                              squareoff_time
                     │                              Close all MIS
 ```
 
-### Configuration
+## Configuration
 
-#### Environment Variables
+### Environment Variables
 
 ```bash
 WEBHOOK_RATE_LIMIT=100 per minute
@@ -310,11 +310,13 @@ STRATEGY_RATE_LIMIT=200 per minute
 HOST_SERVER=http://127.0.0.1:5000  # Base URL for internal API calls
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                              | Purpose                                |
-| --------------------------------- | -------------------------------------- |
-| `blueprints/strategy.py`          | Strategy blueprint and webhook handler |
-| `database/strategy_db.py`         | Strategy database models               |
-| `templates/strategy/`             | Strategy UI templates                  |
-| `frontend/src/pages/Strategy.tsx` | React strategy management              |
+| File | Purpose |
+|------|---------|
+| `blueprints/strategy.py` | Strategy blueprint and webhook handler |
+| `database/strategy_db.py` | Strategy database models |
+| `frontend/src/pages/strategy/StrategyIndex.tsx` | Strategy list |
+| `frontend/src/pages/strategy/NewStrategy.tsx` | Strategy creation |
+| `frontend/src/pages/strategy/ViewStrategy.tsx` | Strategy details |
+| `frontend/src/pages/strategy/ConfigureSymbols.tsx` | Symbol mappings |

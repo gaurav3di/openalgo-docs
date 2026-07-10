@@ -1,10 +1,10 @@
 # 33 - Broker Folder Explanations
 
-### Overview
+## Overview
 
 Each broker in OpenAlgo follows a standardized folder structure with consistent interfaces for authentication, order management, data retrieval, and symbol mapping.
 
-### Broker Directory Structure
+## Broker Directory Structure
 
 ```
 broker/
@@ -30,12 +30,12 @@ broker/
 │   └── ... (same structure)
 ├── angel/
 │   └── ... (same structure)
-└── ... (29 brokers total)
+└── ... (34 broker plugins total)
 ```
 
-### File Explanations
+## File Explanations
 
-#### 1. api/auth\_api.py
+### 1. api/auth_api.py
 
 Handles broker authentication/OAuth flow.
 
@@ -55,7 +55,7 @@ def revoke_token():
     pass
 ```
 
-#### 2. api/order\_api.py
+### 2. api/order_api.py
 
 Order management operations.
 
@@ -82,7 +82,7 @@ def close_all_positions_api(data, auth):
     pass
 ```
 
-#### 3. api/data.py
+### 3. api/data.py
 
 Market data retrieval.
 
@@ -106,7 +106,7 @@ def get_option_chain(symbol, exchange, expiry, auth):
     pass
 ```
 
-#### 4. api/funds.py
+### 4. api/funds.py
 
 Account and fund information.
 
@@ -134,7 +134,7 @@ def get_holdings(auth):
     pass
 ```
 
-#### 5. mapping/transform\_data.py
+### 5. mapping/transform_data.py
 
 Convert OpenAlgo format to broker format.
 
@@ -161,7 +161,7 @@ def transform_response(response):
     }
 ```
 
-#### 6. database/master\_contract\_db.py
+### 6. database/master_contract_db.py
 
 Symbol/token database management.
 
@@ -179,7 +179,7 @@ def get_token(symbol, exchange):
     pass
 ```
 
-#### 7. streaming/websocket\_adapter.py
+### 7. streaming/websocket_adapter.py
 
 Real-time data streaming adapter.
 
@@ -206,7 +206,7 @@ class BrokerWebSocketAdapter:
         pass
 ```
 
-#### 8. plugin.json
+### 8. plugin.json
 
 Broker metadata file. This is a simple metadata file (NOT configuration).
 
@@ -223,72 +223,72 @@ Broker metadata file. This is a simple metadata file (NOT configuration).
 
 > **Important**: The `plugin.json` file is for **metadata only** - it identifies the plugin but does NOT contain configuration like API URLs or rate limits. Authentication methods, API endpoints, and WebSocket URLs are handled directly in the broker's Python code.
 
-### Adding a New Broker
+## Adding a New Broker
 
-#### Step 1: Create Directory Structure
+### Step 1: Create Directory Structure
 
 ```bash
 mkdir -p broker/newbroker/{api,mapping,database,streaming}
 touch broker/newbroker/{api,mapping,database,streaming}/__init__.py
 ```
 
-#### Step 2: Implement Required Files
+### Step 2: Implement Required Files
 
 1. `api/auth_api.py` - Authentication
 2. `api/order_api.py` - Orders
 3. `api/data.py` - Market data
 4. `api/funds.py` - Account data
 5. `mapping/transform_data.py` - Data mapping
-6. `database/master_contract_db.py` - Symbol DB
+6. `database/token_db.py` and `database/symbol.py` - Master-contract storage and queries
 7. `plugin.json` - Metadata
 
-#### Step 3: Register Broker
+### Step 3: Register Broker
 
 ```bash
 # .env
 VALID_BROKERS=zerodha,dhan,angel,newbroker
 ```
 
-### Field Mapping Examples
+## Field Mapping Examples
 
-#### Price Type Mapping
+### Price Type Mapping
 
-| OpenAlgo | Zerodha | Dhan   | Angel            |
-| -------- | ------- | ------ | ---------------- |
-| MARKET   | MARKET  | MARKET | MARKET           |
-| LIMIT    | LIMIT   | LIMIT  | LIMIT            |
-| SL       | SL      | SL     | STOPLOSS\_LIMIT  |
-| SL-M     | SL-M    | SL-M   | STOPLOSS\_MARKET |
+| OpenAlgo | Zerodha | Dhan | Angel |
+|----------|---------|------|-------|
+| MARKET | MARKET | MARKET | MARKET |
+| LIMIT | LIMIT | LIMIT | LIMIT |
+| SL | SL | SL | STOPLOSS_LIMIT |
+| SL-M | SL-M | SL-M | STOPLOSS_MARKET |
 
-#### Product Type Mapping
+### Product Type Mapping
 
-| OpenAlgo | Zerodha | Dhan     | Angel        |
-| -------- | ------- | -------- | ------------ |
-| CNC      | CNC     | CNC      | DELIVERY     |
-| MIS      | MIS     | INTRADAY | INTRADAY     |
-| NRML     | NRML    | MARGIN   | CARRYFORWARD |
+| OpenAlgo | Zerodha | Dhan | Angel |
+|----------|---------|------|-------|
+| CNC | CNC | CNC | DELIVERY |
+| MIS | MIS | INTRADAY | INTRADAY |
+| NRML | NRML | MARGIN | CARRYFORWARD |
 
-#### Exchange Mapping
+### Exchange Mapping
 
-| OpenAlgo | Zerodha | Dhan      | Angel |
-| -------- | ------- | --------- | ----- |
-| NSE      | NSE     | NSE\_EQ   | NSE   |
-| NFO      | NFO     | NSE\_FNO  | NFO   |
-| BSE      | BSE     | BSE\_EQ   | BSE   |
-| MCX      | MCX     | MCX\_COMM | MCX   |
+| OpenAlgo | Zerodha | Dhan | Angel |
+|----------|---------|------|-------|
+| NSE | NSE | NSE_EQ | NSE |
+| NFO | NFO | NSE_FNO | NFO |
+| BSE | BSE | BSE_EQ | BSE |
+| MCX | MCX | MCX_COMM | MCX |
 
-### Reference Implementations
+## Reference Implementations
 
-#### Best Examples
+### Best Examples
 
-| Broker  | Strength                               |
-| ------- | -------------------------------------- |
-| zerodha | Complete OAuth2 implementation         |
-| dhan    | Simple API key auth                    |
-| angel   | Full feature set                       |
-| nubra   | gRPC-based streaming, protos directory |
+| Broker | Strength |
+|--------|----------|
+| zerodha | Complete OAuth2 implementation |
+| dhan | Simple API key auth |
+| angel | Full feature set |
+| nubra | gRPC-based streaming, protos directory |
 
-#### Code Reference
+### Code Reference
 
 ```python
 # See broker/zerodha/ for complete example
@@ -296,15 +296,15 @@ VALID_BROKERS=zerodha,dhan,angel,newbroker
 # See broker/angel/ for alternative patterns
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| Component | File Pattern                              |
-| --------- | ----------------------------------------- |
-| Auth      | `broker/*/api/auth_api.py`                |
-| Orders    | `broker/*/api/order_api.py`               |
-| Data      | `broker/*/api/data.py`                    |
-| Funds     | `broker/*/api/funds.py`                   |
-| Mapping   | `broker/*/mapping/transform_data.py`      |
-| Symbols   | `broker/*/database/master_contract_db.py` |
+| Component | File Pattern |
+|-----------|--------------|
+| Auth | `broker/*/api/auth_api.py` |
+| Orders | `broker/*/api/order_api.py` |
+| Data | `broker/*/api/data.py` |
+| Funds | `broker/*/api/funds.py` |
+| Mapping | `broker/*/mapping/transform_data.py` |
+| Symbols | `broker/*/database/master_contract_db.py` |
 | WebSocket | `broker/*/streaming/websocket_adapter.py` |
-| Config    | `broker/*/plugin.json`                    |
+| Config | `broker/*/plugin.json` |

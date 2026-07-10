@@ -1,12 +1,12 @@
 # 13 - Chartink Architecture
 
-### Overview
+## Overview
 
 Chartink integration allows OpenAlgo to receive trading signals from Chartink screener alerts via webhooks. When a stock appears in a Chartink scanner, it triggers a webhook that OpenAlgo processes to place trades automatically.
 
 > **Note**: The Chartink integration uses a "Strategy" concept (not "Scanner") where each strategy has symbol-level configuration with time-based trading controls.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -70,7 +70,7 @@ Chartink integration allows OpenAlgo to receive trading signals from Chartink sc
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Database Schema
+## Database Schema
 
 **Location:** `database/chartink_db.py`
 
@@ -115,9 +115,9 @@ class ChartinkSymbolMapping(Base):
 
 > **Key Differences from Scanner Model**: The strategy model does NOT have `action` (BUY/SELL), `default_quantity`, or scanner-level `exchange`/`product_type`. Instead, trading parameters are defined per-symbol in the mapping table.
 
-### Webhook Configuration
+## Webhook Configuration
 
-#### Chartink Setup
+### Chartink Setup
 
 1. Go to Chartink Scanner
 2. Edit scanner settings
@@ -131,35 +131,36 @@ class ChartinkSymbolMapping(Base):
 }
 ```
 
-#### OpenAlgo Setup
+### OpenAlgo Setup
 
 1. Navigate to `/chartink`
 2. Create new strategy
 3. Copy the generated `webhook_id`
 4. Configure time-based trading controls:
-   * **Start Time**: When to start accepting signals (HH:MM)
-   * **End Time**: When to stop accepting signals (HH:MM)
-   * **Square-off Time**: Auto close positions (HH:MM)
-   * **Intraday Mode**: Enable for MIS trades
-5. Add symbol mappings with per-symbol configuration:
-   * **Chartink Symbol**: Symbol as sent by Chartink
-   * **Exchange**: NSE/BSE/NFO
-   * **Product Type**: MIS/CNC/NRML
-   * **Quantity**: Order quantity for this symbol
+   - **Start Time**: When to start accepting signals (HH:MM)
+   - **End Time**: When to stop accepting signals (HH:MM)
+   - **Square-off Time**: Auto close positions (HH:MM)
+   - **Intraday Mode**: Enable for MIS trades
 
-### Symbol Mapping
+5. Add symbol mappings with per-symbol configuration:
+   - **Chartink Symbol**: Symbol as sent by Chartink
+   - **Exchange**: NSE/BSE/NFO
+   - **Product Type**: MIS/CNC/NRML
+   - **Quantity**: Order quantity for this symbol
+
+## Symbol Mapping
 
 Each symbol in a strategy has its own trading configuration:
 
 | Chartink Symbol | Exchange | Product | Quantity |
-| --------------- | -------- | ------- | -------- |
-| SBIN            | NSE      | MIS     | 100      |
-| RELIANCE        | NSE      | CNC     | 10       |
-| INFY            | NSE      | MIS     | 50       |
+|-----------------|----------|---------|----------|
+| SBIN | NSE | MIS | 100 |
+| RELIANCE | NSE | CNC | 10 |
+| INFY | NSE | MIS | 50 |
 
 > **Note**: Unlike scanner-level defaults, each symbol must have its exchange, product, and quantity explicitly configured in the symbol mapping.
 
-### Processing Flow
+## Processing Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -208,42 +209,40 @@ Webhook Received
 └───────────────────────────────────────────────────┘
 ```
 
-### API Endpoints
+## API Endpoints
 
-| Endpoint                 | Method   | Description             |
-| ------------------------ | -------- | ----------------------- |
-| `/chartink/webhook`      | POST     | Receive Chartink alerts |
-| `/chartink/`             | GET      | List strategies         |
-| `/chartink/new`          | GET/POST | Create strategy         |
-| `/chartink/<id>`         | GET      | View strategy           |
-| `/chartink/<id>/edit`    | GET/POST | Edit strategy           |
-| `/chartink/<id>/delete`  | POST     | Delete strategy         |
-| `/chartink/<id>/toggle`  | POST     | Enable/disable strategy |
-| `/chartink/<id>/symbols` | GET/POST | Symbol mappings         |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/chartink/webhook` | POST | Receive Chartink alerts |
+| `/chartink/` | GET | List strategies |
+| `/chartink/new` | GET/POST | Create strategy |
+| `/chartink/<id>` | GET | View strategy |
+| `/chartink/<id>/edit` | GET/POST | Edit strategy |
+| `/chartink/<id>/delete` | POST | Delete strategy |
+| `/chartink/<id>/toggle` | POST | Enable/disable strategy |
+| `/chartink/<id>/symbols` | GET/POST | Symbol mappings |
 
-### Database Functions
+## Database Functions
 
 **Strategy Management:**
-
-* `create_strategy(name, webhook_id, user_id, is_intraday, start_time, end_time, squareoff_time)`
-* `get_strategy(strategy_id)` - Get strategy by ID
-* `get_strategy_by_webhook_id(webhook_id)` - Get strategy by webhook ID
-* `get_user_strategies(user_id)` - Get all strategies for a user
-* `get_all_strategies()` - Get all strategies
-* `delete_strategy(strategy_id)` - Delete a strategy
-* `toggle_strategy(strategy_id)` - Toggle active status
-* `update_strategy_times(strategy_id, start_time, end_time, squareoff_time)` - Update trading times
+- `create_strategy(name, webhook_id, user_id, is_intraday, start_time, end_time, squareoff_time)`
+- `get_strategy(strategy_id)` - Get strategy by ID
+- `get_strategy_by_webhook_id(webhook_id)` - Get strategy by webhook ID
+- `get_user_strategies(user_id)` - Get all strategies for a user
+- `get_all_strategies()` - Get all strategies
+- `delete_strategy(strategy_id)` - Delete a strategy
+- `toggle_strategy(strategy_id)` - Toggle active status
+- `update_strategy_times(strategy_id, start_time, end_time, squareoff_time)` - Update trading times
 
 **Symbol Mapping Management:**
+- `add_symbol_mapping(strategy_id, chartink_symbol, exchange, quantity, product_type)`
+- `bulk_add_symbol_mappings(strategy_id, mappings)` - Add multiple mappings at once
+- `get_symbol_mappings(strategy_id)` - Get all mappings for a strategy
+- `delete_symbol_mapping(mapping_id)` - Delete a mapping
 
-* `add_symbol_mapping(strategy_id, chartink_symbol, exchange, quantity, product_type)`
-* `bulk_add_symbol_mappings(strategy_id, mappings)` - Add multiple mappings at once
-* `get_symbol_mappings(strategy_id)` - Get all mappings for a strategy
-* `delete_symbol_mapping(mapping_id)` - Delete a mapping
+## Webhook Payload Format
 
-### Webhook Payload Format
-
-#### From Chartink
+### From Chartink
 
 ```json
 {
@@ -252,7 +251,7 @@ Webhook Received
 }
 ```
 
-#### Processed Order
+### Processed Order
 
 ```json
 {
@@ -266,65 +265,67 @@ Webhook Received
 }
 ```
 
-### Configuration
+## Configuration
 
-#### Environment Variables
+### Environment Variables
 
 ```bash
 WEBHOOK_RATE_LIMIT=100 per minute
 STRATEGY_RATE_LIMIT=200 per minute
 ```
 
-#### Strategy Settings
+### Strategy Settings
 
-| Setting          | Description                  | Default        |
-| ---------------- | ---------------------------- | -------------- |
-| `name`           | Strategy name                | Required       |
-| `webhook_id`     | UUID for webhook             | Auto-generated |
-| `user_id`        | Owner user ID                | Current user   |
-| `is_active`      | Enable/disable strategy      | true           |
-| `is_intraday`    | Intraday trading mode        | true           |
-| `start_time`     | Trading window start (HH:MM) | None           |
-| `end_time`       | Trading window end (HH:MM)   | None           |
-| `squareoff_time` | Auto square-off time (HH:MM) | None           |
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `name` | Strategy name | Required |
+| `webhook_id` | UUID for webhook | Auto-generated |
+| `user_id` | Owner user ID | Current user |
+| `is_active` | Enable/disable strategy | true |
+| `is_intraday` | Intraday trading mode | true |
+| `start_time` | Trading window start (HH:MM) | None |
+| `end_time` | Trading window end (HH:MM) | None |
+| `squareoff_time` | Auto square-off time (HH:MM) | None |
 
-#### Symbol Mapping Settings
+### Symbol Mapping Settings
 
-| Setting           | Description                    | Required |
-| ----------------- | ------------------------------ | -------- |
-| `chartink_symbol` | Symbol from Chartink           | Yes      |
-| `exchange`        | Trading exchange (NSE/BSE/NFO) | Yes      |
-| `quantity`        | Order quantity                 | Yes      |
-| `product_type`    | Product type (MIS/CNC/NRML)    | Yes      |
+| Setting | Description | Required |
+|---------|-------------|----------|
+| `chartink_symbol` | Symbol from Chartink | Yes |
+| `exchange` | Trading exchange (NSE/BSE/NFO) | Yes |
+| `quantity` | Order quantity | Yes |
+| `product_type` | Product type (MIS/CNC/NRML) | Yes |
 
-### Use Cases
+## Use Cases
 
-#### Momentum Scanner
+### Momentum Scanner
 
 ```
 Chartink: Stocks crossing 20 DMA with volume spike
 OpenAlgo: Auto-buy with MIS product, qty=100
 ```
 
-#### Breakout Scanner
+### Breakout Scanner
 
 ```
 Chartink: Stocks breaking 52-week high
 OpenAlgo: Auto-buy with CNC product for delivery
 ```
 
-#### Exit Scanner
+### Exit Scanner
 
 ```
 Chartink: Stocks falling below support
 OpenAlgo: Auto-sell to close positions
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                              | Purpose            |
-| --------------------------------- | ------------------ |
-| `blueprints/chartink.py`          | Chartink blueprint |
-| `database/chartink_db.py`         | Database models    |
-| `templates/chartink/`             | UI templates       |
-| `frontend/src/pages/Chartink.tsx` | React UI           |
+| File | Purpose |
+|------|---------|
+| `blueprints/chartink.py` | Chartink blueprint |
+| `database/chartink_db.py` | Database models |
+| `frontend/src/pages/chartink/ChartinkIndex.tsx` | Strategy list UI |
+| `frontend/src/pages/chartink/NewChartinkStrategy.tsx` | Creation UI |
+| `frontend/src/pages/chartink/ViewChartinkStrategy.tsx` | Detail UI |
+| `frontend/src/pages/chartink/ConfigureChartinkSymbols.tsx` | Symbol mapping UI |

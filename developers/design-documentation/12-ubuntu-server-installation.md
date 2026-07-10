@@ -1,10 +1,10 @@
 # 12 - Ubuntu Server Installation
 
-### Overview
+## Overview
 
 This guide covers deploying OpenAlgo on an Ubuntu server (20.04/22.04 LTS) with Nginx reverse proxy, systemd services, and SSL configuration for production use.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -50,7 +50,7 @@ This guide covers deploying OpenAlgo on an Ubuntu server (20.04/22.04 LTS) with 
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Prerequisites
+## Prerequisites
 
 ```bash
 # Update system
@@ -66,9 +66,9 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
-### Installation Steps
+## Installation Steps
 
-#### 1. Clone Repository
+### 1. Clone Repository
 
 ```bash
 # Create application directory
@@ -80,7 +80,7 @@ cd /opt/openalgo
 git clone https://github.com/marketcalls/openalgo.git .
 ```
 
-#### 2. Setup Python Environment
+### 2. Setup Python Environment
 
 ```bash
 # Install uv package manager
@@ -95,7 +95,7 @@ uv sync
 uv pip install gunicorn eventlet==0.35.2
 ```
 
-#### 3. Configure Environment
+### 3. Configure Environment
 
 ```bash
 # Copy sample environment file
@@ -109,7 +109,7 @@ python -c "import secrets; print(secrets.token_hex(32))"
 nano .env
 ```
 
-#### 4. Build Frontend
+### 4. Build Frontend
 
 ```bash
 cd frontend
@@ -118,9 +118,9 @@ npm run build
 cd ..
 ```
 
-#### 5. Create Systemd Service
+### 5. Create Systemd Service
 
-**Note:** The WebSocket server runs as a thread inside the main app (port 8765), so only ONE systemd service is needed.
+**Note:** One systemd service is sufficient. Under Gunicorn/eventlet, `websocket_proxy.app_integration` spawns the WebSocket proxy as an isolated child process on port 8765; it is not an in-process daemon thread.
 
 ```bash
 sudo nano /etc/systemd/system/openalgo.service
@@ -152,7 +152,7 @@ WantedBy=multi-user.target
 
 **Important:** Use `-w 1` (single worker) for WebSocket compatibility.
 
-#### 6. Set Permissions
+### 6. Set Permissions
 
 ```bash
 # Set ownership
@@ -164,7 +164,7 @@ sudo chmod 700 /opt/openalgo/keys
 sudo chmod 600 /opt/openalgo/.env
 ```
 
-#### 7. Configure Nginx
+### 7. Configure Nginx
 
 ```bash
 sudo nano /etc/nginx/sites-available/openalgo
@@ -226,7 +226,7 @@ server {
 }
 ```
 
-#### 8. Enable Service
+### 8. Enable Service
 
 ```bash
 # Enable Nginx site
@@ -240,13 +240,13 @@ sudo systemctl enable openalgo
 sudo systemctl start openalgo
 ```
 
-#### 9. Setup SSL (Let's Encrypt)
+### 9. Setup SSL (Let's Encrypt)
 
 ```bash
 sudo certbot --nginx -d your-domain.com
 ```
 
-### Service Management
+## Service Management
 
 ```bash
 # Check status
@@ -262,7 +262,7 @@ sudo systemctl restart openalgo
 sudo systemctl stop openalgo
 ```
 
-### Firewall Configuration
+## Firewall Configuration
 
 ```bash
 # Enable firewall
@@ -277,7 +277,7 @@ sudo ufw allow 443/tcp    # HTTPS
 sudo ufw status
 ```
 
-### Update Procedure
+## Update Procedure
 
 ```bash
 # Stop service
@@ -301,22 +301,22 @@ cd ..
 sudo systemctl start openalgo
 ```
 
-### Troubleshooting
+## Troubleshooting
 
-| Issue             | Solution                                                              |
-| ----------------- | --------------------------------------------------------------------- |
-| 502 Bad Gateway   | Check if OpenAlgo service is running: `systemctl status openalgo`     |
-| WebSocket fails   | Check Nginx /ws proxy config and service logs                         |
+| Issue | Solution |
+|-------|----------|
+| 502 Bad Gateway | Check if OpenAlgo service is running: `systemctl status openalgo` |
+| WebSocket fails | Check Nginx /ws proxy config and service logs |
 | Permission denied | Verify www-data ownership: `chown -R www-data:www-data /opt/openalgo` |
-| SSL error         | Renew certificates: `sudo certbot renew`                              |
+| SSL error | Renew certificates: `sudo certbot renew` |
 
-### Key Files Reference
+## Key Files Reference
 
-| File                                   | Purpose                           |
-| -------------------------------------- | --------------------------------- |
+| File | Purpose |
+|------|---------|
 | `/etc/systemd/system/openalgo.service` | Main service (includes WebSocket) |
-| `/etc/nginx/sites-available/openalgo`  | Nginx config                      |
-| `/opt/openalgo/.env`                   | Application config                |
-| `/var/log/nginx/`                      | Nginx logs                        |
+| `/etc/nginx/sites-available/openalgo` | Nginx config |
+| `/opt/openalgo/.env` | Application config |
+| `/var/log/nginx/` | Nginx logs |
 
-**Note:** There is no separate `openalgo-ws.service`. The WebSocket server runs as a thread inside the main Flask application on port 8765.
+**Note:** There is no separate `openalgo-ws.service`. The Gunicorn-managed application starts the WebSocket proxy as a child process on port 8765, and systemd's service cgroup owns both processes.

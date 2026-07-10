@@ -1,16 +1,66 @@
 # 05 - Security Architecture
 
-### Overview
+## Overview
 
 OpenAlgo implements defense-in-depth security with multiple layers protecting the application from various attack vectors. The security architecture covers authentication, authorization, transport security, input validation, and monitoring.
 
-### Security Layers Diagram
+## Security Layers Diagram
 
-<figure><img src="../../.gitbook/assets/image (153).png" alt=""><figcaption></figcaption></figure>
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          Security Architecture                                │
+└──────────────────────────────────────────────────────────────────────────────┘
 
-### Layer 1: Transport Security
+                              Internet
+                                 │
+                                 ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  Layer 1: Transport Security                                                  │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │  HTTPS (TLS 1.2+) │ WSS for WebSocket │ Secure Cookies (__Secure-)     │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  Layer 2: Network Security                                                    │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │  IP Banning (SecurityMiddleware) │ Rate Limiting (Flask-Limiter)       │  │
+│  │  404 Tracking (Error404Tracker)  │ Invalid API Key Tracking            │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  Layer 3: Browser Security                                                    │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │  CSP Headers │ CORS Policy │ Referrer Policy │ Permissions Policy      │  │
+│  │  Clickjacking (frame-ancestors) │ XSS Protection                       │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  Layer 4: Application Security                                                │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │  CSRF Protection │ Session Management │ Password Hashing (Argon2)      │  │
+│  │  API Key Hashing │ Token Encryption (Fernet) │ Input Validation        │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  Layer 5: Data Security                                                       │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │  Encrypted Auth Tokens │ Peppered Hashes │ Secure Key Storage          │  │
+│  │  Database Isolation (6 stores) │ Sensitive Data Redaction              │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
-#### HTTPS Configuration
+## Layer 1: Transport Security
+
+### HTTPS Configuration
 
 ```python
 # app.py
@@ -28,18 +78,18 @@ if USE_HTTPS:
     app.config['SESSION_COOKIE_NAME'] = f'__Secure-{session_cookie_name}'
 ```
 
-#### Cookie Security Attributes
+### Cookie Security Attributes
 
-| Attribute          | Value        | Purpose                                             |
-| ------------------ | ------------ | --------------------------------------------------- |
-| `HttpOnly`         | True         | Prevents JavaScript access (XSS protection)         |
-| `SameSite`         | Lax          | CSRF protection while allowing top-level navigation |
-| `Secure`           | True (HTTPS) | Cookies only sent over HTTPS                        |
-| `__Secure-` prefix | HTTPS only   | Additional browser validation                       |
+| Attribute | Value | Purpose |
+|-----------|-------|---------|
+| `HttpOnly` | True | Prevents JavaScript access (XSS protection) |
+| `SameSite` | Lax | CSRF protection while allowing top-level navigation |
+| `Secure` | True (HTTPS) | Cookies only sent over HTTPS |
+| `__Secure-` prefix | HTTPS only | Additional browser validation |
 
-### Layer 2: Network Security
+## Layer 2: Network Security
 
-#### IP Banning System
+### IP Banning System
 
 **Location:** `utils/security_middleware.py`
 
@@ -62,7 +112,6 @@ class SecurityMiddleware:
 ```
 
 **IP Ban Model:**
-
 ```python
 # database/traffic_db.py
 class IPBan(LogBase):
@@ -90,7 +139,7 @@ class IPBan(LogBase):
         return False
 ```
 
-#### Rate Limiting
+### Rate Limiting
 
 **Location:** `limiter.py`
 
@@ -107,15 +156,14 @@ limiter = Limiter(
 
 **Rate Limit Configuration:**
 
-| Endpoint               | Limit          | Purpose                |
-| ---------------------- | -------------- | ---------------------- |
-| `/auth/login`          | 5/min, 25/hour | Brute force protection |
-| `/{broker}/callback`   | 5/min, 25/hour | OAuth abuse prevention |
-| `/auth/reset-password` | 15/hour        | Password reset spam    |
-| `/api/v1/*`            | Per-endpoint   | API abuse prevention   |
+| Endpoint | Limit | Purpose |
+|----------|-------|---------|
+| `/auth/login` | 5/min, 25/hour | Brute force protection |
+| `/{broker}/callback` | 5/min, 25/hour | OAuth abuse prevention |
+| `/auth/reset-password` | 15/hour | Password reset spam |
+| `/api/v1/*` | Per-endpoint | API abuse prevention |
 
 **Usage Example:**
-
 ```python
 @auth_bp.route('/login', methods=['POST'])
 @limiter.limit("5 per minute")
@@ -125,7 +173,7 @@ def login():
     pass
 ```
 
-#### 404 Error Tracking
+### 404 Error Tracking
 
 Tracks suspicious 404 errors for potential attack detection:
 
@@ -141,9 +189,9 @@ class Error404Tracker(LogBase):
     referrer = Column(String(500))
 ```
 
-### Layer 3: Browser Security
+## Layer 3: Browser Security
 
-#### Content Security Policy (CSP)
+### Content Security Policy (CSP)
 
 **Location:** `csp.py`
 
@@ -172,17 +220,17 @@ def add_security_headers(response):
 
 **CSP Directives:**
 
-| Directive         | Default Value                | Purpose                       |
-| ----------------- | ---------------------------- | ----------------------------- |
-| `default-src`     | 'self'                       | Fallback for all resources    |
-| `script-src`      | 'self' https://cdn.socket.io | JavaScript sources            |
-| `style-src`       | 'self' 'unsafe-inline'       | CSS sources                   |
-| `connect-src`     | 'self' wss: ws:              | API and WebSocket connections |
-| `img-src`         | 'self' data:                 | Image sources                 |
-| `object-src`      | 'none'                       | Block plugins (Flash, etc.)   |
-| `frame-ancestors` | 'self'                       | Clickjacking protection       |
+| Directive | Default Value | Purpose |
+|-----------|---------------|---------|
+| `default-src` | 'self' | Fallback for all resources |
+| `script-src` | 'self' https://cdn.socket.io | JavaScript sources |
+| `style-src` | 'self' 'unsafe-inline' | CSS sources |
+| `connect-src` | 'self' wss: ws: | API and WebSocket connections |
+| `img-src` | 'self' data: | Image sources |
+| `object-src` | 'none' | Block plugins (Flash, etc.) |
+| `frame-ancestors` | 'self' | Clickjacking protection |
 
-#### CORS Configuration
+### CORS Configuration
 
 **Location:** `cors.py`
 
@@ -201,7 +249,7 @@ def get_cors_config():
 cors = CORS(resources={r"/api/*": get_cors_config()})
 ```
 
-#### Additional Security Headers
+### Additional Security Headers
 
 ```python
 def get_security_headers():
@@ -211,9 +259,9 @@ def get_security_headers():
     }
 ```
 
-### Layer 4: Application Security
+## Layer 4: Application Security
 
-#### CSRF Protection
+### CSRF Protection
 
 **Location:** `app.py`
 
@@ -231,7 +279,6 @@ app.config.update(
 ```
 
 **CSRF Token Flow:**
-
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │  React Client   │────►│ GET /auth/      │────►│ Return CSRF     │
@@ -247,7 +294,6 @@ app.config.update(
 ```
 
 **Frontend Implementation:**
-
 ```typescript
 // api/client.ts
 webClient.interceptors.request.use(async (config) => {
@@ -259,7 +305,7 @@ webClient.interceptors.request.use(async (config) => {
 })
 ```
 
-#### Password Security
+### Password Security
 
 **Argon2 Hashing with Pepper:**
 
@@ -283,7 +329,6 @@ class User:
 ```
 
 **Password Requirements:**
-
 ```python
 def validate_password_strength(password):
     """
@@ -296,10 +341,9 @@ def validate_password_strength(password):
     """
 ```
 
-#### API Key Security
+### API Key Security
 
 **Three-Level Verification:**
-
 ```
 1. Check invalid_api_key_cache (5min TTL) → Fast rejection
 2. Check verified_api_key_cache (10hr TTL) → Fast acceptance
@@ -330,7 +374,7 @@ def verify_api_key(api_key: str) -> Optional[str]:
     return user_id
 ```
 
-#### Session Security
+### Session Security
 
 ```python
 # app.py
@@ -345,9 +389,9 @@ app.config['PERMANENT_SESSION_LIFETIME'] = get_session_expiry_time()
 session.permanent = True
 ```
 
-### Layer 5: Data Security
+## Layer 5: Data Security
 
-#### Auth Token Encryption
+### Auth Token Encryption
 
 **Fernet Encryption for Broker Tokens:**
 
@@ -376,22 +420,22 @@ def decrypt_token(encrypted_token):
     return fernet.decrypt(encrypted_token.encode()).decode()
 ```
 
-#### Database Isolation
+### Database Isolation
 
-Five separate databases prevent cross-contamination:
+Six primary configured stores separate workloads:
 
-| Database           | Contents                   | Sensitivity |
-| ------------------ | -------------------------- | ----------- |
-| `openalgo.db`      | Users, auth tokens, orders | High        |
-| `logs.db`          | Traffic logs, IP bans      | Medium      |
-| `latency.db`       | Performance metrics        | Low         |
-| `sandbox.db`       | Paper trading data         | Medium      |
-| `historify.duckdb` | Historical market data     | Low         |
+| Database | Contents | Sensitivity |
+|----------|----------|-------------|
+| `openalgo.db` | Users, auth tokens, orders | High |
+| `logs.db` | Traffic logs, IP bans | Medium |
+| `latency.db` | Performance metrics | Low |
+| `health.db` | Runtime health metrics | Low |
+| `sandbox.db` | Sandbox trading data | Medium |
+| `historify.duckdb` | Historical market data | Low |
 
-#### Sensitive Data Protection
+### Sensitive Data Protection
 
 **Log Redaction:**
-
 ```python
 # Sensitive fields never logged in plaintext
 SENSITIVE_FIELDS = ['password', 'api_key', 'auth_token', 'access_token']
@@ -403,9 +447,9 @@ def redact_sensitive_data(data):
     return data
 ```
 
-### Security Configuration Summary
+## Security Configuration Summary
 
-#### Environment Variables
+### Environment Variables
 
 ```bash
 # Required Security Keys
@@ -436,9 +480,9 @@ LOGIN_RATE_LIMIT_MIN=5 per minute
 LOGIN_RATE_LIMIT_HOUR=25 per hour
 ```
 
-### Security Checklist
+## Security Checklist
 
-#### Startup Validation
+### Startup Validation
 
 ```python
 # database/auth_db.py
@@ -451,25 +495,25 @@ if len(os.getenv('API_KEY_PEPPER')) < 32:
     raise RuntimeError("CRITICAL: API_KEY_PEPPER must be at least 32 characters")
 ```
 
-#### Security Best Practices
+### Security Best Practices
 
 1. **Always use HTTPS in production**
 2. **Never log sensitive data (passwords, tokens)**
 3. **Use rate limiting on all authentication endpoints**
 4. **Implement IP banning for abusive IPs**
-5. **Keep API\_KEY\_PEPPER secure and backed up**
+5. **Keep API_KEY_PEPPER secure and backed up**
 6. **Monitor 404 errors for attack detection**
 7. **Use secure cookie attributes**
 8. **Implement proper CSRF protection**
 
-### Key Files Reference
+## Key Files Reference
 
-| File                           | Purpose                  |
-| ------------------------------ | ------------------------ |
-| `app.py`                       | Security initialization  |
-| `csp.py`                       | Content Security Policy  |
-| `cors.py`                      | CORS configuration       |
-| `limiter.py`                   | Rate limiting            |
-| `utils/security_middleware.py` | IP banning middleware    |
-| `database/auth_db.py`          | Password/API key hashing |
-| `database/traffic_db.py`       | IP ban model             |
+| File | Purpose |
+|------|---------|
+| `app.py` | Security initialization |
+| `csp.py` | Content Security Policy |
+| `cors.py` | CORS configuration |
+| `limiter.py` | Rate limiting |
+| `utils/security_middleware.py` | IP banning middleware |
+| `database/auth_db.py` | Password/API key hashing |
+| `database/traffic_db.py` | IP ban model |

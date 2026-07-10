@@ -1,10 +1,10 @@
 # 38 - Python Strategies Hosting
 
-### Overview
+## Overview
 
 OpenAlgo provides a cross-platform Python strategy hosting system that allows users to upload, run, schedule, and manage trading strategies. Each strategy runs in a separate process for complete isolation with support for Windows, Linux, and macOS.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -67,7 +67,7 @@ OpenAlgo provides a cross-platform Python strategy hosting system that allows us
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Directory Structure
+## Directory Structure
 
 ```
 openalgo/
@@ -84,9 +84,9 @@ openalgo/
     └── python_strategy.py  # Strategy hosting blueprint
 ```
 
-### Key Features
+## Key Features
 
-#### Process Isolation
+### Process Isolation
 
 Each strategy runs in a separate subprocess:
 
@@ -118,13 +118,13 @@ def start_strategy(strategy_id):
         }
 ```
 
-#### Cross-Platform Support
+### Cross-Platform Support
 
-| Platform | Support | Notes           |
-| -------- | ------- | --------------- |
-| Windows  | Full    | Uses subprocess |
-| Linux    | Full    | Uses subprocess |
-| macOS    | Full    | Uses subprocess |
+| Platform | Support | Notes |
+|----------|---------|-------|
+| Windows | Full | Uses subprocess |
+| Linux | Full | Uses subprocess |
+| macOS | Full | Uses subprocess |
 
 ```python
 OS_TYPE = platform.system().lower()  # 'windows', 'linux', 'darwin'
@@ -133,7 +133,7 @@ IS_MAC = OS_TYPE == 'darwin'
 IS_LINUX = OS_TYPE == 'linux'
 ```
 
-### Strategy Lifecycle
+## Strategy Lifecycle
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -169,9 +169,9 @@ IS_LINUX = OS_TYPE == 'linux'
   └─────────┘
 ```
 
-### Scheduling with APScheduler
+## Scheduling with APScheduler
 
-#### Scheduler Configuration
+### Scheduler Configuration
 
 ```python
 IST = pytz.timezone('Asia/Kolkata')
@@ -200,16 +200,16 @@ def init_scheduler():
     )
 ```
 
-#### Schedule Options
+### Schedule Options
 
-| Schedule Type | Description              | Example           |
-| ------------- | ------------------------ | ----------------- |
-| One-time      | Start at specific time   | 09:15 IST         |
-| Interval      | Repeat at fixed interval | Every 5 minutes   |
-| Cron          | Complex scheduling       | Weekdays at 09:15 |
-| Market Hours  | Only during trading      | 09:15 - 15:30     |
+| Schedule Type | Description | Example |
+|---------------|-------------|---------|
+| One-time | Start at specific time | 09:15 IST |
+| Interval | Repeat at fixed interval | Every 5 minutes |
+| Cron | Complex scheduling | Weekdays at 09:15 |
+| Market Hours | Only during trading | 09:15 - 15:30 |
 
-#### Market-Aware Scheduling
+### Market-Aware Scheduling
 
 ```python
 def daily_trading_day_check():
@@ -230,9 +230,9 @@ def market_hours_enforcer():
                 stop_strategy(strategy_id)
 ```
 
-### User Ownership & Security
+## User Ownership & Security
 
-#### Strategy Ownership Verification
+### Strategy Ownership Verification
 
 ```python
 def verify_strategy_ownership(strategy_id, user_id, return_config=False):
@@ -255,16 +255,16 @@ def verify_strategy_ownership(strategy_id, user_id, return_config=False):
     return True, config if return_config else None
 ```
 
-#### Security Features
+### Security Features
 
-| Feature                   | Implementation                        |
-| ------------------------- | ------------------------------------- |
-| User isolation            | Each user sees only their strategies  |
+| Feature | Implementation |
+|---------|----------------|
+| User isolation | Each user sees only their strategies |
 | Path traversal protection | Reject `..`, `/`, `\` in strategy IDs |
-| Secure filename           | `werkzeug.utils.secure_filename()`    |
-| Process isolation         | Separate subprocess per strategy      |
+| Secure filename | `werkzeug.utils.secure_filename()` |
+| Process isolation | Separate subprocess per strategy |
 
-### Server-Sent Events (SSE)
+## Server-Sent Events (SSE)
 
 Real-time status updates via SSE:
 
@@ -288,21 +288,21 @@ def broadcast_status_update(strategy_id: str, status: str, message: str = None):
                 pass  # Queue full or dead
 ```
 
-### API Endpoints
+## API Endpoints
 
-| Endpoint                | Method | Description         |
-| ----------------------- | ------ | ------------------- |
-| `/python/`              | GET    | List all strategies |
-| `/python/upload`        | POST   | Upload new strategy |
-| `/python/start/<id>`    | POST   | Start a strategy    |
-| `/python/stop/<id>`     | POST   | Stop a strategy     |
-| `/python/schedule/<id>` | POST   | Schedule a strategy |
-| `/python/delete/<id>`   | DELETE | Delete a strategy   |
-| `/python/logs/<id>`     | GET    | Get strategy logs   |
-| `/python/status/<id>`   | GET    | Get strategy status |
-| `/python/events`        | GET    | SSE status stream   |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/python/` | GET | List all strategies |
+| `/python/upload` | POST | Upload new strategy |
+| `/python/start/<id>` | POST | Start a strategy |
+| `/python/stop/<id>` | POST | Stop a strategy |
+| `/python/schedule/<id>` | POST | Schedule a strategy |
+| `/python/delete/<id>` | DELETE | Delete a strategy |
+| `/python/logs/<id>` | GET | Get strategy logs |
+| `/python/status/<id>` | GET | Get strategy status |
+| `/python/events` | GET | SSE status stream |
 
-### Configuration Persistence
+## Configuration Persistence
 
 ```python
 CONFIG_FILE = Path('strategies') / 'strategy_configs.json'
@@ -327,16 +327,16 @@ def save_configs():
 }
 ```
 
-### Operational Guidelines
+## Operational Guidelines
 
-#### Best Practices
+### Best Practices
 
 1. **Keep strategies stateless** - Don't rely on global state between runs
 2. **Use logging** - Write to stdout/stderr for log capture
 3. **Handle graceful shutdown** - Catch SIGTERM/SIGINT
 4. **Use OpenAlgo API** - Don't bypass the API layer
 
-#### Example Strategy Template
+### Example Strategy Template
 
 ```python
 #!/usr/bin/env python
@@ -409,7 +409,7 @@ if __name__ == "__main__":
     main()
 ```
 
-#### Log Monitoring
+### Log Monitoring
 
 ```bash
 # View live logs
@@ -419,9 +419,9 @@ tail -f log/strategies/my_strategy.log
 cat log/strategies/my_strategy.log | tail -100
 ```
 
-### Resource Configuration
+## Resource Configuration
 
-#### Memory Limits
+### Memory Limits
 
 Each strategy subprocess has a configurable memory limit to prevent runaway strategies from crashing the system:
 
@@ -431,33 +431,33 @@ STRATEGY_MEMORY_LIMIT_MB = int(os.environ.get('STRATEGY_MEMORY_LIMIT_MB', '1024'
 ```
 
 | Container RAM | Recommended Limit | Max Concurrent Strategies |
-| ------------- | ----------------- | ------------------------- |
-| 2GB           | 256MB             | 5                         |
-| 4GB           | 512MB             | 5-8                       |
-| 8GB+          | 1024MB (default)  | 10+                       |
+|---------------|-------------------|---------------------------|
+| 2GB | 256MB | 5 |
+| 4GB | 512MB | 5-8 |
+| 8GB+ | 1024MB (default) | 10+ |
 
-#### Thread Limiting for Docker
+### Thread Limiting for Docker
 
 When running strategies with numerical libraries (NumPy, SciPy, Numba) in Docker, thread limits prevent `RLIMIT_NPROC` exhaustion:
 
-| Variable               | Purpose                |
-| ---------------------- | ---------------------- |
-| `OPENBLAS_NUM_THREADS` | OpenBLAS thread limit  |
-| `OMP_NUM_THREADS`      | OpenMP thread limit    |
-| `MKL_NUM_THREADS`      | Intel MKL thread limit |
-| `NUMEXPR_NUM_THREADS`  | NumExpr thread limit   |
-| `NUMBA_NUM_THREADS`    | Numba JIT thread limit |
+| Variable | Purpose |
+|----------|---------|
+| `OPENBLAS_NUM_THREADS` | OpenBLAS thread limit |
+| `OMP_NUM_THREADS` | OpenMP thread limit |
+| `MKL_NUM_THREADS` | Intel MKL thread limit |
+| `NUMEXPR_NUM_THREADS` | NumExpr thread limit |
+| `NUMBA_NUM_THREADS` | Numba JIT thread limit |
 
-For 2GB containers, set all to `1`. For 4GB+, use `2`. See Docker Configuration for details.
+For 2GB containers, set all to `1`. For 4GB+, use `2`. See [Docker Configuration](11-docker-configuration.md) for details.
 
 > **Reference**: [GitHub Issue #822](https://github.com/marketcalls/openalgo/issues/822)
 
-### Key Files Reference
+## Key Files Reference
 
-| File                               | Purpose                    |
-| ---------------------------------- | -------------------------- |
-| `blueprints/python_strategy.py`    | Strategy hosting blueprint |
-| `strategies/scripts/`              | User strategy files        |
-| `strategies/strategy_configs.json` | Configuration persistence  |
-| `log/strategies/`                  | Strategy log output        |
-| `database/market_calendar_db.py`   | Market hours/holidays      |
+| File | Purpose |
+|------|---------|
+| `blueprints/python_strategy.py` | Strategy hosting blueprint |
+| `strategies/scripts/` | User strategy files |
+| `strategies/strategy_configs.json` | Configuration persistence |
+| `log/strategies/` | Strategy log output |
+| `database/market_calendar_db.py` | Market hours/holidays |

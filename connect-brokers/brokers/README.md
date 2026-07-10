@@ -1,6 +1,6 @@
 # Brokers
 
-List of OpenAlgo Supported Brokers
+OpenAlgo currently includes **34 broker plugin directories**. This section lists the 33 securities-broker integrations; [Delta Exchange](../../crypto/exchanges/delta-exchange.md) is documented separately under Crypto.
 
 
 

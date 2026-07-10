@@ -4,7 +4,7 @@ Lets hosted AI clients — ChatGPT, Claude.ai, Claude mobile — talk to your Op
 
 {% embed url="https://www.youtube.com/watch?v=iq0Tbq22u0c" %}
 
-Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your install) keeps working unchanged. Remote MCP is a parallel, opt-in transport that shares the same 40 tools but reaches them over HTTPS.
+Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your install) keeps working unchanged. Remote MCP is a parallel, opt-in transport that shares the same tool registry but reaches it over HTTPS.
 
 | You want to...                                                   | Use                                |
 | ---------------------------------------------------------------- | ---------------------------------- |
@@ -17,7 +17,7 @@ Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your 
 ### What you need
 
 1. **OpenAlgo on your own domain with HTTPS.** Dashboard reachable at `https://yourdomain.com`, login + broker auth + orders all working through the web UI. If you're not there yet, start with one of the install scripts: `install/install.sh`, `install/install-multi.sh`, `install/install-docker.sh`, or `install/install-docker-multi-custom-ssl.sh`.
-2. **OpenAlgo 2.0.1.0 or later.** Footer of the dashboard shows the version, or `curl https://yourdomain.com/api/v1/openalgo-version`. On older builds run `install/update.sh` first.
+2. **OpenAlgo 2.0.1.0 or later.** The dashboard footer shows the version; `GET https://yourdomain.com/auth/app-info` returns it as JSON. On older builds run `install/update.sh` first.
 3. **An OpenAlgo API key.** Generate one at **Profile → API Keys**. The MCP server uses it server-side; hosted clients never see it — they get OAuth tokens instead.
 4. **A paid AI plan.** ChatGPT Plus / Team / Enterprise, or Claude Pro / Team / Enterprise. Custom MCP servers aren't on the free tiers.
 
@@ -51,17 +51,18 @@ sudo ./install/enable-remote-mcp-docker.sh
 
 The helper picks the stack (or asks if you have several), backs up the bind-mounted `.env`, sets the keys, restarts the container, and probes the OAuth + healthz endpoints. Re-run for each instance.
 
-#### Defaults the install applies
+#### Defaults after enabling
 
-| Key                             | Default                                 | Effect                                                          |
-| ------------------------------- | --------------------------------------- | --------------------------------------------------------------- |
-| `MCP_HTTP_ENABLED`              | `True`                                  | Master switch                                                   |
-| `MCP_PUBLIC_URL`                | Your dashboard URL                      | Issuer for OAuth tokens                                         |
-| `MCP_OAUTH_REQUIRE_APPROVAL`    | `True`                                  | New clients land pending until you approve                      |
-| `MCP_OAUTH_WRITE_SCOPE_ENABLED` | `False`                                 | **Read-only by default** — order placement off until you opt in |
-| `MCP_HTTP_CORS_ORIGINS`         | `https://claude.ai,https://chatgpt.com` | Browsers that can complete OAuth                                |
+Native installers only turn on `MCP_HTTP_ENABLED` and set `MCP_PUBLIC_URL`. They inherit the current `.sample.env` values: approval is off and write scope is enabled. Review these settings before exposing the service:
 
-Read-only is the safe starting posture. Flip `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` later, after you've watched a few read-only sessions in the audit log and decided you want order placement from AI clients.
+```ini
+MCP_OAUTH_REQUIRE_APPROVAL = 'True'
+MCP_OAUTH_WRITE_SCOPE_ENABLED = 'False'
+```
+
+The `enable-remote-mcp-docker.sh` helper applies that stricter posture automatically: new clients require approval and Remote MCP starts read-only. It also preserves the default browser allowlist of `https://claude.ai,https://chatgpt.com`.
+
+Enable `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` only after validating read-only sessions and deciding that hosted clients may place or modify orders.
 
 ***
 
@@ -73,7 +74,7 @@ Once it's enabled, your MCP URL is:
 https://yourdomain.com/mcp
 ```
 
-The first connect is a six-step dance the AI client does mostly automatically. The one human step is approving the new client at `/admin/remote-mcp` — your server holds it there until you say so, which is what stops random people from registering against your domain.
+With `MCP_OAUTH_REQUIRE_APPROVAL=True`, the first connection pauses until you approve the client at `/admin/remote-mcp`. With approval disabled, registration proceeds immediately; use that setting only on a deliberately restricted deployment.
 
 ***
 
@@ -108,13 +109,13 @@ Default scopes ChatGPT requests are `read:market read:account`. Add `write:order
 
 Tick _"I understand and want to continue"_ under the orange warning, then **Create**.
 
-**Step 5 — Expected error**
+**Step 5 — Pending approval (when enabled)**
 
 ChatGPT will show:
 
 > OAuth authorization failed: unauthorized\_client
 
-This is normal. Your server saw the registration but is holding it until you approve. Don't dismiss the modal.
+This is expected only when `MCP_OAUTH_REQUIRE_APPROVAL=True`. Your server saw the registration but is holding it until you approve. Don't dismiss the modal.
 
 **Step 6 — Approve in OpenAlgo**
 
@@ -175,9 +176,9 @@ Top right **+** → **Add custom connector**.
 
 Leave **Advanced settings** alone — OAuth is detected automatically. Click **Add**.
 
-**Step 4 — Expected error**
+**Step 4 — Pending approval (when enabled)**
 
-Same as ChatGPT — first attempt fails with a pending-approval error. Keep the page open.
+When `MCP_OAUTH_REQUIRE_APPROVAL=True`, the first attempt fails with a pending-approval error. Keep the page open. With approval disabled, continue directly to OAuth consent.
 
 **Step 5 — Approve in OpenAlgo**
 
@@ -255,7 +256,7 @@ OAuth doesn't let an existing token widen its scope — re-consent is required. 
 | **Approved clients**    | Currently authorised. Each row shows last-used time                                                         |
 | **Revoked clients**     | Historical — cannot re-authorize without admin re-approval                                                  |
 | **MCP tool call audit** | Every tool call: timestamp, client, tool, scope, outcome, latency. Filter by tool or outcome                |
-| **Kill switch**         | One click revokes every refresh token across every approved client. Use it the moment something looks wrong |
+| **Kill switch**         | Revokes every refresh token across approved clients. Existing access JWTs remain valid until their short expiry |
 
 #### Audit log
 
@@ -283,14 +284,14 @@ All three default off so existing installs see no change. Saving requires a fres
 
 ### Configuration reference
 
-All keys live in `.env` (native) or the bind-mounted `.env` (Docker). The first five are set by the installer.
+All keys live in `.env` (native) or the bind-mounted `.env` (Docker). Native installers set the master switch and public URL; the dedicated Docker helper also applies the stricter approval and write-scope settings described above.
 
-| Key                             | Default                                 | Purpose                                          |
+| Key                             | Sample default                          | Purpose                                          |
 | ------------------------------- | --------------------------------------- | ------------------------------------------------ |
 | `MCP_HTTP_ENABLED`              | `False`                                 | Master switch                                    |
-| `MCP_PUBLIC_URL`                | required when enabled                   | Public HTTPS origin advertised in OAuth metadata |
-| `MCP_OAUTH_REQUIRE_APPROVAL`    | `True`                                  | New clients land pending until admin approves    |
-| `MCP_OAUTH_WRITE_SCOPE_ENABLED` | `False`                                 | Whether `write:orders` is grantable at all       |
+| `MCP_PUBLIC_URL`                | empty; required when enabled            | Public HTTPS origin advertised in OAuth metadata |
+| `MCP_OAUTH_REQUIRE_APPROVAL`    | `False`                                 | New clients require admin approval when enabled  |
+| `MCP_OAUTH_WRITE_SCOPE_ENABLED` | `True`                                  | Whether `write:orders` is grantable at all       |
 | `MCP_HTTP_CORS_ORIGINS`         | `https://claude.ai,https://chatgpt.com` | Browser allowlist                                |
 | `MCP_HTTP_IP_ALLOWLIST`         | empty                                   | Optional IP / CIDR allowlist on `/mcp`           |
 | `MCP_OAUTH_ACCESS_TTL`          | `900`                                   | Access-token TTL in seconds (max 3600)           |
@@ -307,16 +308,17 @@ All keys live in `.env` (native) or the bind-mounted `.env` (Docker). The first 
 
 The defenses, in plain order:
 
-1. **Approval gate** — random clients can register but cannot complete OAuth until you approve them at `/admin/remote-mcp`
-2. **Read-only by default** — `write:orders` is invisible in OAuth discovery until you flip `MCP_OAUTH_WRITE_SCOPE_ENABLED=True`
+1. **Optional approval gate** — with `MCP_OAUTH_REQUIRE_APPROVAL=True`, clients cannot complete OAuth until you approve them at `/admin/remote-mcp`
+2. **Scope gate** — `write:orders` is invisible in OAuth discovery when `MCP_OAUTH_WRITE_SCOPE_ENABLED=False`
 3. **Short access tokens** — 15-minute TTL caps the damage window if a token is stolen
 4. **Rate limits** — per-token, separately for reads and writes
-5. **PKCE + JWT** — all the standard OAuth 2.1 hardening (S256-only, exact redirect\_uri, refresh token rotation with reuse detection)
-6. **Kill switch** — one click revokes everything
+5. **PKCE + JWT** — S256-only PKCE, exact redirect\_uri matching, signed access JWTs, and rotating refresh tokens
+6. **Refresh-token family protection** — reuse of an already-rotated refresh token revokes its entire token family
+7. **Kill switch** — one click revokes all refresh tokens; already-issued access JWTs remain valid until expiry
 
-> **The blast radius is real.** A stolen access token can place orders the broker accepts — they originate from your registered server IP. The 15-minute TTL caps damage; the kill switch is your panic button. Never combine `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` with `MCP_OAUTH_REQUIRE_APPROVAL=False` — that lets any internet client register, auto-approve, and start placing orders.
+> **The blast radius is real.** A stolen access token can place orders the broker accepts — they originate from your registered server IP. The 15-minute default TTL limits the window, but the kill switch does not immediately invalidate an access JWT. Never combine `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` with `MCP_OAUTH_REQUIRE_APPROVAL=False` on a public deployment — that lets any internet client register, auto-approve, and request order scope.
 
-For the full threat model and per-defense rationale, see `docs/prd/remote-mcp.md`.
+For the implementation boundaries behind these controls, see [MCP Architecture](../developers/design-documentation/41-mcp-architecture.md).
 
 ***
 
@@ -365,7 +367,7 @@ cd /opt/openalgo/<domain> && sudo docker compose restart
 
 OAuth + MCP routes immediately stop responding. Existing tokens hit 404. **Local stdio MCP is unaffected** — it runs over stdin/stdout and doesn't touch the HTTP transport.
 
-For a softer takedown that keeps Remote MCP enabled but boots every active session: visit `/admin/remote-mcp` → **Kill switch**. Hosted clients are forced through a fresh OAuth dance the next time they refresh.
+For a softer takedown that keeps Remote MCP enabled, visit `/admin/remote-mcp` → **Kill switch**. It revokes refresh tokens, so hosted clients must complete OAuth again after their current access JWT expires. To stop access immediately, disable Remote MCP and restart the application.
 
 ***
 
@@ -375,7 +377,7 @@ For a softer takedown that keeps Remote MCP enabled but boots every active sessi
 * Tool References — every tool with parameters and example prompts (shared across both transports)
 * OpenAlgo Symbol Format — how equity / future / option symbols are constructed
 * `install/Remote-MCP-readme.md` — operator-focused install + threat model in the source tree
-* `docs/prd/remote-mcp.md` — full architecture and threat model
+* [MCP Architecture](../developers/design-documentation/41-mcp-architecture.md) — transport and OAuth implementation boundaries
 
 ***
 

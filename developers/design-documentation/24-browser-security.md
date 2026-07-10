@@ -1,10 +1,10 @@
 # 24 - Browser Security
 
-### Overview
+## Overview
 
 OpenAlgo implements browser-side security measures including session management, CSRF protection, secure cookies, and content security policies.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -38,9 +38,9 @@ OpenAlgo implements browser-side security measures including session management,
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Session Management
+## Session Management
 
-#### Session Lifecycle
+### Session Lifecycle
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -59,14 +59,14 @@ OpenAlgo implements browser-side security measures including session management,
 └────────────────────────────────────────────────────────────────┘
 ```
 
-#### Session Expiry Configuration
+### Session Expiry Configuration
 
 ```bash
 # .env
 SESSION_EXPIRY_TIME=03:00  # 3 AM IST daily expiry
 ```
 
-#### Session Validation
+### Session Validation
 
 ```python
 from utils.session import check_session_validity
@@ -78,9 +78,9 @@ def dashboard():
     return render_template('dashboard.html')
 ```
 
-### Cookie Security
+## Cookie Security
 
-#### Secure Cookie Settings
+### Secure Cookie Settings
 
 ```python
 # Flask session configuration
@@ -93,17 +93,17 @@ app.config.update(
 )
 ```
 
-#### Cookie Flags Explained
+### Cookie Flags Explained
 
-| Flag         | Purpose                      |
-| ------------ | ---------------------------- |
-| Secure       | Only sent over HTTPS         |
-| HttpOnly     | Cannot be read by JavaScript |
-| SameSite=Lax | Prevents CSRF in most cases  |
+| Flag | Purpose |
+|------|---------|
+| Secure | Only sent over HTTPS |
+| HttpOnly | Cannot be read by JavaScript |
+| SameSite=Lax | Prevents CSRF in most cases |
 
-### Password Security
+## Password Security
 
-#### Argon2 Hashing
+### Argon2 Hashing
 
 ```python
 from argon2 import PasswordHasher
@@ -125,7 +125,7 @@ def verify_password(password, hash):
         return False
 ```
 
-#### Password Requirements
+### Password Requirements
 
 ```python
 def validate_password_strength(password):
@@ -143,9 +143,9 @@ def validate_password_strength(password):
     return True, "Valid"
 ```
 
-### Login Rate Limiting
+## Login Rate Limiting
 
-#### Configuration
+### Configuration
 
 ```bash
 # .env
@@ -153,7 +153,7 @@ LOGIN_RATE_LIMIT_MIN=5 per minute
 LOGIN_RATE_LIMIT_HOUR=25 per hour
 ```
 
-#### Implementation
+### Implementation
 
 ```python
 from flask_limiter import Limiter
@@ -168,9 +168,9 @@ def login():
     pass
 ```
 
-### TOTP Two-Factor Authentication
+## TOTP Two-Factor Authentication
 
-#### Setup Flow
+### Setup Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -185,7 +185,7 @@ def login():
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### TOTP Validation
+### TOTP Validation
 
 ```python
 import pyotp
@@ -196,9 +196,9 @@ def verify_totp(secret, code):
     return totp.verify(code)
 ```
 
-### Token Revocation
+## Token Revocation
 
-#### On Logout
+### On Logout
 
 ```python
 def revoke_user_tokens():
@@ -215,7 +215,7 @@ def revoke_user_tokens():
     clear_auth_cache(current_user)
 ```
 
-#### On Session Expiry
+### On Session Expiry
 
 ```python
 @check_session_validity
@@ -224,9 +224,9 @@ def protected_route():
     pass
 ```
 
-### React Frontend Security
+## React Frontend Security
 
-#### API Key Handling
+### API Key Handling
 
 ```typescript
 // Never expose API key in browser
@@ -234,7 +234,7 @@ def protected_route():
 // API keys only for external integrations
 
 // Secure API call
-const response = await fetch('/api/v1/positions', {
+const response = await fetch('/api/v1/positionbook', {
     method: 'POST',
     credentials: 'include',  // Send session cookie
     headers: {
@@ -243,7 +243,7 @@ const response = await fetch('/api/v1/positions', {
 });
 ```
 
-#### AJAX Request Detection
+### AJAX Request Detection
 
 ```python
 def is_ajax_request():
@@ -254,9 +254,9 @@ def is_ajax_request():
     )
 ```
 
-### Security Headers
+## Security Headers
 
-#### Recommended Headers
+### Recommended Headers
 
 ```python
 @app.after_request
@@ -268,9 +268,9 @@ def add_security_headers(response):
     return response
 ```
 
-### Session Storage
+## Session Storage
 
-#### What's Stored
+### What's Stored
 
 ```python
 # Session data (server-side)
@@ -280,15 +280,15 @@ session['login_time'] = datetime.now(IST)
 session['login_time_ist'] = formatted_ist_time
 ```
 
-#### What's NOT Stored
+### What's NOT Stored
 
-* Passwords (only hashes in DB)
-* API keys in session (encrypted in DB)
-* Auth tokens in session (encrypted in DB)
+- Passwords (only hashes in DB)
+- API keys in session (encrypted in DB)
+- Auth tokens in session (encrypted in DB)
 
-### Credential Masking
+## Credential Masking
 
-#### Display Masking
+### Display Masking
 
 ```python
 def mask_api_credential(credential, show_chars=4):
@@ -300,12 +300,12 @@ def mask_api_credential(credential, show_chars=4):
 # Example: "abc123def456" → "abc1***f456"
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                  | Purpose            |
-| --------------------- | ------------------ |
-| `utils/session.py`    | Session management |
-| `utils/auth_utils.py` | Auth utilities     |
-| `database/user_db.py` | User model         |
-| `blueprints/auth.py`  | Auth routes        |
-| `frontend/src/api/`   | Secure API calls   |
+| File | Purpose |
+|------|---------|
+| `utils/session.py` | Session management |
+| `utils/auth_utils.py` | Auth utilities |
+| `database/user_db.py` | User model |
+| `blueprints/auth.py` | Auth routes |
+| `frontend/src/api/` | Secure API calls |

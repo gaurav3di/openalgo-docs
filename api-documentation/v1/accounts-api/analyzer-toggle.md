@@ -1,8 +1,8 @@
-# Analyzer Toggle
+# AnalyzerToggle
+
+Toggle the analyzer (sandbox) mode on or off.
 
 ## Endpoint URL
-
-This API Function fetches the stock holdings details from the broker
 
 ```http
 Local Host   :  POST http://127.0.0.1:5000/api/v1/analyzer/toggle
@@ -10,63 +10,111 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/analyzer/
 Custom Domain:  POST https://<your-custom-domain>/api/v1/analyzer/toggle
 ```
 
-
-
-## Sample API Request
+## Sample API Request (Enable Analyzer Mode)
 
 ```json
 {
-    "apikey": "<your_app_apikey>",
-    "mode": true
+  "apikey": "<your_app_apikey>",
+  "mode": true
 }
-
 ```
 
+## Sample cURL Request
 
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/analyzer/toggle \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "mode": true
+}'
+```
 
-## Sample API Response
+## Sample API Response (Enable)
 
 ```json
 {
+  "status": "success",
+  "data": {
+    "analyze_mode": true,
+    "message": "Analyzer mode switched to analyze",
+    "mode": "analyze",
+    "total_logs": 2
+  }
+}
+```
+
+## Sample API Request (Disable Analyzer Mode)
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "mode": false
+}
+```
+
+## Sample API Response (Disable)
+
+```json
+{
+  "status": "success",
   "data": {
     "analyze_mode": false,
     "message": "Analyzer mode switched to live",
     "mode": "live",
-    "total_logs": 2
-  },
-  "status": "success"
+    "total_logs": 0
+  }
 }
 ```
 
+## Request Body
 
+| Parameter | Description | Mandatory/Optional | Default Value |
+|-----------|-------------|-------------------|---------------|
+| apikey | Your OpenAlgo API key | Mandatory | - |
+| mode | true to enable analyzer, false to disable | Mandatory | - |
 
-### Request Body
+## Response Fields
 
-| Parameter | Type    | Required | Description                                |
-| --------- | ------- | -------- | ------------------------------------------ |
-| apikey    | string  | Yes      | Your OpenAlgo API key                      |
-| mode      | boolean | Yes      | Target mode (true = analyze, false = live) |
+| Field | Type | Description |
+|-------|------|-------------|
+| status | string | "success" or "error" |
+| data | object | Toggle result data |
 
-### Response Fields
+### Data Object Fields
 
-| Field         | Type    | Description                                                 |
-| ------------- | ------- | ----------------------------------------------------------- |
-| status        | string  | Status of the API call (success/error)                      |
-| data          | object  | Container for response data                                 |
-| mode          | string  | Current mode in human-readable format ("analyze" or "live") |
-| analyze\_mode | boolean | Current analyzer mode flag (true = analyze, false = live)   |
-| total\_logs   | integer | Total number of analyzer logs stored                        |
-| message       | string  | Confirmation message about the mode change                  |
+| Field | Type | Description |
+|-------|------|-------------|
+| analyze_mode | boolean | Current analyzer mode state |
+| message | string | Confirmation message |
+| mode | string | "analyze" or "live" |
+| total_logs | number | Number of logs in analyzer database |
 
-### Notes
+## Analyzer Mode Features
 
-* **Live Mode (`mode: false`)**: All API calls execute actual broker operations and real trades
-* **Analyze Mode (`mode: true`)**: All API calls return simulated responses without executing real trades
-* The mode change is applied immediately and affects all subsequent API calls
-* Use this endpoint to switch between testing (analyze) and production (live) environments
-* The `total_logs` field shows the cumulative count of all analyzer mode operations
-* Rate limited to 10 requests per second per API key
-* **Important**: Always verify the current mode before executing trading operations to avoid unintended live trades
+When analyzer mode is **enabled**:
 
+- Orders are **simulated**, not sent to broker
+- Uses **sandbox capital** (₹1 Crore default)
+- All API responses include `"mode": "analyze"`
+- Order IDs are simulated (prefixed/formatted differently)
+- Positions tracked in separate sandbox database
+- Auto square-off follows exchange timings
 
+## Notes
 
+- **WARNING**: Disabling analyzer mode means orders will be placed with real money
+- Always verify the mode before running automated strategies
+- Analyzer mode is an application-wide setting for this single-user deployment. The API key authenticates the request; it does not create a separate per-key mode.
+- Use [AnalyzerStatus](./analyzer-status.md) to check current mode
+
+## Use Cases
+
+- **Strategy development**: Test without risk
+- **API testing**: Validate integration
+- **Training**: Learn the platform safely
+- **Demo**: Show platform capabilities
+
+---
+
+**Back to**: [API Documentation](../README.md)

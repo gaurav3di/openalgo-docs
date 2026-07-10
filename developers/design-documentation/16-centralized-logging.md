@@ -1,10 +1,10 @@
 # 16 - Centralized Logging
 
-### Overview
+## Overview
 
-OpenAlgo implements centralized logging with configurable levels, file rotation, and structured output. All application logs are routed through a unified logging system stored in `logs.db` and optional file logs.
+OpenAlgo implements centralized Python logging with configurable levels, colored console output, and optional retained files. General application logs are not stored in `logs.db`: `logs.db` is the traffic/security store, while order and analyzer audit rows live in the main database.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -49,9 +49,9 @@ OpenAlgo implements centralized logging with configurable levels, file rotation,
                                   └────────────────────────────┘
 ```
 
-### Configuration
+## Configuration
 
-#### Environment Variables
+### Environment Variables
 
 ```bash
 # Enable/disable file logging
@@ -70,9 +70,9 @@ LOG_FORMAT=[%(asctime)s] %(levelname)s in %(module)s: %(message)s
 LOG_RETENTION=14
 ```
 
-### Usage
+## Usage
 
-#### Getting a Logger
+### Getting a Logger
 
 ```python
 from utils.logging import get_logger
@@ -87,17 +87,17 @@ logger.error("Error message")
 logger.critical("Critical message")
 ```
 
-#### Log Levels
+### Log Levels
 
-| Level    | Value | Use Case                         |
-| -------- | ----- | -------------------------------- |
-| DEBUG    | 10    | Detailed debugging information   |
-| INFO     | 20    | General operational messages     |
-| WARNING  | 30    | Something unexpected happened    |
-| ERROR    | 40    | Error occurred, operation failed |
-| CRITICAL | 50    | System is unusable               |
+| Level | Value | Use Case |
+|-------|-------|----------|
+| DEBUG | 10 | Detailed debugging information |
+| INFO | 20 | General operational messages |
+| WARNING | 30 | Something unexpected happened |
+| ERROR | 40 | Error occurred, operation failed |
+| CRITICAL | 50 | System is unusable |
 
-### Implementation
+## Implementation
 
 **Location:** `utils/logging.py`
 
@@ -131,18 +131,18 @@ def get_logger(name):
     return logger
 ```
 
-### Log Categories
+## Log Categories
 
-#### Application Logs
+### Application Logs
 
-| Category  | Logger Name             | Description         |
-| --------- | ----------------------- | ------------------- |
-| Auth      | `blueprints.auth`       | Login/logout events |
-| Orders    | `restx_api.place_order` | Order placement     |
-| WebSocket | `websocket_proxy`       | WS connections      |
-| Strategy  | `blueprints.strategy`   | Strategy execution  |
+| Category | Logger Name | Description |
+|----------|-------------|-------------|
+| Auth | `blueprints.auth` | Login/logout events |
+| Orders | `restx_api.place_order` | Order placement |
+| WebSocket | `websocket_proxy` | WS connections |
+| Strategy | `blueprints.strategy` | Strategy execution |
 
-#### Example Log Output
+### Example Log Output
 
 ```
 [2024-01-15 09:30:15] INFO in auth: User admin logged in successfully
@@ -152,7 +152,7 @@ def get_logger(name):
 [2024-01-15 15:30:00] INFO in squareoff: Auto square-off triggered for MIS positions
 ```
 
-### Startup Banner
+## Startup Banner
 
 ```python
 from utils.logging import log_startup_banner
@@ -178,7 +178,7 @@ Output:
 ╰──────────────────────────────────────────────────────────────╯
 ```
 
-### File Rotation
+## File Rotation
 
 ```
 log/
@@ -189,17 +189,17 @@ log/
 └── openalgo.log.14     # Oldest (based on LOG_RETENTION)
 ```
 
-#### Rotation Settings
+### Rotation Settings
 
-| Setting      | Default | Description                      |
-| ------------ | ------- | -------------------------------- |
-| Max Size     | 10 MB   | Rotate when file exceeds         |
-| Backup Count | 14      | Number of rotated files to keep  |
-| Compression  | None    | Rotated files are not compressed |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Max Size | 10 MB | Rotate when file exceeds |
+| Backup Count | 14 | Number of rotated files to keep |
+| Compression | None | Rotated files are not compressed |
 
-### Viewing Logs
+## Viewing Logs
 
-#### File Logs
+### File Logs
 
 ```bash
 # View current log
@@ -215,20 +215,20 @@ tail -100 log/openalgo.log
 grep ERROR log/openalgo.log
 ```
 
-#### UI Log Viewer
+### UI Log Viewer
 
 Access log viewer at `/logs`:
+- Filter by level
+- Search by keyword
+- Date range selection
+- Download logs
 
-* Filter by level
-* Search by keyword
-* Date range selection
-* Download logs
+## Key Files Reference
 
-### Key Files Reference
-
-| File                    | Purpose              |
-| ----------------------- | -------------------- |
-| `utils/logging.py`      | Logger configuration |
+| File | Purpose |
+|------|---------|
+| `utils/logging.py` | Logger configuration |
 | `blueprints/logging.py` | Log viewer UI routes |
-| `database/logs_db.py`   | Log database models  |
-| `log/`                  | Log file directory   |
+| `database/apilog_db.py` | Order API audit rows in the main database |
+| `database/analyzer_db.py` | Analyzer audit rows in the main database |
+| `log/` | Log file directory |

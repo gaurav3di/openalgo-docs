@@ -119,7 +119,7 @@ Every SDK endpoint has a dedicated reference with **Request / Success-Response /
 | **Symbol Services**         | `symbol`, `search`, `expiry`, `instruments` — lot sizes, freeze quantities, tick sizes                                                                                         |
 | **Options Services**        | `optionsymbol` (ATM / ITMn / OTMn resolution), `optionchain`, `syntheticfuture`, `optiongreeks` (delta / gamma / theta / vega / rho + IV)                                      |
 | **Account Services**        | `funds`, `margin` (multi-leg margin calculator), `orderbook`, `tradebook`, `positionbook`, `holdings`                                                                          |
-| **Market Calendar**         | `holidays(year)`, `timings(date)`, `checkholiday` — schedule-aware strategy startup                                                                                            |
+| **Market Calendar**         | `holidays(year)` and `timings(date)` — schedule-aware strategy startup; timing data identifies closed sessions                                                                  |
 | **Analyzer (Sandbox) Mode** | `analyzerstatus`, `analyzertoggle(mode=True)` — iterate safely before going live                                                                                               |
 | **WebSocket Streaming**     | Modes 1 (LTP) / 2 (Quote) / 3 (Depth with `depth_level` 5/20/30/50), `verbose` 0/1/2, heartbeat, reconnect                                                                     |
 | **Alerts**                  | `telegram(username, message)` and full `whatsapp(text, to=..., image=..., document=...)` surface incl. broadcast (≤5) and slash-command receiving                              |
@@ -544,7 +544,7 @@ Scanners auto-batch via `multiquotes` (one call for many symbols) rather than lo
 | `symbol-services.md`     | `symbol`, `search`, `expiry`, `instruments` — lot sizes, freeze quantities, broker tokens                             |
 | `options-services.md`    | `optionsymbol`, `optionchain`, `syntheticfuture`, `optiongreeks` — ATM/ITM/OTM offsets, full Greek chain              |
 | `account-services.md`    | `funds`, `margin` (multi-leg), `orderbook`, `tradebook`, `positionbook`, `holdings`                                   |
-| `market-calendar.md`     | `holidays(year)`, `timings(date)`, `checkholiday` — schedule-aware startup                                            |
+| `market-calendar.md`     | `holidays(year)` and `timings(date)` — schedule-aware startup                                                         |
 | `analyzer-services.md`   | `analyzerstatus`, `analyzertoggle(mode=True)` — sandbox iteration                                                     |
 | `websocket-streaming.md` | Modes 1/2/3, depth\_level 5/20/30/50, verbose levels, heartbeat, reconnect                                            |
 | `alerts.md`              | `telegram` and `whatsapp` send-only endpoints with full template library and slash-command receiving                  |
@@ -563,4 +563,3 @@ Scanners auto-batch via `multiquotes` (one call for many symbols) rather than lo
 All three share the same `.env` convention, file-output layout, and Indian-market cost model. You can install them side by side.
 
 ***
-

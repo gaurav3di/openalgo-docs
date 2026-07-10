@@ -1,10 +1,10 @@
 # 37 - API Key & Playground
 
-### Overview
+## Overview
 
 OpenAlgo provides a secure API key management system and an interactive API Playground for testing REST API and WebSocket endpoints. API keys are hashed using Argon2 with pepper for storage and encrypted using Fernet for retrieval.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -52,7 +52,7 @@ OpenAlgo provides a secure API key management system and an interactive API Play
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### API Key Generation
+## API Key Generation
 
 **Location:** `blueprints/apikey.py`
 
@@ -65,18 +65,18 @@ def generate_api_key():
     return secrets.token_hex(32)
 ```
 
-#### Key Properties
+### Key Properties
 
-| Property   | Value                   |
-| ---------- | ----------------------- |
-| Length     | 64 characters (hex)     |
-| Entropy    | 256 bits                |
-| Format     | Hexadecimal (0-9, a-f)  |
+| Property | Value |
+|----------|-------|
+| Length | 64 characters (hex) |
+| Entropy | 256 bits |
+| Format | Hexadecimal (0-9, a-f) |
 | Generation | `secrets.token_hex(32)` |
 
-### API Key Storage
+## API Key Storage
 
-#### Dual Storage for Different Use Cases
+### Dual Storage for Different Use Cases
 
 ```python
 # database/auth_db.py
@@ -99,7 +99,7 @@ def upsert_api_key(user_id: str, api_key: str) -> int:
     )
 ```
 
-#### Three-Level Verification
+### Three-Level Verification
 
 ```
 API Request with Key
@@ -123,13 +123,13 @@ API Request with Key
 └───────────────────┘
 ```
 
-### Order Mode
+## Order Mode
 
-#### Auto vs Semi-Auto Mode
+### Auto vs Semi-Auto Mode
 
-| Mode        | Description                    | Use Case         |
-| ----------- | ------------------------------ | ---------------- |
-| `auto`      | Orders execute immediately     | Personal trading |
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| `auto` | Orders execute immediately | Personal trading |
 | `semi_auto` | Orders require manual approval | Managed accounts |
 
 ```python
@@ -147,11 +147,11 @@ def update_api_key_mode():
     return jsonify({'mode': mode})
 ```
 
-### API Playground
+## API Playground
 
 **Location:** `blueprints/playground.py`
 
-#### Architecture
+### Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -187,7 +187,7 @@ def update_api_key_mode():
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Endpoint Categories
+### Endpoint Categories
 
 ```python
 def categorize_endpoint(path):
@@ -211,18 +211,18 @@ def categorize_endpoint(path):
     return 'utilities'
 ```
 
-#### API Endpoints
+### API Endpoints
 
-| Endpoint                  | Method | Description                   |
-| ------------------------- | ------ | ----------------------------- |
-| `/playground/`            | GET    | Render playground UI          |
-| `/playground/api-key`     | GET    | Get user's API key            |
-| `/playground/collections` | GET    | Get Postman/Bruno collections |
-| `/playground/endpoints`   | GET    | Get structured endpoint list  |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/playground/` | GET | Render playground UI |
+| `/playground/api-key` | GET | Get user's API key |
+| `/playground/collections` | GET | Get Postman/Bruno collections |
+| `/playground/endpoints` | GET | Get structured endpoint list |
 
-### WebSocket Testing
+## WebSocket Testing
 
-#### WebSocket Endpoint Format in Bruno
+### WebSocket Endpoint Format in Bruno
 
 ```
 meta {
@@ -244,16 +244,16 @@ message:json {
 }
 ```
 
-#### WebSocket Actions
+### WebSocket Actions
 
-| Action        | Description              |
-| ------------- | ------------------------ |
-| `subscribe`   | Subscribe to symbols     |
+| Action | Description |
+|--------|-------------|
+| `subscribe` | Subscribe to symbols |
 | `unsubscribe` | Unsubscribe from symbols |
 
-### API Usage Examples
+## API Usage Examples
 
-#### Using API Key in Requests
+### Using API Key in Requests
 
 ```python
 import requests
@@ -282,7 +282,7 @@ response = requests.post(
 )
 ```
 
-#### TradingView Integration
+### TradingView Integration
 
 ```python
 # TradingView webhook URL format
@@ -300,31 +300,31 @@ response = requests.post(
 }
 ```
 
-### Security Considerations
+## Security Considerations
 
-#### API Key Protection
+### API Key Protection
 
-| Layer        | Protection                             |
-| ------------ | -------------------------------------- |
-| Storage      | Argon2 hash + Fernet encryption        |
-| Transit      | HTTPS recommended                      |
-| Verification | Pepper + constant-time comparison      |
-| Caching      | TTLCache (expires after broker logout) |
+| Layer | Protection |
+|-------|------------|
+| Storage | Argon2 hash + Fernet encryption |
+| Transit | HTTPS recommended |
+| Verification | Pepper + constant-time comparison |
+| Caching | TTLCache (expires after broker logout) |
 
-#### Playground Security
+### Playground Security
 
-* Session authentication required
-* CSRF protection (exempted for API endpoints)
-* API key auto-populated from session
-* No API key logging
+- Session authentication required
+- CSRF protection (exempted for API endpoints)
+- API key auto-populated from session
+- No API key logging
 
-### Key Files Reference
+## Key Files Reference
 
-| File                            | Purpose                      |
-| ------------------------------- | ---------------------------- |
-| `blueprints/apikey.py`          | API key CRUD operations      |
-| `blueprints/playground.py`      | API testing playground       |
-| `database/auth_db.py`           | API key storage/verification |
-| `collections/**/*.bru`          | Bruno endpoint definitions   |
-| `templates/playground.html`     | Playground UI template       |
-| `frontend/src/pages/ApiKey.tsx` | React API key page           |
+| File | Purpose |
+|------|---------|
+| `blueprints/apikey.py` | API key CRUD operations |
+| `blueprints/playground.py` | API testing playground |
+| `database/auth_db.py` | API key storage/verification |
+| `collections/**/*.bru` | Bruno endpoint definitions |
+| `frontend/src/pages/ApiKey.tsx` | React API key page |
+| `frontend/src/pages/Playground.tsx` | React WebSocket/API playground |

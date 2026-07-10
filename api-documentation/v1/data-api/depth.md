@@ -1,8 +1,8 @@
 # Depth
 
-## Endpoint URL
+Get market depth (Level 2 data) for a symbol showing top 5 bid and ask prices with quantities.
 
-This API Function get Market Depth from the Broker
+## Endpoint URL
 
 ```http
 Local Host   :  POST http://127.0.0.1:5000/api/v1/depth
@@ -10,114 +10,133 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/depth
 Custom Domain:  POST https://<your-custom-domain>/api/v1/depth
 ```
 
-
-
 ## Sample API Request
 
 ```json
 {
-    "apikey": "<your_app_apikey>",
-    "symbol": "NIFTY31JUL25FUT",
-    "exchange": "NFO"
+  "apikey": "<your_app_apikey>",
+  "symbol": "SBIN",
+  "exchange": "NSE"
 }
-
 ```
 
-###
+## Sample cURL Request
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/depth \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "symbol": "SBIN",
+  "exchange": "NSE"
+}'
+```
 
 ## Sample API Response
 
 ```json
 {
+  "status": "success",
   "data": {
+    "open": 760.0,
+    "high": 774.0,
+    "low": 758.15,
+    "ltp": 769.6,
+    "ltq": 205,
+    "prev_close": 746.9,
+    "volume": 9362799,
+    "oi": 161265750,
+    "totalbuyqty": 591351,
+    "totalsellqty": 835701,
     "asks": [
-      {
-        "price": 25741.1,
-        "quantity": 3675
-      },
-      {
-        "price": 25744.9,
-        "quantity": 150
-      },
-      {
-        "price": 25745,
-        "quantity": 600
-      },
-      {
-        "price": 25745.1,
-        "quantity": 75
-      },
-      {
-        "price": 25745.2,
-        "quantity": 150
-      }
+      {"price": 769.6, "quantity": 767},
+      {"price": 769.65, "quantity": 115},
+      {"price": 769.7, "quantity": 162},
+      {"price": 769.75, "quantity": 1121},
+      {"price": 769.8, "quantity": 430}
     ],
     "bids": [
-      {
-        "price": 25741,
-        "quantity": 150
-      },
-      {
-        "price": 25740,
-        "quantity": 375
-      },
-      {
-        "price": 25739.9,
-        "quantity": 600
-      },
-      {
-        "price": 25739.8,
-        "quantity": 150
-      },
-      {
-        "price": 25739.7,
-        "quantity": 75
-      }
-    ],
-    "high": 25772.3,
-    "low": 25635,
-    "ltp": 25741.1,
-    "ltq": 1050,
-    "oi": 15056100,
-    "open": 25695,
-    "prev_close": 25615,
-    "totalbuyqty": 789825,
-    "totalsellqty": 386175,
-    "volume": 3561150
-  },
-  "status": "success"
+      {"price": 769.4, "quantity": 886},
+      {"price": 769.35, "quantity": 212},
+      {"price": 769.3, "quantity": 351},
+      {"price": 769.25, "quantity": 343},
+      {"price": 769.2, "quantity": 399}
+    ]
+  }
 }
 ```
 
-
-
 ## Request Body
 
-
-
-| Parameters | Description    | Mandatory/Optional | Default Value |
-| ---------- | -------------- | ------------------ | ------------- |
-| apikey     | App API key    | Mandatory          | -             |
-| symbol     | Trading symbol | Mandatory          | -             |
-| exchange   | Exchange code  | Mandatory          | -             |
-
-
+| Parameter | Description | Mandatory/Optional | Default Value |
+|-----------|-------------|-------------------|---------------|
+| apikey | Your OpenAlgo API key | Mandatory | - |
+| symbol | Trading symbol | Mandatory | - |
+| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX | Mandatory | - |
 
 ## Response Fields
 
+| Field | Type | Description |
+|-------|------|-------------|
+| status | string | "success" or "error" |
+| data | object | Market depth data object |
 
+### Data Object Fields
 
-| Field        | Type   | Description                  |
-| ------------ | ------ | ---------------------------- |
-| asks         | array  | List of 5 best ask prices    |
-| bids         | array  | List of 5 best bid prices    |
-| totalbuyqty  | number | Total buy quantity           |
-| totalsellqty | number | Total sell quantity          |
-| high         | number | Day's high price             |
-| low          | number | Day's low price              |
-| ltp          | number | Last traded price            |
-| ltq          | number | Last traded quantity         |
-| open         | number | Opening price                |
-| prev\_close  | number | Previous day's closing price |
-| volume       | number | Total traded volume          |
-| oi           | number | Open interest                |
+| Field | Type | Description |
+|-------|------|-------------|
+| open | number | Day's open price |
+| high | number | Day's high price |
+| low | number | Day's low price |
+| ltp | number | Last traded price |
+| ltq | number | Last traded quantity |
+| prev_close | number | Previous day's close |
+| volume | number | Total traded volume |
+| oi | number | Open interest (for F&O) |
+| totalbuyqty | number | Total buy quantity in order book |
+| totalsellqty | number | Total sell quantity in order book |
+| asks | array | Top 5 ask (sell) prices |
+| bids | array | Top 5 bid (buy) prices |
+
+### Ask/Bid Array Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| price | number | Price level |
+| quantity | number | Quantity at this price |
+
+## Understanding Market Depth
+
+```
+        BIDS (Buyers)                 ASKS (Sellers)
+        --------------               ----------------
+Qty     Price                        Price     Qty
+886     769.40 ←── Best Bid    Best Ask ──→ 769.60    767
+212     769.35                              769.65    115
+351     769.30                              769.70    162
+343     769.25                              769.75    1121
+399     769.20                              769.80    430
+```
+
+## Notes
+
+- Depth shows the **order book** structure for a symbol
+- **Bid-Ask spread** indicates liquidity (tighter = more liquid)
+- **totalbuyqty vs totalsellqty** shows demand-supply balance
+- For F&O, **oi** (open interest) is available
+- The REST call returns one broker snapshot. Use WebSocket Depth for continuous updates.
+
+## Use Cases
+
+- **Scalping strategies**: Identify immediate support/resistance
+- **Order placement**: Decide limit price based on depth
+- **Liquidity analysis**: Assess ease of entry/exit
+
+## Related Endpoints
+
+- [Quotes](./quotes.md) - Basic quote data
+- [WebSocket Depth](../websockets.md) - Real-time depth streaming
+
+---
+
+**Back to**: [API Documentation](../README.md)

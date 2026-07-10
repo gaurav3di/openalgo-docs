@@ -1,10 +1,10 @@
 # 21 - Admin Section
 
-### Overview
+## Overview
 
 The Admin section provides system configuration and management capabilities including freeze quantity management, market holidays, market timings, and security monitoring.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -45,23 +45,22 @@ The Admin section provides system configuration and management capabilities incl
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Freeze Quantity Management
+## Freeze Quantity Management
 
-#### Purpose
+### Purpose
+Manage F&O freeze quantity limits for automatic order splitting.
 
-Manage F\&O freeze quantity limits for automatic order splitting.
+### API Endpoints
 
-#### API Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/admin/api/freeze` | List all freeze quantities |
+| POST | `/admin/api/freeze` | Add new entry |
+| PUT | `/admin/api/freeze/<id>` | Update entry |
+| DELETE | `/admin/api/freeze/<id>` | Delete entry |
+| POST | `/admin/api/freeze/upload` | Bulk CSV upload |
 
-| Method | Endpoint                   | Description                |
-| ------ | -------------------------- | -------------------------- |
-| GET    | `/admin/api/freeze`        | List all freeze quantities |
-| POST   | `/admin/api/freeze`        | Add new entry              |
-| PUT    | `/admin/api/freeze/<id>`   | Update entry               |
-| DELETE | `/admin/api/freeze/<id>`   | Delete entry               |
-| POST   | `/admin/api/freeze/upload` | Bulk CSV upload            |
-
-#### Database Schema
+### Database Schema
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -76,7 +75,7 @@ Manage F\&O freeze quantity limits for automatic order splitting.
 └──────────────┴──────────────┴──────────────────────┘
 ```
 
-#### Example Request
+### Example Request
 
 ```json
 // POST /admin/api/freeze
@@ -87,30 +86,29 @@ Manage F\&O freeze quantity limits for automatic order splitting.
 }
 ```
 
-#### Common Freeze Quantities
+### Common Freeze Quantities
 
-| Symbol    | Exchange | Freeze Qty |
-| --------- | -------- | ---------- |
-| NIFTY     | NFO      | 1800       |
-| BANKNIFTY | NFO      | 900        |
-| FINNIFTY  | NFO      | 1800       |
-| SENSEX    | BFO      | 1000       |
+| Symbol | Exchange | Freeze Qty |
+|--------|----------|------------|
+| NIFTY | NFO | 1800 |
+| BANKNIFTY | NFO | 900 |
+| FINNIFTY | NFO | 1800 |
+| SENSEX | BFO | 1000 |
 
-### Market Holidays Management
+## Market Holidays Management
 
-#### Purpose
-
+### Purpose
 Maintain trading holidays calendar for all exchanges.
 
-#### API Endpoints
+### API Endpoints
 
-| Method | Endpoint                        | Description           |
-| ------ | ------------------------------- | --------------------- |
-| GET    | `/admin/api/holidays?year=2024` | Get holidays for year |
-| POST   | `/admin/api/holidays`           | Add new holiday       |
-| DELETE | `/admin/api/holidays/<id>`      | Delete holiday        |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/admin/api/holidays?year=2024` | Get holidays for year |
+| POST | `/admin/api/holidays` | Add new holiday |
+| DELETE | `/admin/api/holidays/<id>` | Delete holiday |
 
-#### Database Schema
+### Database Schema
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -136,25 +134,25 @@ Maintain trading holidays calendar for all exchanges.
 └──────────────────┴──────────────┴──────────────────┘
 ```
 
-#### Holiday Types
+### Holiday Types
 
-| Type                | Description         |
-| ------------------- | ------------------- |
-| TRADING\_HOLIDAY    | Full market closure |
-| SETTLEMENT\_HOLIDAY | Settlement closed   |
-| SPECIAL\_SESSION    | Muhurat trading     |
+| Type | Description |
+|------|-------------|
+| TRADING_HOLIDAY | Full market closure |
+| SETTLEMENT_HOLIDAY | Settlement closed |
+| SPECIAL_SESSION | Muhurat trading |
 
-#### Supported Exchanges
+### Supported Exchanges
 
-* NSE (National Stock Exchange)
-* BSE (Bombay Stock Exchange)
-* NFO (NSE F\&O)
-* BFO (BSE F\&O)
-* MCX (Multi Commodity Exchange)
-* CDS (Currency Derivatives)
-* BCD (BSE Currency Derivatives)
+- NSE (National Stock Exchange)
+- BSE (Bombay Stock Exchange)
+- NFO (NSE F&O)
+- BFO (BSE F&O)
+- MCX (Multi Commodity Exchange)
+- CDS (Currency Derivatives)
+- BCD (BSE Currency Derivatives)
 
-#### Example Request
+### Example Request
 
 ```json
 // POST /admin/api/holidays
@@ -166,33 +164,32 @@ Maintain trading holidays calendar for all exchanges.
 }
 ```
 
-### Market Timings Configuration
+## Market Timings Configuration
 
-#### Purpose
-
+### Purpose
 Configure trading session timings for each exchange.
 
-#### API Endpoints
+### API Endpoints
 
-| Method | Endpoint                        | Description     |
-| ------ | ------------------------------- | --------------- |
-| GET    | `/admin/api/timings`            | Get all timings |
-| PUT    | `/admin/api/timings/<exchange>` | Update timing   |
-| POST   | `/admin/api/timings/check`      | Check for date  |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/admin/api/timings` | Get all timings |
+| PUT | `/admin/api/timings/<exchange>` | Update timing |
+| POST | `/admin/api/timings/check` | Check for date |
 
-#### Default Timings
+### Default Timings
 
 | Exchange | Market Open | Market Close |
-| -------- | ----------- | ------------ |
-| NSE      | 09:15       | 15:30        |
-| BSE      | 09:15       | 15:30        |
-| NFO      | 09:15       | 15:30        |
-| BFO      | 09:15       | 15:30        |
-| CDS      | 09:00       | 17:00        |
-| BCD      | 09:00       | 17:00        |
-| MCX      | 09:00       | 23:55        |
+|----------|-------------|--------------|
+| NSE | 09:15 | 15:30 |
+| BSE | 09:15 | 15:30 |
+| NFO | 09:15 | 15:30 |
+| BFO | 09:15 | 15:30 |
+| CDS | 09:00 | 17:00 |
+| BCD | 09:00 | 17:00 |
+| MCX | 09:00 | 23:55 |
 
-#### Example Request
+### Example Request
 
 ```json
 // PUT /admin/api/timings/NSE
@@ -202,9 +199,9 @@ Configure trading session timings for each exchange.
 }
 ```
 
-### System Settings
+## System Settings
 
-#### Analyzer Mode Toggle
+### Analyzer Mode Toggle
 
 ```
 GET  /settings/analyze-mode          → Get current mode
@@ -212,7 +209,7 @@ POST /settings/analyze-mode/live     → Switch to live
 POST /settings/analyze-mode/analyze  → Switch to analyzer
 ```
 
-#### Settings Schema
+### Settings Schema
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -231,15 +228,14 @@ POST /settings/analyze-mode/analyze  → Switch to analyzer
 └────────────────────┴──────────┴────────────────────┘
 ```
 
-### Security Dashboard
+## Security Dashboard
 
-#### Access
-
+### Access
 ```
 /logs/security
 ```
 
-#### Features
+### Features
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -263,61 +259,56 @@ POST /settings/analyze-mode/analyze  → Switch to analyzer
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### Security Tables
+### Security Tables
 
-**ip\_bans**
-
+#### ip_bans
 Stores banned IP addresses with expiry.
 
-**error\_404\_tracker**
-
+#### error_404_tracker
 Tracks 404 errors per IP (threshold: 20/day).
 
-**invalid\_api\_key\_tracker**
-
+#### invalid_api_key_tracker
 Tracks invalid API attempts per IP (threshold: 10/day).
 
-### Traffic Dashboard
+## Traffic Dashboard
 
-#### Access
-
+### Access
 ```
 /logs/traffic
 ```
 
-#### Features
+### Features
 
-* HTTP request logging
-* Request/response metrics
-* Error rate monitoring
-* API endpoint statistics
+- HTTP request logging
+- Request/response metrics
+- Error rate monitoring
+- API endpoint statistics
 
-### Latency Dashboard
+## Latency Dashboard
 
-#### Access
-
+### Access
 ```
 /logs/latency
 ```
 
-#### Features
+### Features
 
-* Order execution latency
-* Round-trip time (RTT)
-* Percentile metrics (P50, P90, P95, P99)
-* SLA compliance tracking
+- Order execution latency
+- Round-trip time (RTT)
+- Percentile metrics (P50, P90, P95, P99)
+- SLA compliance tracking
 
-#### SLA Thresholds
+### SLA Thresholds
 
-| Metric | Target  |
-| ------ | ------- |
-| P50    | < 100ms |
-| P90    | < 150ms |
-| P99    | < 200ms |
+| Metric | Target |
+|--------|--------|
+| P50 | < 100ms |
+| P90 | < 150ms |
+| P99 | < 200ms |
 
-### Access Control
+## Access Control
 
-#### Session Validation
+### Session Validation
 
 ```python
 @admin_bp.route('/api/freeze')
@@ -327,16 +318,16 @@ def get_freeze_quantities():
     pass
 ```
 
-#### Rate Limiting
+### Rate Limiting
 
-| Endpoint    | Limit     |
-| ----------- | --------- |
+| Endpoint | Limit |
+|----------|-------|
 | Default API | 50/second |
-| CSV Upload  | 10/minute |
+| CSV Upload | 10/minute |
 
-### React Components
+## React Components
 
-#### File Structure
+### File Structure
 
 ```
 frontend/src/pages/admin/
@@ -346,7 +337,7 @@ frontend/src/pages/admin/
 └── MarketTimings.tsx   # Market timings
 ```
 
-#### API Client
+### API Client
 
 ```typescript
 // frontend/src/api/admin.ts
@@ -367,32 +358,31 @@ export const adminApi = {
 };
 ```
 
-### System Permissions
+## System Permissions
 
-#### Endpoint
-
+### Endpoint
 ```
 GET /api/system
 ```
 
-#### Checks
+### Checks
 
-| Path              | Required Permission |
-| ----------------- | ------------------- |
-| .env              | 0o600 (rw-------)   |
-| encryption\_keys/ | 0o700 (rwx------)   |
-| db/\*.db          | 0o600 (rw-------)   |
-| logs/             | 0o755 (rwxr-xr-x)   |
+| Path | Required Permission |
+|------|---------------------|
+| .env | 0o600 (rw-------) |
+| encryption_keys/ | 0o700 (rwx------) |
+| db/*.db | 0o600 (rw-------) |
+| logs/ | 0o755 (rwxr-xr-x) |
 
-### Key Files Reference
+## Key Files Reference
 
-| File                             | Purpose           |
-| -------------------------------- | ----------------- |
-| `blueprints/admin.py`            | Admin routes      |
-| `database/qty_freeze_db.py`      | Freeze quantities |
-| `database/market_calendar_db.py` | Holidays/timings  |
-| `database/settings_db.py`        | Settings table    |
-| `database/traffic_db.py`         | Security tables   |
-| `services/security.py`           | Security service  |
-| `frontend/src/pages/admin/`      | React components  |
-| `frontend/src/api/admin.ts`      | API client        |
+| File | Purpose |
+|------|---------|
+| `blueprints/admin.py` | Admin routes |
+| `database/qty_freeze_db.py` | Freeze quantities |
+| `database/market_calendar_db.py` | Holidays/timings |
+| `database/settings_db.py` | Settings table |
+| `database/traffic_db.py` | Security tables |
+| `utils/security_middleware.py` | Request-time IP enforcement |
+| `frontend/src/pages/admin/` | React components |
+| `frontend/src/api/admin.ts` | API client |

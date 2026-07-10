@@ -1,10 +1,10 @@
 # 14 - TradingView & GoCharting
 
-### Overview
+## Overview
 
 OpenAlgo integrates with TradingView and GoCharting platforms to receive trading signals via webhooks. These charting platforms can trigger automated trades when alert conditions are met.
 
-### Architecture Diagram
+## Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -33,15 +33,15 @@ OpenAlgo integrates with TradingView and GoCharting platforms to receive trading
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### TradingView Webhook Setup
+## TradingView Webhook Setup
 
-#### Webhook URL
+### Webhook URL
 
 ```
 http://your-domain.com/api/v1/placeorder
 ```
 
-#### Alert Message Format
+### Alert Message Format
 
 ```json
 {
@@ -55,19 +55,19 @@ http://your-domain.com/api/v1/placeorder
 }
 ```
 
-#### Pine Script Variables
+### Pine Script Variables
 
-| Variable                       | Description    | Example             |
-| ------------------------------ | -------------- | ------------------- |
-| `{{ticker}}`                   | Trading symbol | SBIN                |
-| `{{strategy.order.action}}`    | BUY or SELL    | BUY                 |
-| `{{strategy.order.contracts}}` | Order quantity | 100                 |
-| `{{close}}`                    | Closing price  | 625.50              |
-| `{{time}}`                     | Alert time     | 2024-01-15T09:30:00 |
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{ticker}}` | Trading symbol | SBIN |
+| `{{strategy.order.action}}` | BUY or SELL | BUY |
+| `{{strategy.order.contracts}}` | Order quantity | 100 |
+| `{{close}}` | Closing price | 625.50 |
+| `{{time}}` | Alert time | 2024-01-15T09:30:00 |
 
-### Symbol Format Examples
+## Symbol Format Examples
 
-#### Equity
+### Equity
 
 ```json
 {
@@ -81,7 +81,7 @@ http://your-domain.com/api/v1/placeorder
 }
 ```
 
-#### Index Futures (NFO - Expires Tuesday)
+### Index Futures (NFO - Expires Tuesday)
 
 ```json
 {
@@ -95,7 +95,7 @@ http://your-domain.com/api/v1/placeorder
 }
 ```
 
-#### Index Options (NFO - Expires Tuesday)
+### Index Options (NFO - Expires Tuesday)
 
 ```json
 {
@@ -109,7 +109,7 @@ http://your-domain.com/api/v1/placeorder
 }
 ```
 
-#### Bank Nifty Options (NFO - Expires Tuesday)
+### Bank Nifty Options (NFO - Expires Tuesday)
 
 ```json
 {
@@ -123,7 +123,7 @@ http://your-domain.com/api/v1/placeorder
 }
 ```
 
-#### SENSEX Options (BFO - Expires Thursday)
+### SENSEX Options (BFO - Expires Thursday)
 
 ```json
 {
@@ -137,26 +137,26 @@ http://your-domain.com/api/v1/placeorder
 }
 ```
 
-### Lot Sizes Reference
+## Lot Sizes Reference
 
-| Index      | Lot Size | Exchange | Expiry   |
-| ---------- | -------- | -------- | -------- |
-| NIFTY      | 65       | NFO      | Tuesday  |
-| BANKNIFTY  | 30       | NFO      | Tuesday  |
-| FINNIFTY   | 25       | NFO      | Tuesday  |
-| MIDCPNIFTY | 50       | NFO      | Monday   |
-| SENSEX     | 20       | BFO      | Thursday |
-| BANKEX     | 30       | BFO      | Monday   |
+| Index | Lot Size | Exchange | Expiry |
+|-------|----------|----------|--------|
+| NIFTY | 65 | NFO | Tuesday |
+| BANKNIFTY | 30 | NFO | Tuesday |
+| FINNIFTY | 25 | NFO | Tuesday |
+| MIDCPNIFTY | 50 | NFO | Monday |
+| SENSEX | 20 | BFO | Thursday |
+| BANKEX | 30 | BFO | Monday |
 
-### Smart Order for Position Management
+## Smart Order for Position Management
 
-#### Webhook URL
+### Webhook URL
 
 ```
 http://your-domain.com/api/v1/placesmartorder
 ```
 
-#### Alert Message
+### Alert Message
 
 ```json
 {
@@ -170,24 +170,24 @@ http://your-domain.com/api/v1/placesmartorder
 }
 ```
 
-#### Position Size Logic
+### Position Size Logic
 
-| Current Position | position\_size | Result             |
-| ---------------- | -------------- | ------------------ |
-| 0                | 100            | BUY 100            |
-| 100              | 0              | SELL 100 (close)   |
-| 100              | -100           | SELL 200 (reverse) |
-| -50              | 50             | BUY 100 (reverse)  |
+| Current Position | position_size | Result |
+|------------------|---------------|--------|
+| 0 | 100 | BUY 100 |
+| 100 | 0 | SELL 100 (close) |
+| 100 | -100 | SELL 200 (reverse) |
+| -50 | 50 | BUY 100 (reverse) |
 
-### GoCharting Webhook Setup
+## GoCharting Webhook Setup
 
-#### Webhook URL
+### Webhook URL
 
 ```
 http://your-domain.com/api/v1/placeorder
 ```
 
-#### Alert Message
+### Alert Message
 
 Same format as TradingView:
 
@@ -204,42 +204,40 @@ Same format as TradingView:
 }
 ```
 
-### JSON Generator Endpoints
+## JSON Generator Endpoints
 
 OpenAlgo provides JSON generators for easy webhook configuration:
 
-#### TradingView JSON Generator
+### TradingView JSON Generator
 
 **Endpoint:** `/tv-json`
 
 Features:
+- Select symbol, exchange, product
+- Generate webhook JSON
+- Copy to clipboard
 
-* Select symbol, exchange, product
-* Generate webhook JSON
-* Copy to clipboard
-
-#### GoCharting JSON Generator
+### GoCharting JSON Generator
 
 **Endpoint:** `/gc-json`
 
 Features:
+- Select symbol, exchange, product
+- Generate webhook JSON
+- Copy to clipboard
 
-* Select symbol, exchange, product
-* Generate webhook JSON
-* Copy to clipboard
+## Price Types
 
-### Price Types
+| Price Type | Description | Required Fields |
+|------------|-------------|-----------------|
+| `MARKET` | Execute at market price | - |
+| `LIMIT` | Execute at specific price | `price` |
+| `SL` | Stop Loss Limit | `price`, `trigger_price` |
+| `SL-M` | Stop Loss Market | `trigger_price` |
 
-| Price Type | Description               | Required Fields          |
-| ---------- | ------------------------- | ------------------------ |
-| `MARKET`   | Execute at market price   | -                        |
-| `LIMIT`    | Execute at specific price | `price`                  |
-| `SL`       | Stop Loss Limit           | `price`, `trigger_price` |
-| `SL-M`     | Stop Loss Market          | `trigger_price`          |
+## Complete Webhook Examples
 
-### Complete Webhook Examples
-
-#### Intraday Equity Buy
+### Intraday Equity Buy
 
 ```json
 {
@@ -253,7 +251,7 @@ Features:
 }
 ```
 
-#### Delivery Equity Buy
+### Delivery Equity Buy
 
 ```json
 {
@@ -268,7 +266,7 @@ Features:
 }
 ```
 
-#### NIFTY Option Buy (Tuesday Expiry)
+### NIFTY Option Buy (Tuesday Expiry)
 
 ```json
 {
@@ -282,7 +280,7 @@ Features:
 }
 ```
 
-#### SENSEX Option Buy (Thursday Expiry)
+### SENSEX Option Buy (Thursday Expiry)
 
 ```json
 {
@@ -296,13 +294,13 @@ Features:
 }
 ```
 
-### Key Files Reference
+## Key Files Reference
 
-| File                             | Purpose                    |
-| -------------------------------- | -------------------------- |
-| `blueprints/tv_json.py`          | TradingView JSON generator |
-| `blueprints/gc_json.py`          | GoCharting JSON generator  |
-| `restx_api/place_order.py`       | Order placement API        |
-| `restx_api/place_smart_order.py` | Smart order API            |
-| `templates/tv_json.html`         | TV JSON generator UI       |
-| `templates/gc_json.html`         | GC JSON generator UI       |
+| File | Purpose |
+|------|---------|
+| `blueprints/tv_json.py` | TradingView JSON generator |
+| `blueprints/gc_json.py` | GoCharting JSON generator |
+| `restx_api/place_order.py` | Order placement API |
+| `restx_api/place_smart_order.py` | Smart order API |
+| `frontend/src/pages/TradingView.tsx` | TradingView JSON helper UI |
+| `frontend/src/pages/GoCharting.tsx` | GoCharting JSON helper UI |

@@ -4,229 +4,92 @@ description: OpenAlgo - Model Context Protocol
 
 # MCP
 
-## OpenAlgo MCP - AI Trading Assistant
+OpenAlgo exposes trading, account, market-data, calendar, and research functions through the Model Context Protocol. Local and remote transports use the same tool implementation.
 
+| Transport | Intended client | Authentication | Default |
+|---|---|---|---|
+| Local stdio | Claude Desktop, Cursor, Windsurf, or another local MCP host | OpenAlgo API key passed to the local process | Available |
+| Remote HTTP/SSE | Hosted clients that connect over HTTPS | OAuth 2.1 bearer token and per-tool scope | Disabled |
 
+Enabling Remote MCP does not change the local stdio setup.
 
-An AI-powered trading assistant platform for OpenAlgo, leveraging Model Context Protocol (MCP) and Large Language Models to provide intelligent trading capabilities.
+## Prerequisites
 
-### Overview
+1. Run OpenAlgo and complete broker authentication.
+2. Generate an application API key from **Profile -> API Keys**.
+3. Locate the Python executable in the OpenAlgo virtual environment and the absolute path to `mcp/mcpserver.py`.
 
-OpenAlgo MCP integrates the powerful OpenAlgo trading platform with advanced AI capabilities through:
+Node.js is not required for the Python MCP server.
 
-1. An MCP server that exposes OpenAlgo API functions as tools for AI interaction
-2. An intelligent client application providing a conversational interface for trading
+## Local Stdio Setup
 
-This bridge between OpenAlgo's trading capabilities and AI allows for a natural language interface to complex trading operations, making algorithmic trading more accessible to users of all technical backgrounds.
+Add an MCP server entry to the local client's configuration. Replace all placeholders with paths and values for the machine running OpenAlgo.
 
-<figure><img src="../.gitbook/assets/image (3) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+```json
+{
+  "mcpServers": {
+    "openalgo": {
+      "command": "/absolute/path/to/openalgo/.venv/bin/python3",
+      "args": [
+        "/absolute/path/to/openalgo/mcp/mcpserver.py",
+        "YOUR_OPENALGO_API_KEY",
+        "http://127.0.0.1:5000"
+      ]
+    }
+  }
+}
+```
 
-## OpenAlgo MCP Server
+On Windows, use the virtual-environment executable ending in `.venv\\Scripts\\python.exe` and Windows-style absolute paths. The server requires the API key as the first argument and the OpenAlgo host as the second argument.
 
-This is a Model Context Protocol (MCP) server that provides trading and market data functionality through the OpenAlgo platform. It enables AI assistants to execute trades, manage positions, and retrieve market data directly from supported brokers.
+Common configuration locations include:
 
-### Prerequisites
+| Client | macOS/Linux | Windows |
+|---|---|---|
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS | `%APPDATA%\\Claude\\claude_desktop_config.json` |
+| Windsurf | `~/.config/windsurf/mcp_config.json` | `%APPDATA%\\Windsurf\\mcp_config.json` |
+| Cursor | Client-specific MCP settings | Client-specific MCP settings |
 
-#### 1. OpenAlgo Server Setup
-
-Ensure your OpenAlgo server is running and properly configured:
-
-1. **Start OpenAlgo Server**: Your OpenAlgo server should be running (e.g., on `http://127.0.0.1:5000`)
-2. **Nodejs** : Ensure NodeJS is installed
-3. **Broker Authentication**: Ensure your broker credentials are properly configured in OpenAlgo.
+Restart the MCP client after changing its configuration. Confirm that OpenAlgo is running and that the broker session is valid before calling account or trading tools.
 
 {% embed url="https://www.youtube.com/watch?v=oczs8KOrxIo" %}
 
-#### 2. API Key
+## Remote Setup
 
-To get your OpenAlgo API key:
+Hosted clients connect to:
 
-1. Open your OpenAlgo web interface (e.g., `http://127.0.0.1:5000`)
-2. Navigate to **Settings → API Keys**.
-3. Generate or copy your existing API key.
-
-### MCP Client Configuration
-
-Add the following configuration to your MCP client, replacing the placeholder paths with your actual file paths. The server now takes the API key and host URL as command-line arguments for better security and flexibility.
-
-#### Windows
-
-**Example Configuration:**
-
-```json
-{
-  "mcpServers": {
-    "openalgo": {
-      "command": "D:\\openalgo-mcp\\openalgo\\.venv\\Scripts\\python.exe",
-      "args": [
-        "D:\\openalgo-mcp\\openalgo\\mcp\\mcpserver.py",
-        "YOUR_API_KEY_HERE",
-        "http://127.0.0.1:5000"
-      ]
-    }
-  }
-}
+```text
+https://<your-openalgo-domain>/mcp
 ```
 
-**Configuration File Locations:**
+Remote MCP requires HTTPS, OAuth configuration, and deliberate review of approval and write-scope controls. It is disabled by default. See [Remote MCP](remote-mcp.md) for installation, OAuth consent, client setup, audit, and revocation guidance.
 
-* **Claude Desktop**: `%APPDATA%\Claude\claude_desktop_config.json`
-* **Windsurf**: `%APPDATA%\Windsurf\mcp_config.json`
-* **Cursor**: `%APPDATA%\Cursor\User\settings.json`
+## Tool Groups
 
-####
+The shared registry includes:
 
-{% embed url="https://www.youtube.com/watch?v=YTvcWxsRvPc" %}
+- Regular, smart, options, basket, split, modify, cancel, and close operations.
+- Orders, trades, positions, holdings, funds, and margin reads.
+- Quotes, batches, depth, history, option-chain, symbol, expiry, and instrument lookup.
+- Analyzer-mode controls, market holidays and timings, and Telegram notifications.
+- Technical indicators, scanners, and multi-timeframe research helpers.
 
-#### macOS
+See [Tool References](tool-references.md) for parameters and prompt examples. A client should rely on the tool schemas returned by the running server when a static example differs from the installed version.
 
-**Example Configuration:**
+## Safety
 
-```json
-{
-  "mcpServers": {
-    "openalgo": {
-      "command": "/Users/your_username/openalgo/.venv/bin/python3",
-      "args": [
-        "/Users/your_username/openalgo/mcp/mcpserver.py",
-        "YOUR_API_KEY_HERE",
-        "http://127.0.0.1:5000"
-      ]
-    }
-  }
-}
-```
+- Start order workflows in Analyzer mode and inspect the result before using live mode.
+- Local stdio configuration contains the OpenAlgo API key. Restrict access to the client configuration file.
+- Remote read and write scopes are separate. Do not grant `write:orders` unless the client is intended to trade.
+- Review symbol, exchange, product, quantity, order type, and current application mode before confirming an order tool.
+- Broker access and risk checks remain authoritative; a successful MCP tool call does not bypass broker validation.
 
-**Configuration File Locations:**
+## Troubleshooting
 
-* **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-* **Windsurf**: `~/.config/windsurf/mcp_config.json`
-* **Cursor**: `~/Library/Application Support/Cursor/User/settings.json`
-
-#### Linux
-
-**Example Configuration:**
-
-```json
-{
-  "mcpServers": {
-    "openalgo": {
-      "command": "/home/your_username/openalgo/.venv/bin/python3",
-      "args": [
-        "/home/your_username/openalgo/mcp/mcpserver.py",
-        "YOUR_API_KEY_HERE",
-        "http://127.0.0.1:5000"
-      ]
-    }
-  }
-}
-```
-
-**Configuration File Locations:**
-
-* **Claude Desktop**: `~/.config/Claude/claude_desktop_config.json`
-* **Windsurf**: `~/.config/windsurf/mcp_config.json`
-* **Cursor**: `~/.config/Cursor/User/settings.json`
-
-#### Path Configuration Notes
-
-**Important**: Replace the paths in the examples above with your actual installation paths:
-
-* **Windows**: Replace `D:\\openalgo-zerodha\\openalgo` with your actual OpenAlgo installation path
-* **macOS/Linux**: Replace `/Users/your_username` or `/home/your_username` with your actual home directory path
-
-To find your Python virtual environment path:
-
-* **Windows**: Usually in `venv\Scripts\python.exe`
-* **macOS/Linux**: Usually in `.venv/bin/python3`
-
-#### ChatGPT Configuration (Platform Independent)
-
-If your ChatGPT client supports MCP, use the appropriate path format for your operating system from the examples above.
-
-### Available Tools
-
-The MCP server provides the following categories of tools:
-
-#### Order Management
-
-* `place_order` - Place market or limit orders
-* `place_smart_order` - Place orders considering position size
-* `place_basket_order` - Place multiple orders at once
-* `place_split_order` - Split large orders into smaller chunks
-* `modify_order` - Modify existing orders
-* `cancel_order` - Cancel specific orders
-* `cancel_all_orders` - Cancel all orders for a strategy
-
-#### Position Management
-
-* `close_all_positions` - Close all positions for a strategy
-* `get_open_position` - Get current position for an instrument
-
-#### Order Status & Tracking
-
-* `get_order_status` - Check status of specific orders
-* `get_order_book` - View all orders
-* `get_trade_book` - View executed trades
-* `get_position_book` - View current positions
-* `get_holdings` - View long-term holdings
-* `get_funds` - Check account funds and margins
-
-#### Market Data
-
-* `get_quote` - Get current price quotes
-* `get_market_depth` - Get order book depth
-* `get_historical_data` - Retrieve historical price data
-
-#### Instrument Search
-
-* `search_instruments` - Search for trading instruments
-* `get_symbol_info` - Get detailed symbol information
-* `get_expiry_dates` - Get derivative expiry dates
-* `get_available_intervals` - List available time intervals
-
-#### Utilities
-
-* `get_openalgo_version` - Check OpenAlgo version
-* `validate_order_constants` - Display valid order parameters
-
-### Usage Examples
-
-Once configured, you can ask your AI assistant to:
-
-* "Place a buy order for 100 shares of RELIANCE at market price"
-* "Show me my current positions"
-* "Get the latest quote for NIFTY"
-* "Cancel all my pending orders"
-* "What are my account funds?"
-
-### Supported Exchanges
-
-* **NSE** - National Stock Exchange (Equity)
-* **NFO** - NSE Futures & Options
-* **CDS** - NSE Currency Derivatives
-* **BSE** - Bombay Stock Exchange
-* **BFO** - BSE Futures & Options
-* **BCD** - BSE Currency Derivatives
-* **MCX** - Multi Commodity Exchange
-* **NCDEX** - National Commodity & Derivatives Exchange
-
-### Security Note
-
-⚠️ **Important**: This server is designed for local use. For production environments, consider implementing additional security measures such as environment variables for sensitive data and restricting network access.
-
-### Troubleshooting
-
-1. **Connection Issues**: Verify OpenAlgo server is running on `http://127.0.0.1:5000`
-2. **Authentication Errors**: Check your API key is correct and valid
-3. **Permission Errors**: Ensure the Python virtual environment has proper permissions
-4. **Order Failures**: Verify your broker connection and trading permissions
-5. **Order Failures**: Verify broker credentials in OpenAlgo are valid and active
-
-### Support
-
-For issues related to:
-
-* **OpenAlgo Platform**: Visit the OpenAlgo documentation
-* **MCP Protocol**: Check the Model Context Protocol specifications
-* **Trading Errors**: Verify your broker connection and trading permissions
+| Symptom | Check |
+|---|---|
+| MCP process exits immediately | Python path, script path, API-key argument, and host argument |
+| Authentication error | API key validity and OpenAlgo application state |
+| Account tools fail | Current broker login and broker session |
+| Tool is unavailable | Tool list returned by the installed server and client-side tool permissions |
+| Remote connector cannot authorize | Remote MCP enablement, public URL, OAuth settings, and client approval state |
