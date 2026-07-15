@@ -93,8 +93,8 @@ used by the REST order APIs:
 
 ### **Notes**
 
-* Sandbox (analyze mode) fires the same updates for engine fills,
-  rejections, and cancellations — test end-to-end without a live broker.
+* Sandbox (analyze mode) fires the same updates for order placements
+  (open), engine fills, rejections, and cancellations — test end-to-end without a live broker.
 * Broker coverage: Zerodha, Dhan, Fyers, Upstox, AliceBlue, Definedge,
   IndMoney, Angel One, Nubra, and Arrow stream natively; Groww uses
   server-side orderbook polling as a fallback.
