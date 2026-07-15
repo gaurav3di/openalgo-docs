@@ -202,6 +202,7 @@
 * [ChartInk](trading-platform/chartink.md)
 * [Python](trading-platform/python/README.md)
   * [Websockets (Verbose Control)](trading-platform/python/websockets-verbose-control.md)
+  * [Order Updates (Real-Time)](trading-platform/python/order-updates.md)
   * [Indicators](trading-platform/python/indicators/README.md)
     * [Trend](trading-platform/python/indicators/trend.md)
     * [Momentum](trading-platform/python/indicators/momentum.md)

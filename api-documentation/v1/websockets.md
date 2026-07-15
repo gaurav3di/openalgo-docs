@@ -129,6 +129,80 @@ Remove every subscription owned by the connection with:
 }
 ```
 
+## Order Updates
+
+Real-time order status changes — fills, partial fills, rejections, and
+cancellations pushed by the broker after an order is placed (or by the sandbox
+engine in analyze mode). This is an **account-level** stream: no symbols or
+modes are involved.
+
+Subscribe after authenticating:
+
+```json
+{
+  "action": "subscribe_orders",
+  "request_id": "orders-1"
+}
+```
+
+The acknowledgement:
+
+```json
+{
+  "type": "subscribe_orders",
+  "status": "success",
+  "message": "Subscribed to order updates",
+  "request_id": "orders-1"
+}
+```
+
+Each order event then arrives as an `order_update` message using OpenAlgo's
+common order vocabulary (see Order Constants): `action` is `BUY`/`SELL`,
+`pricetype` is `MARKET`/`LIMIT`/`SL`/`SL-M`, `product` is `CNC`/`NRML`/`MIS`,
+and `order_status` is lowercase `open` / `complete` / `rejected` / `cancelled`
+(plus broker-specific extras such as `expired`). `mode` is `live` for broker
+events and `analyze` for sandbox events.
+
+```json
+{
+  "type": "order_update",
+  "mode": "live",
+  "broker": "upstox",
+  "orderid": "240221025997024",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "action": "BUY",
+  "quantity": 10,
+  "price": 1424.0,
+  "trigger_price": 0,
+  "pricetype": "LIMIT",
+  "product": "MIS",
+  "order_status": "complete",
+  "filled_quantity": 10,
+  "pending_quantity": 0,
+  "average_price": 1423.85,
+  "rejection_reason": ""
+}
+```
+
+Stop the stream with:
+
+```json
+{
+  "action": "unsubscribe_orders"
+}
+```
+
+Order-update sources are broker-dependent: brokers with a dedicated
+order-update WebSocket or ticker postback channel (Zerodha, Dhan, Fyers,
+Upstox, AliceBlue, Definedge, IndMoney, Angel One, Nubra, Arrow) stream
+natively; brokers without a push mechanism (e.g. Groww) fall back to
+server-side orderbook polling. HTTPS postbacks registered with the broker at
+`/postback/<broker>` feed the same stream on production deployments. If both
+a broker WebSocket and a postback are configured, the same transition may be
+delivered twice — deduplicate on `orderid` + `order_status` +
+`filled_quantity`.
+
 ## Other Actions
 
 | Action | Purpose |
