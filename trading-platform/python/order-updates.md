@@ -86,7 +86,7 @@ used by the REST order APIs:
 | `action`           | `BUY` / `SELL`                                                   |
 | `pricetype`        | `MARKET` / `LIMIT` / `SL` / `SL-M`                               |
 | `product`          | `CNC` / `NRML` / `MIS`                                           |
-| `order_status`     | `open` / `complete` / `rejected` / `cancelled` (+ broker extras) |
+| `order_status`     | `open` / `trigger pending` / `complete` / `rejected` / `cancelled` (+ broker extras) |
 | `rejection_reason` | Populated when `order_status` is `rejected`                      |
 
 ***

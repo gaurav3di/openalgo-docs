@@ -161,7 +161,7 @@ common order vocabulary (see Order Constants): `symbol` is in OpenAlgo symbol
 format (mapped from the broker's own symbology — e.g. `NHPC-EQ` becomes
 `NHPC`, and NFO futures appear as `NIFTY28JUL26FUT`), `action` is
 `BUY`/`SELL`, `pricetype` is `MARKET`/`LIMIT`/`SL`/`SL-M`, `product` is
-`CNC`/`NRML`/`MIS`, and `order_status` is lowercase `open` / `complete` /
+`CNC`/`NRML`/`MIS`, and `order_status` is lowercase `open` / `trigger pending` / `complete` /
 `rejected` / `cancelled` (plus broker-specific extras such as `expired`).
 `rejection_reason` carries the broker's full RMS/OMS text when rejected.
 `mode` is `live` for broker events and `analyze` for sandbox events.
