@@ -60,6 +60,7 @@ used by the REST order APIs:
 ```json
 {
   "type": "order_update",
+  "user_id": "openalgo-user",
   "mode": "live",
   "broker": "upstox",
   "orderid": "240221025997024",
