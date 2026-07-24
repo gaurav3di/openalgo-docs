@@ -4,7 +4,17 @@
 
 **Broker & Reliability Release: a new HDFC Sky broker integration, a ground-up TypeScript rewrite of the /trading chart-trading page with a multi-chart grid, real-time order-update streaming brought to IIFL Capital and Upstox, sandbox order lifecycle now includes a first-class "trigger pending" status for SL/SL-M orders, a Definedge connector overhaul, and a broad sweep of Dhan/Flattrade/Fyers/Zerodha broker fixes**
 
-This release spans 119 commits since v2.0.1.5. The headline addition is **HDFC Sky**, a new broker integration (orders, WebSocket market depth, funds, OI tracker, and SL-M order protection under HDFC Sky's live margin regime) — OpenAlgo now supports 35 brokers. The **`/trading` page was rewritten from scratch** as a TypeScript React route with a multi-chart grid, TradingView-style timeframe/chart-type menus, an inline Buy/Sell panel, and a symbol search modal with per-pane state. **Real-time order-update streaming** — started in the previous cycle for a handful of brokers — was extended end-to-end, with IIFL Capital and Upstox gaining live order/trade push feeds and a new dedicated **`/websocket/order`** page for watching the raw event stream. The **sandbox engine** gained a proper **"trigger pending"** status for SL/SL-M orders (matching how a live exchange's Stop-Loss book actually works, instead of showing "open" the whole time) plus F\&O expiry settlement timing, event-driven MTM, and several T+1/holdings settlement correctness fixes. On the broker side: **Definedge's connector was overhauled** for the current API (orders, OI, rate limits, WebSocket), **Dhan and IIFL Capital both got SL-M emulation** (a bare stop-loss-market order is blocked under SEBI's market-protection regime on several brokers — it's now transparently converted to a protective stop-limit order), and Flattrade, Fyers, Zerodha, and Upstox each picked up targeted reliability fixes. A large parallel documentation effort ("superpowers") laid out the architecture, ADRs, and roadmap for future global-market (non-Indian-exchange) broker support.
+This release spans 119 commits since v2.0.1.5. The headline addition is **HDFC Sky**, a new broker integration (orders, WebSocket market depth, funds, OI tracker, and SL-M order protection under HDFC Sky's live margin regime) \
+\
+OpenAlgo now supports 35 brokers. The **`/trading` page was rewritten from scratch** as a TypeScript React route with a multi-chart grid, TradingView-style timeframe/chart-type menus, an inline Buy/Sell panel, and a symbol search modal with per-pane state. \
+\
+**Real-time order-update streaming** — started in the previous cycle for a handful of brokers — was extended end-to-end, with IIFL Capital and Upstox gaining live order/trade push feeds and a new dedicated **`/websocket/order`** page for watching the raw event stream. \
+\
+The **sandbox engine** gained a proper **"trigger pending"** status for SL/SL-M orders (matching how a live exchange's Stop-Loss book actually works, instead of showing "open" the whole time) plus F\&O expiry settlement timing, event-driven MTM, and several T+1/holdings settlement correctness fixes. \
+\
+On the broker side: **Definedge's connector was overhauled** for the current API (orders, OI, rate limits, WebSocket), **Dhan and IIFL Capital both got SL-M emulation** (a bare stop-loss-market order is blocked under SEBI's market-protection regime on several brokers - it's now transparently converted to a protective stop-limit order), and Flattrade, Fyers, Zerodha, and Upstox each picked up targeted reliability fixes. \
+\
+A large parallel documentation effort ("superpowers") laid out the architecture, ADRs, and roadmap for future global-market (non-Indian-exchange) broker support.
 
 ***
 
