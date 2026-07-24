@@ -17,7 +17,7 @@ Before proceeding, ensure you have the following:
 * Navigate to [https://myaccount.definedgesecurities.com/](https://myaccount.definedgesecurities.com/).
 * Enter your **UCC (Account ID)** and **password**.
 
-<figure><img src="../../.gitbook/assets/one (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/one.png" alt=""><figcaption></figcaption></figure>
 
 * Complete with OTP authentication send to your registered mobile and email ID.
 
@@ -33,9 +33,9 @@ Before proceeding, ensure you have the following:
 
 <figure><img src="../../.gitbook/assets/three.png" alt=""><figcaption></figcaption></figure>
 
-**Configuring the .env File**&#x20;
+**Configuring the .env File**
 
-The Definedge API Token is used as the API key and API Secrets as API Secret itself. Below is a sample configuration for the .env file     &#x20;
+The Definedge API Token is used as the API key and API Secrets as API Secret itself. Below is a sample configuration for the .env file
 
 \#Definedge Broker Configuration
 

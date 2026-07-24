@@ -18,7 +18,7 @@ Once logged in:
 * **Interactive Order API**
 * **Market Data API**
 
-<figure><img src="../../.gitbook/assets/WhatsApp Image 2025-12-05 at 12.21.12 PM (1).jpeg" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/WhatsApp Image 2025-12-05 at 12.21.12 PM.jpeg" alt=""><figcaption></figcaption></figure>
 
 **Details to Fill:**
 

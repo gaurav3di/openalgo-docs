@@ -36,7 +36,7 @@ BROKER_API_SECRET = 'your_samco_password'
 REDIRECT_URL = 'http://127.0.0.1:5000/sao/callback'
 ```
 
-#### Step 5 : Process of Static IP Whitelisting&#x20;
+#### Step 5 : Process of Static IP Whitelisting
 
 When you select Samco from the broker selection page, you will see a multi-step wizard with four steps:
 
@@ -58,7 +58,7 @@ When you select Samco from the broker selection page, you will see a multi-step 
 2. Open your email, copy the Secret API Key
 3. Paste it in the input field and click Save Secret Key
 
-<figure><img src="../../.gitbook/assets/samco3 (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/samco3.png" alt=""><figcaption></figcaption></figure>
 
 **Important:** The Secret API Key never expires. Keep it secure and do not share it with anyone. You only need to do this step once. If you generate a new OTP and create a new secret key, you must update the saved key as well.
 
@@ -69,7 +69,7 @@ When you select Samco from the broker selection page, you will see a multi-step 
 1. Enter your server's Primary IP Address (the static IP of the machine running OpenAlgo)
 2. Optionally enter a Secondary IP Address as a backup
 3. Click Register IP (or Update IP if already registered)
-4. A confirmation dialog will appear before submitting&#x20;
+4. A confirmation dialog will appear before submitting
 
 **IP Update Restriction:** Samco allows IP changes only once per calendar week. If you have already updated your IP this week, the fields will be locked and a message will show the next available edit date. Make sure you enter the correct IP before confirming.
 

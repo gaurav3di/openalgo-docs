@@ -7,9 +7,9 @@ TradeJini is a progressive brokerage firm known for its reliable execution, low-
 #### 1. Log in to the TradeJini Developer Portal
 
 Start by accessing the CubePlus Developer Portal at\
-[ https://api.tradejini.com/developer-portal/main](https://api.tradejini.com/developer-portal/main)
+[https://api.tradejini.com/developer-portal/main](https://api.tradejini.com/developer-portal/main)
 
-<figure><img src="../../.gitbook/assets/1 (1).JPG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/1.JPG" alt=""><figcaption></figcaption></figure>
 
 * Click on **Login**.
 *   You can log in using either:
@@ -28,9 +28,7 @@ After logging in:
 * Click **Submit** to register your app.
 * An **API Key** will be created for authenticated API usage
 
-
-
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (3) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 <figure><img src="../../.gitbook/assets/tradejini2 (1).PNG" alt=""><figcaption></figcaption></figure>
 

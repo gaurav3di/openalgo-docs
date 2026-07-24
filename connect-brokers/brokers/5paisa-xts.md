@@ -6,8 +6,6 @@ OpenAlgo makes algorithmic trading accessible and straightforward by providing s
 
 ***
 
-
-
 ***
 
 ### Step 1: Create API Applications
@@ -18,7 +16,7 @@ Once logged in:
 
 1. Go to `My App` > `Create New Application`
 
-<figure><img src="../../.gitbook/assets/image (103).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (102).png" alt=""><figcaption></figcaption></figure>
 
 1. Create two separate apps:
    * **Interactive Order API**
@@ -67,8 +65,6 @@ Once all environment variables are set and your apps are **Active**, you can now
 
 ***
 
-
-
-This completes the integration process for 5paisa (XTS API)  with OpenAlgo.
+This completes the integration process for 5paisa (XTS API) with OpenAlgo.
 
 By following the steps outlined in this guide, you have successfully configured your 5Paisa (XTS API) account for use with OpenAlgo. You can now leverage the power of algorithmic trading to enhance your trading strategies and make data-driven decisions. Should you encounter any issues or need further assistance, please refer to the OpenAlgo community or support resources. Happy trading!
