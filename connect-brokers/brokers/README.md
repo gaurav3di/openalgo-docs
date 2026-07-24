@@ -2,8 +2,6 @@
 
 OpenAlgo currently includes **34 broker plugin directories**. This section lists the 33 securities-broker integrations; [Delta Exchange](../../crypto/exchanges/delta-exchange.md) is documented separately under Crypto.
 
-
-
 1. 5paisa
 2. 5paisa (XTS)
 3. Aliceblue
@@ -17,23 +15,24 @@ OpenAlgo currently includes **34 broker plugin directories**. This section lists
 11. Flattrade
 12. Fyers
 13. Groww
-14. IIFL (XTS)
-15. IIFL Capital
-16. IndiaBulls
-17. IndMoney
-18. JainamXTS
-19. Kotak Securities
-20. Motilal Oswal
-21. Mstock
-22. Nubra
-23. Paytm
-24. Pocketful
-25. Samco
-26. Shoonya
-27. Rmoney (XTS)
-28. Tradejini
-29. TradeSmart
-30. Upstox
-31. Wisdom Capital (XTS)
-32. Zebu&#x20;
-33. Zerodha
+14. HDFC Sky
+15. IIFL (XTS)
+16. IIFL Capital
+17. IndiaBulls
+18. IndMoney
+19. JainamXTS
+20. Kotak Securities
+21. Motilal Oswal
+22. Mstock
+23. Nubra
+24. Paytm
+25. Pocketful
+26. Samco
+27. Shoonya
+28. Rmoney (XTS)
+29. Tradejini
+30. TradeSmart
+31. Upstox
+32. Wisdom Capital (XTS)
+33. Zebu
+34. Zerodha
