@@ -117,7 +117,7 @@
     * [Holdings](api-documentation/v1/accounts-api/holdings.md)
     * [Analyzer Status](api-documentation/v1/accounts-api/analyzer-status.md)
     * [Analyzer Toggle](api-documentation/v1/accounts-api/analyzer-toggle.md)
-    * [P&L by Symbol](api-documentation/v1/accounts-api/pnl-symbols.md)
+    * [P\&L by Symbol](api-documentation/v1/accounts-api/pnl-symbols.md)
     * [Chart Preferences](api-documentation/v1/accounts-api/chart-preferences.md)
   * [Orders API](api-documentation/v1/orders-api/README.md)
     * [Placeorder](api-documentation/v1/orders-api/placeorder.md)
@@ -312,6 +312,7 @@
 ## Change Log
 
 * [release](change-log/release/README.md)
+  * [Version 2.0.1.6 Released](change-log/release/version-2.0.1.6-released.md)
   * [Version 2.0.1.5 Released](change-log/release/version-2.0.1.5-released.md)
   * [Version 2.0.1.4 Released](change-log/release/version-2.0.1.4-released.md)
   * [Version 2.0.1.3 Released](change-log/release/version-2.0.1.3-released.md)
