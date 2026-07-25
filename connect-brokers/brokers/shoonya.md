@@ -33,5 +33,5 @@ To integrate Shoonya with OpenAlgo, follow these steps to obtain your API key an
 ```bash
 BROKER_API_KEY = 'your_userid_here:::your_ClientId_here'
 BROKER_API_SECRET = 'your_Secretcode_here'
-REDIRECT_URL = 'https://openalgo.local/hdfcsky/callback'
+REDIRECT_URL = 'https://openalgo.local/shoonya/callback'
 ```
