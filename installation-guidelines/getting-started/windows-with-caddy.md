@@ -8,7 +8,7 @@ Run OpenAlgo locally on `https://openalgo.local` with a valid SSL certificate, n
 
 ### Why this setup?
 
-OAuth flows for brokers like shoonya often require HTTPS redirect URLs. Running OpenAlgo on plain `http://127.0.0.1:5000` works for testing, but production-like local development needs:
+OAuth flows for brokers like shoonya,hdfcsky often require HTTPS redirect URLs. Running OpenAlgo on plain `http://127.0.0.1:5000` works for testing, but production-like local development needs:
 
 * A proper hostname (`openalgo.local` instead of `127.0.0.1`)
 * HTTPS with a trusted certificate (no `Not Secure` warnings)
