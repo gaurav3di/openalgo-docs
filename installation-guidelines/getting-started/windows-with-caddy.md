@@ -16,6 +16,8 @@ OAuth flows for brokers like shoonya often require HTTPS redirect URLs. Running 
 
 Caddy handles all of this in front of your Flask app as a reverse proxy.
 
+{% embed url="https://www.youtube.com/watch?v=ZUFeqixMbp4" %}
+
 ### Prerequisites
 
 * Windows 10 or 11
