@@ -324,12 +324,18 @@ strategies hold the same contract.
 | --- | --- |
 | `strategy` | Defaults to this workflow's name, which is also the tag its order nodes apply. Usually leave blank. |
 
-→ `{status, strategy, realized, today_realized, unrealized, total, open_quantity, unpriced_legs, legs: [...]}`
+→ `{status, strategy, realized, today_realized, unrealized, total, today_total, open_quantity, unpriced_legs, legs: [{symbol, exchange, product, quantity, average_price, ltp, realized, today_realized, unrealized}]}`
+
+`total` is realized + unrealized across all sessions; `today_total` is the
+intraday equivalent, pairing `today_realized` with the same unrealized figure.
 
 `unpriced_legs` counts open legs with no live price; those are **excluded**
 from `unrealized`. A non-zero value means the total is incomplete — guard on
-it before acting. If the position book itself is unavailable the node returns
-an error rather than a misleading zero.
+it before acting.
+
+The node returns an **error**, never a zero, when the figures are unknown —
+whether the position book is unavailable or the strategy book itself could not
+be read. A P&L of zero always means "flat", never "could not tell".
 
 ### `openPosition` — Open Position
 
