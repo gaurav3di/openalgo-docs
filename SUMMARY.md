@@ -176,6 +176,15 @@
   * [Remote MCP](mcp/remote-mcp.md)
   * [Tool References](mcp/tool-references.md)
 
+## Flow Editor
+
+* [Flow Editor](flow-editor/README.md)
+  * [Concepts and Execution Model](flow-editor/concepts.md)
+  * [Market Data and Timeframes](flow-editor/market-data.md)
+  * [Indicators](flow-editor/indicators.md)
+  * [Tutorials](flow-editor/tutorials.md)
+  * [Limitations and Gotchas](flow-editor/limitations.md)
+
 ## Trading Platform
 
 * [Amibroker](trading-platform/amibroker/README.md)
