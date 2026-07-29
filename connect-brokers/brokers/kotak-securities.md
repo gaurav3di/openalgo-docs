@@ -15,16 +15,16 @@ Ensure you have your Kotak Securities Trading User ID and Password ready.
 #### Step 2: Register for API Access
 
 1. Navigate to the [Kotak Securities API registration page.](https://neo.kotaksecurities.com/) login with your trading credentials
-2. Navigate to: Invest → TradeAPI → API Dashboard
+2. Navigate to: More
 
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/kotak_1.PNG" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="../../.gitbook/assets/kotak_2.PNG" alt=""><figcaption></figcaption></figure>
 
 1. Click "Create Application"
 2. Copy the token shown after creation
 
-&#x20;      **Token format example**: ec6a746c-e44b-455e-abf2-c13352b2fc45
-
-<figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+**Token format example**: ec6a746c-e44b-455e-abf2-c13352b2fc45
 
 #### **Step 3: Register TOTP Authentication**
 
@@ -70,7 +70,7 @@ Example:
 
 * NEO app → Profile → Settings → Change MPIN
 
-#### &#x20;Retrieve API Credentials:
+#### Retrieve API Credentials:
 
 * Copy the Unique Client Code as Format: 5 characters (e.g., "AB123") , which will be your API Key.
 * Copy the Token generated from step 2 as Token format example: ec6a746c-e44b-455e-abf2-c13352b2fc45, which will serve as your API Secret
