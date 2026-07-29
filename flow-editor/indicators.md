@@ -109,6 +109,20 @@ symbol. Build a crossover from two indicator nodes plus an `andGate` — see
 `correlation` and `beta` are excluded for the same reason (they compare two
 symbols).
 
+## The complete exclusion list
+
+`openalgo.ta` ships more functions than the `indicator` node exposes. Eight
+need a second series, and one is unsupported, leaving the **118** you can use:
+
+| Excluded | Why | What to do instead |
+| --- | --- | --- |
+| `crossover`, `crossunder`, `cross` | Compare two series | Two `indicator` nodes plus an `andGate` — [Tutorial 3](tutorials.md#3-crossovers) |
+| `correlation`, `beta` | Compare two symbols | Not available in Flow; use the Python Strategy Host |
+| `exrem`, `flip`, `valuewhen` | Need a second boolean series, and carry state across bars | Restructure as a stateless condition, or use the Python Strategy Host |
+| `median_bands` | Not supported | — |
+
+Everything else in the library works as an `indicator` node.
+
 ## Available indicators
 
 | Category | Functions |

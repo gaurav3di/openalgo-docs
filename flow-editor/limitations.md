@@ -169,6 +169,27 @@ the badge is in the header, and order results carry `mode: "analyze"` or
 
 ---
 
+## Strategy P&L: what the book does and does not see
+
+`strategyPnl` reads a per-strategy book that OpenAlgo maintains from its own
+order events. That gives it a few boundaries worth knowing before you wire an
+exit trigger to it.
+
+* **Only tagged orders count.** The book is fed by orders placed through
+  OpenAlgo carrying a `strategy` tag — Flow nodes and `/api/v1/` calls. A
+  position opened by hand in the broker terminal is invisible to it.
+* **Unrealized needs a live price.** Open legs are marked against the position
+  book. A leg with no matching price is excluded and counted in
+  `unpriced_legs`; treat a non-zero value as "this total is understated".
+* **A broken position book is an error, not a zero.** If the position book
+  cannot be read the node returns an error rather than reporting a calm
+  `total: 0` that an exit trigger would act on.
+* **`realized` accumulates across sessions**; `today_realized` resets at the
+  03:00 IST session rollover, matching the broker token cycle.
+* **`closePositions` is account-wide.** Reading P&L per strategy does not make
+  closing per strategy. To flatten one strategy's leg specifically, use
+  `smartOrder` with `positionSize: 0` on that symbol.
+
 ## Pre-flight checklist
 
 Before activating a workflow against live money:

@@ -427,6 +427,69 @@ The event payload is exposed as `{{webhook.*}}`: `orderid`, `symbol`,
 
 ---
 
+## 9. Exit on this strategy's own P&L
+
+The account's position book nets everything and carries no strategy label, so
+"am I up 5000 on *this* strategy" cannot be answered from `positionBook` when
+another strategy holds the same contract. `strategyPnl` answers it.
+
+```json
+{
+  "name": "T9 strategy pnl exit",
+  "nodes": [
+    { "id": "n1", "type": "start", "position": { "x": 0, "y": 0 },
+      "data": { "scheduleType": "interval", "intervalValue": 1, "intervalUnit": "minutes", "marketHoursOnly": true } },
+    { "id": "pnl", "type": "strategyPnl", "position": { "x": 0, "y": 100 },
+      "data": { "outputVariable": "pnl" } },
+    { "id": "hasqty", "type": "varCondition", "position": { "x": 0, "y": 200 },
+      "data": { "leftValue": "{{pnl.open_quantity}}", "operator": "!=", "rightValue": "0" } },
+    { "id": "target", "type": "varCondition", "position": { "x": 0, "y": 300 },
+      "data": { "leftValue": "{{pnl.total}}", "operator": ">=", "rightValue": "5000" } },
+    { "id": "flat", "type": "closePositions", "position": { "x": 0, "y": 400 }, "data": {} },
+    { "id": "say", "type": "log", "position": { "x": 220, "y": 400 },
+      "data": { "message": "Target hit: total={{pnl.total}} realized={{pnl.realized}} unrealized={{pnl.unrealized}}", "level": "info" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "n1", "target": "pnl" },
+    { "id": "e2", "source": "pnl", "target": "hasqty" },
+    { "id": "e3", "source": "hasqty", "target": "target", "sourceHandle": "true" },
+    { "id": "e4", "source": "target", "target": "flat", "sourceHandle": "true" },
+    { "id": "e5", "source": "target", "target": "say", "sourceHandle": "true" }
+  ]
+}
+```
+
+Verified with one open leg of 75 NIFTY CE bought at 100 and marked at 170:
+
+```
+realized=0.0  unrealized=5250.0  total=5250.0  openQty=75.0  unpriced_legs=0
+-> total >= 5000, exit branch taken
+```
+
+**Key points.**
+
+* Leave `strategy` blank. It defaults to the workflow's own name, which is the
+  same tag this workflow's order nodes apply, so entry and exit agree with no
+  configuration.
+* The `open_quantity != 0` guard first. Without it the workflow re-fires
+  `closePositions` every minute after the position is already flat, because
+  realized P&L stays above the target for the rest of the session.
+* `total` is realized + unrealized. Use `today_realized` for an intraday-only
+  target that ignores P&L carried in from previous sessions.
+* Swap `>=` for `<=` and a negative number to get a stop-loss instead.
+* **`closePositions` is account-wide**, not strategy-scoped. If several
+  strategies hold positions at once, close the specific leg with a
+  `placeOrder` or `smartOrder` (`positionSize: 0`) instead.
+
+**Before relying on this.** The strategy book is built from orders placed
+**through OpenAlgo with a strategy tag** — Flow nodes and `/api/v1/` calls
+that carry `strategy`. A position you opened by hand in the broker terminal is
+invisible to it, so its P&L is not counted. Check `unpriced_legs` too: it
+counts open legs with no live price, which are excluded from `unrealized`, so
+a non-zero value means `total` is understated.
+
+---
+
 ## Where to go next
 
 * [Limitations and Gotchas](limitations.md) — read before trading these live

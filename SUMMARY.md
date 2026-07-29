@@ -180,6 +180,7 @@
 
 * [Flow Editor](flow-editor/README.md)
   * [Concepts and Execution Model](flow-editor/concepts.md)
+  * [Node Reference](flow-editor/node-reference.md)
   * [Market Data and Timeframes](flow-editor/market-data.md)
   * [Indicators](flow-editor/indicators.md)
   * [Tutorials](flow-editor/tutorials.md)
