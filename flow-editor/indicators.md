@@ -1,6 +1,6 @@
 # Indicators
 
-The `indicator` node runs any of **118 technical indicators** from the
+The `indicator` node runs any of **116 technical indicators** from the
 `openalgo.ta` library over a symbol's history, server-side.
 
 ## Basic use
@@ -112,7 +112,7 @@ symbols).
 ## The complete exclusion list
 
 `openalgo.ta` ships more functions than the `indicator` node exposes. Eight
-need a second series, and one is unsupported, leaving the **118** you can use:
+need a second series, and one is unsupported, leaving the **116** you can use:
 
 | Excluded | Why | What to do instead |
 | --- | --- | --- |

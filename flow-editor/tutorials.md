@@ -1,6 +1,6 @@
 # Tutorials
 
-Eight complete strategies, from a first workflow to a gap-filtered breakout.
+Ten complete strategies, from a first workflow to calendar-driven rebalancing.
 
 **Every JSON on this page was executed against a running OpenAlgo instance
 with a live broker connection in Analyzer mode.** The log output shown is
@@ -490,8 +490,65 @@ a non-zero value means `total` is understated.
 
 ---
 
+## 10. Run only on the first trading day of the month
+
+A monthly rebalance must fire once, on the first day the exchange actually
+trades. `{{day}} == 1` gets this wrong whenever the 1st is a weekend or a
+holiday. The `calendar` node answers it directly.
+
+```json
+{
+  "name": "T10 monthly rebalance",
+  "nodes": [
+    { "id": "n1", "type": "start", "position": { "x": 0, "y": 0 },
+      "data": { "scheduleType": "daily", "time": "09:20", "days": [0,1,2,3,4], "marketHoursOnly": true } },
+    { "id": "cal", "type": "calendar", "position": { "x": 0, "y": 100 },
+      "data": { "outputVariable": "cal" } },
+    { "id": "isnew", "type": "varCondition", "position": { "x": 0, "y": 200 },
+      "data": { "leftValue": "{{cal.is_new_month}}", "operator": "==", "rightValue": "true" } },
+    { "id": "go", "type": "log", "position": { "x": 0, "y": 300 },
+      "data": { "message": "New month opened on {{cal.date}} ({{cal.weekday}}) - rebalancing. Quarter {{cal.quarter}}, week {{cal.week_of_year}}.", "level": "info" } },
+    { "id": "skip", "type": "log", "position": { "x": 260, "y": 300 },
+      "data": { "message": "{{cal.date}} is not the first trading day of the month - nothing to do", "level": "info" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "n1", "target": "cal" },
+    { "id": "e2", "source": "cal", "target": "isnew" },
+    { "id": "e3", "source": "isnew", "sourceHandle": "true",  "target": "go" },
+    { "id": "e4", "source": "isnew", "sourceHandle": "false", "target": "skip" }
+  ]
+}
+```
+
+**Key points.**
+
+* The schedule runs every weekday; the `calendar` node decides whether today is
+  the day. That is deliberate — a monthly schedule could not know which date
+  the exchange actually opens on.
+* Swap `is_new_month` for `is_new_week`, `is_new_quarter` or `is_new_year`. Use
+  `is_last_day_of_month` for a month-end square-off instead.
+* Flow keeps no state between runs, so this cannot work by remembering the last
+  run. It does not need to: "a new month started" is the same statement as
+  "today is the first trading day of this month", and the exchange calendar
+  answers that on its own.
+* `is_trading_holiday` is distinct from `is_weekend`, so you can log *why* a day
+  was skipped.
+* Blank `date` uses the current trading session date, which differs from the
+  calendar date between midnight and the 03:00 IST rollover.
+
+Real 2026 dates this handles correctly, and the naive tests do not:
+
+| Date | Day | `is_new_month` | `is_new_week` |
+| --- | --- | --- | --- |
+| 1 Aug | Saturday | false | false |
+| 3 Aug | Monday | **true** | **true** |
+| 26 Jan (Republic Day) | Monday | false | false |
+| 27 Jan | Tuesday | false | **true** |
+
+---
+
 ## Where to go next
 
 * [Limitations and Gotchas](limitations.md) — read before trading these live
-* [Indicators](indicators.md) — the full 118-function reference
+* [Indicators](indicators.md) — the full 116-function reference
 * [Market Data](market-data.md) — timeframes, the 200-bar ceiling, rate limits

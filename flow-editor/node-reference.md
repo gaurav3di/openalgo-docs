@@ -1,6 +1,6 @@
 # Node Reference
 
-Every node type Flow provides — 60 in total — with its configuration fields,
+Every node type Flow provides — 61 in total — with its configuration fields,
 what it writes to its output variable, and the traps specific to it.
 
 Fields marked **required** must be set or the node fails at run time. Every
@@ -297,7 +297,7 @@ high 3 bars ago".
 
 ### `indicator` — Technical Indicator
 
-All 118 single-symbol indicators. Fully covered in
+All 116 single-symbol indicators. Fully covered in
 [Indicators](indicators.md).
 
 | Field | Notes |
@@ -341,6 +341,35 @@ be read. A P&L of zero always means "flat", never "could not tell".
 
 `symbol`, `exchange`, `product` → `{status, quantity}`. Signed: negative is
 short.
+
+### `calendar` — Calendar
+
+Trading-day facts for a date, and the stateless answer to **"has a new day,
+week, month, quarter or year started"**.
+
+| Field | Notes |
+| --- | --- |
+| `date` | `YYYY-MM-DD`. Blank uses the current trading session date. |
+
+→ `{status, date, is_trading_day, is_trading_holiday, is_weekend, weekday, weekday_num, day, month, quarter, year, week_of_year, day_of_year, is_new_day, is_new_week, is_new_month, is_new_quarter, is_new_year, is_last_day_of_week, is_last_day_of_month, is_last_day_of_quarter, is_last_day_of_year, prev_trading_day, next_trading_day, first_trading_day_of_week, first_trading_day_of_month, first_trading_day_of_quarter, last_trading_day_of_week, last_trading_day_of_month, last_trading_day_of_quarter}`
+
+Flow keeps no state between runs, so a workflow cannot remember the last run's
+date. It does not need to: "a new month started" is the same statement as
+"today is the first trading day of this month", which the exchange calendar
+answers on its own.
+
+That is also **more correct** than the tests you would otherwise write:
+
+| Naive test | Case it gets wrong |
+| --- | --- |
+| `{{day}} == 1` | 1 Aug 2026 is a Saturday, so the month opens on the 3rd |
+| `{{weekday}} == Monday` | 26 Jan 2026 is Republic Day, so that week opens on Tuesday the 27th |
+
+`is_trading_holiday` is distinct from `is_weekend`, so you can tell a closed
+weekday from a weekend. Use `is_last_day_of_month` for month-end square-off.
+
+**Not exchange-aware.** A date is a trading holiday if the exchange calendar
+lists one; MCX differs from NSE on a few days a year.
 
 ### `intervals` — Supported Intervals
 
@@ -525,12 +554,12 @@ Visual grouping only. No execution behaviour.
 | Triggers | 5 | `start`, `priceAlert`, `webhookTrigger`, `orderUpdateTrigger`, `httpRequest` |
 | Order placement | 10 | `placeOrder`, `smartOrder`, `optionsOrder`, `optionsMultiOrder`, `basketOrder`, `splitOrder`, `modifyOrder`, `cancelOrder`, `cancelAllOrders`, `closePositions` |
 | Conditions and logic | 9 | `priceCondition`, `varCondition`, `timeWindow`, `timeCondition`, `positionCheck`, `fundCheck`, `andGate`, `orGate`, `notGate` |
-| Market data | 10 | `getQuote`, `multiQuotes`, `getDepth`, `history`, `priorPeriodOhlc`, `barOffset`, `indicator`, `strategyPnl`, `openPosition`, `intervals` |
+| Market data | 11 | `getQuote`, `multiQuotes`, `getDepth`, `history`, `priorPeriodOhlc`, `barOffset`, `indicator`, `strategyPnl`, `openPosition`, `intervals`, `calendar` |
 | Symbols and options | 5 | `symbol`, `expiry`, `optionSymbol`, `optionChain`, `syntheticFuture` |
 | Account and orders | 9 | `funds`, `orderBook`, `tradeBook`, `positionBook`, `holdings`, `margin`, `getOrderStatus`, `holidays`, `timings` |
 | Streaming | 4 | `subscribeLtp`, `subscribeQuote`, `subscribeDepth`, `unsubscribe` |
 | Utilities | 8 | `variable`, `mathExpression`, `log`, `telegramAlert`, `whatsappAlert`, `delay`, `waitUntil`, `group` |
-| **Total** | **60** | |
+| **Total** | **61** | |
 
 For the exact JSON schema of every field — the format an AI needs to generate
 an importable workflow — see

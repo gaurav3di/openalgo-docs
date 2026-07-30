@@ -57,8 +57,23 @@ Path syntax:
 | Array index (positive only) | `{{expiries.data[0]}}` |
 | Combined | `{{chain.data.results[0].ce.ltp}}` |
 
-Built-ins are always available: `{{date}}`, `{{time}}`, `{{timestamp}}`,
-`{{hour}}`, `{{minute}}`, `{{weekday}}`, `{{iso_timestamp}}`.
+Built-ins are always available:
+
+| Variable | Example | Notes |
+| --- | --- | --- |
+| `{{date}}` | `2026-07-30` | Server calendar date |
+| `{{session_date}}` | `2026-07-30` | Trading session date. Differs from `{{date}}` between midnight and the 03:00 IST rollover. |
+| `{{time}}`, `{{timestamp}}`, `{{iso_timestamp}}` | | |
+| `{{hour}}`, `{{minute}}`, `{{second}}` | | |
+| `{{day}}`, `{{month}}`, `{{year}}` | | |
+| `{{weekday}}` | `Thursday` | A name, so it cannot be compared numerically |
+| `{{weekday_num}}` | `4` | 1 = Monday. Use this in a condition. |
+| `{{quarter}}` | `3` | 1 through 4 |
+| `{{week_of_year}}`, `{{day_of_year}}` | `31`, `211` | ISO week, day of year |
+
+For "has a new day, week, month or quarter started", use the
+[`calendar` node](node-reference.md) rather than comparing these — it accounts
+for weekends and exchange holidays, which a `{{day}} == 1` test does not.
 
 **If a path does not resolve, the literal `{{...}}` text is passed through.**
 The workflow does not stop. This is deliberate — it makes typos visible in

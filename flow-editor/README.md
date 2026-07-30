@@ -9,9 +9,9 @@ real strategy and want to know exactly what each node does, what the
 execution model guarantees, and where the boundaries are.
 
 * [Concepts and Execution Model](concepts.md) — nodes, edges, variables, how a run actually proceeds
-* [Node Reference](node-reference.md) — all 60 nodes, their fields and their outputs
+* [Node Reference](node-reference.md) — all 61 nodes, their fields and their outputs
 * [Market Data and Timeframes](market-data.md) — quotes, history, lookback, bar limits
-* [Indicators](indicators.md) — all 118 indicators, lookback, nesting
+* [Indicators](indicators.md) — all 116 indicators, lookback, nesting
 * [Tutorials](tutorials.md) — eight complete, tested strategies
 * [Limitations and Gotchas](limitations.md) — read this before going live
 
@@ -24,7 +24,7 @@ execution model guarantees, and where the boundaries are.
 | Trigger on a schedule, a webhook, a price level, or an order fill | `start`, `webhookTrigger`, `priceAlert`, `orderUpdateTrigger` |
 | Read live quotes and market depth | `getQuote`, `multiQuotes`, `getDepth`, `subscribeLtp/Quote/Depth` |
 | Read historical OHLCV at any supported timeframe | `history`, `barOffset`, `priorPeriodOhlc` |
-| Compute any of 118 technical indicators | `indicator` |
+| Compute any of 116 technical indicators | `indicator` |
 | Branch on price, time, position, funds, or any computed value | `priceCondition`, `timeWindow`, `timeCondition`, `positionCheck`, `fundCheck`, `varCondition` |
 | Combine conditions | `andGate`, `orGate`, `notGate` |
 | Place equity, futures, and options orders | `placeOrder`, `smartOrder`, `optionsOrder`, `optionsMultiOrder`, `basketOrder`, `splitOrder` |
@@ -34,10 +34,11 @@ execution model guarantees, and where the boundaries are.
 | Track P&L for one strategy, not the account | `strategyPnl` |
 | Read the account: orders, trades, positions, holdings, funds, margin | `orderBook`, `tradeBook`, `positionBook`, `holdings`, `funds`, `margin`, `getOrderStatus` |
 | Check exchange holidays and market timings | `holidays`, `timings` |
+| Detect a new day, week, month, quarter or year | `calendar` |
 | Pause within a run | `delay`, `waitUntil` |
 | Arithmetic and state within a run | `mathExpression`, `variable` |
 
-60 node types in total — every one documented in the
+61 node types in total — every one documented in the
 [Node Reference](node-reference.md). Every order node calls the same service functions as
 `/api/v1/`, so Analyzer (sandbox) mode, Action Center approval, and Telegram
 or WhatsApp alerts all behave identically to an API-placed order.
@@ -49,7 +50,7 @@ covers each in detail with workarounds.
 
 | Limitation | Practical effect |
 | --- | --- |
-| **No state across runs** | `variable` values reset every run. "Have I already entered today?" must be answered from the broker (`positionCheck`, `orderBook`), not a counter. |
+| **No state across runs** | `variable` values reset every run. "Have I already entered today?" must be answered from the broker (`positionCheck`, `orderBook`), not a counter. Period boundaries are the exception: `calendar` answers "is a new week/month/quarter" from the exchange calendar, no memory needed. |
 | **`delay` and `waitUntil` block the run** | They hold the execution slot for their full duration. Waiting out a session means a second workflow on its own schedule, not a six-hour `waitUntil`. |
 | **No loops** | You cannot iterate a symbol list. One workflow handles one symbol; clone it per symbol. |
 | **No backtesting** | Flow runs forward only. Use the Python Strategy Host or the `openalgo` SDK to backtest. |
