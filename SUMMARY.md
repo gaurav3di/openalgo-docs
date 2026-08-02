@@ -102,6 +102,7 @@
   * [TOTP Configuration](getting-started/totp-configuration.md)
   * [Forgot Password](getting-started/forgot-password.md)
   * [Upgrade](getting-started/upgrade.md)
+  * [Migrating to gthread (Experimental)](getting-started/gthread-migration.md)
 * [Static IP](static-ip.md)
 * [Latency](latency.md)
 * [Themes](installation-guidelines/themes.md)

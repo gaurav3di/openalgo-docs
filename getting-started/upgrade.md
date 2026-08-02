@@ -179,4 +179,14 @@ And never change `API_KEY_PEPPER` on an installation that already has users or b
 
 If anything fails after an upgrade, check `log/errors.jsonl` first — it contains structured error details including full tracebacks.
 
+***
+
+### Optional: testing the gthread worker
+
+OpenAlgo currently runs on Gunicorn's **eventlet** worker, which is retired software — Gunicorn 26 removes it entirely. An experimental migration to the threaded **gthread** worker is available for testing.
+
+It is **opt-in and not the default**: a normal upgrade leaves you on eventlet with no change in behaviour.
+
+If you would like to help test it, see [Migrating to gthread (Experimental)](gthread-migration.md).
+
 ####
