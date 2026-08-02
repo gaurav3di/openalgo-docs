@@ -62,6 +62,39 @@ The migration did not introduce them. It found them.
 
 ***
 
+### What we gain from this
+
+#### Strategic — the actual reason
+
+* **Unblocks Gunicorn 26 and beyond.** Eventlet's removal currently pins OpenAlgo to `gunicorn<26` permanently.
+* **Removes a retired dependency** that no longer has active maintenance.
+* **Keeps Flask and WSGI.** No framework rewrite, unlike the ASGI route.
+* **One launch flag changes**, not the architecture.
+
+#### Correctness — the unexpected payoff
+
+* Forced a full concurrency audit that surfaced **real money-path defects**: margin released twice on cancellation, the symbol cache blanking mid-refresh, duplicate sandbox sweeps.
+* Those defects were **already live for every Windows and macOS user**, whose development server has always used real threads.
+* Locking and lifecycle rules are now **documented and enforced by tests** rather than holding by accident.
+
+#### Operational
+
+* An **explicit, tunable thread budget** instead of an unbounded pool of green threads.
+* Real OS threads are **visible to standard tooling** — `top`, `py-spy` and thread dumps all work normally, where green threads are invisible to them.
+* Diagnostics report the **live worker class, thread count and open stream counts**.
+* **No dependency change to adopt.** Gunicorn 25.3 already ships both workers.
+
+#### Risk profile
+
+* **Opt-in behind a single `.env` line**; the default is unchanged.
+* **Rollback is deleting that line and restarting** — no rebuild, no dependency change.
+
+{% hint style="info" %}
+**This is not a performance improvement.** Expect broadly similar throughput. The value is being able to move to a supported Gunicorn, plus the correctness work the migration forced. Treat any claim that gthread makes OpenAlgo faster with suspicion.
+{% endhint %}
+
+***
+
 ### Who is affected by the switch itself
 
 | How you run OpenAlgo | Uses eventlet today? | Affected by this switch |
