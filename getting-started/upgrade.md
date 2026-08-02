@@ -31,7 +31,34 @@ Legacy multi-deployment installs (`/var/python/openalgo-flask/<name>/`) are dete
 
 ***
 
-### Option 2: Docker (with or without custom domain)
+### Pre-built images on Docker Hub
+
+CI publishes a multi-architecture image (amd64 and arm64) on every push to
+`main`:
+
+* [`marketcalls/openalgo`](https://hub.docker.com/r/marketcalls/openalgo) on Docker Hub
+* `marketcalls/openalgo:latest` — the current `main`
+* `marketcalls/openalgo:<commit-sha>` — every build, so you can pin or roll back to an exact version
+
+**Which upgrade path applies to you depends on how you installed:**
+
+| Install method | Image source | Upgrade |
+| --- | --- | --- |
+| `docker-run.sh` (Desktop) | Pulls `marketcalls/openalgo:latest` | `./docker-run.sh pull` then `./docker-run.sh restart` |
+| `install-docker.sh` (custom domain) | **Builds locally** from the repo | `git pull` then rebuild — Option 2a |
+| `install-docker-multi-custom-ssl.sh` | **Builds locally** per instance | Re-run the installer in update mode — Option 2b |
+| Manual clone | **Builds locally** | Option 2 |
+
+The server install scripts build locally rather than pulling, so a `docker pull`
+alone will not update them. If you would rather pull than build — it is much
+faster, since no build step runs — see "Using the pre-built image instead of
+building" below.
+
+***
+
+### Option 2: Docker — manual clone (no custom domain)
+
+Use this if you cloned OpenAlgo yourself and run it with `docker compose`.
 
 ```bash
 # From the folder where you cloned openalgo
@@ -49,7 +76,226 @@ sudo docker compose up -d
 sudo docker compose logs -f
 ```
 
-Your `.env` file and the `db/` volume persist across the rebuild — no reconfiguration needed. Database migrations run automatically on container startup.
+Your `.env` file and the named volumes persist across the rebuild — no reconfiguration needed. Database migrations run automatically on container startup.
+
+{% hint style="warning" %}
+**If you installed with `install-docker.sh` or `install-docker-multi-custom-ssl.sh`, your installation is NOT in `~/openalgo`.** It is under `/opt/openalgo`. Use Option 2a or 2b below instead.
+{% endhint %}
+
+***
+
+### Option 2a: Docker + Custom Domain (single instance)
+
+For installations created with **`install-docker.sh`**, which sets up nginx, a Let's Encrypt certificate and your domain.
+
+**Your installation lives at `/opt/openalgo`.**
+
+```bash
+cd /opt/openalgo
+
+# 1. Back up the database volume first (see "Backing up" below)
+
+# 2. Pull the latest code
+sudo git pull
+
+# 3. Rebuild and restart
+sudo docker compose down
+sudo docker compose build --no-cache
+sudo docker compose up -d
+
+# 4. Watch it come up
+sudo docker compose logs -f
+```
+
+**What is preserved automatically, and why:**
+
+| Item | Location | Survives because |
+| --- | --- | --- |
+| Your `.env` | `/opt/openalgo/.env` | Not tracked by git, bind-mounted into the container |
+| Database, logs, strategies, keys | Docker named volumes | Volumes are independent of the image |
+| nginx site configuration | `/etc/nginx/sites-available/<domain>` | Outside the repository entirely |
+| SSL certificate | `/etc/letsencrypt/live/<domain>/` | Outside the repository entirely |
+
+Because nginx and the certificate live outside the repo, **a Docker upgrade cannot break your domain or SSL.** You do not need to re-run certbot, and you do not need to touch nginx.
+
+You also do **not** need to change your broker's redirect URL — it stays `https://<your-domain>/<broker>/callback`.
+
+***
+
+### Option 2b: Docker + Custom Domain (multi-instance)
+
+For installations created with **`install-docker-multi-custom-ssl.sh`**, where each domain is its own instance under `/opt/openalgo/<domain>`.
+
+**The installer doubles as the upgrade script.** Re-run it and choose update mode:
+
+```bash
+cd /opt/openalgo
+sudo bash install-docker-multi-custom-ssl.sh
+```
+
+When it finds an existing instance it asks:
+
+```
+Instance for yourdomain.com already exists. Update code only? (y=update, n=skip, r=reinstall):
+```
+
+Answer **`y`**. It pulls the latest code and **preserves your existing configuration** — broker keys, API secrets and domain settings are read back out of the instance's `.env` and reused. Answer `n` to skip an instance you do not want to touch.
+
+To upgrade a single instance by hand instead:
+
+```bash
+cd /opt/openalgo/yourdomain.com
+sudo git pull
+sudo docker compose down
+sudo docker compose build --no-cache
+sudo docker compose up -d
+```
+
+{% hint style="info" %}
+Each instance has its own directory, its own `.env`, its own volumes and its own nginx site. Upgrading one does not affect the others — which is also why you must repeat the steps for each domain you want on the new version.
+{% endhint %}
+
+***
+
+### Using the pre-built image instead of building
+
+Optional. Building locally takes several minutes and needs build tooling on the
+server; pulling the published image takes seconds. The trade-off is that you
+give up local modifications to the source.
+
+Edit `docker-compose.yaml` in your install directory:
+
+```yaml
+services:
+  openalgo:
+    image: marketcalls/openalgo:latest    # was: openalgo:latest
+    # build:                              # comment out or delete this block
+    #   context: .
+    #   dockerfile: Dockerfile
+```
+
+Then upgrades become:
+
+```bash
+cd /opt/openalgo
+sudo docker compose pull
+sudo docker compose up -d
+```
+
+**Pinning to an exact version** is the main practical benefit — it makes
+rollback immediate and unambiguous:
+
+```yaml
+    image: marketcalls/openalgo:a1b2c3d    # a specific commit SHA
+```
+
+```bash
+sudo docker compose pull && sudo docker compose up -d
+```
+
+{% hint style="info" %}
+Keep `git pull` in your routine even when using the pre-built image. The
+repository still supplies `docker-compose.yaml`, the installer scripts and the
+migration files, and you want those current alongside the image.
+{% endhint %}
+
+{% hint style="warning" %}
+Only `main` is published as `latest`. If you are testing a branch, you must
+build locally — there is no published image for it.
+{% endhint %}
+
+***
+
+### Backing up before a Docker upgrade
+
+Named volumes are not touched by `docker compose build`, but take a copy before any upgrade.
+
+**The simplest method — copy straight out of the running container:**
+
+```bash
+cd /opt/openalgo
+sudo docker compose cp openalgo:/app/db ./db-backup-$(date +%Y%m%d)
+```
+
+Here `openalgo` is the compose **service** name, not the container name.
+
+**If you prefer to archive the volume itself, look up its real name first:**
+
+```bash
+sudo docker volume ls | grep db
+```
+
+Docker Compose prefixes volume names with the project name, which is taken from
+the directory. An install in `/opt/openalgo` produces `openalgo_openalgo_db`,
+while `/opt/openalgo/yourdomain.com` produces something different. Always read
+the name rather than assuming it:
+
+```bash
+VOL=$(sudo docker volume ls --format '{{.Name}}' | grep 'openalgo_db$' | head -1)
+echo "Backing up volume: $VOL"
+
+sudo docker run --rm \
+  -v "$VOL":/data \
+  -v "$(pwd)":/backup \
+  alpine tar czf /backup/db-backup-$(date +%Y%m%d).tar.gz -C /data .
+```
+
+{% hint style="warning" %}
+**Check that your backup is not empty.** If you pass a volume name that does not
+exist, Docker silently creates a new empty volume and the archive succeeds with
+nothing in it:
+
+```bash
+ls -lh db-backup-*.tar.gz     # a few KB means it is empty
+tar tzf db-backup-*.tar.gz | head    # should list openalgo.db and friends
+```
+{% endhint %}
+
+Also copy your `.env`, which is the only file that cannot be regenerated:
+
+```bash
+sudo cp /opt/openalgo/.env /opt/openalgo/.env.backup-$(date +%Y%m%d)
+```
+
+***
+
+### Rolling back a Docker upgrade
+
+```bash
+cd /opt/openalgo
+
+# Go back to the previous commit
+sudo git log --oneline -5          # find the commit you were on
+sudo git checkout <previous-commit>
+
+sudo docker compose down
+sudo docker compose build --no-cache
+sudo docker compose up -d
+```
+
+Restore the database only if the upgrade actually migrated it and you need the earlier schema — migrations are forward-only, so a rollback of code without the matching database can fail to start.
+
+***
+
+### After a Docker + custom domain upgrade
+
+Check these in order:
+
+```bash
+# Container healthy
+sudo docker compose ps
+
+# App answering locally
+curl -I http://127.0.0.1:5000/auth/check-setup
+
+# Domain and certificate still good
+curl -I https://yourdomain.com
+
+# Certificate expiry unchanged
+sudo certbot certificates
+```
+
+Then in the browser: log in, confirm the dashboard loads, and confirm live data updates — a working page with frozen prices means the WebSocket upgrade through nginx is not working, which is the one thing worth checking specifically on a custom-domain setup.
 
 ***
 
