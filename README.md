@@ -1,6 +1,6 @@
 # What is OpenAlgo?
 
-OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 34 broker plugins: 33 securities integrations and Delta Exchange for crypto derivatives. It supports automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets.
+OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 35 broker plugins: 34 securities integrations and Delta Exchange for crypto derivatives. It supports automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets.
 
 ### Overview
 
@@ -77,6 +77,25 @@ OpenAlgo supports different strategy workflows:
 * **AI agents** connected through the MCP server
 
 This flexibility allows users to choose the approach that best fits their experience level.
+
+***
+
+#### Portfolio Analysis
+
+OpenAlgo includes two authenticated, read-only portfolio workflows:
+
+* **Portfolio Backtester** simulates a target NSE/BSE allocation using Historify or broker history, with rebalancing, drift bands, costs, benchmarks, robustness analysis, and a downloadable HTML tearsheet.
+* **Portfolio Analyzer** loads current broker holdings and evaluates how today's market-value allocation would have behaved over a selected historical lookback.
+
+Neither workflow places or modifies orders. See [Portfolio Backtester and Analyzer](new-features/portfolio-analytics.md).
+
+***
+
+#### Chart Trading Terminal
+
+The `/trading` terminal provides seven persisted layouts, from a single chart to an eight-chart `4×2` grid. Each pane supports its own symbol, interval, chart type, indicators, drawings, history backfill, market depth, and order entry while sharing one drawing toolbar and the application's real-time market-data connection.
+
+See [Chart Trading Terminal](new-features/trading-terminal.md).
 
 ***
 
@@ -159,7 +178,7 @@ Let's be clear about what OpenAlgo doesn't do:
 | Aspect                | OpenAlgo                                         |
 | --------------------- | ------------------------------------------------ |
 | **Cost**              | Free (Open Source, AGPL License)                 |
-| **Brokers**           | 34 plugins: 33 securities integrations + Delta Exchange |
+| **Brokers**           | 35 plugins: 34 securities integrations + Delta Exchange |
 | **Exchanges**         | NSE, NFO, BSE, BFO, MCX, CDS, BCD                |
 | **Signal Sources**    | TradingView, Amibroker, ChartInk, Python, AI     |
 | **Strategy Building** | Flow (Visual), Python Hosting, External Webhooks |

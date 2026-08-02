@@ -50,13 +50,13 @@ OpenAlgo uses a **Python Flask** backend with a **React 19** single-page applica
 #### Frontend Technologies
 
 * **React 19** - Component-based UI library
-* **TypeScript 5.9+** - Type-safe JavaScript
+* **TypeScript 7.0+** - Type-safe JavaScript
 * **Vite 8+** - Fast build tool and dev server
 * **TailwindCSS 4** - Utility-first CSS framework
 * **shadcn/ui** (Radix UI) - Accessible component primitives
 * **TanStack Query 5** - Server state management
 * **Zustand 5** - Client state management
-* **React Router 7** - Client-side routing
+* **React Router 8** - Client-side routing
 * **Plotly.js / Lightweight Charts** - Data visualization
 * **Socket.IO Client** - Real-time communication
 * **Biome.js** - Fast linter and formatter
@@ -227,7 +227,7 @@ openalgo/
 │   ├── auth.py               # Authentication routes
 │   ├── react_app.py          # Serves React SPA from frontend/dist/
 │   └── ...
-├── broker/                   # 34 broker plugin directories
+├── broker/                   # 35 broker plugin directories
 │   ├── zerodha/              # Reference implementation
 │   ├── dhan/                 # Modern API design
 │   ├── angel/                # AngelOne integration

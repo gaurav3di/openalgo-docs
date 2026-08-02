@@ -66,6 +66,8 @@ Remote MCP requires HTTPS, OAuth configuration, and deliberate review of approva
 
 ## Tool Groups
 
+The current shared registry contains **49 tools**.
+
 The shared registry includes:
 
 - Regular, smart, options, basket, split, modify, cancel, and close operations.
@@ -75,6 +77,8 @@ The shared registry includes:
 - Technical indicators, scanners, and multi-timeframe research helpers.
 
 See [Tool References](tool-references.md) for parameters and prompt examples. A client should rely on the tool schemas returned by the running server when a static example differs from the installed version.
+
+The registered `check_holiday` tool is currently unavailable because it calls the absent `/api/v1/checkholiday` REST route. Use `get_timings` for one date or `get_holidays` for the yearly holiday list.
 
 ## Safety
 

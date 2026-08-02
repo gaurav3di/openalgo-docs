@@ -25,7 +25,7 @@ Never put broker credentials or broker access tokens in these requests. The Open
 
 ## Registered REST Inventory
 
-The current v1 surface contains **57 method/path pairs**. A resource with both GET and POST counts as two endpoints.
+The current v1 surface contains **61 method/path pairs**. A resource with both GET and POST counts as two endpoints.
 
 ### Order Management
 
@@ -99,6 +99,17 @@ The current v1 surface contains **57 method/path pairs**. A resource with both G
 
 There is no public `/api/v1/checkholiday` endpoint. Use `/market/timings` for a date; its response identifies holiday/closed sessions through the returned market schedule.
 
+### Portfolio Analytics
+
+| Method | Path | Documentation |
+|---|---|---|
+| GET | `/portfolio/benchmarks` | [Portfolio API](./portfolio.md) |
+| POST | `/portfolio/backtest` | [Portfolio API](./portfolio.md) |
+| POST | `/portfolio/tearsheet` | [Portfolio API](./portfolio.md) |
+| POST | `/portfolio/holdings` | [Portfolio API](./portfolio.md) |
+
+Portfolio endpoints are authenticated and read-only. The holdings resource reads the active broker account, but none of these resources places, modifies, or cancels an order.
+
 ### Messaging
 
 | Method | Path | Documentation |
@@ -126,7 +137,7 @@ WebSocket streaming is not mounted below `/api/v1`. Clients connect to the proxy
 | Quote | [Quote subscription](./websockets.md) |
 | Depth | [Depth subscription](./websockets.md) |
 
-Supported actions are `authenticate`, `subscribe`, `unsubscribe`, `unsubscribe_all`, `get_broker_info`, `get_supported_brokers`, and `ping`.
+Supported actions are `authenticate`, `subscribe`, `unsubscribe`, `unsubscribe_all`, `subscribe_orders`, `unsubscribe_orders`, `get_broker_info`, `get_supported_brokers`, and `ping`.
 
 ## Order Constants
 
@@ -166,4 +177,4 @@ Defaults from `.sample.env` are `API_RATE_LIMIT="50 per second"`, `ORDER_RATE_LI
 
 ## Client Libraries
 
-The Python client is available as `openalgo` and is pinned by this application at `2.0.2`. Go and Node.js examples in `examples/` demonstrate direct REST integration; they are not declared here as separately versioned official SDK releases.
+The Python client is available as `openalgo` and is pinned by this application at `2.0.3`. Go and Node.js examples in `examples/` demonstrate direct REST integration; they are not declared here as separately versioned official SDK releases.

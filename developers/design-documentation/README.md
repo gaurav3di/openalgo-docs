@@ -1,8 +1,8 @@
 # OpenAlgo Design Documentation
 
-This directory describes the implemented architecture of OpenAlgo `2.0.1.4`. OpenAlgo is a self-hosted, single-user trading application with a Flask/Flask-RESTX backend, React 19 frontend, broker plugins, a separate WebSocket proxy, sandbox execution, hosted strategies, Flow automation, analytics tools, and optional local or remote MCP access.
+This directory describes the implemented architecture of OpenAlgo `2.0.1.7`. OpenAlgo is a self-hosted, single-user trading application with a Flask/Flask-RESTX backend, React 19 frontend, broker plugins, a separate WebSocket proxy, sandbox execution, hosted strategies, Flow automation, portfolio analytics, chart trading, and optional local or remote MCP access.
 
-The current plugin inventory contains 34 broker directories with `plugin.json`. Broker capabilities are metadata-driven; a plugin's presence does not imply every optional broker operation is supported.
+The current plugin inventory contains 35 broker directories with `plugin.json`. Broker capabilities are metadata-driven; a plugin's presence does not imply every optional broker operation is supported.
 
 ## Documentation Policy
 
@@ -58,6 +58,7 @@ The current plugin inventory contains 34 broker directories with `plugin.json`. 
 | [39 Strategy Module](39-strategy-module.md) | Webhook strategy management |
 | [42 Action Center](42-action-center.md) | Semi-auto order approval |
 | [54 Scalping Terminal](54-scalping-terminal.md) | Keyboard trading, charts, persisted stops, risk monitor |
+| [55 Portfolio Analytics](55-portfolio-analytics.md) | Read-only backtesting and current-holdings scenario analysis |
 
 ## UI, Tools, And Integrations
 

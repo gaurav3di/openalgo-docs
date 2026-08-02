@@ -8,7 +8,7 @@ openalgo/
 |-- restx_api/                 External `/api/v1` resources and schemas
 |-- blueprints/                Session UI APIs, webhooks, React route serving
 |-- services/                  Business logic and mode routing
-|-- broker/                    34 metadata-driven broker plugins
+|-- broker/                    35 metadata-driven broker plugins
 |-- websocket_proxy/           Standalone asyncio WebSocket server and adapters
 |-- database/                  SQLAlchemy/DuckDB models and persistence helpers
 |-- sandbox/                   Analyzer execution, positions, funds, settlement
@@ -38,7 +38,7 @@ openalgo/
 
 ## Backend Inventory
 
-`restx_api/__init__.py` registers 57 v1 method/path pairs. `blueprints/` contains the larger session and feature surface for auth, admin, Flow, Historify, strategies, tools, messaging, monitoring, and the React application. Static route counts are maintained in `DISCOVERY_MAP.md`; public REST documentation is maintained in `docs/api`.
+`restx_api/__init__.py` registers 61 v1 method/path pairs. `blueprints/` contains the larger session and feature surface for auth, admin, Flow, Historify, strategies, tools, messaging, monitoring, and the React application. Public REST documentation is maintained in the [API reference](../../api-documentation/v1/README.md).
 
 The service directory currently includes order, account, market-data, option, calendar, Flow, Historify, messaging, charting, analytics, arbitrage, custom straddle, and scalping risk services. Use `rg --files services` for the live inventory instead of copying a long file list into architecture documents.
 

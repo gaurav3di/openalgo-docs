@@ -419,6 +419,12 @@ Exchange open/close epoch timestamps for a given date (date optional → default
 
 ***
 
+#### `check_holiday`
+
+This tool is registered and appears in MCP clients, but it is currently **unavailable**: it calls `/api/v1/checkholiday`, which is not a registered OpenAlgo REST endpoint. Calls return an endpoint error instead of a holiday result. Use `get_timings` for one date or `get_holidays` for the yearly list.
+
+***
+
 ### 🛠️ Utilities
 
 #### `get_openalgo_version`

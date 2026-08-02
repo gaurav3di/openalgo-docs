@@ -1,6 +1,6 @@
 # Brokers
 
-OpenAlgo currently includes **34 broker plugin directories**. This section lists the 33 securities-broker integrations; [Delta Exchange](../../crypto/exchanges/delta-exchange.md) is documented separately under Crypto.
+OpenAlgo currently includes **35 broker plugin directories**. This section lists the 34 securities-broker integrations; [Delta Exchange](../../crypto/exchanges/delta-exchange.md) is documented separately under Crypto.
 
 1. 5paisa
 2. 5paisa (XTS)

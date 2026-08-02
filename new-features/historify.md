@@ -74,5 +74,5 @@ See [History](../api-documentation/v1/data-api/history.md) for the public reques
 
 - Stored data is broker-independent after download, but its original quality and availability depend on the broker response.
 - Analyzer and live trading databases are separate from Historify.
-- The current configuration names are not fully standardized: some setup paths use `HISTORIFY_DATABASE_URL`, while the database implementation reads `HISTORIFY_DATABASE_PATH`.
+- Configure the DuckDB file with `HISTORIFY_DATABASE_PATH`; the default is `db/historify.duckdb`. The obsolete `HISTORIFY_DATABASE_URL` spelling is not a runtime alias.
 - Back up the DuckDB file before destructive maintenance or host migration.

@@ -4,4 +4,13 @@ Open Algo is constantly evolving to meet the needs of modern traders by introduc
 
 
 
-The platform's new features include advanced trading tools, enhanced API capabilities, and robust security measures. These updates ensure Open Algo remains adaptable to industry trends, supporting multiple brokers, diverse trading styles, and custom workflows. Whether you're a scalper, a positional trader, or a developer building on top of Open Algo, the latest features provide the flexibility and reliability you need.
+The platform's current feature guides cover:
+
+* [Portfolio Backtester and Analyzer](portfolio-analytics.md) for authenticated, read-only portfolio simulation and current-holdings scenarios.
+* [Chart Trading Terminal](trading-terminal.md) for multi-chart analysis, drawings, market depth, and order entry.
+* [Flow Visual Strategy Builder](flow-visual-strategy-builder.md) for validated node graphs and schedule, webhook, price-alert, and order-update triggers.
+* [Python Strategy Hosting](python-strategy-hosting.md) for process-isolated trusted scripts and scheduling.
+* [Historify](historify.md) for local DuckDB history ingestion, scheduling, charts, and export.
+* [Scalping Terminal](fast-scalper.md), [API Analyzer](api-analyzer.md), [Action Center](action-center.md), [PnL Tracker](pnl-tracker.md), and the [Traffic/Latency Monitor](traffic-latency-monitor.md).
+
+Feature availability still depends on the active broker's supported exchanges, account entitlement, and market-data/order capabilities.

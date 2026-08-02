@@ -1,397 +1,91 @@
 # Flow - Visual Strategy Builder
 
-### Introduction
+Flow is OpenAlgo's visual workflow editor and synchronous execution engine. A workflow is a directed graph with exactly one trigger and a reachable chain of data, condition, trading, streaming, and notification nodes.
 
-The Flow Visual Strategy Builder is OpenAlgo's node-based visual programming interface. It allows you to create trading strategies without writing code by connecting nodes in a flowchart-like canvas.
+## Current Capabilities
 
-### What is the Flow Builder?
+* 61 node types kept in parity across the editor, backend validator, executor, and tests.
+* Four triggers: Schedule, Price Alert, Webhook, and Order Update.
+* Regular, smart, options, basket, split, modify, cancel, and close-position actions.
+* Quote, depth, history, indicator, account, options, and calendar data nodes.
+* Branch conditions and AND/OR/NOT gates.
+* LTP/Quote/Depth subscriptions, logging, variables, math, HTTP requests, delays, wait-until, Telegram, and WhatsApp actions.
+* Strategy-level realized/unrealized P&L.
+* JSON import, export, and validated in-place replacement.
+* Execution history and per-node logs.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Flow Visual Strategy Builder                         │
-│                                                                              │
-│  ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐          │
-│  │  Trigger │────▶│ Condition│────▶│  Action  │────▶│  Output  │          │
-│  │   Node   │     │   Node   │     │   Node   │     │   Node   │          │
-│  └──────────┘     └──────────┘     └──────────┘     └──────────┘          │
-│                                                                              │
-│  Example: Webhook → Check Price → Place Order → Send Notification           │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+Flow does not provide loops, foreach/switch nodes, cross-run variables, automatic retry/error-handler nodes, built-in backtesting, or version-control history.
 
-### Benefits
+## Build a Workflow
 
-| Feature             | Description                |
-| ------------------- | -------------------------- |
-| No Coding Required  | Build strategies visually  |
-| Drag and Drop       | Intuitive interface        |
-| Real-time Testing   | Test flows instantly       |
-| Reusable Components | Save and reuse node groups |
-| Version Control     | Track changes to flows     |
+1. Open `/flow` and create a workflow.
+2. Drag one trigger onto the canvas.
+3. Add downstream nodes and connect them in execution order.
+4. Configure each node. Give a producer an `outputVariable` when a later node needs its result.
+5. Branch from conditions using the `true`/`false` or `yes`/`no` handles.
+6. Save while editing. Incomplete graphs may be saved, but corrupt node types, duplicate IDs, and dangling edges are rejected.
+7. Use **Run Now** to validate and test a complete graph.
+8. Activate the workflow when its trigger should remain registered.
 
-### Accessing the Flow Builder
+## Trigger Types
 
-1. Login to OpenAlgo
-2. Navigate to **Flow** in the sidebar
-3. Click **New Flow** or select existing
+| Trigger | Behavior | Important configuration |
+|---|---|---|
+| Schedule (`start`) | Once, daily, weekly, or interval execution | IST time/day values and optional weekday market-hours gate |
+| Price Alert (`priceAlert`) | Watches LTP for a level, cross, channel, or percentage move | Symbol/exchange, thresholds, once/every-time, expiration |
+| Webhook (`webhookTrigger`) | Executes from a tokenized public POST | Optional symbol filter and payload or URL-secret authentication |
+| Order Update (`orderUpdateTrigger`) | Executes on normalized live/sandbox order state | Order ID or symbol filter, optional exchange/status, once/every-time |
 
-### Interface Overview
+Every complete workflow must contain exactly one trigger. Multiple triggers, cycles, unreachable executable nodes, invalid edges, missing required fields, and oversized graphs are rejected before a broker call.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Flow Builder                                           [Save] [Run] [Stop] │
-├───────────────────┬─────────────────────────────────────────────────────────┤
-│                   │                                                          │
-│  Node Palette     │                  Canvas                                 │
-│  ───────────────  │                                                          │
-│                   │    ┌────────┐                                           │
-│  ▶ Triggers       │    │Webhook │                                           │
-│    • Webhook      │    │ Input  │───────┐                                   │
-│    • Timer        │    └────────┘       │                                   │
-│    • Schedule     │                     ▼                                   │
-│                   │              ┌────────────┐                             │
-│  ▶ Conditions     │              │ Price Check│                             │
-│    • If/Else      │              └────────────┘                             │
-│    • Compare      │                     │                                   │
-│    • Logic Gate   │                     ▼                                   │
-│                   │              ┌────────────┐                             │
-│  ▶ Actions        │              │Place Order │                             │
-│    • Place Order  │              └────────────┘                             │
-│    • Smart Order  │                                                          │
-│    • Close All    │                                                          │
-│                   │                                                          │
-│  ▶ Utilities      │                                                          │
-│    • Log          │                                                          │
-│    • Telegram     │                                                          │
-│    • Delay        │                                                          │
-│                   │                                                          │
-└───────────────────┴─────────────────────────────────────────────────────────┘
+## Variables
+
+Use `{{path}}` inside string fields:
+
+```text
+{{quote.data.ltp}}
+{{chain.data.results[0].ce.ltp}}
+{{webhook.symbol}}
+{{timestamp}}
+{{session_date}}
 ```
 
-### Node Types
+Dotted dictionary keys and non-negative list indexes are supported. Most missing paths remain literal in the rendered string so the execution log exposes the mistake. A Variable Condition is stricter: an unresolved operand takes neither branch.
 
-#### Trigger Nodes
+## Example: Signal to Order
 
-Trigger nodes start flow execution.
-
-| Node     | Description                     | Use Case                     |
-| -------- | ------------------------------- | ---------------------------- |
-| Webhook  | Receives external HTTP requests | TradingView, ChartInk alerts |
-| Timer    | Executes at intervals           | Periodic checks              |
-| Schedule | Executes at specific times      | Market open/close actions    |
-| Manual   | Manual trigger button           | Testing                      |
-
-#### Condition Nodes
-
-Condition nodes control flow logic.
-
-| Node       | Description               | Use Case                    |
-| ---------- | ------------------------- | --------------------------- |
-| If/Else    | Branch based on condition | Price above/below threshold |
-| Compare    | Compare two values        | Value comparisons           |
-| Logic Gate | AND, OR, NOT operations   | Multiple conditions         |
-| Switch     | Multiple branches         | Route by symbol/action      |
-
-#### Action Nodes
-
-Action nodes execute trading operations.
-
-| Node           | Description             | Use Case                |
-| -------------- | ----------------------- | ----------------------- |
-| Place Order    | Send order to broker    | Standard orders         |
-| Smart Order    | Position-aware order    | Reversal strategies     |
-| Basket Order   | Multiple orders         | Multi-symbol strategies |
-| Close Position | Close specific position | Exit trades             |
-| Close All      | Close all positions     | End-of-day square off   |
-
-#### Utility Nodes
-
-Utility nodes for supporting operations.
-
-| Node         | Description             | Use Case         |
-| ------------ | ----------------------- | ---------------- |
-| Log          | Write to log            | Debugging        |
-| Telegram     | Send Telegram message   | Notifications    |
-| Delay        | Wait for specified time | Throttling       |
-| Variable     | Store/retrieve values   | State management |
-| HTTP Request | Call external APIs      | Data fetching    |
-
-### Building Your First Flow
-
-#### Example: TradingView Alert to Order
-
-**Step 1: Add Webhook Trigger**
-
-1. Drag **Webhook** node to canvas
-2. Configure:
-   * Name: "TradingView Alert"
-   * Path: `/flow/tradingview`
-
-**Step 2: Add Place Order Action**
-
-1. Drag **Place Order** node to canvas
-2. Connect Webhook output to Order input
-3. Configure order parameters:
-   * Symbol: `{{webhook.symbol}}`
-   * Exchange: `NSE`
-   * Action: `{{webhook.action}}`
-   * Quantity: `100`
-   * Price Type: `MARKET`
-   * Product: `MIS`
-
-**Step 3: Add Notification**
-
-1. Drag **Telegram** node to canvas
-2. Connect Order output to Telegram input
-3.  Configure message:
-
-    ```
-    Order placed: {{webhook.action}} {{webhook.symbol}}
-    Order ID: {{order.orderid}}
-    ```
-
-**Step 4: Save and Activate**
-
-1. Click **Save**
-2. Click **Activate** to enable the flow
-3. Copy the webhook URL for TradingView
-
-### Using Variables
-
-#### Dynamic Values from Webhook
-
-```
-Webhook Input:
-{
-  "symbol": "SBIN",
-  "action": "BUY",
-  "quantity": "100"
-}
-
-Access as:
-Symbol: {{webhook.symbol}}      → SBIN
-Action: {{webhook.action}}      → BUY
-Quantity: {{webhook.quantity}}  → 100
+```text
+Webhook Trigger -> Place Order -> Telegram Alert
 ```
 
-#### Node Output Variables
+Configure order fields with payload values such as `{{webhook.symbol}}`, `{{webhook.action}}`, and `{{webhook.quantity}}`. Give the order an output variable such as `order`, then notify with `{{order.orderid}}`.
 
-```
-Order Node Output:
-{
-  "status": "success",
-  "orderid": "230125000012345"
-}
+Webhook URLs are:
 
-Access as:
-Status: {{order.status}}    → success
-Order ID: {{order.orderid}} → 230125000012345
+```text
+POST /flow/webhook/<token>
+POST /flow/webhook/<token>/<symbol>
 ```
 
-### Advanced Flow Examples
+Tokens and secrets are generated by the server. Use HTTPS for an internet-facing webhook.
 
-#### Example 1: Smart Order with Reversal
+## Import, Export, and Replace
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
-│ Webhook  │────▶│  Switch  │────▶│  Smart   │────▶│ Telegram │
-│  Input   │     │ (action) │     │  Order   │     │  Notify  │
-└──────────┘     └──────────┘     └──────────┘     └──────────┘
-```
-
-Configuration:
-
-* Switch node routes by `{{webhook.action}}`
-* Smart Order: position\_size = `{{webhook.position_size}}`
-
-#### Example 2: Conditional Order Based on Price
-
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐
-│ Webhook  │────▶│ Compare  │────▶│  Place   │
-│  Input   │     │Price>100 │     │  Order   │
-└──────────┘     └──────────┘     └──────────┘
-                      │
-                      ▼ (else)
-                ┌──────────┐
-                │   Log    │
-                │ "Skipped"│
-                └──────────┘
-```
-
-#### Example 3: Multi-Symbol Basket Order
-
-```
-┌──────────┐     ┌──────────────────────────────────────────┐
-│ Schedule │────▶│              For Each                    │
-│  9:20 AM │     │  Symbols: SBIN, HDFCBANK, ICICIBANK     │
-└──────────┘     └──────────────────────────────────────────┘
-                                    │
-                                    ▼
-                           ┌──────────────┐
-                           │ Place Order  │
-                           │ for {{item}} │
-                           └──────────────┘
-```
-
-### Webhook Configuration
-
-#### Making Flow Webhooks Accessible
-
-Flow webhooks need to be accessible from the internet for external triggers (TradingView, ChartInk, etc.).
-
-**Recommended**: Deploy OpenAlgo on an Ubuntu server with your domain using `install.sh`:
-
-```
-https://yourdomain.com/flow/webhook/<token>
-```
-
-**Alternative**: Use tunneling services **for webhooks only**:
-
-| Service                   | Command                                          |
-| ------------------------- | ------------------------------------------------ |
-| **ngrok**                 | `ngrok http 5000`                                |
-| **devtunnel** (Microsoft) | `devtunnel host -p 5000`                         |
-| **Cloudflare Tunnel**     | `cloudflared tunnel --url http://localhost:5000` |
-
-See Installation Guide for detailed setup.
-
-#### Webhook URL Format
-
-```
-https://your-openalgo-url/flow/webhook/<token>
-```
-
-Flows that use a symbol path parameter also accept `https://your-openalgo-url/flow/webhook/<token>/<symbol>`.
-
-#### TradingView Alert Message
+Imported JSON uses this top-level shape:
 
 ```json
-{
-  "symbol": "{{ticker}}",
-  "action": "{{strategy.order.action}}",
-  "quantity": "{{strategy.order.contracts}}",
-  "position_size": "{{strategy.position_size}}"
-}
+{"name": "Example", "nodes": [], "edges": []}
 ```
 
-#### Testing Webhooks
+Import creates a new workflow. **Replace from JSON** changes the graph of an existing workflow while preserving its ID, webhook token/secret, API key, and active flag. If active trigger configuration changes, deactivate and reactivate the workflow so the trigger is registered again.
 
-1. Open flow in editor
-2. Click **Test Webhook**
-3. Enter sample payload
-4. Click **Execute**
-5. View results in right panel
+See [Flow Editor](../flow-editor/README.md) for the execution model, complete node reference, import behavior, tested tutorials, and current limitations.
 
-### Flow Templates
+## Execution and Safety
 
-OpenAlgo provides pre-built templates:
-
-| Template             | Description             |
-| -------------------- | ----------------------- |
-| TradingView Basic    | Simple webhook to order |
-| Smart Reversal       | Position-aware trading  |
-| Multi-Symbol Basket  | Trade multiple symbols  |
-| Scheduled Square-off | EOD position close      |
-| Options Strategy     | Multi-leg options       |
-
-#### Using Templates
-
-1. Click **Templates** in Flow Builder
-2. Select desired template
-3. Click **Use Template**
-4. Customize parameters
-5. Save with your name
-
-### Debugging Flows
-
-#### View Execution History
-
-1. Go to **Flow** → select your flow
-2. Click **History** tab
-3. View past executions
-
-#### Execution Details
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Execution #12345                                   2025-01-21 10:30:15     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ✅ Webhook Input         Duration: 2ms                                     │
-│     Input: {"symbol": "SBIN", "action": "BUY"}                             │
-│                                                                              │
-│  ✅ Place Order           Duration: 150ms                                   │
-│     Output: {"status": "success", "orderid": "12345"}                       │
-│                                                                              │
-│  ✅ Telegram Notify       Duration: 300ms                                   │
-│     Output: {"status": "sent"}                                              │
-│                                                                              │
-│  Total Duration: 452ms                                                      │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-#### Common Issues
-
-| Issue               | Cause              | Solution                  |
-| ------------------- | ------------------ | ------------------------- |
-| Flow not triggering | Not activated      | Activate flow             |
-| Wrong symbol        | Variable mismatch  | Check variable names      |
-| Order failed        | Invalid parameters | Verify node configuration |
-| Timeout             | Slow external API  | Increase timeout          |
-
-### Best Practices
-
-#### 1. Test Before Activating
-
-Always test with sample data before going live.
-
-#### 2. Use Descriptive Names
-
-Name nodes clearly:
-
-* "TradingView Buy Signal" not "Node 1"
-* "SBIN Order" not "Place Order"
-
-#### 3. Add Error Handling
-
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐
-│  Order   │────▶│ If Error │────▶│  Retry   │
-│  Node    │     │ Occurred │     │  Node    │
-└──────────┘     └──────────┘     └──────────┘
-                      │
-                      ▼ (no error)
-                ┌──────────┐
-                │  Success │
-                │  Handler │
-                └──────────┘
-```
-
-#### 4. Add Notifications
-
-Always add notification nodes for important events.
-
-#### 5. Version Your Flows
-
-* Save with version numbers
-* Keep backup copies
-* Document changes
-
-### Flow Security
-
-#### Access Control
-
-* Flows are tied to your API key
-* Webhook URLs are unique per flow
-* Authentication required for editing
-
-#### Webhook Security
-
-* Use HTTPS only
-* Validate incoming data
-* Implement rate limiting
-
-***
+* One per-workflow lock prevents overlapping executions of the same workflow.
+* A graph is limited to 500 nodes, 1000 edges, depth 100, and 500 total node visits.
+* Schedule jobs use `coalesce=true`, `max_instances=1`, and a 60-second misfire grace.
+* Active price and order-update watches are removed on deactivation/deletion and restored after restart when persisted configuration permits it.
+* Order nodes use the same service layer and Analyzer/semi-auto routing rules as the REST API.
+* Delay nodes and external broker/HTTP calls keep execution synchronous; avoid long waits across many active workflows.

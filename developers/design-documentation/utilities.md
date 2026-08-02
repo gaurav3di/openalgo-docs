@@ -30,7 +30,7 @@ Historify is not part of the Flask-RESTX `/api/v1` namespace. `/api/v1/history` 
 
 Connections are context-managed and retry transient file-lock conflicts. The default path is `db/historify.duckdb`.
 
-There is an unresolved configuration-name mismatch: `.sample.env` and system-permissions code use `HISTORIFY_DATABASE_URL`, while `database/historify_db.py` reads `HISTORIFY_DATABASE_PATH`.
+Historify's configured database file is `HISTORIFY_DATABASE_PATH`, defaulting to `db/historify.duckdb`. The obsolete `HISTORIFY_DATABASE_URL` spelling is not a runtime alias.
 
 ## Runtime Features
 

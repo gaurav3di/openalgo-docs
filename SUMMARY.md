@@ -7,6 +7,8 @@
 * [Community Support](community-support.md)
 * [OpenAlgo GPT](openalgo-gpt.md)
 * [New Features](new-features/README.md)
+  * [Portfolio Backtester and Analyzer](new-features/portfolio-analytics.md)
+  * [Chart Trading Terminal](new-features/trading-terminal.md)
   * [Scalping Terminal](new-features/fast-scalper.md)
   * [Python Strategy Hosting](new-features/python-strategy-hosting.md)
   * [Flow - Visual Strategy Builder](new-features/flow-visual-strategy-builder.md)
@@ -160,6 +162,7 @@
     * [Timings](api-documentation/v1/utilities-api/timings.md)
     * [Telegram](api-documentation/v1/utilities-api/telegram.md)
     * [WhatsApp](api-documentation/v1/utilities-api/whatsapp.md)
+  * [Portfolio API](api-documentation/v1/portfolio.md)
   * [Websockets](api-documentation/v1/websockets.md)
   * [Order Constants](api-documentation/v1/order-constants.md)
   * [HTTP Status Codes](api-documentation/v1/http-status-codes.md)
@@ -315,6 +318,7 @@
   * [52 - Broker Factory Implementation](developers/design-documentation/52-broker-factory-implementation.md)
   * [53 - Event Bus](developers/design-documentation/53-event-bus.md)
   * [54 - Scalping Terminal](developers/design-documentation/54-scalping-terminal.md)
+  * [55 - Portfolio Analytics](developers/design-documentation/55-portfolio-analytics.md)
 
 ## Security
 

@@ -13,7 +13,7 @@ OpenAlgo uses local persistence split by workload. Defaults come from `.sample.e
 | Sandbox | `SANDBOX_DATABASE_URL` | `sqlite:///db/sandbox.db` | Simulated orders, trades, positions, holdings, funds, config, GTT tables |
 | Historify | implementation path setting | `db/historify.duckdb` | Candles, catalog, watchlist, jobs, metadata, schedules |
 
-The sample environment currently names `HISTORIFY_DATABASE_URL`, while `database/historify_db.py` reads `HISTORIFY_DATABASE_PATH`. This is a known configuration naming conflict, not a documentation alias.
+Historify consistently uses `HISTORIFY_DATABASE_PATH`; the default is `db/historify.duckdb`. Existing deployments that still contain the obsolete `HISTORIFY_DATABASE_URL` spelling must add the current key because it is not a runtime alias.
 
 ## Engine Policy
 

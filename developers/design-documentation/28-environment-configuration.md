@@ -11,13 +11,13 @@ OpenAlgo uses environment variables for configuration, managed through a `.env` 
 .sample.env         # Reference template with all variables
 ```
 
-## Environment Variables (65+ Variables)
+## Environment Variables
 
 ### Version Tracking
 
 ```bash
 # Configuration version - compare with .sample.env when updating
-ENV_CONFIG_VERSION = '1.0.6'
+ENV_CONFIG_VERSION = '1.0.8'
 ```
 
 ### Core Security (Required)
@@ -61,10 +61,10 @@ LATENCY_DATABASE_URL = 'sqlite:///db/latency.db'
 LOGS_DATABASE_URL = 'sqlite:///db/logs.db'
 HEALTH_DATABASE_URL = 'sqlite:///db/health.db'
 SANDBOX_DATABASE_URL = 'sqlite:///db/sandbox.db'
-HISTORIFY_DATABASE_URL = 'db/historify.duckdb'
+HISTORIFY_DATABASE_PATH = 'db/historify.duckdb'
 ```
 
-`HISTORIFY_DATABASE_URL` is the sample-env name, but the current implementation reads `HISTORIFY_DATABASE_PATH`. Do not assume they are aliases; this remains a known configuration conflict.
+Historify reads `HISTORIFY_DATABASE_PATH`. The obsolete `HISTORIFY_DATABASE_URL` spelling is not a runtime alias; update older `.env` files during upgrade.
 
 ### Flask Application
 
