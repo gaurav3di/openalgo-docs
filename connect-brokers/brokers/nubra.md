@@ -4,19 +4,23 @@ Nubra, by Zanskar Securities Private Limited, is a modern trading platform built
 
 1. **Navigate** to the Nubra's Dashboard Login [https://nubra.io/](https://nubra.io/) Open Demat
 
-<figure><img src="../../.gitbook/assets/nubra1 (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/nubra_new1.PNG" alt=""><figcaption></figcaption></figure>
 
 2. All REST requests require:
    1. **API Key (client\_id)**
    2. **MPIN-based session (MPIN → session token)**
 
-<figure><img src="../../.gitbook/assets/nubra4.PNG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/nubra_new2.PNG" alt=""><figcaption></figcaption></figure>
 
-3. Click on the **Profile** icon located at the bottom-left corner of the page
+3. Click on the **Profile** icon located at the top-right corner of the page
 
-<figure><img src="../../.gitbook/assets/nubra5.PNG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/nubra_new3 (1).PNG" alt=""><figcaption></figcaption></figure>
 
-4. Go to **API Credentials** and Select **Two-Factor Authentication**.
+<figure><img src="../../.gitbook/assets/nubra_new5.PNG" alt=""><figcaption></figcaption></figure>
+
+3. To Register the static IP ,scroll down the left panel. Select **Resources-Update Static IP- Update - Validate**.
+
+<figure><img src="../../.gitbook/assets/nubra_new4.PNG" alt=""><figcaption></figcaption></figure>
 
 ### **Environment Configuration**
 
