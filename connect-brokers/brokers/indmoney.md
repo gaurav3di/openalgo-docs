@@ -23,35 +23,60 @@ Visit [**https://www.indstocks.com/app/api-trading**](https://www.indstocks.com/
 
 <figure><img src="../../.gitbook/assets/Indstocks_2.PNG" alt=""><figcaption></figcaption></figure>
 
-3. Click **Access Tokens ,**  generate token and Configure Static IP&#x20;
-
-<figure><img src="../../.gitbook/assets/Indstocks_3.PNG" alt=""><figcaption></figcaption></figure>
-
-Click **New Token**
-
-<figure><img src="../../.gitbook/assets/Indstocks_4.PNG" alt=""><figcaption></figcaption></figure>
-
-Click **Save IP Address**
+3. Configure Static IP
 
 <figure><img src="../../.gitbook/assets/Indstocks_5.PNG" alt=""><figcaption></figcaption></figure>
 
-4. Copy the token shown on screen
+4. Setting up TOTP
 
-<figure><img src="../../.gitbook/assets/Indstocks_6.PNG" alt=""><figcaption></figcaption></figure>
+TOTP setup is a **one-time** step done on the INDstocks website. You need your phone with an authenticator app (Google Authenticator, Microsoft Authenticator, Authy, 2FAS or Ente Auth).
 
-This token will be used in OpenAlgo for all authenticated API requests.
+Step 1 — Open the Access Tokens page
 
-**Note:**\
-Tokens usually expire within **24 hours**. You must generate a fresh token when expired.
+Find the **Setup TOTP** card at the bottom of the page and click **Setup Now**.
+
+<figure><img src="../../.gitbook/assets/indmoney_1.PNG" alt=""><figcaption></figcaption></figure>
+
+Step 2 — Start the setup
+
+A panel opens explaining the three steps. Click **Setup TOTP** at the bottom.
+
+<figure><img src="../../.gitbook/assets/indmoney_2.PNG" alt=""><figcaption></figcaption></figure>
+
+Step 3 — Scan the QR code
+
+Scan the QR code with your authenticator app, or copy the setup code beneath it and enter it manually.
+
+<figure><img src="../../.gitbook/assets/indmoney_3.PNG" alt=""><figcaption></figcaption></figure>
+
+**Save the setup key somewhere safe before continuing.** It is shown only once and cannot be recovered. If you lose it you must disable TOTP and enrol again.
+
+Click **Continue**
+
+Step 4 — Confirm with a code
+
+Enter the current 6-digit code from your authenticator app and click **Enable Login**
+
+You have **5 minutes** to complete this step. If it expires, start again from Step 1.
+
+<figure><img src="../../.gitbook/assets/indmoney_4.PNG" alt=""><figcaption></figcaption></figure>
+
+Step 5 — Copy your Client ID
+
+TOTP is now enabled. Copy the **Client ID** shown — this is what OpenAlgo needs
+
+<figure><img src="../../.gitbook/assets/indmoney_5.PNG" alt=""><figcaption></figcaption></figure>
+
+This generated clientId will be used in OpenAlgo API Key for all authenticated API requests.
 
 ### Environment Configuration
 
-The generated access token is used as the API SECRET and keep any dummy variable as API KEY. Below is a sample configuration for the `.env` file:
+The generated client ID is used as the API Key and keep as blank for API SECRET. Below is a sample configuration for the `.env` file:
 
 ```
 # Indmoney Broker Configuration
-BROKER_API_KEY = 'wxyz123' #any dummy key
-BROKER_API_SECRET = 'your_generated_access_token'
+BROKER_API_KEY = 'generated_client_id_after_TOTP_setup' 
+BROKER_API_SECRET = '' #Keep it blank intentionally
 REDIRECT_URL = 'http://127.0.0.1:5000/indmoney/callback'
 ```
 
