@@ -18,13 +18,11 @@ Visit [https://tradeapi.samco.in/app/login](https://tradeapi.samco.in/app/login]
 
 The console has two sections you will use: **API Keys** (issue and rotate credentials) and **Static IPs** (whitelist the servers allowed to call the API).
 
-<figure><img src="../../.gitbook/assets/samco_1.PNG" alt=""><figcaption></figcaption></figure>
-
 #### **Step 2: Create an OAuth App to generate your API Key and Secret**
 
 Open **Credentials → API Keys** and click **Create New App**.
 
-<figure><img src="../../.gitbook/assets/samco_4.PNG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/samco_4 (1).PNG" alt=""><figcaption></figcaption></figure>
 
 Fill in the form.
 
@@ -43,14 +41,13 @@ On success:
 
 #### **Step 3: Whitelist your Static IP**
 
-<figure><img src="../../.gitbook/assets/samco_2 (2).PNG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/samco_2 (4).PNG" alt=""><figcaption></figcaption></figure>
 
 Open **Security → Static IPs**. This is a SEBI requirement: order requests are accepted **only** from IPs you have whitelisted here.
 
 1. Select the **App** you created in Step 5.
 2. Choose **PRIMARY** (required) or **SECONDARY** (optional backup).
-3. Enter the **public IPv4 address** of the server running OpenAlgo.
-4. Click **Save** and confirm with the OTP.
+3. Click **Save** and confirm with the OTP.
 
 #### Step 4 : Environment Configuration&#x20;
 
