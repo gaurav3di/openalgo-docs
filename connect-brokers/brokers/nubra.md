@@ -14,7 +14,7 @@ Nubra, by Zanskar Securities Private Limited, is a modern trading platform built
 
 3. Click on the **Profile** icon located at the top-right corner of the page
 
-<figure><img src="../../.gitbook/assets/nubra_new3 (1).PNG" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/nubra_new3.PNG" alt=""><figcaption></figcaption></figure>
 
 <figure><img src="../../.gitbook/assets/nubra_new5.PNG" alt=""><figcaption></figcaption></figure>
 
