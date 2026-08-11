@@ -40,6 +40,7 @@
   * [Fyers](connect-brokers/brokers/fyers.md)
   * [Groww](connect-brokers/brokers/groww.md)
   * [HDFC Sky](connect-brokers/brokers/hdfc-sky.md)
+  * [HDFC Securities](connect-brokers/brokers/hdfc-securities.md)
   * [IIFL (XTS)](connect-brokers/brokers/iifl-xts.md)
   * [IIFL Capital](connect-brokers/brokers/iifl-capital.md)
   * [IndMoney (INDstocks)](connect-brokers/brokers/indmoney.md)
