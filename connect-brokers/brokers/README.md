@@ -16,23 +16,24 @@ OpenAlgo currently includes **35 broker plugin directories**. This section lists
 12. Fyers
 13. Groww
 14. HDFC Sky
-15. IIFL (XTS)
-16. IIFL Capital
-17. IndiaBulls
-18. IndMoney
-19. JainamXTS
-20. Kotak Securities
-21. Motilal Oswal
-22. Mstock
-23. Nubra
-24. Paytm
-25. Pocketful
-26. Samco
-27. Shoonya
-28. Rmoney (XTS)
-29. Tradejini
-30. TradeSmart
-31. Upstox
-32. Wisdom Capital (XTS)
-33. Zebu
-34. Zerodha
+15. HDFC Securities
+16. IIFL (XTS)
+17. IIFL Capital
+18. IndiaBulls
+19. IndMoney
+20. JainamXTS
+21. Kotak Securities
+22. Motilal Oswal
+23. Mstock
+24. Nubra
+25. Paytm
+26. Pocketful
+27. Samco
+28. Shoonya
+29. Rmoney (XTS)
+30. Tradejini
+31. TradeSmart
+32. Upstox
+33. Wisdom Capital (XTS)
+34. Zebu
+35. Zerodha
