@@ -1,7 +1,5 @@
 # Version 2.0.2.0 Released
 
-## Version 2.0.2.0 Released
-
 **Date: 14th August 2026**
 
 **Brokers and Options Release: adds HDFC Securities InvestRight as a new broker and rebuilds the AliceBlue streaming stack; brings live Greeks to the Option Chain with a Price/Greeks view mode; repairs Strategy Builder valuation, contract resolution and payoff charting end to end; hardens the MCP surface with tool annotations, structured errors and a trust envelope; and stops 23 unregistered React routes from pushing logged-out users toward an automatic IP ban**
