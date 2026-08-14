@@ -330,7 +330,8 @@
 ## Change Log
 
 * [release](change-log/release/README.md)
-  * [Version 2.0.1.9 Released](change-log/release/version-2.0.1.9-released.md)
+  * [Version 2.0.2.0 Released](change-log/release/version-2.0.1.9-released.md)
+  * [Version 2.0.1.9 Released](change-log/release/version-2.0.1.9-released-1.md)
   * [Version 2.0.1.8 Released](change-log/release/version-2.0.1.8-released.md)
   * [Version 2.0.1.7 Released](change-log/release/version-2.0.1.7-released.md)
   * [Version 2.0.1.6 Released](change-log/release/version-2.0.1.6-released.md)
