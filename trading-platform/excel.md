@@ -7,7 +7,7 @@
 
 OpenAlgo is an Excel Add-In that provides seamless integration with the OpenAlgo API for algorithmic trading. This add-in allows users to fetch market data, resolve symbols, analyse option chains and Greeks, place and manage orders, retrieve historical data, and stream real-time market data directly from Excel.
 
-The add-in exposes **88 worksheet functions** covering **55 of the 57 registered OpenAlgo v1 REST method/path pairs**, plus the full WebSocket streaming protocol.
+The add-in exposes **89 worksheet functions** covering **55 of the 57 registered OpenAlgo v1 REST method/path pairs**, plus the full WebSocket streaming protocol.
 
 ### Features
 
@@ -23,39 +23,6 @@ The add-in exposes **88 worksheet functions** covering **55 of the 57 registered
 * **Messaging**: WhatsApp notifications and the full Telegram management surface.
 * **WebSocket Streaming**: Real-time LTP, Quote, Depth, and order updates pushed to individual cells via RTD.
 * **Persistent Configuration**: API key and settings are saved to disk and auto-loaded on Excel restart.
-
----
-
-### What Changed in 1.0.5
-
-#### Excel no longer refreshes continuously (GitHub issue #4)
-
-Earlier versions ran a 100 ms timer that called `Application.Calculate()` up to 20 times a second, and marked the streaming functions volatile. That forced an application-wide recalculation of every volatile formula in every open workbook, permanently. Because `Application.Calculate()` also cancels Excel's cut and copy clipboard mode, **copy-paste stopped working** while the WebSocket was connected.
-
-Streaming now uses Excel-DNA RTD push (`ExcelAsyncUtil.Observe`): each streaming cell is its own topic and updates only when that symbol ticks. There is no timer, no volatile function, and nothing calls `Application.Calculate()`. Excel stays responsive and copy-paste behaves normally.
-
-Update rate is controlled with [`oa_ws_throttle()`](#update-rate).
-
-#### Order functions must be armed
-
-A worksheet function re-evaluates whenever the sheet recalculates, so an order formula sitting in a cell could silently re-place an order. Order, GTT, and options-order functions now refuse to send until you call:
-
-```
-=oa_trading_enabled(TRUE)
-```
-
-The switch lasts for the current Excel session only. See [Trading Arm Switch](#trading-arm-switch).
-
-#### Other notable fixes
-
-* `oa_orderstatus` and `oa_openposition` read response keys the API never returns and had **always** failed. Both now work.
-* Every function shared a single cached async result across all cells regardless of arguments. Each call is now keyed on its own arguments.
-* Cells showed `#VALUE!` while a request was in flight; they now show `#N/A`.
-* Server error messages reach the sheet instead of rendering as `Unknown`.
-* `oa_history` handles both Unix-epoch and ISO-8601 timestamps, and reads volume as a 64-bit value (it previously overflowed above 2.1 billion).
-* `oa_depth` no longer discards `open`, `high`, `low`, `prev_close`, `ltq`, `oi`, `totalbuyqty`, and `totalsellqty`. `oa_positionbook` no longer drops `ltp` and `pnl`.
-* Order IDs, instrument tokens, BSE scrip codes, and phone numbers stay as text instead of being converted to numbers and displayed in scientific notation.
-* Every REST call previously created a new `HttpClient` with no timeout, leaking a socket per call. All calls now share one client with a configurable timeout.
 
 ---
 
@@ -1055,19 +1022,45 @@ Streams real-time order updates for the account as a table, newest first. Buffer
 
 #### Update Rate
 
+There are **two independent throttles** between a tick arriving and a cell changing. Both must be open for real-time updates.
+
+| Throttle | Owned by | Default | Set with |
+| --- | --- | --- | --- |
+| How often the add-in pushes a topic | This add-in | 0 (every tick) | `oa_ws_throttle()` |
+| How often Excel collects pushed values | Excel | **2000 ms** | `oa_rtd_interval()` |
+
+##### Excel's RTD interval
+
+**Function:** `oa_rtd_interval([milliseconds])`
+
+Excel applies its own limit, `Application.RTD.ThrottleInterval`, to every RTD server. It ships at **2000 ms**, so a streaming cell repaints only once every two seconds no matter how fast data arrives. Broker feeds run at roughly 1 to 11 updates per second, so Excel's default discards most of them and live data looks frozen.
+
+The add-in sets this to 0 on load and again on `oa_ws_connect()`. Use this function to read or change it.
+
+```
+=oa_rtd_interval()      Read the value Excel is using
+=oa_rtd_interval(0)     Update as soon as data arrives (default)
+=oa_rtd_interval(2000)  Excel's own default
+=oa_rtd_interval(-1)    Freeze streaming until a manual recalculation
+```
+
+This is a per-user Excel setting, not a workbook setting, and Excel persists it. `oa_version()` reports the live value, so a reading of 2000 there explains a sheet that looks stalled.
+
+##### The add-in's own throttle
+
 **Function:** `oa_ws_throttle([milliseconds])`
 
 Sets the minimum gap between two pushed updates for one streaming cell. Omit the argument to read the current value. The setting is persisted.
 
 ```
 =oa_ws_throttle()       Read the current value
-=oa_ws_throttle(250)    Default: at most 4 updates per second per cell
-=oa_ws_throttle(0)      Push every tick
+=oa_ws_throttle(0)      Default: push every tick
+=oa_ws_throttle(250)    At most 4 updates per second per cell
 ```
 
 The throttle is **leading plus trailing edge**. Its guarantee: *the last value the server sent for a topic always reaches the cell, at most `throttle` milliseconds late.* A tick held back by the throttle is released by a trailing flush rather than dropped, so the final print of an illiquid strike, or a closing price, never sits stale in the sheet.
 
-Raise the value on a large sheet with many streaming cells; set it to 0 for scalping.
+Leave it at 0 for real-time behaviour. Raise it only if a very large sheet on a fast feed starts to feel heavy.
 
 ---
 
@@ -1148,6 +1141,7 @@ Start any troubleshooting with `=oa_version()` and `=oa_ping()`.
 * All functions require `oa_api()` to be configured first. The key is persisted, so this is normally a one-time step.
 * **Order functions require `oa_trading_enabled(TRUE)`.** This is deliberate: a worksheet formula re-evaluates on recalculation and would otherwise re-place orders.
 * Streaming functions (`oa_ws_ltp`, `oa_ws_quote`, `oa_ws_depth`, `oa_ws_field`, `oa_ws_orders`) update by RTD push. They are **not** volatile and do not trigger workbook recalculation.
+* If streaming looks frozen, check `oa_rtd_interval()`. Excel caps RTD collection at 2000 ms by default; the add-in lowers it to 0, but a policy or another add-in can raise it again.
 * **REST functions cache their result.** Excel-DNA keys the async result on the function name plus its arguments, so a function such as `oa_funds()` fetches once and keeps returning the same value. Press **Ctrl+Alt+F9** to force a full rebuild and refetch, or edit the formula.
 * Cells show `#N/A` while a request is in flight.
 * Order IDs and instrument tokens are returned as **text**, so they keep their exact digits. Reference them directly rather than retyping.
@@ -1172,7 +1166,7 @@ Start any troubleshooting with `=oa_version()` and `=oa_ping()`.
 | Calendar           | `oa_holidays`, `oa_timings`, `oa_isholiday`                                                                                                                                                                             |
 | Chart              | `oa_chart`, `oa_chart_set`                                                                                                                                                                                              |
 | Messaging          | `oa_whatsapp_notify`, `oa_telegram_config`, `oa_telegram_config_set`, `oa_telegram_start`, `oa_telegram_stop`, `oa_telegram_users`, `oa_telegram_notify`, `oa_telegram_broadcast`, `oa_telegram_stats`, `oa_telegram_preferences`, `oa_telegram_preferences_set` |
-| WebSocket          | `oa_ws_connect`, `oa_ws_disconnect`, `oa_ws_status`, `oa_ws_ping`, `oa_ws_brokers`, `oa_ws_brokerinfo`, `oa_ws_ltp`, `oa_ws_quote`, `oa_ws_depth`, `oa_ws_field`, `oa_ws_orders`, `oa_ws_throttle`, `oa_ws_subscribe`, `oa_ws_unsubscribe`, `oa_ws_unsubscribe_ltp`, `oa_ws_unsubscribe_quote`, `oa_ws_unsubscribe_depth`, `oa_ws_unsubscribe_orders`, `oa_ws_unsubscribe_all`, `oa_ws_subscriptions`, `oa_ws_debug` |
+| WebSocket          | `oa_ws_connect`, `oa_ws_disconnect`, `oa_ws_status`, `oa_ws_ping`, `oa_ws_brokers`, `oa_ws_brokerinfo`, `oa_ws_ltp`, `oa_ws_quote`, `oa_ws_depth`, `oa_ws_field`, `oa_ws_orders`, `oa_ws_throttle`, `oa_rtd_interval`, `oa_ws_subscribe`, `oa_ws_unsubscribe`, `oa_ws_unsubscribe_ltp`, `oa_ws_unsubscribe_quote`, `oa_ws_unsubscribe_depth`, `oa_ws_unsubscribe_orders`, `oa_ws_unsubscribe_all`, `oa_ws_subscriptions`, `oa_ws_debug` |
 
 ---
 
