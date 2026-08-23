@@ -31,10 +31,13 @@ func main() {
     // Default host is http://127.0.0.1:5000
     client := openalgo.NewClient("your_api_key_here", "http://127.0.0.1:5000")
 
-    // Or with custom WebSocket URL
-    client := openalgo.NewClient("your_api_key_here", "http://127.0.0.1:5000", "v1", "ws://127.0.0.1:8765")
+    // Or with an explicit API version and WebSocket URL:
+    // client := openalgo.NewClient("your_api_key_here", "http://127.0.0.1:5000", "v1", "ws://127.0.0.1:8765")
+    _ = client
 }
 ```
+
+`NewClient` takes the API key and host, then optional strings and integers. Version defaults to `v1` and the WebSocket port to `8765`, so the WebSocket URL is derived from the host as `ws://127.0.0.1:8765` unless you pass one explicitly.
 
 #### Check OpenAlgo Version
 
@@ -167,7 +170,7 @@ Place Options Order Response
   "orderid": "25102800000006",
   "status": "success",
   "symbol": "NIFTY28OCT2525950CE",
-  "underlying": "NIFTY28OCT25FUT",
+  "underlying": "NIFTY",
   "underlying_ltp": 25966.05
 }
 ```
@@ -205,7 +208,7 @@ Place Options Order Response
   "orderid": "25102800000007",
   "status": "success",
   "symbol": "NIFTY28OCT2526150PE",
-  "underlying": "NIFTY28OCT25FUT",
+  "underlying": "NIFTY",
   "underlying_ltp": 25966.05
 }
 ```
@@ -797,6 +800,8 @@ fmt.Println(response)
 }
 ```
 
+`intervals` reports only what the connected broker supports. The `interval` field of `/history` accepts this full set, and rejects anything else: `1s`, `5s`, `10s`, `15s`, `30s`, `45s`, `1m`, `2m`, `3m`, `5m`, `10m`, `15m`, `20m`, `30m`, `1h`, `2h`, `3h`, `4h`, `D`, `W`, `M`, `Q`, `Y`.
+
 #### OptionChain Example
 
 Note: To fetch entire option chain for an expiry, omit the strikeCount parameter
@@ -1034,9 +1039,11 @@ fmt.Println(response)
 response, err := client.OptionGreeks(
     "NIFTY25NOV2526000CE",  // symbol
     "NFO",                   // exchange
-    0.00,                    // interestRate
-    "NIFTY",                 // underlyingSymbol
-    "NSE_INDEX",             // underlyingExchange
+    map[string]interface{}{
+        "interest_rate":       0.00,
+        "underlying_symbol":   "NIFTY",
+        "underlying_exchange": "NSE_INDEX",
+    },
 )
 if err != nil {
     fmt.Println("Error:", err)
@@ -1113,6 +1120,14 @@ if err != nil {
 }
 fmt.Println(response)
 ```
+
+`/instruments` is the one v1 market-data endpoint that is a GET rather than a POST. It takes `apikey`, an optional `exchange` and an optional `format` (`json` or `csv`) as query parameters:
+
+```http
+GET http://127.0.0.1:5000/api/v1/instruments?apikey=<your_app_apikey>&exchange=NSE&format=json
+```
+
+The Go SDK currently POSTs to this endpoint, which the server answers with HTTP 405. Until that is fixed, fetch the instrument master with a plain GET.
 
 **Instruments Response**
 
@@ -1492,6 +1507,87 @@ fmt.Println(response)
 }
 ```
 
+#### Ping Example
+
+`Ping` confirms the API key is valid and reports the connected broker.
+
+```go
+response, err := client.Ping()
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println(response)
+```
+
+**Ping Response**
+
+```json
+{
+  "data": {
+    "broker": "zerodha",
+    "message": "pong"
+  },
+  "status": "success"
+}
+```
+
+#### Endpoints not wrapped by the SDK
+
+The Go SDK does not expose helpers for the GTT endpoints or `multioptiongreeks`. Reach them by posting to the REST endpoint directly at `http://127.0.0.1:5000/api/v1/<endpoint>`, passing the same `apikey` field the SDK sends.
+
+**GTT (Good Till Triggered)**
+
+Four endpoints, all POST with a flat JSON body: `placegttorder`, `modifygttorder`, `cancelgttorder` and `gttorderbook`. `trigger_type` is `SINGLE` or `OCO`, and `product` accepts only `CNC` or `NRML`; `MIS` is rejected because a GTT can sit with the broker for days.
+
+SINGLE, buy IDEA if it dips to 9.55:
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "strategy": "My GTT Strategy",
+  "trigger_type": "SINGLE",
+  "exchange": "NSE",
+  "symbol": "IDEA",
+  "action": "BUY",
+  "product": "CNC",
+  "quantity": 1,
+  "pricetype": "LIMIT",
+  "price": 9.50,
+  "triggerprice_sl": 9.55,
+  "triggerprice_tg": 0,
+  "stoploss": null,
+  "target": null
+}
+```
+
+```json
+{"status": "success", "trigger_id": "23132604291205"}
+```
+
+For SINGLE send exactly one of `triggerprice_sl` (trigger sits below LTP) or `triggerprice_tg` (trigger sits above LTP) and leave the other at `0`. For OCO send all four of `triggerprice_sl`, `stoploss`, `triggerprice_tg` and `target`, with `triggerprice_sl` strictly less than `triggerprice_tg`. `modifygttorder` takes the same body plus `trigger_id`, `cancelgttorder` takes `apikey`, `strategy` and `trigger_id`, and `gttorderbook` takes `apikey` alone and returns the active triggers under `data`.
+
+**MultiOptionGreeks**
+
+`optiongreeks` prices one symbol at a time. `multioptiongreeks` prices 1 to 50 option symbols in a single call, with `interest_rate` and `expiry_time` set once for the whole batch:
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "symbols": [
+    {"symbol": "NIFTY30DEC2526000CE", "exchange": "NFO"},
+    {"symbol": "NIFTY30DEC2526000PE", "exchange": "NFO"}
+  ],
+  "interest_rate": 7.0
+}
+```
+
+Individual items can fail while the batch still returns `"status": "success"`, so inspect each entry in `data` and the `summary` block.
+
+#### WebSocket connection notes
+
+The proxy listens on `ws://127.0.0.1:8765`. Every client authenticates with its OpenAlgo API key before subscribing, and a connection that has not authenticated within 15 seconds is closed. Subscriptions carry a mode: `1` for LTP, `2` for Quote and `3` for Depth. The strings `LTP`, `Quote` and `Depth` are accepted as well and are matched case-insensitively; Quote is the default when the field is omitted. LTP updates are throttled to one per symbol per 50 ms, so a fast-moving symbol delivers at most 20 LTP messages a second.
+
 #### LTP Data (Streaming WebSocket)
 
 ```go
@@ -1602,3 +1698,48 @@ func main() {
     client.UnsubscribeDepth(instruments)
 }
 ```
+
+#### Order Updates (Streaming WebSocket)
+
+The same proxy on port 8765 also carries account-scoped order updates. The Go SDK does not wrap them, so send the raw frames on your own WebSocket connection: authenticate first, then subscribe.
+
+```json
+{"action": "authenticate", "api_key": "<your_app_apikey>"}
+```
+
+```json
+{"action": "subscribe_orders"}
+```
+
+The server acknowledges the subscription:
+
+```json
+{"type": "subscribe_orders", "status": "success", "message": "Subscribed to order updates"}
+```
+
+Every subsequent status change on any order in the account then arrives as:
+
+```json
+{
+  "type": "order_update",
+  "user_id": "<openalgo_loginid>",
+  "mode": "live",
+  "broker": "zerodha",
+  "orderid": "250408000989443",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "action": "BUY",
+  "quantity": 1,
+  "price": 0,
+  "trigger_price": 0,
+  "pricetype": "MARKET",
+  "product": "MIS",
+  "order_status": "complete",
+  "filled_quantity": 1,
+  "pending_quantity": 0,
+  "average_price": 1180.1,
+  "rejection_reason": null
+}
+```
+
+`{"action": "unsubscribe_orders"}` stops the stream. Unlike a market-data subscription there is no symbol, exchange or mode: the subscription covers the whole account.

@@ -97,7 +97,7 @@ The Stochastic Oscillator compares a security's closing price to its price range
 #### Usage
 
 ```python
-k_percent, d_percent = ta.stochastic(high, low, close, k_period=14, d_period=3)
+k_percent, d_percent = ta.stochastic(high, low, close, k_period=14, smooth_k=3, d_period=3)
 ```
 
 #### Parameters
@@ -105,8 +105,9 @@ k_percent, d_percent = ta.stochastic(high, low, close, k_period=14, d_period=3)
 * **high** _(array-like)_: High prices
 * **low** _(array-like)_: Low prices
 * **close** _(array-like)_: Closing prices
-* **k\_period** _(int, default=14)_: Period for %K calculation
-* **d\_period** _(int, default=3)_: Period for %D calculation (SMA of %K)
+* **k\_period** _(int, default=14)_: Lookback for the raw %K stochastic
+* **smooth\_k** _(int, default=3)_: SMA smoothing applied to raw %K to produce the returned %K
+* **d\_period** _(int, default=3)_: Period for %D calculation (SMA of the smoothed %K)
 
 #### Returns
 
@@ -124,7 +125,7 @@ df['Stoch_D'] = stoch_d
 
 # Custom parameters
 stoch_k_fast, stoch_d_fast = ta.stochastic(df['high'], df['low'], df['close'], 
-                                          k_period=5, d_period=3)
+                                          k_period=5, smooth_k=3, d_period=3)
 
 print(df[['close', 'Stoch_K', 'Stoch_D']].tail())
 ```

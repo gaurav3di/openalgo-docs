@@ -2,12 +2,26 @@
 
 ## OpenAlgo Technical Indicators Library
 
-OpenAlgo Technical Indicators is a high-performance Python library designed for comprehensive technical analysis with a focus on speed, accuracy, and ease of use. Built from the ground up with modern optimization techniques, it provides over 80 technical indicators across all major categories.
+OpenAlgo Technical Indicators is a high-performance Python library designed for comprehensive technical analysis with a focus on speed, accuracy, and ease of use. It exposes 127 indicators and helper functions across all major categories through a single `ta` object.
+
+The indicator math runs in a compiled Rust core (`openalgo._oaindicators`) reached through `openalgo.indicators`. There is no JIT warm-up and no first-call compilation pause: the first call is as fast as the thousandth. `numba` and `llvmlite` are no longer dependencies; `openalgo.numba_shim` only survives so that legacy `from openalgo.numba_shim import jit` imports keep working, and its decorators are no-ops.
+
+Every function accepts a NumPy array, a pandas Series or a plain list. The indicators return the same container type they were given, so a pandas Series in means a pandas Series out with the original index preserved. The thirteen signal helpers (`crossover`, `crossunder`, `cross`, `highest`, `lowest`, `change`, `roc`, `stdev`, `rising`, `falling`, `exrem`, `flip`, `valuewhen`) are the exception: they always return a plain NumPy array. Wrap them in `pd.Series(result, index=df.index)` if you need index alignment or `.iloc` access.
 
 ### Import Statement
 
 ```python
 from openalgo import ta
+```
+
+To see the full list at runtime:
+
+```python
+from openalgo import ta
+
+names = [n for n in dir(ta) if not n.startswith('_')]
+print(len(names))   # 127
+print(sorted(names))
 ```
 
 ### List of Supported Indicators
@@ -46,6 +60,12 @@ from openalgo import ta
 * **ElderRay** - Elder Ray Index (Bull/Bear Power)
 * **Fisher** - Fisher Transform
 * **CRSI** - Connors RSI
+* **MOM** - Momentum (`ta.mom`)
+* **APO** - Absolute Price Oscillator (`ta.apo`)
+* **ROCP** - Rate of Change Percentage (`ta.rocp`)
+* **ROCR** - Rate of Change Ratio (`ta.rocr`)
+* **ROCR100** - Rate of Change Ratio x 100 (`ta.rocr100`)
+* **STOCHF** - Fast Stochastic (`ta.stochf`)
 
 ### Volatility Indicators
 
@@ -55,7 +75,6 @@ from openalgo import ta
 * **Donchian** - Donchian Channel
 * **Chaikin** - Chaikin Volatility
 * **NATR** - Normalized Average True Range
-* **RVI** - Relative Volatility Index (volatility version)
 * **ULTOSC** - Ultimate Oscillator
 * **TRANGE** - True Range
 * **MASS** - Mass Index
@@ -77,7 +96,9 @@ from openalgo import ta
 * **EMV** - Ease of Movement
 * **FI** - Elder Force Index
 * **NVI** - Negative Volume Index
+* **NVI with EMA** - Negative Volume Index plus EMA signal line (`ta.nvi_with_ema`)
 * **PVI** - Positive Volume Index
+* **PVI with Signal** - Positive Volume Index plus signal line (`ta.pvi_with_signal`)
 * **VOLOSC** - Volume Oscillator
 * **VROC** - Volume Rate of Change
 * **KlingerVolumeOscillator** - Klinger Volume Oscillator
@@ -97,7 +118,7 @@ from openalgo import ta
 * **DPO** - Detrended Price Oscillator
 * **AROONOSC** - Aroon Oscillator
 * **StochRSI** - Stochastic RSI
-* **RVI** - Relative Vigor Index (oscillator version)
+* **RVI** - Relative Vigor Index (`ta.rvi`, the only RVI exposed on `ta`)
 * **CHO** - Chaikin Oscillator
 * **CHOP** - Choppiness Index
 * **KST** - Know Sure Thing
@@ -118,6 +139,8 @@ from openalgo import ta
 * **MEDIAN** - Rolling Median
 * **MedianBands** - Median with Bands
 * **MODE** - Rolling Mode
+* **LINEARREG\_ANGLE** - Linear Regression Angle (`ta.linregangle`)
+* **LINEARREG\_INTERCEPT** - Linear Regression Intercept (`ta.linregintercept`)
 
 ### Hybrid Indicators
 
@@ -128,6 +151,10 @@ from openalgo import ta
 * **DMI** - Directional Movement Index
 * **WilliamsFractals** - Williams Fractals
 * **RWI** - Random Walk Index
+* **PLUS\_DM** - Plus Directional Movement (`ta.plus_dm`)
+* **MINUS\_DM** - Minus Directional Movement (`ta.minus_dm`)
+* **DX** - Directional Movement Index value (`ta.dx`)
+* **ADXR** - Average Directional Movement Rating (`ta.adxr`)
 
 ### Utility Functions
 
@@ -144,6 +171,12 @@ from openalgo import ta
 * **rising** - Rising detection
 * **falling** - Falling detection
 * **cross** - Cross detection (both directions)
+* **midpoint** - Midpoint of the highest and lowest value over a period
+* **midprice** - Midpoint of the highest high and lowest low over a period
+* **medprice** - Median price, (high + low) / 2
+* **typprice** - Typical price, (high + low + close) / 3
+* **wclprice** - Weighted close price, (high + low + close x 2) / 4
+* **avgprice** - Average price, (open + high + low + close) / 4
 
 ### Perfect For
 

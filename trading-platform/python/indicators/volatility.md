@@ -252,38 +252,45 @@ print(df[['close', 'NATR', 'NATR_21']].tail())
 
 ***
 
-### Relative Volatility Index (RVI)
+### Relative Vigor Index (RVI)
 
-RVI applies the RSI calculation to standard deviation instead of price changes, measuring volatility momentum.
+`ta.rvi` is the Relative Vigor Index. It compares the close-open range with the high-low range to gauge the conviction behind a move, and returns the RVI line together with its signal line.
+
+{% hint style="warning" %}
+`ta.rvi` needs four price series (open, high, low, close) and returns a tuple. It is not the Relative Volatility Index: that variant is not exposed on the `ta` object.
+{% endhint %}
 
 #### Usage
 
 ```python
-rvi_result = ta.rvi(data, stdev_period=10, rsi_period=14)
+rvi_line, rvi_signal = ta.rvi(open_prices, high, low, close, period=10)
 ```
 
 #### Parameters
 
-* **data** _(array-like)_: Price data (typically closing prices)
-* **stdev\_period** _(int, default=10)_: Period for standard deviation calculation
-* **rsi\_period** _(int, default=14)_: Period for RSI calculation
+* **open\_prices** _(array-like)_: Opening prices
+* **high** _(array-like)_: High prices
+* **low** _(array-like)_: Low prices
+* **close** _(array-like)_: Closing prices
+* **period** _(int, default=10)_: Lookback period
 
 #### Returns
 
-* **array**: RVI values (0-100 range)
+* **tuple**: (rvi, signal) in the same format as input
 
 #### Example
 
 ```python
-# Calculate RVI
-rvi = ta.rvi(df['close'])
+# Calculate RVI and its signal line
+rvi, rvi_signal = ta.rvi(df['open'], df['high'], df['low'], df['close'])
 df['RVI'] = rvi
+df['RVI_Signal'] = rvi_signal
 
-# Custom parameters
-rvi_custom = ta.rvi(df['close'], stdev_period=14, rsi_period=21)
+# Custom period
+rvi_custom, rvi_signal_custom = ta.rvi(df['open'], df['high'], df['low'], df['close'], period=14)
 df['RVI_Custom'] = rvi_custom
 
-print(df[['close', 'RVI', 'RVI_Custom']].tail())
+print(df[['close', 'RVI', 'RVI_Signal', 'RVI_Custom']].tail())
 ```
 
 ***
@@ -672,7 +679,7 @@ df['DC_Middle'] = dc_middle
 df['DC_Lower'] = dc_lower
 
 # Advanced volatility indicators
-df['RVI'] = ta.rvi(df['close'])
+df['RVI'], df['RVI_Signal'] = ta.rvi(df['open'], df['high'], df['low'], df['close'])
 df['Historical_Vol'] = ta.hv(df['close'], length=20)
 df['Ulcer_Index'] = ta.ulcerindex(df['close'])
 df['Mass_Index'] = ta.massindex(df['high'], df['low'])
@@ -703,7 +710,7 @@ print(f"\nVolatility Squeeze periods: {df['Squeeze'].sum()} out of {len(df)} per
 
 1. **Volatility Breakouts**: Use BB Width and Mass Index to identify low volatility periods before breakouts
 2. **Risk Management**: Use ATR and NATR for position sizing and stop-loss placement
-3. **Overbought/Oversold**: Use BB %B and RVI to identify extreme price levels
+3. **Overbought/Oversold**: Use BB %B and Bollinger Bandwidth to identify extreme price levels
 4. **Trend Strength**: Higher volatility often accompanies strong trends
 5. **Market Regime**: Compare different volatility measures to understand market conditions
 

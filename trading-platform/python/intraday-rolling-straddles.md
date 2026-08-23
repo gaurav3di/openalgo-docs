@@ -15,10 +15,12 @@ This sample strategy implements an **intraday rolling short straddle** for NIFTY
 * **Order Limit:** Limits the number of rolling straddles per day (default: 3, can be changed)
 * **Exit:** Squares off all open legs at a configurable EOD time (e.g., 3:15 p.m.)
 * **All times in IST** (Asia/Kolkata timezone)
-* **No database or persistent logs** — actions are printed to the console for full transparency
+* **No database or persistent logs**: actions are printed to the console for full transparency
 * **Parameter-based configuration:** Change any key value by simply editing the variable at the top of the script
 
 ### **Python Strategy**
+
+The script below builds the option symbol by hand from the base, expiry and strike, which keeps the example self-contained. In production prefer `client.optionsymbol(underlying=..., exchange=..., expiry_date=..., offset="ATM", option_type="CE")` to resolve the exact symbol and lot size from the OpenAlgo master contract, or place the legs directly with `client.optionsorder(...)` or `client.optionsmultiorder(...)`, which resolve the strike from an offset such as `ATM` for you. See the [OptionsOrder](README.md#optionsorder-example) and [OptionSymbol](README.md#optionsymbol-example) examples.
 
 ```python
 import time as systime
@@ -27,7 +29,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from openalgo import api
 import pytz
 
-print("🔁 OpenAlgo Python Bot is running.")
+print("OpenAlgo Python Bot is running.")
 
 # === USER PARAMETERS ===
 
@@ -205,7 +207,7 @@ Orders are placed as:
 * This sample does **not** use persistent order logging or database.
 * No explicit risk management or stop loss (can be added if desired).
 * Only supports one instrument/expiry at a time.
-* Ensure your OpenAlgo symbol format and expiry match your broker’s contract details.
+* Ensure your OpenAlgo symbol format and expiry match your broker's contract details.
 
 ***
 

@@ -140,7 +140,7 @@ Place Options Order Response
   "orderid": "25102800000006",
   "status": "success",
   "symbol": "NIFTY28OCT2525950CE",
-  "underlying": "NIFTY28OCT25FUT",
+  "underlying": "NIFTY",
   "underlying_ltp": 25966.05
 }
 ```
@@ -174,7 +174,7 @@ Place Options Order Response
   "orderid": "25102800000007",
   "status": "success",
   "symbol": "NIFTY28OCT2526150PE",
-  "underlying": "NIFTY28OCT25FUT",
+  "underlying": "NIFTY",
   "underlying_ltp": 25966.05
 }
 ```
@@ -209,7 +209,7 @@ Place Options Order Response
   "orderid": "25102800000008",
   "status": "success",
   "symbol": "NIFTY28OCT2526200CE",
-  "underlying": "NIFTY28OCT25FUT",
+  "underlying": "NIFTY",
   "underlying_ltp": 25966.05
 }
 ```
@@ -734,6 +734,8 @@ const response = await client.history({
 console.log(response);
 ```
 
+The REST endpoint answers with `{"status": "success", "data": [...]}`; `history()` unwraps it and hands back the candle array directly, returning the raw error object instead when the call fails. Every candle carries an `oi` field, populated for F&O exchanges and `0` elsewhere.
+
 **History Response**
 
 ```json
@@ -779,6 +781,8 @@ console.log(response);
   }
 }
 ```
+
+`intervals` reports only what the connected broker supports. The `interval` field of `/history` accepts this full set, and rejects anything else: `1s`, `5s`, `10s`, `15s`, `30s`, `45s`, `1m`, `2m`, `3m`, `5m`, `10m`, `15m`, `20m`, `30m`, `1h`, `2h`, `3h`, `4h`, `D`, `W`, `M`, `Q`, `Y`.
 
 #### OptionChain Example
 
@@ -1132,6 +1136,14 @@ const response = await client.instruments({ exchange: "NSE" });
 console.log(response);
 ```
 
+`/instruments` is the one v1 market-data endpoint that is a GET rather than a POST. It takes `apikey`, an optional `exchange` and an optional `format` (`json` or `csv`) as query parameters:
+
+```http
+GET http://127.0.0.1:5000/api/v1/instruments?apikey=<your_app_apikey>&exchange=NSE&format=json
+```
+
+The Node.js SDK currently POSTs to this endpoint, which the server answers with HTTP 405. Until that is fixed, fetch the instrument master with a plain GET.
+
 Instruments **Response**
 
 ```json
@@ -1173,6 +1185,21 @@ console.log(response);
   "status": "success"
 }
 ```
+
+#### WhatsApp Alert Example
+
+`whatsapp()` posts to `/whatsapp/notify`. Give it a `username`, a `to` (a phone number in E.164 digits, or an array of up to five for a small broadcast), or neither, in which case the message goes to the paired device's own number.
+
+```javascript
+const response = await client.whatsapp({
+    username: "<openalgo_loginid>",
+    message: "NIFTY crossed 26000!"
+});
+console.log(response);
+```
+
+The device must already be paired from the `/whatsapp` page in OpenAlgo; an unpaired device returns HTTP 409 rather than queueing the message.
+
 
 #### Funds Example
 
@@ -1523,6 +1550,74 @@ Analyzer Toggle Response
 }
 ```
 
+#### Endpoints not wrapped by the SDK
+
+The Node.js SDK does not expose helpers for the GTT endpoints, `multioptiongreeks` or `ping`. Reach them by posting to the REST endpoint directly at `http://127.0.0.1:5000/api/v1/<endpoint>`, passing the same `apikey` field the SDK sends.
+
+**GTT (Good Till Triggered)**
+
+Four endpoints, all POST with a flat JSON body: `placegttorder`, `modifygttorder`, `cancelgttorder` and `gttorderbook`. `trigger_type` is `SINGLE` or `OCO`, and `product` accepts only `CNC` or `NRML`; `MIS` is rejected because a GTT can sit with the broker for days.
+
+SINGLE, buy IDEA if it dips to 9.55:
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "strategy": "My GTT Strategy",
+  "trigger_type": "SINGLE",
+  "exchange": "NSE",
+  "symbol": "IDEA",
+  "action": "BUY",
+  "product": "CNC",
+  "quantity": 1,
+  "pricetype": "LIMIT",
+  "price": 9.50,
+  "triggerprice_sl": 9.55,
+  "triggerprice_tg": 0,
+  "stoploss": null,
+  "target": null
+}
+```
+
+```json
+{"status": "success", "trigger_id": "23132604291205"}
+```
+
+For SINGLE send exactly one of `triggerprice_sl` (trigger sits below LTP) or `triggerprice_tg` (trigger sits above LTP) and leave the other at `0`. For OCO send all four of `triggerprice_sl`, `stoploss`, `triggerprice_tg` and `target`, with `triggerprice_sl` strictly less than `triggerprice_tg`. `modifygttorder` takes the same body plus `trigger_id`, `cancelgttorder` takes `apikey`, `strategy` and `trigger_id`, and `gttorderbook` takes `apikey` alone and returns the active triggers under `data`.
+
+**MultiOptionGreeks**
+
+`optiongreeks` prices one symbol at a time. `multioptiongreeks` prices 1 to 50 option symbols in a single call, with `interest_rate` and `expiry_time` set once for the whole batch:
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "symbols": [
+    {"symbol": "NIFTY30DEC2526000CE", "exchange": "NFO"},
+    {"symbol": "NIFTY30DEC2526000PE", "exchange": "NFO"}
+  ],
+  "interest_rate": 7.0
+}
+```
+
+Individual items can fail while the batch still returns `"status": "success"`, so inspect each entry in `data` and the `summary` block.
+
+**Ping**
+
+`ping` confirms the API key is valid and reports the connected broker:
+
+```json
+{"apikey": "<your_app_apikey>"}
+```
+
+```json
+{"data": {"broker": "zerodha", "message": "pong"}, "status": "success"}
+```
+
+#### WebSocket connection notes
+
+The proxy listens on `ws://127.0.0.1:8765`. Every client authenticates with its OpenAlgo API key before subscribing, and a connection that has not authenticated within 15 seconds is closed. Subscriptions carry a mode: `1` for LTP, `2` for Quote and `3` for Depth. The strings `LTP`, `Quote` and `Depth` are accepted as well and are matched case-insensitively; Quote is the default when the field is omitted. LTP updates are throttled to one per symbol per 50 ms, so a fast-moving symbol delivers at most 20 LTP messages a second.
+
 #### LTP Data (Streaming Websocket)
 
 ```javascript
@@ -1658,6 +1753,51 @@ async function runDepthTest() {
 
 runDepthTest();
 ```
+
+#### Order Updates (Streaming WebSocket)
+
+The same proxy on port 8765 also carries account-scoped order updates. The Node.js SDK does not wrap them, so send the raw frames on your own WebSocket connection: authenticate first, then subscribe.
+
+```json
+{"action": "authenticate", "api_key": "<your_app_apikey>"}
+```
+
+```json
+{"action": "subscribe_orders"}
+```
+
+The server acknowledges the subscription:
+
+```json
+{"type": "subscribe_orders", "status": "success", "message": "Subscribed to order updates"}
+```
+
+Every subsequent status change on any order in the account then arrives as:
+
+```json
+{
+  "type": "order_update",
+  "user_id": "<openalgo_loginid>",
+  "mode": "live",
+  "broker": "zerodha",
+  "orderid": "250408000989443",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "action": "BUY",
+  "quantity": 1,
+  "price": 0,
+  "trigger_price": 0,
+  "pricetype": "MARKET",
+  "product": "MIS",
+  "order_status": "complete",
+  "filled_quantity": 1,
+  "pending_quantity": 0,
+  "average_price": 1180.1,
+  "rejection_reason": null
+}
+```
+
+`{"action": "unsubscribe_orders"}` stops the stream. Unlike a market-data subscription there is no symbol, exchange or mode: the subscription covers the whole account.
 
 Please refer to the documentation and consult the API reference for details on optional parameters:
 

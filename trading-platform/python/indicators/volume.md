@@ -75,7 +75,7 @@ Enhanced OBV with various smoothing options including moving averages and Bollin
 obv_smoothed = ta.obv_smoothed(close, volume, ma_type="SMA", ma_length=20)
 
 # With Bollinger Bands
-obv_bb_middle, obv_bb_upper, obv_bb_lower = ta.obv_smoothed(
+obv_bb_upper, obv_bb_middle, obv_bb_lower = ta.obv_smoothed(
     close, volume, ma_type="SMA + Bollinger Bands", bb_length=20, bb_mult=2.0
 )
 ```
@@ -92,7 +92,7 @@ obv_bb_middle, obv_bb_upper, obv_bb_lower = ta.obv_smoothed(
 #### Returns
 
 * **pandas.Series**: Smoothed OBV values (for most ma\_types)
-* **tuple**: (middle, upper, lower) for "SMA + Bollinger Bands"
+* **tuple**: (upper, middle, lower) for "SMA + Bollinger Bands", the same ordering `ta.bbands` uses
 
 #### Example
 
@@ -102,14 +102,14 @@ obv_sma = ta.obv_smoothed(df['close'], df['volume'], ma_type="SMA", ma_length=20
 obv_ema = ta.obv_smoothed(df['close'], df['volume'], ma_type="EMA", ma_length=20)
 
 # OBV with Bollinger Bands
-obv_bb_mid, obv_bb_up, obv_bb_low = ta.obv_smoothed(
+obv_bb_up, obv_bb_mid, obv_bb_low = ta.obv_smoothed(
     df['close'], df['volume'], ma_type="SMA + Bollinger Bands"
 )
 
 df['OBV_SMA'] = obv_sma
 df['OBV_EMA'] = obv_ema
-df['OBV_BB_Mid'] = obv_bb_mid
 df['OBV_BB_Upper'] = obv_bb_up
+df['OBV_BB_Mid'] = obv_bb_mid
 df['OBV_BB_Lower'] = obv_bb_low
 ```
 

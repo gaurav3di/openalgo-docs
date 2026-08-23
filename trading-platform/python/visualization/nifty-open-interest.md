@@ -16,27 +16,27 @@ This python code fetches and visualizes  Open Interest (OI) profile for NIFTY op
 
 ### Full Python Code
 
-```
+```python
 """
-NIFTY 31 JUL 2025 – OI profile (10-req/s batches)
+NIFTY 28 AUG 2025 - OI profile (10-req/s batches)
 Author  : OpenAlgo GPT
 Updated : 2025-06-28
 """
 
-print("🔁 OpenAlgo Python Bot is running.")                     # rule 13
+print("OpenAlgo Python Bot is running.")
 
 import os, sys, re, time, asyncio, pandas as pd, plotly.graph_objects as go
 from datetime import datetime
 from openalgo import api
 
-# ───────────── CONFIG (edit to suit) ─────────────────────────────────────
+# ------------------------- CONFIG (edit to suit) --------------------------
 API_KEY  = os.getenv("OPENALGO_API_KEY",  "openalgo-api-key")
 API_HOST = os.getenv("OPENALGO_API_HOST", "http://127.0.0.1:5000")
 
-EXPIRY        = "28AUG25"      # ✅ option expiry
-RADIUS        = 20             # ± strikes
-STEP          = 100            # ✅ 100-pt strikes (was 50)
-BATCH_SIZE    = 10             # ✅ broker cap per second
+EXPIRY        = "28AUG25"      # option expiry (DDMMMYY)
+RADIUS        = 20             # strikes above and below ATM
+STEP          = 100            # 100-pt strike interval
+BATCH_SIZE    = 10             # quotes per batch
 BATCH_PAUSE   = 2           # seconds to wait between batches
 MAX_RETRIES   = 1              # one retry on 429 / timeout
 BACKOFF_SEC   = 1.2
@@ -45,10 +45,10 @@ client = api(api_key=API_KEY, host=API_HOST)
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-# ───────────── Helpers ───────────────────────────────────────────────────
+# -------------------------------- Helpers ---------------------------------
 def get_atm_strike(step: int = STEP) -> int:
     q = client.quotes(symbol="NIFTY", exchange="NSE_INDEX")
-    print("Underlying Quote :", q)                               # rule 14
+    print("Underlying Quote :", q)
     return int(round(q["data"]["ltp"] / step) * step)
 
 _sym_rx = re.compile(r"^[A-Z]+(\d{2}[A-Z]{3}\d{2})(\d+)(CE|PE)$")
@@ -60,19 +60,20 @@ def fetch_sync(sym: str) -> dict | None:
     """Blocking quote call with a retry for 429 / timeout."""
     for attempt in range(MAX_RETRIES + 1):
         q = client.quotes(symbol=sym, exchange="NFO")
-        print(sym, "→", q)                                       # rule 14
+        print(sym, "->", q)
         if q.get("status") == "success":
-            strike, opt = parse_symbol(sym)
-            if strike is None:
-                print("⚠️  Bad symbol", sym)
+            parsed = parse_symbol(sym)
+            if parsed is None:
+                print("Bad symbol", sym)
                 return None
+            strike, opt = parsed
             return dict(strike=strike, type=opt,
                         oi=q["data"]["oi"], ltp=q["data"]["ltp"])
         if (q.get("code") == 429 or q.get("error_type") == "timeout_error") and attempt < MAX_RETRIES:
             time.sleep(BACKOFF_SEC)
     return None
 
-# ───────────── Batch-paced gather (≈5 req/s) ─────────────────────────────
+# ------------------- Batch-paced gather (about 5 req/s) -------------------
 async def gather_df() -> pd.DataFrame:
     atm = get_atm_strike()
     strikes = [atm + i*STEP for i in range(-RADIUS, RADIUS + 1)]
@@ -84,13 +85,13 @@ async def gather_df() -> pd.DataFrame:
         res   = await asyncio.gather(*[asyncio.to_thread(fetch_sync, s) for s in batch])
         rows.extend(r for r in res if r)
         if i + BATCH_SIZE < len(symbols):
-            await asyncio.sleep(BATCH_PAUSE)          # pace → 5 req/s
+            await asyncio.sleep(BATCH_PAUSE)          # pace: 10 quotes / 2s
 
     if not rows:
-        raise RuntimeError("All quotes failed – check API / symbols.")
+        raise RuntimeError("All quotes failed - check API / symbols.")
     return pd.DataFrame(rows)
 
-# ───────────── Plot (Call = green, Put = red, both positive) ─────────────
+# ------------- Plot (Call = green, Put = red, both positive) --------------
 def plot_oi(df: pd.DataFrame):
     piv = (df.pivot(index="strike", columns="type", values=["oi", "ltp"])
              .sort_index())
@@ -100,17 +101,17 @@ def plot_oi(df: pd.DataFrame):
     fig = go.Figure()
     fig.add_bar(
         x=piv["strike"], y=piv["CE_OI"],          # no minus sign
-        name="Call OI", marker_color="seagreen",  # ✅ green
+        name="Call OI", marker_color="seagreen",
         customdata=piv[["CE_OI", "CE_LTP"]],
         hovertemplate="<b>%{x} CE</b><br>OI %{customdata[0]:,}"
-                      "<br>LTP ₹%{customdata[1]:.2f}<extra></extra>"
+                      "<br>LTP Rs.%{customdata[1]:.2f}<extra></extra>"
     )
     fig.add_bar(
         x=piv["strike"], y=piv["PE_OI"],
-        name="Put OI", marker_color="crimson",    # ✅ red
+        name="Put OI", marker_color="crimson",
         customdata=piv[["PE_OI", "PE_LTP"]],
         hovertemplate="<b>%{x} PE</b><br>OI %{customdata[0]:,}"
-                      "<br>LTP ₹%{customdata[1]:.2f}<extra></extra>"
+                      "<br>LTP Rs.%{customdata[1]:.2f}<extra></extra>"
     )
     atm = get_atm_strike()
     fig.add_vline(
@@ -119,7 +120,7 @@ def plot_oi(df: pd.DataFrame):
         annotation_text=f"ATM {atm}", annotation_position="top"
     )
     fig.update_layout(
-        title=f"NIFTY {datetime.strptime(EXPIRY,'%d%b%y').strftime('%d %b %Y')} – OI Profile",
+        title=f"NIFTY {datetime.strptime(EXPIRY,'%d%b%y').strftime('%d %b %Y')} - OI Profile",
         xaxis=dict(title="Strike", type="category"),
         yaxis_title="Open Interest",
         bargap=0.05, template="plotly_dark",
@@ -129,7 +130,7 @@ def plot_oi(df: pd.DataFrame):
     )
     fig.show()
 
-# ───────────── Runner (script / notebook) ────────────────────────────────
+# ----------------------- Runner (script / notebook) -----------------------
 async def _main():
     df = await gather_df()
     print(df.head())
@@ -143,7 +144,7 @@ def _in_nb() -> bool:
         return False
 
 if _in_nb():
-    await _main()                   # Jupyter
+    asyncio.ensure_future(_main())  # Jupyter already runs an event loop
 else:
     asyncio.run(_main())            # script
 
@@ -165,11 +166,11 @@ OPENALGO_API_HOST = "http://127.0.0.1:5000"
 #### Parameters
 
 ```python
-EXPIRY        = "31JUL25"      # Option expiry date (DDMMMYY format)
+EXPIRY        = "28AUG25"      # Option expiry date (DDMMMYY format)
 RADIUS        = 20             # Number of strikes above/below ATM
 STEP          = 100            # Strike price interval
-BATCH_SIZE    = 5              # API requests per batch
-BATCH_PAUSE   = 1.05           # Seconds between batches
+BATCH_SIZE    = 10             # API requests per batch
+BATCH_PAUSE   = 2              # Seconds between batches
 MAX_RETRIES   = 1              # Retry attempts for failed requests
 BACKOFF_SEC   = 1.2           # Backoff time for retries
 ```
@@ -204,7 +205,10 @@ def fetch_sync(sym: str) -> dict | None:
     for attempt in range(MAX_RETRIES + 1):
         q = client.quotes(symbol=sym, exchange="NFO")
         if q.get("status") == "success":
-            strike, opt = parse_symbol(sym)
+            parsed = parse_symbol(sym)
+            if parsed is None:
+                return None
+            strike, opt = parsed
             return dict(strike=strike, type=opt,
                         oi=q["data"]["oi"], ltp=q["data"]["ltp"])
         if (q.get("code") == 429 or q.get("error_type") == "timeout_error") and attempt < MAX_RETRIES:
@@ -249,7 +253,7 @@ def plot_oi(df: pd.DataFrame):
         x=piv["strike"], y=piv["CE_OI"],
         name="Call OI", marker_color="seagreen",
         customdata=piv[["CE_OI", "CE_LTP"]],
-        hovertemplate="<b>%{x} CE</b><br>OI %{customdata[0]:,}<br>LTP ₹%{customdata[1]:.2f}"
+        hovertemplate="<b>%{x} CE</b><br>OI %{customdata[0]:,}<br>LTP Rs.%{customdata[1]:.2f}"
     )
     
     # Put OI - Red bars
@@ -257,7 +261,7 @@ def plot_oi(df: pd.DataFrame):
         x=piv["strike"], y=piv["PE_OI"],
         name="Put OI", marker_color="crimson",
         customdata=piv[["PE_OI", "PE_LTP"]],
-        hovertemplate="<b>%{x} PE</b><br>OI %{customdata[0]:,}<br>LTP ₹%{customdata[1]:.2f}"
+        hovertemplate="<b>%{x} PE</b><br>OI %{customdata[0]:,}<br>LTP Rs.%{customdata[1]:.2f}"
     )
     
     # ATM line
@@ -269,7 +273,7 @@ def plot_oi(df: pd.DataFrame):
     )
     
     fig.update_layout(
-        title=f"NIFTY {datetime.strptime(EXPIRY,'%d%b%y').strftime('%d %b %Y')} – OI Profile",
+        title=f"NIFTY {datetime.strptime(EXPIRY,'%d%b%y').strftime('%d %b %Y')} - OI Profile",
         xaxis=dict(title="Strike", type="category"),
         yaxis_title="Open Interest",
         bargap=0.05, template="plotly_dark",
@@ -286,14 +290,14 @@ Creates interactive bar chart with hover details.
 #### In Jupyter Notebook
 
 ```python
-# Run all cells to generate OI profile
-await _main()  # Automatically detected and executed
+# Run all cells to generate the OI profile.
+# The runner detects the notebook and schedules _main() on the running loop.
+await _main()
 ```
 
 #### As Python Script
 
-```python
-# Run directly
+```bash
 python NiftyOI.py
 ```
 

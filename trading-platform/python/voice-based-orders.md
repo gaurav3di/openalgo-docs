@@ -24,7 +24,7 @@ This is an experimental feature using OpenAlgo & Groq (Whisper Large V3 Model). 
 
 **Setting up Groq and OpenAlgo API keys:**
 
-1. Go to [console.groq.com](https://www.google.com/url?sa=E\&q=https%3A%2F%2Fconsole.groq.com)
+1. Go to [console.groq.com](https://console.groq.com)
 2. Create an API key and copy it to your clipboard.
 3. In your OpenAlgo application, go to "API Key". Get your OpenAlgo API Key.
 

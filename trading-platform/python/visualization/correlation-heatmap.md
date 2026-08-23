@@ -8,7 +8,7 @@ A financial analysis tool that visualizes statistical relationships between Indi
 
 ### Prerequisites
 
-* **OpenAlgo Python SDK**: Version 1.0.0.30 or higher
+* **OpenAlgo Python SDK**: `pip install openalgo` (2.0.3 or higher)
 * **OpenAlgo Self-Hosted**: Running on `http://127.0.0.1:5000`
 * **Valid API Key**: Generated from OpenAlgo web interface
 * **Market Data Access**: NSE data permissions
@@ -38,11 +38,11 @@ from datetime import datetime, timedelta
 import time
 
 def main():
-    print("🔁 OpenAlgo Python Bot is running.")
+    print("OpenAlgo Python Bot is running.")
     
     # Initialize OpenAlgo client
     client = api(
-        api_key='84f72702d742a7a46bb0dd26187b0ae220d4fff6078a50ffd67c0f1fe0a16a2e',
+        api_key='your_api_key_here',
         host='http://127.0.0.1:5000'
     )
     

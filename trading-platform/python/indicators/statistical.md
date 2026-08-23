@@ -36,7 +36,7 @@ Linear Regression calculates the linear regression line for a given period using
 #### Usage
 
 ```python
-linreg_result = ta.linreg(data, period)
+linreg_result = ta.linreg(data, period=14)
 ```
 
 #### Parameters
@@ -103,7 +103,7 @@ Correlation measures the statistical relationship between two data series, rangi
 #### Usage
 
 ```python
-correlation_result = ta.correlation(data1, data2, period)
+correlation_result = ta.correlation(data1, data2, period=20)
 ```
 
 #### Parameters
@@ -304,7 +304,7 @@ Median Bands combine median calculation with ATR-based bands and EMA smoothing f
 #### Usage
 
 ```python
-median, upper_band, lower_band, median_ema = ta.median_bands.calculate_with_bands(
+median, upper_band, lower_band, median_ema = ta.median_bands(
     high, low, close, source=None, median_length=3, atr_length=14, atr_mult=2.0
 )
 ```
@@ -327,7 +327,7 @@ median, upper_band, lower_band, median_ema = ta.median_bands.calculate_with_band
 
 ```python
 # Calculate Median Bands
-median, upper, lower, median_ema = ta.median_bands.calculate_with_bands(
+median, upper, lower, median_ema = ta.median_bands(
     df['high'], df['low'], df['close']
 )
 
@@ -424,7 +424,7 @@ df['CORREL_CLOSE_VOLUME'] = ta.correlation(df['close'], df['volume'], 20)
 df['CORREL_HIGH_LOW'] = ta.correlation(df['high'], df['low'], 15)
 
 # Median Bands Analysis
-median, upper, lower, median_ema = ta.median_bands.calculate_with_bands(
+median, upper, lower, median_ema = ta.median_bands(
     df['high'], df['low'], df['close'], median_length=5, atr_length=14
 )
 

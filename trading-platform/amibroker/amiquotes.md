@@ -1,8 +1,19 @@
 # AmiQuotes
 
-**This tool helps you to fetch live data ( 1minute / Daily) data directly from the broker and seamlessly update Amibroker using the Amiquotes tool every minute.**
+**This tool helps you to fetch data (1 minute / Daily) directly from the broker and seamlessly update Amibroker using the AmiQuote tool every minute.**
 
+AmiQuote is a polling downloader, not a streaming feed. The `OpenAlgo.ads` file below is an AmiQuote data-source definition: each time AmiQuote runs it issues one HTTP GET per symbol against the OpenAlgo [Ticker API](../../api-documentation/v1/data-api/ticker.md) and imports the plain-text result into the AmiBroker database.
 
+```
+GET http://127.0.0.1:5000/api/v1/ticker/{symbol}?apikey={api_key}&interval={interval}&from={from}&to={to}&format=txt
+```
+
+Two consequences worth knowing before you start:
+
+* The data source declares only two usable intervals: **Daily** (`interval=D`, up to 3650 days per request) and **1-minute** (`interval=1m`, 1 day per request). The other periodicities listed by AmiQuote carry no OpenAlgo interval token and will not download.
+* The Ticker API clamps the requested date range server side: intraday intervals are capped at 30 days back from the end date, and D/W/M at 10 years. Longer requests are silently trimmed rather than rejected.
+
+If you want a live tick feed and realtime charts instead of a once-a-minute snapshot import, use the [OpenAlgo AmiBroker Plugin](amibroker-plugin.md), which streams from the OpenAlgo WebSocket proxy.
 
 ### Prerequisites
 
@@ -55,6 +66,8 @@ Now click on Intraday Settings and Enable Allow Mixed EOD/Interval data and pres
 ### Step 3 : Add OpenAlgo Ticker Symbols
 
 Add Ticker Symbols from the Symbols menu -> New
+
+The AmiBroker ticker name is pasted straight into the Ticker API path, so it must be written as `EXCHANGE:SYMBOL`, for example `NSE:RELIANCE`, `BSE:TCS`, `MCX:CRUDEOIL18JUN26FUT`, `NSE_INDEX:NIFTY`. This is the reverse of the `SYMBOL-EXCHANGE` format used by the OpenAlgo AmiBroker data plugin. A ticker with no `EXCHANGE:` prefix does not fail cleanly: the Ticker API falls back to `NSE:RELIANCE` and you will silently import the wrong instrument.
 
 <figure><img src="../../.gitbook/assets/image (69).png" alt=""><figcaption></figcaption></figure>
 

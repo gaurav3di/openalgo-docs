@@ -65,14 +65,14 @@ Aroon indicators measure the time since the highest high and lowest low, indicat
 #### Usage
 
 ```python
-aroon_up, aroon_down = ta.aroon(high, low, period=14)
+aroon_up, aroon_down = ta.aroon(high, low, period=25)
 ```
 
 #### Parameters
 
 * **high** _(array-like)_: High prices
 * **low** _(array-like)_: Low prices
-* **period** _(int, default=14)_: Period for Aroon calculation
+* **period** _(int, default=25)_: Period for Aroon calculation
 
 #### Returns
 
@@ -151,12 +151,12 @@ print(df[['close', 'Pivot', 'Resistance_1', 'Support_1', 'Price_Position']].tail
 
 ### Parabolic SAR
 
-Parabolic SAR provides trailing stop levels and trend direction signals.
+Parabolic SAR provides trailing stop levels. `ta.psar` returns the stop levels only; the trend direction is read off the position of the SAR relative to price.
 
 #### Usage
 
 ```python
-sar_values, trend_direction = ta.psar(high, low, acceleration=0.02, maximum=0.2)
+sar_values = ta.psar(high, low, acceleration=0.02, maximum=0.2)
 ```
 
 #### Parameters
@@ -168,21 +168,23 @@ sar_values, trend_direction = ta.psar(high, low, acceleration=0.02, maximum=0.2)
 
 #### Returns
 
-* **tuple**: (sar\_values, trend\_direction) arrays
+* **array**: SAR stop levels in the same format as input. `ta.psar` returns the SAR values only, not a trend array. Derive the direction by comparing price with the SAR: price above SAR is an uptrend, price below SAR is a downtrend.
 
 #### Example
 
 ```python
 # Calculate Parabolic SAR
-sar_values, trend_direction = ta.psar(df['high'], df['low'])
+sar_values = ta.psar(df['high'], df['low'])
 
 df['SAR'] = sar_values
-df['SAR_Trend'] = trend_direction
+
+# Derive trend direction from the SAR position: -1 uptrend, 1 downtrend
+df['SAR_Trend'] = (df['close'] > df['SAR']).map({True: -1, False: 1})
 
 # Generate trading signals
 df['SAR_Signal'] = df.apply(lambda row:
-    'Buy' if row['close'] > row['SAR'] and row['SAR_Trend'] == -1  # Uptrend
-    else 'Sell' if row['close'] < row['SAR'] and row['SAR_Trend'] == 1  # Downtrend
+    'Buy' if row['close'] > row['SAR']    # Uptrend
+    else 'Sell' if row['close'] < row['SAR']  # Downtrend
     else 'Hold', axis=1)
 
 # Calculate distance from SAR (risk management)
@@ -363,10 +365,10 @@ df['Aroon_Up'] = aroon_up
 df['Aroon_Down'] = aroon_down
 df['Aroon_Osc'] = df['Aroon_Up'] - df['Aroon_Down']
 
-# Parabolic SAR
-sar_values, sar_trend = ta.psar(df['high'], df['low'])
+# Parabolic SAR (values only; direction is derived from price vs SAR)
+sar_values = ta.psar(df['high'], df['low'])
 df['SAR'] = sar_values
-df['SAR_Trend'] = sar_trend
+df['SAR_Trend'] = (df['close'] > df['SAR']).map({True: -1, False: 1})
 
 # Random Walk Index
 rwi_high, rwi_low = ta.rwi(df['high'], df['low'], df['close'])

@@ -1,6 +1,6 @@
 # Websockets (Verbose Control)
 
-The `verbose` parameter manages SDK-level logging for WebSocket feed operations (LTP, Quote, Depth).\
+The `verbose` parameter manages SDK-level logging for WebSocket feed operations (LTP, Quote, Depth and order updates).\
 This helps developers toggle between silent mode, basic logs, or full debug-level market data streaming.
 
 ***
@@ -9,9 +9,9 @@ This helps developers toggle between silent mode, basic logs, or full debug-leve
 
 | Level      | Value          | Description                                        |
 | ---------- | -------------- | -------------------------------------------------- |
-| **Silent** | `False` or `0` | No SDK output at all, errors included (default)    |
+| **Silent** | `False` or `0` | No SDK output, not even errors (default)           |
 | **Basic**  | `True` or `1`  | Connection, authentication, subscription and error logs |
-| **Debug**  | `2`            | All market data updates, including LTP/Quote/Depth |
+| **Debug**  | `2`            | All updates: LTP, Quote, Depth and order updates   |
 
 `verbose` only controls what the SDK prints. Your own `on_data_received` callbacks always run, and every method still returns its result, so a silent client is not a blind one. Set `verbose=1` while you are wiring up a feed: at level `0` a failed authentication or a rejected subscription is silent.
 
@@ -123,13 +123,13 @@ MY CALLBACK: NIFTY LTP: 26008.5
 ```
 === Testing with verbose=True ===
 
-[WS]    Connected to ws://127.0.0.1:8765
-[AUTH]  Authenticating with API key: bf1267a1...7cf9169f
-[AUTH]  Success | Broker: upstox | User: rajandran
-[SUB]   Subscribing NSE_INDEX:NIFTY Quote...
-[SUB]   NSE_INDEX:NIFTY | Mode: Quote | Status: success
-[SUB]   Subscribing NSE:INFY Quote...
-[SUB]   NSE:INFY | Mode: Quote | Status: success
+[WS]     Connected to ws://127.0.0.1:8765
+[AUTH]   Authenticating with API key: bf1267a1...7cf9169f
+[AUTH]   Success | Broker: upstox | User: rajandran
+[SUB]    Subscribing NSE_INDEX:NIFTY Quote...
+[SUB]    Subscribing NSE:INFY Quote...
+[SUB]    NSE_INDEX:NIFTY | Mode: Quote | Status: success
+[SUB]    NSE:INFY | Mode: Quote | Status: success
 MY CALLBACK: NIFTY LTP: 26008.5
 
 --- Poll 1 ---
@@ -144,16 +144,18 @@ MY CALLBACK: NIFTY LTP: 26008.5
 ```
 === Testing with verbose=2 ===
 
-[WS]    Connected to ws://127.0.0.1:8765
-[AUTH]  Authenticating with API key: bf1267a1...7cf9169f
-[AUTH]  Success | Broker: upstox | User: rajandran
-[AUTH]  Full response: {'type': 'auth', 'status': 'success', ...}
-[SUB]   Subscribing NSE_INDEX:NIFTY Quote...
-[SUB]   NSE_INDEX:NIFTY | Mode: Quote | Status: success
-[SUB]   Full response: {'type': 'subscribe', ...}
-[QUOTE] NSE_INDEX:NIFTY      | O: 25998.5    H: 26025.5    L: 25924.15   C: 26008.5    LTP: 26008.5
+[WS]     Connected to ws://127.0.0.1:8765
+[AUTH]   Authenticating with API key: bf1267a1...7cf9169f
+[AUTH]   Success | Broker: upstox | User: rajandran
+[AUTH]   Full response: {'type': 'auth', 'status': 'success', ...}
+[SUB]    Subscribing NSE_INDEX:NIFTY Quote...
+[SUB]    Subscribing NSE:INFY Quote...
+[SUB]    NSE_INDEX:NIFTY | Mode: Quote | Status: success
+[SUB]    NSE:INFY | Mode: Quote | Status: success
+[SUB]    Full response: {'type': 'subscribe', ...}
+[QUOTE]  NSE_INDEX:NIFTY      | O: 25998.5    H: 26025.5    L: 25924.15   C: 26008.5    LTP: 26008.5
 MY CALLBACK: NIFTY LTP: 26008.5
-[QUOTE] NSE:INFY             | O: 1549.0     H: 1550.6     L: 1525.9     C: 1531.0     LTP: 1531.0
+[QUOTE]  NSE:INFY             | O: 1549.0     H: 1550.6     L: 1525.9     C: 1531.0     LTP: 1531.0
 
 --- Poll 1 ---
   NSE_INDEX:NIFTY = 26008.5
@@ -174,5 +176,5 @@ MY CALLBACK: NIFTY LTP: 26008.5
 | **\[QUOTE]** | Quote updates _(verbose=2)_         |
 | **\[DEPTH]** | Market depth updates _(verbose=2)_  |
 | **\[ORDER]** | Order status updates via `subscribe_orders()` _(verbose=2)_ |
-| **\[ERROR]** | Error messages _(always shown)_     |
+| **\[ERROR]** | Error messages _(verbose=1 and above)_ |
 

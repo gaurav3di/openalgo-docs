@@ -1,5 +1,11 @@
 # Button Trading with Split Orders
 
+This module adds BUY, SELL, SHORT, COVER and CLOSE ALL buttons to the chart and splits a large order into freeze-quantity sized chunks before sending them. The splitting happens in AFL: the `PlaceSplitOrders` function loops and calls `POST /api/v1/placeorder` once per chunk, and CLOSE ALL calls `POST /api/v1/closeposition`.
+
+{% hint style="info" %}
+OpenAlgo also exposes a native [splitorder](../../api-documentation/v1/orders-api/splitorder.md) endpoint that does the same chunking server side from a single request: send `quantity` plus `splitsize` to `POST /api/v1/splitorder`. It keeps the AFL simpler and avoids the client-side loop. See [Button Trading with Spit Order (Options)](button-trading-with-spit-order-options.md) for a module built that way.
+{% endhint %}
+
 ```clike
 //Rajandran R - Creator of OpenAlgo
 //website - openalgo.in / marketcalls.in

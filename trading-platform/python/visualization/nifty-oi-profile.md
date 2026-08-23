@@ -17,17 +17,17 @@ The OI Profile serves as a critical tool for derivatives traders to:
 
 ```python
 """
-NIFTY 28 AUG 2025 — Futures (5m, 7 days) + Options OI Profile (DAILY)
+NIFTY 28 AUG 2025 - Futures (5m, 7 days) + Options OI Profile (DAILY)
 Author  : OpenAlgo GPT
 Updated : 2025-08-19
-Notes   : • Options OI (both Current OI and 1D Δ) is read ONLY from 1D history
-          • No option quotes are used for OI; no intraday fallback
-          • Futures panel is 5m, last 7 calendar days
-          • Plotly candlestick x-axis uses category type (as required)
-          • Fixed timezone issues
+Notes   : - Options OI (both Current OI and 1D change) is read ONLY from 1D history
+          - No option quotes are used for OI; no intraday fallback
+          - Futures panel is 5m, last 7 calendar days
+          - Plotly candlestick x-axis uses category type (as required)
+          - Timezone-aware comparisons throughout
 """
 
-print("🔁 OpenAlgo Python Bot is running.")  # rule 13
+print("OpenAlgo Python Bot is running.")
 
 import os, sys, re, time, asyncio, numpy as np, pandas as pd
 from datetime import datetime, timedelta
@@ -35,7 +35,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from openalgo import api
 
-# ───────────────────────── CONFIG ─────────────────────────
+# --------------------------------- CONFIG ---------------------------------
 API_KEY  = 'your-openalgo-apikey'
 API_HOST = "http://127.0.0.1:5000"
 
@@ -55,12 +55,12 @@ BATCH_PAUSE   = 2
 MAX_RETRIES   = 1
 BACKOFF_SEC   = 1.0
 
-# ─────────────────────── INIT CLIENT ──────────────────────
+# ------------------------------ INIT CLIENT -------------------------------
 client = api(api_key=API_KEY, host=API_HOST)
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-# ───────────────────── SYMBOL HELPERS ─────────────────────
+# ----------------------------- SYMBOL HELPERS -----------------------------
 FUT_SYMBOL = f"{BASE}{EXPIRY}FUT"  # e.g., NIFTY28AUG25FUT  (for candles only)
 _rx_opt = re.compile(r"^([A-Z]+)(\d{2}[A-Z]{3}\d{2})(\d+)(CE|PE)$")
 
@@ -71,13 +71,13 @@ def parse_option(sym: str):
     return base, expiry, int(strike), typ
 
 def get_atm_strike(step: int = STEP) -> int:
-    """Use NSE_INDEX quote to compute nearest 100-pt ATM and PRINT the quote (rule 14)."""
+    """Use the NSE_INDEX quote to compute the nearest 100-pt ATM."""
     q = client.quotes(symbol=BASE, exchange=EXCHANGE_IDX)
-    print("Underlying Quote :", q)  # rule 14
+    print("Underlying Quote :", q)
     ltp = q["data"]["ltp"]
     return int(round(ltp / step) * step)
 
-# ───────────────── HISTORY NORMALIZER ─────────────────────
+# --------------------------- HISTORY NORMALIZER ---------------------------
 def _parse_epoch_like(s: pd.Series) -> pd.DatetimeIndex:
     """Detect ms vs s epoch and parse safely; fallback to strings."""
     s_num = pd.to_numeric(s, errors="coerce")
@@ -134,15 +134,16 @@ def _find_oi_col(df: pd.DataFrame) -> str | None:
         if "oi" in c.lower(): return c
     return None
 
-# ─────────── DAILY OI for a single option (current & prev) ───────────
+# ------------- DAILY OI for a single option (current & prev) --------------
 def fetch_daily_oi_sync(symbol: str) -> dict | None:
     """
     Get CURRENT OI (last daily bar) and PREVIOUS OI (bar -1) strictly from DAILY history.
     Returns dict with strike, type, CE/PE OI, Daily delta, and (optional) last daily close for hover.
     """
-    # fetch only daily bars using start/end dates (rule 4)
+    # fetch only daily bars using start/end dates
     end = datetime.now().date()
     start = end - timedelta(days=14)
+    df = None
     for _ in range(MAX_RETRIES + 1):
         try:
             resp = client.history(
@@ -182,7 +183,7 @@ def fetch_daily_oi_sync(symbol: str) -> dict | None:
     return {"symbol": symbol, "strike": strike, "type": typ,
             "oi": cur_oi, "oi_delta_d": delta_d, "ltp": ltp}
 
-# ─────────────── GATHER DAILY OI for all strikes ───────────────
+# -------------------- GATHER DAILY OI for all strikes ---------------------
 async def gather_daily_oi_for_expiry() -> pd.DataFrame:
     atm = get_atm_strike()
     strikes = [atm + i * STEP for i in range(-RADIUS, RADIUS + 1)]
@@ -207,7 +208,7 @@ async def gather_daily_oi_for_expiry() -> pd.DataFrame:
     piv.columns = ["CE_OI", "PE_OI", "CE_OI_D", "PE_OI_D", "CE_LTP", "PE_LTP"]
     return piv.reset_index().fillna(0)  # Fill NaN with 0 for cleaner display
 
-# ───────────── FUTURES HISTORY (5m, LAST 7 DAYS, CATEGORY X) ─────────────
+# ------------- FUTURES HISTORY (5m, LAST 7 DAYS, CATEGORY X) --------------
 def get_fut_history_5m_7d():
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(days=CANDLE_DAYS)
@@ -253,7 +254,7 @@ def get_fut_history_5m_7d():
     tick_vals = [x_cat[i] for i in range(0, total, tick_step)]
     return df, x_cat, tick_vals
 
-# ────────────────────── PLOTTING (OI Profile Style) ────────────────────────
+# ---------------------- PLOTTING (OI Profile Style) -----------------------
 def plot_oi_profile_style(fut_df: pd.DataFrame, fut_x: list[str], fut_ticks: list[str], oi_df: pd.DataFrame):
     """
     Create an OI profile with:
@@ -368,8 +369,8 @@ def plot_oi_profile_style(fut_df: pd.DataFrame, fut_x: list[str], fut_ticks: lis
     fig.update_xaxes(title_text="Time", type="category", 
                      tickmode="array", tickvals=fut_ticks, 
                      rangeslider=dict(visible=False), row=1, col=1)
-    fig.update_xaxes(title_text="CE ←→ PE OI", row=1, col=2)
-    fig.update_xaxes(title_text="CE ←→ PE Change (D)", row=1, col=3)
+    fig.update_xaxes(title_text="CE / PE OI", row=1, col=2)
+    fig.update_xaxes(title_text="CE / PE Change (D)", row=1, col=3)
     
     # Y-axes labels
     fig.update_yaxes(title_text="Price / Strike", row=1, col=1)
@@ -392,7 +393,7 @@ def plot_oi_profile_style(fut_df: pd.DataFrame, fut_x: list[str], fut_ticks: lis
 
     fig.show()
 
-# ─────────────────────── RUNNER ────────────────────────
+# --------------------------------- RUNNER ---------------------------------
 async def _main():
     try:
         print("Fetching futures data...")
@@ -419,7 +420,7 @@ def _in_nb() -> bool:
         return False
 
 if _in_nb():
-    await _main()
+    asyncio.ensure_future(_main())  # Jupyter already runs an event loop
 else:
     asyncio.run(_main())
 ```
@@ -428,7 +429,7 @@ else:
 
 * **Futures Data**: 5-minute candlestick charts spanning the last 7 calendar days
 * **Options Data**: Daily Open Interest data for both Call (CE) and Put (PE) options
-* **Strike Range**: 20 strikes above and below At-The-Money (ATM), with 100-point intervals
+* **Strike Range**: 10 strikes above and below At-The-Money (ATM) (`RADIUS`), with 100-point intervals (`STEP`)
 * **Expiry**: Focused on current monthly expiry (28AUG25)
 
 ### Visual Layout

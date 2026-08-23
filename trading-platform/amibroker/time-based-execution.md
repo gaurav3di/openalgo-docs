@@ -49,7 +49,7 @@ printf("\n\n\n-----------Internal Memory-----------");
 printf("\nEntry Time :"+entrytime);
 printf("\nEntry Time Enabled :"+StaticVarGet(static_name_+"EntryTime"));
 printf("\nExit Time :"+exittime);
-printf("\nExit Time Enabled :"+StaticVarGet(static_name_+"EXitTime"));
+printf("\nExit Time Enabled :"+StaticVarGet(static_name_+"ExitTime"));
 
 
 //OpenAlgo Dashboard

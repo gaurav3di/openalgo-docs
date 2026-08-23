@@ -2,7 +2,7 @@
 
 ### Strategy Type
 
-**Test Strategy** – Purpose-built for functional validation of data flow, signal generation, order placement, and WebSocket-based exits. Tight SL/Target are kept intentional for testing.
+**Test Strategy**: purpose-built for functional validation of data flow, signal generation, order placement, and WebSocket-based exits. Tight SL/Target are kept intentional for testing.
 
 ### Instrument Configuration
 
@@ -11,7 +11,7 @@
 * Quantity: **1**
 * Product: **MIS**
 * Timeframe (bars): **5m**
-* Historical Lookback: **5 days**
+* Historical Lookback: **3 days** (`LOOKBACK_DAYS`, valid range 1 to 30)
 * Trade Direction Mode: **BOTH** (supports `LONG` / `SHORT` / `BOTH`)
 
 > Note: Behavior is logic-driven; MIS is used only for convenience during tests.
@@ -26,13 +26,13 @@
 * Fetch **5-minute** historical candle data approximately every **5 seconds**.
 * Calculate **EMA-2** and **EMA-4**.
 * Confirm crossover using the **last two closed candles** (not the current forming candle).
-* **Buy Signal:** Previous candle EMA-2 ≤ EMA-4 **and** last closed candle EMA-2 > EMA-4.
-* **Sell Signal:** Previous candle EMA-2 ≥ EMA-4 **and** last closed candle EMA-2 < EMA-4.
+* **Buy Signal:** Previous candle EMA-2 is at or below EMA-4 **and** last closed candle EMA-2 > EMA-4.
+* **Sell Signal:** Previous candle EMA-2 is at or above EMA-4 **and** last closed candle EMA-2 < EMA-4.
 * On confirmed signal:
   * Place a **MARKET** order (**BUY** or **SELL**).
   * Capture entry price and compute risk levels:
-    * **For BUY:** Stoploss = Entry − **₹0.10**, Target = Entry + **₹0.20**
-    * **For SELL:** Stoploss = Entry + **₹0.10**, Target = Entry − **₹0.20**
+    * **For BUY:** Stoploss = Entry - **Rs.0.10**, Target = Entry + **Rs.0.20**
+    * **For SELL:** Stoploss = Entry + **Rs.0.10**, Target = Entry - **Rs.0.20**
 
 ### Exit Conditions
 
@@ -90,7 +90,7 @@ PRODUCT = "MIS"              # MIS (Intraday) or CNC (Delivery)
 # Strategy Parameters
 FAST_EMA_PERIOD = 2          # Fast EMA (smaller number)
 SLOW_EMA_PERIOD = 4          # Slow EMA (larger number)
-CANDLE_TIMEFRAME = "5m"      # 1m, 5m, 15m, 30m, 1h, 1d
+CANDLE_TIMEFRAME = "5m"      # 1m, 5m, 15m, 30m, 1h, D (see client.intervals())
 
 # Historical Data Lookback
 LOOKBACK_DAYS = 3            # Number of days to fetch historical data (1-30)

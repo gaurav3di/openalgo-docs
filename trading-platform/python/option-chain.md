@@ -1,5 +1,7 @@
 # Option Chain
 
+This page covers the standalone option chain application linked below. OpenAlgo itself also ships an option chain: the `/optionchain` page in the web UI, the `/api/v1/optionchain` REST endpoint, and `client.optionchain(underlying=..., exchange=..., expiry_date=..., strike_count=...)` in the Python SDK. See the [OptionChain example](README.md#optionchain-example) for the SDK call and its response shape.
+
 ### Features
 
 

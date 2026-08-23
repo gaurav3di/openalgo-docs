@@ -37,7 +37,7 @@ function PointInside( px, py, x, y, w, h )
 }
 
 /* --------------------------------------------------------------------------
-   LeftClickInside – single-return version
+   LeftClickInside: single-return version
    -------------------------------------------------------------------------- */
 function LeftClickInside( x, y, w, h )
 {
@@ -72,7 +72,7 @@ function GfxSelect( id, csv, x, y, w, h, fg, bg )
     cnt= StrCount( csv, "," ) + 1;
 
     /* mouse */
-    if( s < 0 )                               // closed – header only
+    if( s < 0 )                               // closed, header only
     {
         if( LeftClickInside( x-_x0, y-_y0, w, h ) ) s = -s;      // open
     }
@@ -144,7 +144,7 @@ function PostOA( host, act, qty, apiKey, sym, exch, iprod )
 ReqVer = 6.35;
 if ( Version() < ReqVer )
 {
-    /* old release – show banner, nothing more */
+    /* old release: show banner, nothing more */
     SetChartOptions(0,chartShowDates);
     GfxSetBkColor(colorBlack);
     GfxSetTextColor(colorRed);

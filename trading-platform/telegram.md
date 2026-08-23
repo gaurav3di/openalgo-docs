@@ -68,7 +68,7 @@ Both arguments are required. `/link` with anything other than exactly two argume
 * `/funds` - View available cash, collateral, utilized margin and total
 * `/pnl` - View realized, unrealized and total P\&L
 
-Amounts are printed with the currency symbol that matches your broker: `$` for crypto brokers, otherwise the rupee symbol.
+Amounts are printed with the currency symbol that matches the broker recorded when you linked: `$` for crypto brokers (currently Delta Exchange), otherwise the rupee symbol.
 
 #### Market Data
 
@@ -92,7 +92,7 @@ Amounts are printed with the currency symbol that matches your broker: `$` for c
 
 #### Remote Actions
 
-These commands change state on the OpenAlgo instance. Each one asks for confirmation through inline buttons before it acts.
+These commands change state on the OpenAlgo instance. None of them act on the command alone: each replies with inline buttons, and nothing happens until you press one.
 
 * `/closeall` - Close all open positions. Offers **Yes, close all**, **Close all + Stop strategies**, and **Cancel**. The second option closes every position and then stops every running Python strategy
 * `/stoppython` - List running Python strategies as buttons. Pick one to stop it, or **Stop All** to stop every running strategy. Each choice is confirmed before it runs. If nothing is running the bot says so and stops there
@@ -134,6 +134,10 @@ Alerts are driven by the internal event bus. The events that produce a Telegram 
 | `gtt.expired`          | A GTT lapsed past its `expires_at` without firing               |
 
 Failure events (`order.failed`, `order.modify_failed`, `order.cancel_failed`, `gtt.failed`, `gtt.modify_failed`, `gtt.cancel_failed`, `analyzer.error`) deliberately do not send a Telegram message, so a run of validation rejections cannot flood your chat.
+
+`gtt.placed`, `gtt.modified` and `gtt.cancelled` fire in both Live and Analyze mode. `gtt.triggered` and `gtt.expired` are published by the sandbox GTT manager, so today they only reach you in Analyze mode: a live GTT fires at the broker, where OpenAlgo does not observe the moment it triggers.
+
+The alert formatter has a dedicated layout for each order API type. GTT events do not have one yet, so they arrive under the generic `Order Update` heading with the mode line, strategy name and timestamp but no per-trigger detail.
 
 #### Alert Format
 
@@ -203,7 +207,7 @@ Time: 14:23:45
 
 * Default interval: 5 minutes
 * Default period: 5 days
-* Candlestick price panel plus a volume panel, volume bars coloured green or red by candle direction
+* Candlestick price panel plus a volume panel, with volume bars colored green or red by candle direction
 * Category-type x-axis, so there are no blank gaps for non-trading hours
 
 #### Daily Charts
@@ -303,7 +307,7 @@ The bot uses SQLAlchemy ORM with the following tables:
 * Kaleido engine for PNG export
 * Pandas for data manipulation
 * Category-type x-axis to handle gaps
-* Kaleido 1.x drives a real headless Chromium over the Chrome DevTools Protocol, so Chromium must be installed on the host or in the container. Each render spawns a browser process for roughly one to three seconds
+* OpenAlgo pins `kaleido==1.3.0`. Kaleido 1.x no longer bundles a browser: it drives a real headless Chromium over the Chrome DevTools Protocol, so Chromium must be installed on the host or in the container. Each render spawns a browser process for roughly one to three seconds. A missing Chromium is the usual reason `/chart` replies "Failed to generate charts"
 * The render runs on a genuine, un-monkey-patched OS thread. Kaleido calls `asyncio.run()` internally, which cannot run inside the bot's live event loop, and eventlet's patched `threading.Thread` does not escape it
 
 ### Troubleshooting
@@ -379,7 +383,7 @@ Mounted at `/api/v1/telegram`. Authenticate with an OpenAlgo API key in the `api
 * `POST /api/v1/telegram/stop` - Stop the bot
 * `GET /api/v1/telegram/users` - List linked users. Optional `broker` and `notifications_enabled` query filters
 * `POST /api/v1/telegram/notify` - Send a message to one linked user
-* `POST /api/v1/telegram/broadcast` - Broadcast endpoint. Limited to 5 requests per minute and refuses with HTTP 403 when broadcast is disabled
+* `POST /api/v1/telegram/broadcast` - Broadcast endpoint. Limited to 5 requests per minute and refuses with HTTP 403 when broadcast is disabled. The fan-out itself is not wired up yet, so it returns `success_count` and `fail_count` of 0. Use the **Send Broadcast** button on `/telegram`, which posts to `POST /telegram/broadcast` and does send
 * `GET /api/v1/telegram/stats` - Command usage statistics. Optional `days` (1 to 365, default 7)
 * `GET /api/v1/telegram/preferences` - Read per-user preferences. Requires `telegram_id`
 * `POST /api/v1/telegram/preferences` - Update per-user preferences

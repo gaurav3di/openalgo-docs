@@ -166,12 +166,12 @@ Save this token.
 
 ### 1.2 Configure the Bot Token in OpenAlgo
 
-1. Open the OpenAlgo desktop application.
-2. Go to “Telegram Settings”.
-3. Paste the Bot Token received from BotFather.
-4. Click “Start Bot”.
+1. Open OpenAlgo in your browser (default `http://127.0.0.1:5000`).
+2. Go to the **Telegram Bot** page at `/telegram`, then open **Configuration** (`/telegram/config`).
+3. Paste the Bot Token received from BotFather and click “Save Configuration”.
+4. Return to `/telegram` and click “Start Bot”.
 
-Your bot is now active.
+Your bot is now active. The bot has to stay started: `/api/v1/telegram/notify` rejects requests with HTTP 409 while the bot is stopped, so a scheduled exploration will run but no alert will be delivered.
 
 ### 1.3 Link Your Telegram Account with OpenAlgo
 
@@ -235,7 +235,7 @@ This module is intended for **Daily timeframe only**.
 5. Save the analysis settings:
 
 ```
-File → Save As…
+File > Save As…
 ```
 
 Save as:
@@ -258,7 +258,7 @@ The APX stores:
 1. Go to:
 
 ```
-File → New → Batch
+File > New > Batch
 ```
 
 2. Click “Insert”.
@@ -279,7 +279,7 @@ This batch file will run exploration automatically.
 1. Open:
 
 ```
-Tools → Scheduler
+Tools > Scheduler
 ```
 
 2. Click “Add Task”.
@@ -287,7 +287,7 @@ Tools → Scheduler
 4. Configure:
 
 * At specific date/time: 18:00:00
-* Repeat: Daily (Monday–Friday)
+* Repeat: Daily (Monday to Friday)
 
 5. Click “OK”.
 
@@ -323,7 +323,10 @@ This works only on **Daily timeframe** strategies.
    * Session segmentation
 3. AmiBroker must remain running for Scheduler tasks to execute.
 4. OpenAlgo must remain running for Telegram API to respond.
-5. Internet connection must remain active.
+5. The Telegram bot must be started in OpenAlgo. If it is stopped, `POST /api/v1/telegram/notify` returns HTTP 409 and nothing is delivered.
+6. The **OpenAlgo Username** parameter must match the OpenAlgo account that ran `/link` in Telegram. If no linked user matches, the API returns HTTP 404.
+7. **Telegram Priority** is clamped to the range 1 to 10; anything outside it falls back to 5.
+8. Internet connection must remain active.
 
 ***
 

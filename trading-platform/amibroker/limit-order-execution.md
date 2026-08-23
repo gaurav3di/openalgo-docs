@@ -906,7 +906,7 @@ _SECTION_END();
 **Execution Flow:**
 
 ```
-Place Limit Order → Monitor Status → Modify if Open (max N times) → Cancel if Still Open → Final Status Check
+Place Limit Order > Monitor Status > Modify if Open (max N times) > Cancel if Still Open > Final Status Check
 ```
 
 ***
@@ -951,7 +951,7 @@ Place Limit Order → Monitor Status → Modify if Open (max N times) → Cancel
 | ----------- | --------- | ------------------------------------------------ |
 | Price Mode  | ParamList | MidPrice, BestBid, BestAsk, BidOffset, AskOffset |
 | Tick Offset | Param     | Number of ticks to offset (0-10)                 |
-| Tick Size   | ParamList | 0.01, 0.05, 0.1, 0.2, 0.25, 0.5, 1, 5, 10, 25    |
+| Tick Size   | ParamList | 1 (default), 0.01, 0.05, 0.1, 0.2, 0.25, 0.5, 5, 10, 25 |
 | Max Retries | Param     | Maximum modification attempts (1-10, default: 3) |
 | Retry Delay | Param     | Seconds between status checks (1-10, default: 1) |
 
@@ -990,6 +990,10 @@ All prices are rounded to the nearest tick size for exchange compliance.
 | ModifyOrder | POST /api/v1/modifyorder | Update order price          |
 | CancelOrder | POST /api/v1/cancelorder | Cancel pending order        |
 
+Unlike the other AmiBroker modules, this one has no Host parameter: the base URL `http://127.0.0.1:5000` is written into each of the five API functions (`FetchQuotes`, `PlaceLimitOrder`, `CheckOrderStatus`, `ModifyLimitOrder`, `CancelLimitOrder`). If OpenAlgo runs on another host or port, edit all five.
+
+`modifyorder` is the strictest of these calls: OpenAlgo requires `apikey`, `strategy`, `exchange`, `symbol`, `orderid`, `action`, `product`, `pricetype`, `price`, `quantity`, `disclosed_quantity` and `trigger_price` to be present in every request. The module sends all of them, so do not trim the payload when adapting it.
+
 ***
 
 ### API Call Sequence
@@ -997,31 +1001,31 @@ All prices are rounded to the nearest tick size for exchange compliance.
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  STEP 1: Fetch Quote                                            │
-│  POST /api/v1/quotes → Get bid, ask, ltp                        │
+│  POST /api/v1/quotes -> Get bid, ask, ltp                       │
 │  Calculate limit price based on selected mode                   │
 │  Round to nearest tick size                                     │
 └─────────────────────────────────────────────────────────────────┘
-                              ↓
+                                 ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  STEP 2: Place Limit Order                                      │
 │  POST /api/v1/placeorder                                        │
 │  pricetype: "LIMIT", price: calculated price                    │
 │  Store: orderID                                                 │
 └─────────────────────────────────────────────────────────────────┘
-                              ↓
+                                 ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  STEP 3: Check Order Status (after retry delay)                 │
 │  POST /api/v1/orderstatus                                       │
 │  Read: order_status (complete/open/rejected/cancelled)          │
 └─────────────────────────────────────────────────────────────────┘
-                              ↓
+                                 ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  STEP 4: Modify Order (if open and retry < max)                 │
-│  POST /api/v1/quotes → Fetch fresh bid/ask                      │
-│  POST /api/v1/modifyorder → Update price                        │
+│  POST /api/v1/quotes -> Fetch fresh bid/ask                     │
+│  POST /api/v1/modifyorder -> Update price                       │
 │  Increment retry counter, loop back to Step 3                   │
 └─────────────────────────────────────────────────────────────────┘
-                              ↓
+                                 ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  STEP 5: Cancel Order (after max retries exhausted)             │
 │  POST /api/v1/cancelorder                                       │
@@ -1068,22 +1072,22 @@ All prices are rounded to the nearest tick size for exchange compliance.
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│       LIMIT ORDER EXECUTION - SYMBOL (EXCHANGE)            │
+│         LIMIT ORDER EXECUTION - SYMBOL (EXCHANGE)          │
 ├────────────────────────────────────────────────────────────┤
-│                    MARKET DATA                             │
+│                        MARKET DATA                         │
 ├──────────────┬───────────────────────┬─────────────────────┤
-│     BID      │         LTP           │        ASK          │
-│   5765.00    │       5766.00         │      5767.00        │
-├──────────────┼───────────────────────┼─────────────────────┤
-│     MID      │       5766.00         │  SPREAD  │   2.00   │
-├──────────────┴───────────────────────┴─────────────────────┤
-│                    ORDER STATUS                            │
+│     BID      │          LTP          │         ASK         │
+│   5765.00    │        5766.00        │       5767.00       │
+├──────────────┼───────────────────────┼──────────┬──────────┤
+│     MID      │        5766.00        │  SPREAD  │   2.00   │
+├──────────────┴───────────────────────┴──────────┴──────────┤
+│                        ORDER STATUS                        │
 ├──────────────┬─────────────────────────────────────────────┤
-│    STATE     │              ORDER ID                       │
-│  MONITORING  │         250828000185002                     │
-├──────────────┼──────────────┼──────────────┼───────────────┤
-│   ACTION     │    PRICE     │    RETRY     │    FILLED     │
-│     BUY      │   5766.00    │    1 / 3     │     ---       │
+│    STATE     │                   ORDER ID                  │
+│  MONITORING  │               250828000185002               │
+├──────────────┼──────────────┬──────────────┬───────────────┤
+│    ACTION    │    PRICE     │    RETRY     │     FILLED    │
+│     BUY      │   5766.00    │    1 / 3     │      ---      │
 ├──────────────┴──────────────┴──────────────┴───────────────┤
 │  Modified @ 5766.00. Monitoring...                         │
 ├────────────────────────────────────────────────────────────┤
@@ -1150,11 +1154,13 @@ All prices are rounded to the nearest tick size for exchange compliance.
 | ---------------- | -------- | --------------------- |
 | Equity           | NSE/BSE  | 0.05                  |
 | Equity F\&O      | NFO/BFO  | 0.05                  |
-| Currency Futures | CDS      | 0.0025                |
+| Currency Futures | CDS      | 0.0025 (see note)     |
 | Crude Oil        | MCX      | 1                     |
 | Natural Gas      | MCX      | 0.1                   |
 | Gold             | MCX      | 1                     |
 | Silver           | MCX      | 1                     |
+
+Note: 0.0025 is not one of the values offered by the Tick Size ParamList. For CDS either add `0.0025` to the `ParamList("Tick Size", ...)` string in the AFL or pick 0.01, which is a multiple of the CDS tick and therefore still exchange-valid.
 
 ***
 

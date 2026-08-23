@@ -4,6 +4,10 @@
 
 Utility indicators provide essential market analysis functions for signal detection, condition checking, and mathematical operations. These functions are fundamental building blocks for creating trading strategies and market analysis systems.
 
+{% hint style="info" %}
+Unlike the indicator functions, every utility function on this page returns a plain NumPy array even when you pass a pandas Series. Index the result positionally (`result[-1]`), or wrap it with `pd.Series(result, index=df.index)` when you need `.iloc` or index-aligned arithmetic.
+{% endhint %}
+
 ### Import Statement
 
 ```python
@@ -592,13 +596,13 @@ df_analysis = pd.DataFrame({
 print("=== Trading Signal Analysis ===")
 print(f"Total Long Signals: {filtered_long.sum()}")
 print(f"Total Short Signals: {filtered_short.sum()}")
-print(f"Current Position: {'LONG' if position_long.iloc[-1] else 'FLAT'}")
+print(f"Current Position: {'LONG' if position_long[-1] else 'FLAT'}")
 
-if position_long.iloc[-1]:
-    print(f"Entry Price: {entry_prices.iloc[-1]:.2f}")
+if position_long[-1]:
+    print(f"Entry Price: {entry_prices[-1]:.2f}")
     print(f"Current Price: {close.iloc[-1]:.2f}")
     print(f"Unrealized P&L: {unrealized_pnl.iloc[-1]:.2f}%")
-    print(f"Stop Level: {stop_levels.iloc[-1]:.2f}")
+    print(f"Stop Level: {stop_levels[-1]:.2f}")
 
 print("\nRecent signals:")
 signal_points = df_analysis[filtered_long | filtered_short].tail()

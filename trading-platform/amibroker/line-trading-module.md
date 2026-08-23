@@ -8,15 +8,15 @@ The line Trading Automation tool is designed for Manual traders who want to perf
 
 ### **What is Line Trading Automation 1.0?**
 
-•Draw Horizontal Lines or Trend Lines in Amibroker When the levels are touched then the Line Trade Automation Module will convert into signals and orders will be transmitted to the broker automatically.
+* Draw Horizontal Lines or Trend Lines in Amibroker When the levels are touched then the Line Trade Automation Module will convert into signals and orders will be transmitted to the broker automatically.
 
-•Module **Supports Multiple Entry, Targets, Stoploss levels** can be drawn and converted into orders, Supports pyramiding.
+* Module **Supports Multiple Entry, Targets, Stoploss levels** can be drawn and converted into orders, Supports pyramiding.
 
-•Module **prevents placing multiple orders** at the same signal
+* Module **prevents placing multiple orders** at the same signal
 
-•Supports **Intraday and Positional Trades**
+* Supports **Intraday and Positional Trades**
 
-•Supports **3 Long Entry, 3 Long Exit(Target/Stoploss), 3 Short Entries**, and **3 Short Exit (Target/Stoploss)** Line based trading.
+* Supports **3 Long Entry, 3 Long Exit(Target/Stoploss), 3 Short Entries**, and **3 Short Exit (Target/Stoploss)** Line based trading.
 
 
 
@@ -914,21 +914,21 @@ _SECTION_END();
 
 ### **Smart Order Exits**
 
-•**Smart Orders** are enabled while exiting the position.
+* **Smart Orders** are enabled while exiting the position.
 
-•If there are no open positions and if exit orders are triggered then those orders are **smartly ignored**.
+* If there are no open positions and if exit orders are triggered then those orders are **smartly ignored**.
 
-•Provision to close only **Current Quantity** and **All  Open Positions** is provided so that traders can flexibly use their own exit methods
+* Provision to close only **Current Quantity** and **All  Open Positions** is provided so that traders can flexibly use their own exit methods
 
 ### **Requirements**
 
-●OpenAlgo Downloaded and Configured
+* OpenAlgo Downloaded and Configured
 
-●OpenAlgo Supported Broker
+* OpenAlgo Supported Broker
 
-●Amibroker 6.0 or Higher
+* Amibroker 6.0 or Higher
 
-●Realtime Datafeed Subscription
+* Realtime Datafeed Subscription
 
 ### **Type of Entry and Exits (Amibroker Terms)**
 

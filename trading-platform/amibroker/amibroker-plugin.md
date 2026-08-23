@@ -122,7 +122,7 @@ Launch AmiBroker. The OpenAlgo plugin should now be loaded automatically.
 
 #### 4. Add Symbols
 
-1. In AmiBroker, go to **Symbol** → **New** to add a new symbol
+1. In AmiBroker, go to **Symbol** > **New** to add a new symbol
 2. Click **New** to add a new symbol
 3. Enter the symbol ticker (e.g., `SBIN-NSE`, `RELIANCE-BSE`, `NIFTY-NSE_INDEX`, `CRUDEOIL18JUN26FUT-MCX`)
 4. symbol format is `openalgo symbol-openalgo exchange`
@@ -179,10 +179,16 @@ The plugin status area in the AmiBroker status bar reports the connection state 
 
 #### No Data Appearing
 
-* Verify the symbol format matches what OpenAlgo expects
+* Verify the symbol format matches what OpenAlgo expects, including the `-EXCHANGE` suffix
 * Check the AmiBroker log window for error messages
-* Ensure the Refresh Interval is appropriate (not too high)
-* Verify your OpenAlgo subscription includes the requested symbols
+* Ensure Backfill Refresh (sec) is not set so high that intraday history stops catching up
+* Verify your broker's market data feed covers the requested symbols and that OpenAlgo is logged in to the broker
+
+#### Known Limitations
+
+* **Time & Sales is not populating reliably** in the current release. The plugin subscribes to the required WebSocket streams but the Time & Sales window may stay empty. Charts and the Realtime Quote Window are unaffected.
+* Only the 1-minute and Daily intervals are exposed. Other OpenAlgo intervals are not available through the plugin.
+* Streaming windows are WebSocket-only by design. There is no REST quote polling fallback.
 
 ### Support
 
@@ -195,5 +201,5 @@ For issues and support, please visit:
 
 * The plugin requires an active internet connection and running OpenAlgo server connected with your broker
 * Ensure your OpenAlgo server has valid broker credentials configured
-* Data availability depends on your broker's data feed and OpenAlgo subscription
-* WebSocket connection provides real-time tick data updates
+* Data availability depends on your broker's data feed and on the intervals your broker's history API supports
+* The WebSocket connection provides real-time tick data updates; the REST history API provides the completed bars behind them

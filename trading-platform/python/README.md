@@ -1393,6 +1393,8 @@ response
 
 ### Instruments Example
 
+`instruments()` returns a pandas DataFrame, not a dict. Omit `exchange` to download every exchange in one call, which is a large download, so pass an exchange when you only need one.
+
 ```python
 response = client.instruments(exchange="NSE")
 

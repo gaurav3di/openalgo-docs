@@ -10,13 +10,9 @@ cargo add openalgo tokio --features tokio/full
 
 Or add to your `Cargo.toml`:
 
-
-
-To install the OpenAlgo Rust library, add to your `Cargo.toml`:
-
 ```toml
 [dependencies]
-openalgo = "1.0.5"
+openalgo = "1.1.0"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -68,13 +64,14 @@ To place a new market order:
 
 ```rust
 let response = client.place_order(
-    "Rust",
-    "NHPC",
-    "BUY",
-    "NSE",
-    "MARKET",
-    "MIS",
-    "1"
+    "Rust",         // strategy
+    "NHPC",         // symbol
+    "BUY",          // action
+    "NSE",          // exchange
+    "MARKET",       // pricetype
+    "MIS",          // product
+    "1",            // quantity
+    None            // disclosed_quantity (Option<&str>)
 ).await?;
 println!("{:?}", response);
 ```
@@ -89,13 +86,14 @@ To place a new limit order:
 
 ```rust
 let response = client.place_limit_order(
-    "Rust",
-    "YESBANK",
-    "BUY",
-    "NSE",
-    "MIS",
-    "1",
-    "16"
+    "Rust",         // strategy
+    "YESBANK",      // symbol
+    "BUY",          // action
+    "NSE",          // exchange
+    "MIS",          // product
+    "1",            // quantity
+    "16",           // price
+    None            // disclosed_quantity (Option<&str>)
 ).await?;
 println!("{:?}", response);
 ```
@@ -112,14 +110,14 @@ To place a smart order considering the current position size:
 
 ```rust
 let response = client.place_smart_order(
-    "Rust",
-    "TATAMOTORS",
-    "SELL",
-    "NSE",
-    "MARKET",
-    "MIS",
-    "1",
-    "5"
+    "Rust",         // strategy
+    "TATAMOTORS",   // symbol
+    "SELL",         // action
+    "NSE",          // exchange
+    "MARKET",       // pricetype
+    "MIS",          // product
+    "1",            // quantity
+    "5"             // position_size
 ).await?;
 println!("{:?}", response);
 ```
@@ -136,17 +134,18 @@ To place ATM options order
 
 ```rust
 let response = client.options_order(
-    "Rust",
-    "NIFTY",
-    "NSE_INDEX",
-    "28OCT25",
-    "ATM",
-    "CE",
-    "BUY",
-    "75",
-    "MARKET",
-    "NRML",
-    "0"
+    "Rust",         // strategy
+    "NIFTY",        // underlying
+    "NSE_INDEX",    // exchange (the underlying's exchange, not NFO)
+    "ATM",          // offset
+    "CE",           // option_type
+    "BUY",          // action
+    "75",           // quantity
+    "MARKET",       // pricetype
+    "NRML",         // product (options accept MIS or NRML only)
+    Some("28OCT25"),// expiry_date (Option<&str>, DDMMMYY)
+    None,           // strike_int (Option<i32>)
+    None            // extra (Option<HashMap<String, serde_json::Value>>)
 ).await?;
 println!("{:?}", response);
 ```
@@ -161,7 +160,7 @@ Place Options Order Response
   "orderid": "25102800000006",
   "status": "success",
   "symbol": "NIFTY28OCT2525950CE",
-  "underlying": "NIFTY28OCT25FUT",
+  "underlying": "NIFTY",
   "underlying_ltp": 25966.05
 }
 ```
@@ -170,17 +169,18 @@ To place ITM options order
 
 ```rust
 let response = client.options_order(
-    "Rust",
-    "NIFTY",
-    "NSE_INDEX",
-    "28OCT25",
-    "ITM4",
-    "PE",
-    "BUY",
-    "75",
-    "MARKET",
-    "NRML",
-    "0"
+    "Rust",         // strategy
+    "NIFTY",        // underlying
+    "NSE_INDEX",    // exchange
+    "ITM4",         // offset
+    "PE",           // option_type
+    "BUY",          // action
+    "75",           // quantity
+    "MARKET",       // pricetype
+    "NRML",         // product
+    Some("28OCT25"),// expiry_date
+    None,           // strike_int
+    None            // extra
 ).await?;
 println!("{:?}", response);
 ```
@@ -195,7 +195,7 @@ Place Options Order Response
   "orderid": "25102800000007",
   "status": "success",
   "symbol": "NIFTY28OCT2526150PE",
-  "underlying": "NIFTY28OCT25FUT",
+  "underlying": "NIFTY",
   "underlying_ltp": 25966.05
 }
 ```
@@ -384,18 +384,23 @@ To modify an existing order:
 
 ```rust
 let response = client.modify_order(
-    "250408001002736",
-    "Rust",
-    "YESBANK",
-    "BUY",
-    "NSE",
-    "LIMIT",
-    "CNC",
-    "1",
-    "16.5"
+    "250408001002736",  // orderid
+    "Rust",             // strategy
+    "YESBANK",          // symbol
+    "BUY",              // action
+    "NSE",              // exchange
+    "LIMIT",            // pricetype
+    "CNC",              // product
+    "1",                // quantity
+    "16.5",             // price
+    Some("0"),          // disclosed_quantity (Option<&str>)
+    Some("0"),          // trigger_price (Option<&str>)
+    None                // extra
 ).await?;
 println!("{:?}", response);
 ```
+
+The `/modifyorder` endpoint requires every one of `apikey`, `strategy`, `exchange`, `symbol`, `orderid`, `action`, `product`, `pricetype`, `price`, `quantity`, `disclosed_quantity` and `trigger_price`. `None` omits the field from the JSON body, so pass `Some("0")` rather than `None` for `disclosed_quantity` and `trigger_price`.
 
 **Modify Order Response**
 
@@ -710,15 +715,27 @@ println!("{:?}", response);
 }
 ```
 
+`intervals` reports only what the connected broker supports. The `interval` field of `/history` accepts this full set, and rejects anything else: `1s`, `5s`, `10s`, `15s`, `30s`, `45s`, `1m`, `2m`, `3m`, `5m`, `10m`, `15m`, `20m`, `30m`, `1h`, `2h`, `3h`, `4h`, `D`, `W`, `M`, `Q`, `Y`.
+
 #### OptionChain Example
 
-Note: To fetch entire option chain for an expiry, use `option_chain` without strike\_count
+`expiry_date` is mandatory on `/optionchain`. `option_chain` returns the entire chain for that expiry; to limit it to a window around the ATM strike use `client.data.option_chain_strikes`, which adds a `strike_count` (1 to 100).
 
 ```rust
+// Entire chain for the expiry
 let response = client.option_chain(
     "NIFTY",
     "NSE_INDEX",
     "30DEC25"
+).await?;
+println!("{:?}", response);
+
+// 10 strikes above and below ATM
+let response = client.data.option_chain_strikes(
+    "NIFTY",
+    "NSE_INDEX",
+    "30DEC25",
+    10
 ).await?;
 println!("{:?}", response);
 ```
@@ -803,7 +820,7 @@ println!("{:?}", response);
 #### Search Example
 
 ```rust
-let response = client.search("NIFTY 26000 DEC CE", "NFO").await?;
+let response = client.search("NIFTY 26000 DEC CE", Some("NFO"), None).await?;
 println!("{:?}", response);
 ```
 
@@ -838,11 +855,14 @@ ATM Option
 
 ```rust
 let response = client.option_symbol(
-    "NIFTY",
-    "NSE_INDEX",
-    "30DEC25",
-    "ATM",
-    "CE"
+    "NIFTY",          // underlying
+    "NSE_INDEX",      // exchange
+    "ATM",            // offset
+    "CE",             // option_type
+    Some("30DEC25"),  // expiry_date (Option<&str>)
+    None,             // strategy (deprecated, Option<&str>)
+    None,             // strike_int (Option<i32>)
+    None              // extra
 ).await?;
 println!("{:?}", response);
 ```
@@ -867,9 +887,12 @@ ITM Option
 let response = client.option_symbol(
     "NIFTY",
     "NSE_INDEX",
-    "30DEC25",
     "ITM3",
-    "PE"
+    "PE",
+    Some("30DEC25"),
+    None,
+    None,
+    None
 ).await?;
 println!("{:?}", response);
 ```
@@ -894,9 +917,12 @@ OTM Option
 let response = client.option_symbol(
     "NIFTY",
     "NSE_INDEX",
-    "30DEC25",
     "OTM4",
-    "CE"
+    "CE",
+    Some("30DEC25"),
+    None,
+    None,
+    None
 ).await?;
 println!("{:?}", response);
 ```
@@ -943,11 +969,14 @@ println!("{:?}", response);
 
 ```rust
 let response = client.option_greeks(
-    "NIFTY25NOV2526000CE",
-    "NFO",
-    0.00,
-    "NIFTY",
-    "NSE_INDEX"
+    "NIFTY25NOV2526000CE", // symbol
+    "NFO",                 // exchange
+    Some(0.00),            // interest_rate (Option<f64>)
+    None,                  // forward_price (Option<f64>)
+    Some("NIFTY"),         // underlying_symbol (Option<&str>)
+    Some("NSE_INDEX"),     // underlying_exchange (Option<&str>)
+    None,                  // expiry_time (Option<&str>, HH:MM)
+    None                   // extra
 ).await?;
 println!("{:?}", response);
 ```
@@ -1009,9 +1038,11 @@ println!("{:?}", response);
 #### Instruments Example
 
 ```rust
-let response = client.instruments("NSE").await?;
+let response = client.instruments(Some("NSE")).await?;
 println!("{:?}", response);
 ```
+
+`/instruments` is the one v1 market-data endpoint that is a GET rather than a POST; it takes `apikey`, an optional `exchange` and an optional `format` (`json` or `csv`) as query parameters. Passing `None` for the exchange makes the SDK loop over every supported exchange and combine the results client-side.
 
 **Instruments Response**
 
@@ -1244,7 +1275,7 @@ println!("{:?}", response);
 #### Holidays Example
 
 ```rust
-let response = client.holidays(2026).await?;
+let response = client.holidays(Some(2026)).await?;
 println!("{:?}", response);
 ```
 
@@ -1275,7 +1306,7 @@ println!("{:?}", response);
 #### Timings Example
 
 ```rust
-let response = client.timings("2025-12-19").await?;
+let response = client.timings(Some("2025-12-19")).await?;
 println!("{:?}", response);
 ```
 
@@ -1338,10 +1369,81 @@ println!("{:?}", response);
 }
 ```
 
+#### Endpoints not wrapped by the SDK
+
+The Rust SDK does not expose helpers for the GTT endpoints, `multioptiongreeks` or `ping`. Reach them by posting to the REST endpoint directly at `http://127.0.0.1:5000/api/v1/<endpoint>`, passing the same `apikey` field the SDK sends.
+
+**GTT (Good Till Triggered)**
+
+Four endpoints, all POST with a flat JSON body: `placegttorder`, `modifygttorder`, `cancelgttorder` and `gttorderbook`. `trigger_type` is `SINGLE` or `OCO`, and `product` accepts only `CNC` or `NRML`; `MIS` is rejected because a GTT can sit with the broker for days.
+
+SINGLE, buy IDEA if it dips to 9.55:
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "strategy": "My GTT Strategy",
+  "trigger_type": "SINGLE",
+  "exchange": "NSE",
+  "symbol": "IDEA",
+  "action": "BUY",
+  "product": "CNC",
+  "quantity": 1,
+  "pricetype": "LIMIT",
+  "price": 9.50,
+  "triggerprice_sl": 9.55,
+  "triggerprice_tg": 0,
+  "stoploss": null,
+  "target": null
+}
+```
+
+```json
+{"status": "success", "trigger_id": "23132604291205"}
+```
+
+For SINGLE send exactly one of `triggerprice_sl` (trigger sits below LTP) or `triggerprice_tg` (trigger sits above LTP) and leave the other at `0`. For OCO send all four of `triggerprice_sl`, `stoploss`, `triggerprice_tg` and `target`, with `triggerprice_sl` strictly less than `triggerprice_tg`. `modifygttorder` takes the same body plus `trigger_id`, `cancelgttorder` takes `apikey`, `strategy` and `trigger_id`, and `gttorderbook` takes `apikey` alone and returns the active triggers under `data`.
+
+**MultiOptionGreeks**
+
+`optiongreeks` prices one symbol at a time. `multioptiongreeks` prices 1 to 50 option symbols in a single call, with `interest_rate` and `expiry_time` set once for the whole batch:
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "symbols": [
+    {"symbol": "NIFTY30DEC2526000CE", "exchange": "NFO"},
+    {"symbol": "NIFTY30DEC2526000PE", "exchange": "NFO"}
+  ],
+  "interest_rate": 7.0
+}
+```
+
+Individual items can fail while the batch still returns `"status": "success"`, so inspect each entry in `data` and the `summary` block.
+
+**Ping**
+
+`ping` confirms the API key is valid and reports the connected broker:
+
+```json
+{"apikey": "<your_app_apikey>"}
+```
+
+```json
+{"data": {"broker": "zerodha", "message": "pong"}, "status": "success"}
+```
+
+#### WebSocket connection notes
+
+The proxy listens on `ws://127.0.0.1:8765`. Every client authenticates with its OpenAlgo API key before subscribing, and a connection that has not authenticated within 15 seconds is closed. Subscriptions carry a mode: `1` for LTP, `2` for Quote and `3` for Depth. The strings `LTP`, `Quote` and `Depth` are accepted as well and are matched case-insensitively; Quote is the default when the field is omitted. LTP updates are throttled to one per symbol per 50 ms, so a fast-moving symbol still delivers at most 20 LTP messages a second.
+
 #### LTP Data (Streaming WebSocket)
 
+`client.websocket()` returns an `OpenAlgoWebSocket`. Calling `connect()` opens the socket to `ws://127.0.0.1:8765`, sends the `{"action": "authenticate", "api_key": ...}` handshake for you, and hands back a command sender plus a data receiver. Wrap the sender in a `WsSubscriber` to subscribe, and read ticks off the receiver as `WsData` values. There is no callback closure form.
+
 ```rust
-use openalgo::OpenAlgo;
+use openalgo::{OpenAlgo, WsData, WsInstrument};
+use openalgo::websocket::WsSubscriber;
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -1349,38 +1451,47 @@ use tokio::time::sleep;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = OpenAlgo::new("your_api_key");
 
-    // Create WebSocket client
-    let mut ws = client.websocket();
-
-    // Connect to WebSocket server
-    ws.connect().await?;
+    // Create the WebSocket client, connect and authenticate
+    let ws = client.websocket();
+    let (cmd_tx, mut data_rx) = ws.connect().await?;
+    let subscriber = WsSubscriber::new(cmd_tx);
 
     // Define instruments to subscribe
     let instruments = vec![
-        ("NSE", "RELIANCE"),
-        ("NSE", "INFY"),
+        WsInstrument::new("NSE", "RELIANCE"),
+        WsInstrument::new("NSE", "INFY"),
     ];
 
     // Subscribe to LTP updates
-    ws.subscribe_ltp(&instruments, |data| {
-        println!("LTP Update: {:?}", data);
-    }).await?;
+    subscriber.subscribe_ltp(instruments.clone()).await?;
+
+    // Read updates off the data channel
+    tokio::spawn(async move {
+        while let Some(data) = data_rx.recv().await {
+            if let WsData::Ltp(ltp) = data {
+                println!("LTP Update: {:?}", ltp);
+            }
+        }
+    });
 
     // Run for 10 seconds
     sleep(Duration::from_secs(10)).await;
 
     // Unsubscribe and disconnect
-    ws.unsubscribe_ltp(&instruments).await?;
-    ws.disconnect().await?;
+    subscriber.unsubscribe_ltp(instruments).await?;
+    subscriber.disconnect().await?;
 
     Ok(())
 }
 ```
 
+LTP ticks are throttled by the proxy to one update per symbol per 50 ms.
+
 #### Quotes (Streaming WebSocket)
 
 ```rust
-use openalgo::OpenAlgo;
+use openalgo::{OpenAlgo, WsData, WsInstrument};
+use openalgo::websocket::WsSubscriber;
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -1388,22 +1499,29 @@ use tokio::time::sleep;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = OpenAlgo::new("your_api_key");
 
-    let mut ws = client.websocket();
-    ws.connect().await?;
+    let ws = client.websocket();
+    let (cmd_tx, mut data_rx) = ws.connect().await?;
+    let subscriber = WsSubscriber::new(cmd_tx);
 
     let instruments = vec![
-        ("NSE", "RELIANCE"),
-        ("NSE", "INFY"),
+        WsInstrument::new("NSE", "RELIANCE"),
+        WsInstrument::new("NSE", "INFY"),
     ];
 
-    ws.subscribe_quote(&instruments, |data| {
-        println!("Quote Update: {:?}", data);
-    }).await?;
+    subscriber.subscribe_quote(instruments.clone()).await?;
+
+    tokio::spawn(async move {
+        while let Some(data) = data_rx.recv().await {
+            if let WsData::Quote(quote) = data {
+                println!("Quote Update: {:?}", quote);
+            }
+        }
+    });
 
     sleep(Duration::from_secs(10)).await;
 
-    ws.unsubscribe_quote(&instruments).await?;
-    ws.disconnect().await?;
+    subscriber.unsubscribe_quote(instruments).await?;
+    subscriber.disconnect().await?;
 
     Ok(())
 }
@@ -1412,7 +1530,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #### Depth (Streaming WebSocket)
 
 ```rust
-use openalgo::OpenAlgo;
+use openalgo::{OpenAlgo, WsData, WsInstrument};
+use openalgo::websocket::WsSubscriber;
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -1420,23 +1539,85 @@ use tokio::time::sleep;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = OpenAlgo::new("your_api_key");
 
-    let mut ws = client.websocket();
-    ws.connect().await?;
+    let ws = client.websocket();
+    let (cmd_tx, mut data_rx) = ws.connect().await?;
+    let subscriber = WsSubscriber::new(cmd_tx);
 
     let instruments = vec![
-        ("NSE", "RELIANCE"),
-        ("NSE", "INFY"),
+        WsInstrument::new("NSE", "RELIANCE"),
+        WsInstrument::new("NSE", "INFY"),
     ];
 
-    ws.subscribe_depth(&instruments, |data| {
-        println!("Market Depth Update: {:?}", data);
-    }).await?;
+    subscriber.subscribe_depth(instruments.clone()).await?;
+
+    tokio::spawn(async move {
+        while let Some(data) = data_rx.recv().await {
+            if let WsData::Depth(depth) = data {
+                println!("Market Depth Update: {:?}", depth);
+            }
+        }
+    });
 
     sleep(Duration::from_secs(10)).await;
 
-    ws.unsubscribe_depth(&instruments).await?;
-    ws.disconnect().await?;
+    subscriber.unsubscribe_depth(instruments).await?;
+    subscriber.disconnect().await?;
 
     Ok(())
 }
 ```
+
+#### Cached Snapshots
+
+`OpenAlgoWebSocket` also keeps a local snapshot cache, updated as ticks arrive. Pass `None` for both arguments to get every cached entry.
+
+```rust
+let ltp = ws.get_ltp(Some("NSE"), Some("RELIANCE"));
+let quotes = ws.get_quotes(Some("NSE"), Some("RELIANCE"));
+let depth = ws.get_depth(Some("NSE"), Some("RELIANCE"));
+```
+
+#### Order Updates (Streaming WebSocket)
+
+The same proxy on port 8765 also carries account-scoped order updates. The Rust SDK does not wrap them, so send the raw frames on your own WebSocket connection: authenticate first, then subscribe.
+
+```json
+{"action": "authenticate", "api_key": "<your_app_apikey>"}
+```
+
+```json
+{"action": "subscribe_orders"}
+```
+
+The server acknowledges the subscription:
+
+```json
+{"type": "subscribe_orders", "status": "success", "message": "Subscribed to order updates"}
+```
+
+Every subsequent status change on any order in the account then arrives as:
+
+```json
+{
+  "type": "order_update",
+  "user_id": "<openalgo_loginid>",
+  "mode": "live",
+  "broker": "zerodha",
+  "orderid": "250408000989443",
+  "symbol": "RELIANCE",
+  "exchange": "NSE",
+  "action": "BUY",
+  "quantity": 1,
+  "price": 0,
+  "trigger_price": 0,
+  "pricetype": "MARKET",
+  "product": "MIS",
+  "order_status": "complete",
+  "filled_quantity": 1,
+  "pending_quantity": 0,
+  "average_price": 1180.1,
+  "rejection_reason": null
+}
+```
+
+`{"action": "unsubscribe_orders"}` stops the stream. Unlike a market-data subscription there is no symbol, exchange or mode: the subscription covers the whole account.
