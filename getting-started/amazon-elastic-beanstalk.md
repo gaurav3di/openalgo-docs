@@ -29,13 +29,19 @@
 
 **Configure the .env File**
 
-* Open the sample.env file in the OpenAlgo project.
-* Right-click and rename it to .env.
+* Copy the `.sample.env` file in the OpenAlgo project to `.env` (`cp .sample.env .env`).
 * Update the REDIRECT\_URL to your custom domain.
 * For example, if your custom domain for angel trading account is opendash.app, update it to https://opendash.app/angel/callback.
 * If you’re not using HTTPS, use http://openalgo.app/angel/callback.
 * Make sure to update the HOST\_SERVER to your custom domain as well as shown in the video.
 * You might also want to update the BROKER\_API\_KEY and BROKER\_API\_SECRET according to your broker credentials.
+*   Generate APP\_KEY, API\_KEY\_PEPPER and FERNET\_SALT **before** you zip the bundle, and put the generated values in `.env`:
+
+    ```bash
+    python -c "import secrets; print(secrets.token_hex(32))"
+    ```
+
+    Run it three times and paste one value into each key, replacing the `OPENALGO_PLACEHOLDER_...` text. On a normal install OpenAlgo generates these itself on first start, but an Elastic Beanstalk deploy replaces the whole application bundle each time, so a value generated on the instance would be lost on the next deploy. Rotating `API_KEY_PEPPER` or `FERNET_SALT` invalidates every stored password hash and every encrypted broker token, so they must be fixed in the bundle and kept identical across deploys.
 * Save the changes.
 
 **Create the Elastic Beanstalk Application**

@@ -31,10 +31,12 @@ Before starting the tunnel, you must tell OpenAlgo what its public address will 
 2. Open the `.env` file.
 3.  Locate the `HOST_SERVER` variable and update it with your intended domain:
 
-    ```env
-    HOST_SERVER="https://demo.openalgo.in"
+    ```dotenv
+    HOST_SERVER = 'https://demo.openalgo.in'
     ```
-4. Save the file and start OpenAlgo: `python app.py` (running on port 5000).
+
+    Update `REDIRECT_URL` to match, for example `https://demo.openalgo.in/<broker>/callback`, and register that same URL with your broker.
+4. Save the file and start OpenAlgo with `uv run app.py`. It listens on port 5000, and the WebSocket proxy on port 8765.
 
 ***
 

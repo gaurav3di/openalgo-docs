@@ -16,6 +16,7 @@ description: This Sections help users to install openalgo
 * [TOTP Configuration](totp-configuration.md)
 * [Forgot Password](forgot-password.md)
 * [Upgrade](upgrade.md)
+* [Migrating to gthread (Experimental)](gthread-migration.md)
 
 
 

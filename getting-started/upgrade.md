@@ -27,7 +27,20 @@ The script automatically:
 6. Runs all database migrations
 7. Restarts the service
 
-Legacy multi-deployment installs (`/var/python/openalgo-flask/<name>/`) are detected automatically and the correct `openalgo-<name>` service is updated.
+Legacy multi-deployment installs (`/var/python/openalgo-flask/<name>/openalgo/`) are detected automatically and the correct `openalgo-<name>` service is updated.
+
+{% hint style="warning" %}
+`update.sh` does **not** detect instances created by the current `install/install-multi.sh`, which lays them out as `/var/python/openalgo-flask/openalgo1`, `openalgo2` and so on with services named `openalgo1`, `openalgo2`. Update those by hand:
+
+```bash
+cd /var/python/openalgo-flask/openalgo1
+sudo cp -r db db-backup-$(date +%Y%m%d)
+sudo git pull
+sudo uv pip install --python venv/bin/python -r requirements-nginx.txt
+sudo bash -c "source venv/bin/activate && python upgrade/migrate_all.py"
+sudo systemctl restart openalgo1
+```
+{% endhint %}
 
 ***
 

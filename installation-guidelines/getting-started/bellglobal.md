@@ -6,7 +6,7 @@ Deploy OpenAlgo on a BellGlobal Open Algo VPS in less than 5 minutes.
 
 This video walks through the complete setup process, from provisioning the VPS to launching your OpenAlgo dashboard. The BellGlobal Open Algo VPS is preconfigured so you can get started quickly without spending time on server setup.
 
-OpenAlgo is a free and open source algorithmic trading platform that supports more than 33 Indian brokers and integrates with TradingView, Amibroker, Python, Excel, and other popular trading tools.
+OpenAlgo is a free and open source algorithmic trading platform that ships 36 broker plugins and integrates with TradingView, Amibroker, Python, Excel, and other popular trading tools.
 
 In this video, you will learn:
 

@@ -295,11 +295,45 @@ Cause: Session expired or link already used
 Solution: Request new password reset
 ```
 
-### ⚠️ Nuclear Option: Complete Database Reset
+### Locked Out: Command-Line Password Reset
+
+#### Try this first
+
+If you cannot log in and you have neither working SMTP nor an enrolled authenticator app, OpenAlgo ships a command-line reset. It sets a new password without touching any of your data:
+
+```bash
+cd openalgo
+uv run python upgrade/reset_admin_password.py
+```
+
+Stop OpenAlgo before running it. A live process caches the user row for 30 seconds and keeps accepting the old password until that expires.
+
+Use `--list` to see the accounts on the install, and `--username` to pick one:
+
+```bash
+uv run python upgrade/reset_admin_password.py --list
+uv run python upgrade/reset_admin_password.py --username yourname
+```
+
+If the script reports that stored secrets no longer decrypt, your `API_KEY_PEPPER` changed after the account was created. The reset still gets you logged in, but broker tokens, the stored API key and TOTP secrets were encrypted under the old pepper and cannot be recovered: log in to the broker again and regenerate the API key at `/apikey`. If you still have a backup of the original `.env`, restoring its `API_KEY_PEPPER` and `FERNET_SALT` lines recovers everything instead, including the old password.
+
+#### Diagnose the database first
+
+If something looks wrong beyond the password itself, run the diagnostic. It is safe to run at any time and changes nothing that already exists:
+
+```bash
+uv run python upgrade/init_db.py
+```
+
+It reports which database file the install is actually using, whether a relative `DATABASE_URL` plus an unexpected working directory has produced a second empty database, whether the tables and an account exist, and whether stored credentials still decrypt with the current `API_KEY_PEPPER` and `FERNET_SALT`. A pepper mismatch is the usual cause of "Invalid credentials" on a password you know is correct, and it is invisible from the login page.
+
+Stop OpenAlgo first. Historify is DuckDB and allows a single writer, so that one check reports a lock failure while the app is running.
+
+### Last Resort: Complete Database Reset
 
 #### When All Else Fails
 
-If you cannot access your OpenAlgo account through any method (TOTP broken, email not working, lost credentials), \
+Only if the command-line reset above cannot help (for example the database file itself is corrupt): \
 \
 1\)stop openalgo application \
 2\)Locate the file openalgo.db from the db folder\
@@ -312,7 +346,7 @@ If you cannot access your OpenAlgo account through any method (TOTP broken, emai
 
 #### What You Will Lose
 
-⚠️ **WARNING: This action is irreversible and will permanently delete:**
+**WARNING: This action is irreversible and will permanently delete:**
 
 * **User accounts and passwords**
 * **All trading logs and history**
@@ -339,10 +373,10 @@ To avoid needing database reset:
 
 Before resorting to database reset, try these:
 
-1. **TOTP Secret Recovery**: If you saved the original secret key, re-add to authenticator
-2. **Database Editing**: Advanced users can directly edit SQLite database to reset passwords
-3. **Python Script Recovery**: Create custom script to reset user password in database
-4. **Backup Restoration**: If you have recent database backup, restore it instead
+1. **Command-line reset**: `uv run python upgrade/reset_admin_password.py` (see above). This is the supported path and should be your first move.
+2. **Database diagnostic**: `uv run python upgrade/init_db.py` reports whether the real problem is a pepper mismatch or the wrong database file.
+3. **TOTP secret recovery**: If you saved the original secret key, re-add it to your authenticator.
+4. **Backup restoration**: If you have a recent database backup, restore it along with the `.env` it was created with. The database and its `API_KEY_PEPPER` and `FERNET_SALT` must match.
 
 
 

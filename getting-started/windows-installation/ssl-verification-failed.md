@@ -39,7 +39,7 @@ After updating the root certificates, you can verify if the issue is resolved by
 
 2\. **Reboot the Server**: Reboot your Windows system to ensure all changes take effect.
 
-3\. **Install Latest Python Version**: Download and install the latest version of Python (e.g., python-3.12.4-amd64).
+3\. **Install a Current Python Version**: Download and install Python 3.12 or newer, which is the minimum OpenAlgo supports (for example `python-3.12.x-amd64`). Tick "Add python.exe to PATH" during the install.
 
 4\. **Run OpenAlgo Application**: Run your OpenAlgo application to verify if the SSL error is resolved.
 

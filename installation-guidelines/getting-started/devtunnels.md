@@ -19,7 +19,7 @@ Dev Tunnels is a feature built into [Visual Studio Code (VS Code)](https://code.
 Before diving into the setup, ensure you have the following:
 
 * **Visual Studio Code (VS Code):** Installed on your machine.
-* **OpenAlgo:** Running locally (for example, on port 5000).
+* **OpenAlgo:** Running locally with `uv run app.py` (port 5000 by default).
 * **TradingView Account:** Set up for alert creation.
 * **GitHub or Microsoft Account:** For authenticating with Dev Tunnels.
 
@@ -54,7 +54,7 @@ Begin by launching your OpenAlgo application locally from your VS Code. Open you
 
 * Refer to the **OpenAlgo documentation** and navigate to **“API Documentation” → “V1” → “Orders API” → “Placeorder”.**
 * Copy the custom domain information provided. For instance:\
-  `POST https://your-custom-domain/API/v1/placeorder`
+  `POST https://your-custom-domain/api/v1/placeorder`
 * Append your unique Dev Tunnel URL to this endpoint.\
   &#xNAN;_&#x45;xample:_\
   `https://h03ml9j.5000.inc1.devtunnels.ms/api/v1/placeorder`

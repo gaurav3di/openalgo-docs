@@ -6,7 +6,7 @@ description: One-Click OpenAlgo Installation with House Of FOSS
 
 ***
 
-## 🧩 Installing OpenAlgo in the Cloud with House of FOSS
+## Installing OpenAlgo in the Cloud with House of FOSS
 
 ### Overview
 
@@ -80,11 +80,11 @@ If you’re trading on Indian exchanges (like NSE or MCX), choose the **Mumbai r
 
 We’ve suggested a few improvements to House of FOSS for traders:
 
-| Feature                   | Description                                         | Status                 |
-| ------------------------- | --------------------------------------------------- | ---------------------- |
-| **Mumbai Region Hosting** | Hosting near exchange to reduce latency.            | 🔄  Planned            |
-| **Static IP Support**     | Required for broker whitelisting.                   | 🔄 Under consideration |
-| **Custom Domain Mapping** | Use personal domains like `myalgo.houseoffoss.net`. | 🔄 Planned             |
+| Feature                   | Description                                         | Status              |
+| ------------------------- | --------------------------------------------------- | ------------------- |
+| **Mumbai Region Hosting** | Hosting near exchange to reduce latency.            | Planned             |
+| **Static IP Support**     | Required for broker whitelisting.                   | Under consideration |
+| **Custom Domain Mapping** | Use personal domains like `myalgo.houseoffoss.net`. | Planned             |
 
 ***
 
@@ -111,9 +111,9 @@ Whether you’re a trader, developer, or algo enthusiast — this setup gives yo
 
 ***
 
-#### 🔗 Useful Links
+#### Useful Links
 
-* 🌐 [House of FOSS](https://www.houseoffoss.com/)
-* 💻 [OpenAlgo GitHub](https://github.com/marketcalls/openalgo)
-* 💬 [Join Discord Community](https://openalgo.in/discord)
+* [House of FOSS](https://www.houseoffoss.com/)
+* [OpenAlgo GitHub](https://github.com/marketcalls/openalgo)
+* [Join Discord Community](https://openalgo.in/discord)
 
