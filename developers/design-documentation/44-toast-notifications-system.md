@@ -60,10 +60,13 @@ The following categories are available for toast notifications:
 | `chartink` | Chartink strategy operations | Chartink strategy CRUD |
 | `pythonStrategy` | Python strategy operations | Upload, start, stop, schedule |
 | `telegram` | Telegram bot operations | Bot config, user management |
+| `whatsapp` | WhatsApp bot operations | Bot config, user management |
 | `flow` | Workflow automation | Workflow CRUD, execution |
 | `admin` | Admin panel operations | Market timings, holidays, freeze qty |
 | `monitoring` | Monitoring dashboards | Health, latency, security, traffic |
 | `clipboard` | Copy to clipboard feedback | Any copy operation |
+
+All fifteen categories default to `true` in `DEFAULT_STATE.categories`. Note that `whatsapp` currently has no toggle in the Profile > Alerts UI: it exists in the store and filters toasts, but users cannot switch it off from there.
 
 ## Developer Guidelines
 
@@ -89,12 +92,19 @@ toast.success('Order placed')    // BAD - no category control
 Every toast call should include a category as the second parameter:
 
 ```typescript
-// Syntax
-showToast.success(message: string, category: AlertCategory, options?: ToastOptions)
-showToast.error(message: string, category: AlertCategory, options?: ToastOptions)
-showToast.warning(message: string, category: AlertCategory, options?: ToastOptions)
-showToast.info(message: string, category: AlertCategory, options?: ToastOptions)
+// Syntax. `category` is optional in the type signature but should be supplied.
+showToast.success(message: string, category?: keyof AlertCategories, options?: ToastOptions)
+showToast.error(message: string, category?: keyof AlertCategories, options?: ToastOptions)
+showToast.warning(message: string, category?: keyof AlertCategories, options?: ToastOptions)
+showToast.info(message: string, category?: keyof AlertCategories, options?: ToastOptions)
+
+// Also exported from @/utils/toast
+showToast.dynamic(type: ToastType, message: string, category?, options?)
+showToast.show(type: ToastType, message: string, category?, options?)
+showToast.dismissAll()
 ```
+
+`ToastOptions` carries only `duration` and `description`.
 
 **Examples:**
 ```typescript
@@ -153,19 +163,20 @@ showToast.warning('New order pending', 'actionCenter', {
 
 ### 6. Validation Errors
 
-For form validation errors that must always show (regardless of user settings), you can omit the category:
+For form validation errors that should not be filtered by category, omit the category:
 
 ```typescript
-// These always show - no category means no filtering
+// No category means no per-category filtering, but the master
+// "Enable Toasts" toggle still applies.
 showToast.error('Please fill all required fields')
 showToast.error('Invalid email format')
 ```
 
-Or import raw toast for critical system messages:
+For messages that must show even when the master toggle is off, import the raw toast:
 
 ```typescript
-import { toast } from '@/utils/toast'  // Re-exported raw toast
-toast.error('Critical system error')   // Always shows
+import { toast } from '@/utils/toast'  // Re-exported raw sonner toast
+toast.error('Critical system error')   // Bypasses the store entirely
 ```
 
 ## Adding a New Category
@@ -182,18 +193,22 @@ export interface AlertCategories {
   newFeature: boolean  // Add your new category
 }
 
-const DEFAULT_CATEGORIES: AlertCategories = {
-  // ... existing defaults
-  newFeature: true,  // Default to enabled
+const DEFAULT_STATE = {
+  // ... master controls and display settings
+  categories: {
+    // ... existing defaults
+    newFeature: true,  // Default to enabled
+  },
 }
 ```
 
 ### 2. Update Profile.tsx Alerts Tab
 
+`Profile.tsx` groups the toggles into four arrays: `ALERT_CATEGORIES_REALTIME`, `ALERT_CATEGORIES_TRADING`, `ALERT_CATEGORIES_DATA` and `ALERT_CATEGORIES_ADMIN`. Add the entry to whichever one fits:
+
 ```typescript
 // frontend/src/pages/Profile.tsx
 
-// Add to the appropriate section in CATEGORY_GROUPS
 {
   key: 'newFeature',
   label: 'New Feature',
@@ -230,31 +245,37 @@ const showCategoryToast = (
 }
 
 // Usage in socket event handlers
-socket.on('order_update', (data) => {
-  showCategoryToast('success', `Order ${data.status}`, 'orders')
+socket.on('order_event', (data) => {
+  showCategoryToast('success', `Order ${data.action} ${data.symbol}`, 'orders')
 })
 ```
+
+The socket events currently handled in `useSocket.ts` are `force_logout`, `password_change`, `master_contract_download`, `cancel_order_event`, `modify_order_event`, `close_position_event`, `order_event`, `active_sessions_update` and `analyzer_update`.
+
+Alert sounds go through a separate helper that requires `shouldPlaySound()` and, when a category is given, `shouldShowToast(category)`. Playback is throttled by `AUDIO_THROTTLE_MS = 1000`.
 
 ## User Settings
 
 Users control toast behavior via **Profile > Alerts**:
 
+Settings live in the `alertStore` Zustand store and are persisted to `localStorage` under the key `openalgo-alerts`.
+
 ### Master Controls
-- **Enable Toasts**: Master toggle for all toast notifications
-- **Enable Sounds**: Toggle alert sounds (for supported browsers)
+- **Enable Toasts** (`toastsEnabled`, default `true`): Master toggle for all toast notifications
+- **Enable Sounds** (`soundEnabled`, default `true`): Toggle alert sounds. `shouldPlaySound()` requires both toggles to be on
 
 ### Category Toggles
-Users can enable/disable each category independently.
+Users can enable/disable each category independently. `whatsapp` is the one category not currently exposed in this tab.
 
 ### Display Settings
-- **Position**: Where toasts appear (top-right, bottom-right, etc.)
-- **Max Visible**: Maximum toasts shown at once (1-10)
-- **Duration**: How long toasts stay visible (1-30 seconds)
+- **Position** (`position`, default `top-right`): one of `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`
+- **Max Visible** (`maxVisibleToasts`, default `3`): 1 to 10 toasts at once
+- **Duration** (`duration`, default `3000` ms): 1 to 15 seconds
 
 ### Actions
 - **Test Toast**: Preview current settings
-- **Clear All**: Dismiss all visible toasts
-- **Reset to Defaults**: Restore default settings
+- **Clear All Toasts**: Dismiss all visible toasts
+- **Reset to Defaults**: Restore default settings via `alertStore.resetToDefaults()`
 
 ## Testing
 

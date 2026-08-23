@@ -20,10 +20,11 @@ OpenAlgo provides Docker support for containerized deployment with **3-stage bui
 │  │  2. Copy pyproject.toml                                               │    │
 │  │  3. Create virtual environment with uv                                │    │
 │  │  4. Install dependencies: uv sync                                     │    │
-│  │  5. Add gunicorn + eventlet>=0.40.3                                   │    │
+│  │  5. Add gunicorn>=25.0,<26 and eventlet                               │    │
 │  └───────────────────────────────────────────────────────────────────────┘    │
 └───────────────────────────────────────────────────────────────────────────────┘
                                         │
+                                        ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                           Stage 2: Frontend Builder                           │
 │                            (node:22-bullseye-slim)                            │
@@ -43,9 +44,9 @@ OpenAlgo provides Docker support for containerized deployment with **3-stage bui
 │                                                                               │
 │  ┌───────────────────────────────────────────────────────────────────────┐    │
 │  │  1. Set timezone to IST (Asia/Kolkata)                                │    │
-│  │  2. Install runtime dependencies (curl, libopenblas0, libgomp1,       │    │
-│  │     libgfortran5) for scipy/numba                                     │    │
-│  │  3. Create non-root user (appuser)                                    │    │
+│  │  2. Install runtime deps (curl, libopenblas0, libgomp1,               │    │
+│  │     libgfortran5, chromium, fonts-liberation)                         │    │
+│  │  3. Create non-root user appuser pinned to UID/GID 1000               │    │
 │  │  4. Copy venv from python-builder                                     │    │
 │  │  5. Copy application source                                           │    │
 │  │  6. Copy frontend/dist from frontend-builder                          │    │
@@ -86,18 +87,11 @@ OpenAlgo provides Docker support for containerized deployment with **3-stage bui
 ```dockerfile
 # ------------------------------ Python Builder Stage ----------------------- #
 FROM python:3.12-bullseye AS python-builder
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl build-essential && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends     curl build-essential &&     apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY pyproject.toml .
-# Create isolated virtual-env with uv, then add gunicorn and eventlet
-RUN pip install --no-cache-dir uv && \
-    uv venv .venv && \
-    uv pip install --upgrade pip && \
-    uv sync && \
-    uv pip install gunicorn eventlet>=0.40.3 && \
-    rm -rf /root/.cache
+# Isolated virtual-env with uv, then gunicorn and eventlet on top
+RUN pip install --no-cache-dir uv &&     uv venv .venv &&     uv pip install --upgrade pip &&     uv sync &&     uv pip install "gunicorn>=25.0,<26" eventlet &&     rm -rf /root/.cache
 
 # ------------------------------ Frontend Builder Stage --------------------- #
 FROM node:22-bullseye-slim AS frontend-builder
@@ -109,98 +103,101 @@ RUN cd frontend && npm run build
 
 # ------------------------------ Production Stage --------------------------- #
 FROM python:3.12-slim-bullseye AS production
-
-# Set timezone to IST and install runtime dependencies for scipy/numba
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    tzdata \
-    curl \
-    libopenblas0 \
-    libgomp1 \
-    libgfortran5 && \
-    ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && \
-    dpkg-reconfigure -f noninteractive tzdata && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN useradd --create-home appuser
+# Timezone plus runtime deps. chromium and fonts-liberation are required by
+# Kaleido 1.x (plotly static image export), which drives a real headless
+# Chromium. Without them the Telegram bot's /chart silently fails in Docker.
+RUN apt-get update && apt-get install -y --no-install-recommends     tzdata     curl     libopenblas0     libgomp1     libgfortran5     chromium     fonts-liberation &&     ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime &&     dpkg-reconfigure -f noninteractive tzdata &&     apt-get clean && rm -rf /var/lib/apt/lists/*
+# Pin appuser to UID/GID 1000. The install scripts chown the host .env to
+# UID 1000 before bind-mounting it, so a different UID makes .env unwritable.
+RUN groupadd --gid 1000 appuser &&     useradd --create-home --uid 1000 --gid 1000 appuser
 WORKDIR /app
-
-# Copy venv from python-builder
 COPY --from=python-builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --chown=appuser:appuser . .
-
-# Copy built frontend from frontend-builder
 COPY --from=frontend-builder --chown=appuser:appuser /app/frontend/dist /app/frontend/dist
-
-# Create directories with proper permissions (including tmp for numba/matplotlib)
-RUN mkdir -p /app/log /app/log/strategies /app/db /app/tmp /app/tmp/numba_cache \
-             /app/tmp/matplotlib /app/strategies /app/strategies/scripts \
-             /app/strategies/examples /app/keys && \
-    chown -R appuser:appuser /app/log /app/db /app/tmp /app/strategies /app/keys && \
-    chmod -R 755 /app/strategies /app/log /app/tmp && \
-    chmod 700 /app/keys && \
-    touch /app/.env && chown appuser:appuser /app/.env && chmod 666 /app/.env
-
-# Entrypoint script (fix line endings for Windows compatibility)
+# chown /app itself, not just its contents. WORKDIR creates /app as root:root
+# 755 and that ownership survives COPY --chown, which would stop appuser
+# creating temp files in /app (for example the atomic .env rewrite).
+RUN mkdir -p /app/log /app/log/strategies /app/db /app/tmp /app/tmp/numba_cache /app/tmp/matplotlib /app/strategies /app/strategies/scripts /app/strategies/examples /app/keys &&     chown appuser:appuser /app &&     chown -R appuser:appuser /app/log /app/db /app/tmp /app/strategies /app/keys &&     chmod -R 755 /app/strategies /app/log /app/tmp &&     chmod 700 /app/keys &&     touch /app/.env && chown appuser:appuser /app/.env && chmod 666 /app/.env
 COPY --chown=appuser:appuser start.sh /app/start.sh
-RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
-
-# Environment variables
-ENV PATH="/app/.venv/bin:$PATH" \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    TZ=Asia/Kolkata \
-    APP_MODE=standalone \
-    TMPDIR=/app/tmp \
-    NUMBA_CACHE_DIR=/app/tmp/numba_cache \
-    LLVMLITE_TMPDIR=/app/tmp \
-    MPLCONFIGDIR=/app/tmp/matplotlib
-
+RUN sed -i 's/$//' /app/start.sh && chmod +x /app/start.sh
+# ---- RUNTIME ENVS --------------------------------------------------------- #
+# Thread caps prevent RLIMIT_NPROC exhaustion in containers (issue #822)
+ENV PATH="/app/.venv/bin:$PATH"     PYTHONDONTWRITEBYTECODE=1     PYTHONUNBUFFERED=1     TZ=Asia/Kolkata     APP_MODE=standalone     TMPDIR=/app/tmp     NUMBA_CACHE_DIR=/app/tmp/numba_cache     LLVMLITE_TMPDIR=/app/tmp     MPLCONFIGDIR=/app/tmp/matplotlib     OPENBLAS_NUM_THREADS=2     OMP_NUM_THREADS=2     MKL_NUM_THREADS=2     NUMEXPR_NUM_THREADS=2     NUMBA_NUM_THREADS=2     BROWSER_PATH=/usr/bin/chromium     CHROME_BIN=/usr/bin/chromium
 USER appuser
 EXPOSE 5000
 CMD ["/app/start.sh"]
 ```
 
+The block above reproduces the directives of the real `Dockerfile` with its longer rationale comments condensed. Read `Dockerfile` itself for the full commentary.
+
 ## Docker Compose
 
 ```yaml
-# docker-compose.yaml (note: .yaml extension, not .yml)
-version: '3.8'
-
+# docker-compose.yaml (note the .yaml extension, not .yml)
 services:
   openalgo:
-    build: .
+    image: openalgo:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: openalgo-web
     ports:
-      - "5000:5000"
-      - "8765:8765"
+      - "${FLASK_PORT:-5000}:5000"
+      - "${WEBSOCKET_PORT:-8765}:8765"
+
+    # persistent DB, strategies, logs + mount the host .env read-only so dotenv can read it
     volumes:
-      # Named volumes for better persistence management
       - openalgo_db:/app/db
-      - openalgo_log:/app/log
-      - openalgo_strategies:/app/strategies
-      - openalgo_keys:/app/keys
-      - openalgo_tmp:/app/tmp
-      - ./.env:/app/.env:ro       # Environment config (read-only)
+      - openalgo_log:/app/log            # Application logs (named volume)
+      - openalgo_strategies:/app/strategies  # Python strategies (named volume)
+      - openalgo_keys:/app/keys          # API keys/certificates (named volume)
+      - openalgo_tmp:/app/tmp            # Temporary directory for numba/scipy (named volume)
+      - ./.env:/app/.env
+
+    # (optional) extra env-vars that are NOT in .env
     environment:
-      - FLASK_HOST_IP=0.0.0.0
-      - FLASK_PORT=5000
-      - WEBSOCKET_HOST=0.0.0.0
-      - WEBSOCKET_PORT=8765
-    shm_size: '2gb'                # Required for scipy/numba operations
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - FLASK_DEBUG=${FLASK_DEBUG:-0}
+      - TZ=Asia/Kolkata
+      # Limit OpenBLAS/NumPy threads to prevent RLIMIT_NPROC exhaustion
+      # See: https://github.com/marketcalls/openalgo/issues/822
+      - OPENBLAS_NUM_THREADS=${OPENBLAS_NUM_THREADS:-2}
+      - OMP_NUM_THREADS=${OMP_NUM_THREADS:-2}
+      - MKL_NUM_THREADS=${MKL_NUM_THREADS:-2}
+      - NUMEXPR_NUM_THREADS=${NUMEXPR_NUM_THREADS:-2}
+      # Numba JIT compiler settings
+      - NUMBA_NUM_THREADS=${NUMBA_NUM_THREADS:-2}
+      # Strategy memory limit (MB) - reduce for low-memory containers
+      # 2GB container with 5 strategies: set to 256
+      - STRATEGY_MEMORY_LIMIT_MB=${STRATEGY_MEMORY_LIMIT_MB:-1024}
+
+    # Shared memory for scipy/numba operations
+    # Recommended: 25% of container RAM (min 128m, max 2g)
+    # 2GB container: 256m | 4GB: 512m | 8GB: 1g | 16GB+: 2g
+    shm_size: ${SHM_SIZE:-512m}
+
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:5000/auth/check-setup"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
     restart: unless-stopped
 
+# Define named volumes for persistence
 volumes:
   openalgo_db:
+    driver: local
   openalgo_log:
+    driver: local
   openalgo_strategies:
+    driver: local
   openalgo_keys:
+    driver: local
   openalgo_tmp:
+    driver: local
 ```
 
 ### Named Volumes vs Bind Mounts
@@ -316,7 +313,7 @@ exec /app/.venv/bin/gunicorn \
 
 ### Key Differences from Simple Script
 
-| Feature | Old (6 lines) | Actual (246 lines) |
+| Feature | Old (6 lines) | Actual (341 lines) |
 |---------|---------------|-------------------|
 | Cloud Support | None | Full Railway/Render support |
 | .env Generation | None | 40+ variables auto-generated |
@@ -325,6 +322,8 @@ exec /app/.venv/bin/gunicorn \
 | Timeout | 120s | 300s |
 | Graceful Timeout | None | 30s |
 | Worker Temp Dir | Default | /tmp/gunicorn_workers |
+| Control Socket | Enabled | Disabled with `--no-control-socket` |
+| Compromised-key preflight | None | Blocks startup on the known leaked `APP_KEY`/`API_KEY_PEPPER` when `.env` is not writable |
 
 ## Build Commands
 
@@ -455,8 +454,8 @@ fi
 
 | Aspect | Implementation |
 |--------|----------------|
-| Non-root user | Runs as `appuser` |
-| Read-only .env | Mounted with `:ro` flag |
+| Non-root user | Runs as `appuser`, pinned to UID/GID 1000 so a host `.env` chowned to 1000 stays writable |
+| .env mount | Bind-mounted read-write as `./.env:/app/.env`. It is deliberately not `:ro`, because `utils/env_check.py` rotates placeholder secrets in place on first run |
 | Keys directory | 700 permissions |
 | No build tools | Slim production image |
 | Minimal packages | Only runtime dependencies |
@@ -468,7 +467,9 @@ fi
 | `/app/db` | SQLite databases | Yes |
 | `/app/log` | Application logs | Recommended |
 | `/app/strategies` | User strategies | Optional |
-| `/app/.env` | Configuration | Yes |
+| `/app/keys` | Remote MCP OAuth signing keys | Yes when Remote MCP is enabled |
+| `/app/tmp` | Numba, matplotlib and gunicorn scratch space | Yes |
+| `/app/.env` | Configuration (bind mount, not a named volume) | Yes |
 
 ## Key Files Reference
 

@@ -21,7 +21,7 @@ OpenAlgo implements a multi-layer caching system to achieve high performance wit
 │         └────────────────┴────────────────┴─────────────────────┘             │
 │                                   │                                           │
 └───────────────────────────────────┼───────────────────────────────────────────┘
-                                        ▼
+                                    ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                             In-Memory Cache Layer                             │
 │                                                                               │
@@ -78,32 +78,49 @@ High-performance in-memory cache for 100,000+ trading symbols.
 @dataclass
 class SymbolData:
     """Lightweight symbol data structure for in-memory storage"""
-    symbol: str          # OpenAlgo symbol (NSE:SBIN-EQ)
-    brsymbol: str        # Broker symbol (SBIN)
-    name: str            # Company name
-    exchange: str        # Exchange (NSE, NFO, BSE)
-    brexchange: str      # Broker exchange code
-    token: str           # Instrument token
-    expiry: str          # Expiry date (for F&O)
-    strike: float        # Strike price (for options)
-    lotsize: int         # Lot size
-    instrumenttype: str  # EQ, FUT, CE, PE
-    tick_size: float     # Price tick size
+
+    symbol: str                            # OpenAlgo symbol, e.g. SBIN
+    brsymbol: str                          # Broker symbol, e.g. SBIN-EQ
+    name: str
+    exchange: str                          # NSE, NFO, BSE, CRYPTO, ...
+    brexchange: str                        # Broker exchange code
+    token: str                             # Instrument token
+    expiry: str | None = None
+    strike: float | None = None
+    lotsize: int | None = None
+    instrumenttype: str | None = None
+    tick_size: float | None = None
+    underlying: str | None = None          # Extracted from the F&O symbol format
+    contract_value: float | None = None    # Contract multiplier
+
 
 class BrokerSymbolCache:
     def __init__(self):
-        # Primary storage
-        self.symbols: Dict[str, SymbolData] = {}
+        # Active broker context
+        self.active_broker: str | None = None
+        self.cache_loaded: bool = False
 
-        # Multi-index maps for O(1) lookups
-        self.by_symbol_exchange: Dict[Tuple[str, str], SymbolData] = {}
-        self.by_token_exchange: Dict[Tuple[str, str], SymbolData] = {}
-        self.by_brsymbol_exchange: Dict[Tuple[str, str], SymbolData] = {}
-        self.by_token: Dict[str, SymbolData] = {}
+        # Primary storage
+        self.symbols: dict[str, SymbolData] = {}
+
+        # Multi-index maps for O(1) point lookups
+        self.by_symbol_exchange: dict[tuple[str, str], SymbolData] = {}
+        self.by_token_exchange: dict[tuple[str, str], SymbolData] = {}
+        self.by_brsymbol_exchange: dict[tuple[str, str], SymbolData] = {}
+        self.by_token: dict[str, SymbolData] = {}
+
+        # Pre-computed indexes for F&O filter performance
+        self.by_exchange: dict[str, list[SymbolData]] = defaultdict(list)
+        self.expiries_by_exchange: dict[str, set[str]] = defaultdict(set)
+        self.underlyings_by_exchange: dict[str, set[str]] = defaultdict(set)
+        self.tradable_underlyings_by_exchange: dict[str, set[str]] = defaultdict(set)
+        self.expiries_by_exchange_underlying: dict[tuple[str, str], set[str]] = defaultdict(set)
 
         # Statistics
         self.stats = CacheStats()
 ```
+
+`underlyings_by_exchange` holds only underlyings that have at least one CE or PE row, which is what the option chain, IV chart and GEX dropdowns need. `tradable_underlyings_by_exchange` is the union of those with underlyings that have at least one unexpired FUT row, so futures-only MCX commodities such as NATURALGASMINI still appear in the generic symbol search.
 
 **Cache Population:**
 ```python
@@ -241,6 +258,8 @@ def verify_api_key(api_key: str) -> Optional[str]:
 
     return user_id
 ```
+
+A cache miss walks every row in `api_keys` and calls `ph.verify()` on each, so the invalid cache is what keeps a key-guessing loop from turning into repeated Argon2 work. Failed attempts are also recorded through `InvalidAPIKeyTracker` in `database/traffic_db.py`, which is what feeds the API-key ban threshold in the security dashboard.
 
 ## Cache Lifecycle
 
@@ -407,7 +426,10 @@ SESSION_EXPIRY_TIME=03:00
 | `broker_cache` | 50 minutes | Broker name lookups |
 | `verified_api_key_cache` | 10 hours | Valid API key user IDs |
 | `invalid_api_key_cache` | 5 minutes | Failed API key attempts |
+| `order_mode_cache` | 60 seconds | Auto versus semi-auto order mode per key (maxsize 128) |
 | `symbol_cache` | Until session expiry | Trading symbols |
+
+The symbol cache is not a `TTLCache`. `BrokerSymbolCache.is_cache_valid()` compares the current IST time against a `next_reset_time` derived from `SESSION_EXPIRY_TIME`, so it expires on a daily boundary rather than on a rolling window.
 
 ## Performance Characteristics
 
@@ -452,6 +474,10 @@ del feed_token_cache[f"feed-{username}"]
 # Invalidate API key cache on regeneration
 # (Handled automatically by clearing verified_api_key_cache)
 ```
+
+### Cross-Process Invalidation
+
+The WebSocket proxy can run in a separate process, so clearing a dict in the Flask worker does not reach it. `database/cache_invalidation.py` publishes on the shared ZeroMQ publisher that broker adapters already use. `CacheInvalidationPublisher.publish_invalidation(user_id, cache_type)` sends topic `CACHE_INVALIDATE_{cache_type}_{user_id}` where `cache_type` is `AUTH`, `FEED` or `ALL`; the convenience wrappers are `publish_auth_cache_invalidation`, `publish_feed_cache_invalidation` and `publish_all_cache_invalidation`. The proxy's SUB listener consumes the message and clears its own copy.
 
 ## Key Files Reference
 

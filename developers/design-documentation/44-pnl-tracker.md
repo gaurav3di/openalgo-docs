@@ -145,7 +145,7 @@ history_rate_limiter = RateLimiter(calls_per_second=2)
 
 ### Carry-Forward Position PnL Tracking
 
-The PnL tracker handles carry-forward positions — positions opened on previous days that are still open today. This is critical for NRML/CNC positions that span multiple trading sessions.
+The PnL tracker handles carry-forward positions, meaning positions opened on previous days that are still open today. This is critical for NRML/CNC positions that span multiple trading sessions.
 
 ```python
 # Carry-forward position handling:
@@ -289,7 +289,7 @@ The React frontend:
 
 ### Legacy Compatibility Route
 
-`/pnltracker/legacy` is still registered, but the referenced `templates/pnltracker.html` file is absent from the current tree. Treat this route as unavailable until the route is removed or a template is restored. The supported UI is the React `/pnltracker` page.
+`/pnltracker/legacy` is still registered, but the referenced `templates/pnltracker.html` file is absent from the current tree. Treat this route as unavailable until the route is removed or a template is restored. The supported UI is the React `/pnl-tracker` page, served by `blueprints/react_app.py`. `blueprints/pnltracker.py` also registers `/test_chart`, which renders the equally absent `templates/test_chart.html`.
 
 ## Edge Cases Handled
 

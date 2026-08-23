@@ -4,6 +4,8 @@
 
 The Admin section provides system configuration and management capabilities including freeze quantity management, market holidays, market timings, and security monitoring.
 
+`admin_bp` is registered with `url_prefix="/admin"` and now exposes JSON endpoints only. The former server-rendered page routes (`/admin/`, `/admin/freeze`, `/admin/holidays`, `/admin/timings`) are commented out in `blueprints/admin.py`; the pages themselves are React routes.
+
 ## Architecture Diagram
 
 ```
@@ -12,36 +14,33 @@ The Admin section provides system configuration and management capabilities incl
 └───────────────────────────────────────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────────────┐
-│                                Admin Dashboard                                │
-│                                    /admin                                     │
+│                               React Admin Pages                               │
 │                                                                               │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │  Freeze Qty     │  │   Holidays      │  │  Market Timings │                │
-│  │  Management     │  │   Calendar      │  │  Configuration  │                │
-│  │  /admin/freeze  │  │  /admin/holidays│  │  /admin/timings │                │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘                │
-│           │                    │                    │                         │
-│           └────────────────────┼────────────────────┘                         │
-│                                │                                              │
-│                                ▼                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐      │
-│  │                     Admin API Endpoints                              │     │
-│  │                     /admin/api/*                                     │     │
-│  └─────────────────────────────────────────────────────────────────────┘      │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐   │
+│  │ Freeze        │  │ Holiday       │  │ Market        │  │ Diagnostics,  │   │
+│  │ quantities    │  │ calendar      │  │ timings       │  │ Remote MCP    │   │
+│  └───────┬───────┘  └───────┬───────┘  └───────┬───────┘  └───────┬───────┘   │
+│          │                  │                  │                  │           │
+│          └──────────────────┴────────┬─────────┴──────────────────┘           │
+│                                      │                                        │
+│                                      ▼                                        │
+│               ┌────────────────────────────────────────────┐                  │
+│               │ blueprints/admin.py, url_prefix /admin     │                  │
+│               │ JSON only, every route is /admin/api/*     │                  │
+│               └────────────────────────────────────────────┘                  │
 └───────────────────────────────────────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                             Monitoring Dashboards                             │
 │                                                                               │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │    Security     │  │    Traffic      │  │    Latency      │                │
-│  │   Dashboard     │  │   Dashboard     │  │   Dashboard     │                │
-│  │ /logs/security  │  │  /logs/traffic  │  │  /logs/latency  │                │
-│  │                 │  │                 │  │                 │                │
-│  │  - IP bans      │  │  - HTTP logs    │  │  - Order RTT    │                │
-│  │  - 404 tracking │  │  - Request/sec  │  │  - Percentiles  │                │
-│  │  - API abuse    │  │  - Error rates  │  │  - SLA metrics  │                │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐ │
+│  │ Security             │  │ Traffic              │  │ Latency              │ │
+│  │ /security            │  │ /traffic             │  │ /latency             │ │
+│  │                      │  │                      │  │                      │ │
+│  │ - IP bans            │  │ - HTTP logs          │  │ - Order RTT          │ │
+│  │ - 404 tracking       │  │ - Requests per second│  │ - Percentiles        │ │
+│  │ - API-key abuse      │  │ - Error rates        │  │ - SLA buckets        │ │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘ │
 └───────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -111,27 +110,30 @@ Maintain trading holidays calendar for all exchanges.
 ### Database Schema
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                market_holidays table                │
-├──────────────┬──────────────┬───────────────────────┤
-│ Column       │ Type         │ Description           │
-├──────────────┼──────────────┼───────────────────────┤
-│ id           │ INTEGER PK   │ Auto-increment        │
-│ holiday_date │ DATE         │ Holiday date          │
-│ description  │ VARCHAR(255) │ Holiday name          │
-│ holiday_type │ VARCHAR(50)  │ Type of holiday       │
-│ year         │ INTEGER      │ Year                  │
-└──────────────┴──────────────┴───────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    market_holidays table                     │
+├──────────────┬─────────────┬─────────────────────────────────┤
+│ Column       │ Type        │ Description                     │
+├──────────────┼─────────────┼─────────────────────────────────┤
+│ id           │ Integer PK  │ Auto-increment                  │
+│ holiday_date │ Date        │ Holiday date, not null, indexed │
+│ description  │ String(150) │ Holiday name, not null          │
+│ holiday_type │ String(30)  │ Default TRADING_HOLIDAY         │
+│ year         │ Integer     │ Not null, indexed               │
+└──────────────┴─────────────┴─────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────┐
-│           market_holiday_exchanges table            │
-├───────────────┬─────────────┬───────────────────────┤
-│ Column        │ Type        │ Description           │
-├───────────────┼─────────────┼───────────────────────┤
-│ holiday_id    │ INTEGER FK  │ Holiday reference     │
-│ exchange_code │ VARCHAR(10) │ Exchange code         │
-│ is_open       │ BOOLEAN     │ Exchange open?        │
-└───────────────┴─────────────┴───────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│                   market_holiday_exchanges table                   │
+├───────────────┬────────────┬───────────────────────────────────────┤
+│ Column        │ Type       │ Description                           │
+├───────────────┼────────────┼───────────────────────────────────────┤
+│ id            │ Integer PK │ Auto-increment                        │
+│ holiday_id    │ Integer    │ Holiday reference, not null, indexed  │
+│ exchange_code │ String(10) │ Exchange code, not null, indexed      │
+│ is_open       │ Boolean    │ Exchange open, defaults to false      │
+│ start_time    │ BigInteger │ Session start, epoch millis, nullable │
+│ end_time      │ BigInteger │ Session end, epoch millis, nullable   │
+└───────────────┴────────────┴───────────────────────────────────────┘
 ```
 
 ### Holiday Types
@@ -179,15 +181,21 @@ Configure trading session timings for each exchange.
 
 ### Default Timings
 
+Seeded from `DEFAULT_MARKET_TIMINGS` in `database/market_calendar_db.py` when the `market_timings` table is empty.
+
 | Exchange | Market Open | Market Close |
 |----------|-------------|--------------|
 | NSE | 09:15 | 15:30 |
 | BSE | 09:15 | 15:30 |
-| NFO | 09:15 | 15:30 |
-| BFO | 09:15 | 15:30 |
+| NFO | 09:15 | 15:40 |
+| BFO | 09:15 | 15:40 |
 | CDS | 09:00 | 17:00 |
 | BCD | 09:00 | 17:00 |
 | MCX | 09:00 | 23:55 |
+| NCO | 09:00 | 23:55 |
+| CRYPTO | 00:00 | 23:59 |
+
+NFO and BFO close at 15:40, not 15:30: SEBI's Closing Auction Session applies to the cash segment only, and derivatives keep trading past the cash close.
 
 ### Example Request
 
@@ -203,30 +211,63 @@ Configure trading session timings for each exchange.
 
 ### Analyzer Mode Toggle
 
+`settings_bp` is registered with `url_prefix="/settings"`.
+
 ```
-GET  /settings/analyze-mode          → Get current mode
-POST /settings/analyze-mode/live     → Switch to live
-POST /settings/analyze-mode/analyze  → Switch to analyzer
+GET  /settings/analyze-mode      Get current mode
+POST /settings/analyze-mode/0    Switch to Live mode
+POST /settings/analyze-mode/1    Switch to Analyze mode
 ```
+
+The setter route is `POST /settings/analyze-mode/<int:mode>`. Switching to Analyze starts the sandbox execution engine; switching to Live stops it.
 
 ### Settings Schema
 
 ```
-┌───────────────────────────────────────────────────────┐
-│                    settings table                     │
-├────────────────────────┬─────────┬────────────────────┤
-│ Column                 │ Type    │ Description        │
-├────────────────────────┼─────────┼────────────────────┤
-│ id                     │ INT PK  │ Single row (id=1)  │
-│ analyze_mode           │ BOOLEAN │ Live/Analyzer mode │
-│ smtp_server            │ VARCHAR │ SMTP server        │
-│ smtp_port              │ INTEGER │ SMTP port          │
-│ smtp_password_enc      │ TEXT    │ Encrypted password │
-│ security_404_threshold │ INT     │ 404 ban limit      │
-│ security_api_threshold │ INT     │ API ban limit      │
-│ security_ban_duration  │ INT     │ Ban hours          │
-└────────────────────────┴─────────┴────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────┐
+│                                 settings table                                 │
+├────────────────────────────────┬─────────────┬─────────────────────────────────┤
+│ Column                         │ Type        │ Description                     │
+├────────────────────────────────┼─────────────┼─────────────────────────────────┤
+│ id                             │ Integer PK  │ Single row, id = 1              │
+│ analyze_mode                   │ Boolean     │ False is Live, True is Analyzer │
+│ smtp_server                    │ String(255) │ SMTP host                       │
+│ smtp_port                      │ Integer     │ SMTP port                       │
+│ smtp_username                  │ String(255) │ SMTP user                       │
+│ smtp_password_encrypted        │ Text        │ Fernet ciphertext               │
+│ smtp_use_tls                   │ Boolean     │ STARTTLS, defaults to true      │
+│ smtp_from_email                │ String(255) │ From address                    │
+│ smtp_helo_hostname             │ String(255) │ HELO/EHLO hostname              │
+│ security_auto_ban_enabled      │ Boolean     │ Auto-ban, defaults to false     │
+│ security_404_threshold         │ Integer     │ 404s per day before ban, 100    │
+│ security_404_ban_duration      │ Integer     │ Hours, 0 means permanent        │
+│ security_api_threshold         │ Integer     │ Invalid keys per day, 100       │
+│ security_api_ban_duration      │ Integer     │ Hours, 0 means permanent        │
+│ security_repeat_offender_limit │ Integer     │ Bans before permanent, 2        │
+└────────────────────────────────┴─────────────┴─────────────────────────────────┘
 ```
+
+## Other Admin API Endpoints
+
+All of these live under `/admin` and require a valid session.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/admin/api/stats` | Freeze-entry and holiday counts |
+| GET | `/admin/api/errors` | Recent entries from `log/errors.jsonl` |
+| POST | `/admin/api/errors/client` | Ingest a browser-side error report |
+| GET | `/admin/api/errors/stats` | Error counts by level |
+| GET | `/admin/api/errors/groups` | Errors grouped by fingerprint |
+| GET | `/admin/api/system` | Host, runtime, hardware, build, config, broker, database snapshot |
+| POST | `/admin/api/system/diagnostics` | Run the fixed latency/connectivity probes |
+| GET | `/admin/api/system/report` | Download a rendered `.md` / `.txt` report |
+| GET | `/admin/api/oauth/clients` | List Remote MCP OAuth clients |
+| POST | `/admin/api/oauth/clients/<client_id>/approve` | Approve a client |
+| POST | `/admin/api/oauth/clients/<client_id>/revoke` | Revoke a client |
+| GET | `/admin/api/mcp/audit` | Read the Remote MCP audit trail |
+| POST | `/admin/api/mcp/kill-switch` | Toggle the Remote MCP kill switch |
+| GET | `/admin/api/mcp/settings` | Read Remote MCP settings |
+| PUT | `/admin/api/mcp/settings` | Update Remote MCP settings |
 
 ## Security Dashboard
 
@@ -299,13 +340,15 @@ Tracks invalid API attempts per IP. The persisted default threshold is 100 per 2
 - Percentile metrics (P50, P90, P95, P99)
 - SLA compliance tracking
 
-### SLA Thresholds
+### SLA Buckets
 
-| Metric | Target |
-|--------|--------|
-| P50 | < 100ms |
-| P90 | < 150ms |
-| P99 | < 200ms |
+`OrderLatency.get_latency_stats()` reports the share of orders whose `total_latency_ms` falls under each of three fixed thresholds, alongside the p50/p90/p95/p99 percentiles. The thresholds are hard-coded, not configurable.
+
+| Field | Meaning |
+|-------|---------|
+| sla_100ms | Percent of orders under 100 ms end to end |
+| sla_150ms | Percent of orders under 150 ms end to end |
+| sla_200ms | Percent of orders under 200 ms end to end |
 
 ## Access Control
 
@@ -323,8 +366,14 @@ def get_freeze_quantities():
 
 | Endpoint | Limit |
 |----------|-------|
-| Default API | 50/second |
-| CSV Upload | 10/minute |
+| Most `/admin/api/*` routes | `API_RATE_LIMIT` env var, default `50 per second` |
+| `POST /admin/api/freeze/upload` | 10/minute |
+| `POST /admin/api/system/diagnostics` | 10/minute |
+| `GET /admin/api/system/report` | 10/minute |
+| `POST /admin/api/mcp/kill-switch` | 10/minute |
+| `PUT /admin/api/mcp/settings` | 30/minute |
+
+The shared limiter in `limiter.py` keys on `get_remote_address` with in-memory storage and a moving-window strategy.
 
 ## React Components
 
@@ -335,7 +384,10 @@ frontend/src/pages/admin/
 ├── AdminIndex.tsx      # Main dashboard
 ├── FreezeQty.tsx       # Freeze quantity UI
 ├── Holidays.tsx        # Holiday calendar
-└── MarketTimings.tsx   # Market timings
+├── MarketTimings.tsx   # Market timings
+├── Diagnostics.tsx     # System snapshot and probes
+├── RemoteMcp.tsx       # Remote MCP clients, audit, kill switch, settings
+└── index.ts            # Barrel export
 ```
 
 ### API Client
@@ -359,21 +411,30 @@ export const adminApi = {
 };
 ```
 
-## System Permissions
+## System Snapshot
 
 ### Endpoint
 ```
-GET /api/system
+GET /admin/api/system
 ```
 
-### Checks
+Returns a `no-store` JSON snapshot assembled by `_build_system_payload()`. There is no file-permission audit anywhere in the codebase.
 
-| Path | Required Permission |
-|------|---------------------|
-| .env | 0o600 (rw-------) |
-| encryption_keys/ | 0o700 (rwx------) |
-| db/*.db | 0o600 (rw-------) |
-| logs/ | 0o755 (rwxr-xr-x) |
+### Payload Sections
+
+| Key | Contents |
+|-----|----------|
+| mode | Live or Analyze |
+| host | OS, release, machine, distro, Docker / Raspberry Pi / Termux flags |
+| runtime | Python and dependency runtime details |
+| hardware | CPU, memory, disk snapshot |
+| build | Version and build metadata |
+| config | Non-secret settings plus secret presence and strength booleans |
+| brokers | Configured brokers and the active session broker, never tokens |
+| databases | Per-database file presence, size, and mtime |
+| time | Server time information |
+
+Secrets are never emitted as values. `config.secrets_present` reports set/not-set booleans for `APP_KEY`, `API_KEY_PEPPER`, `BROKER_API_KEY`, `BROKER_API_SECRET`, `BROKER_API_KEY_MARKET`, `BROKER_API_SECRET_MARKET`, and `REDIRECT_URL`, plus the DB-stored SMTP password and Telegram bot token. `config.secret_strength` reports whether `APP_KEY`, `API_KEY_PEPPER`, and `FERNET_SALT` are install-specific rather than the published sample placeholders.
 
 ## Key Files Reference
 

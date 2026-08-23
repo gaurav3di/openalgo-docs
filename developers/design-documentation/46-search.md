@@ -11,7 +11,7 @@ OpenAlgo has two search contracts with different authentication and response sha
 | Expiry helper | `GET /search/api/expiries` | App session | Distinct expiries |
 | Underlying helper | `GET /search/api/underlyings` | App session | Distinct option/futures underlyings |
 
-The React `/search` page is registered before the legacy template blueprint. `/search/token` and the blueprint's `/search/` renderer remain legacy session routes; the supported first-viewport UI is `frontend/src/pages/Search.tsx`.
+The blueprint is `search_bp` with `url_prefix="/search"`. The React `/search` page is registered before the legacy template blueprint. `/search/token` and the blueprint's `/search/` renderer remain legacy session routes; the supported first-viewport UI is `frontend/src/pages/Search.tsx`. Note that the legacy `/search/` renderer reads its query from `symbol`, not `q`. Every blueprint route is guarded by `@check_session_validity` and none carries a `@limiter.limit` decorator.
 
 ## RESTX Search
 
@@ -25,7 +25,9 @@ The React `/search` page is registered before the legacy template blueprint. `/s
 }
 ```
 
-`query` and `apikey` are required; `exchange` is optional in the schema. `services/search_service.py` verifies the key, uses the enhanced in-memory token cache when loaded and valid, and falls back to `database.symbol.enhanced_search_symbols()`.
+`query` and `apikey` are required; `exchange` is optional in `SearchSchema` (`restx_api/data_schemas.py`) and, when supplied, must be one of `VALID_EXCHANGES`. The resource carries `@limiter.limit(API_RATE_LIMIT)`, whose default in `restx_api/search.py` is `"10 per second"`. A schema failure returns HTTP 400 with the marshmallow messages.
+
+`services/search_service.py` verifies the key, uses the enhanced in-memory token cache when loaded and valid, and falls back to `database.symbol.enhanced_search_symbols()`.
 
 The normalized result includes OpenAlgo and broker symbol/exchange values, name, token, expiry, strike, lot size, instrument type, tick size, and option freeze quantity where available.
 
@@ -40,9 +42,11 @@ The normalized result includes OpenAlgo and broker symbol/exchange values, name,
 - `underlying`
 - `strike_min` and `strike_max`
 
-At least a query or exchange is required to avoid a full-table scan. Standard instruments use `database.symbol.enhanced_search_symbols()`. F&O filters or an F&O exchange use `database.token_db_enhanced.fno_search_symbols()`. Results are de-duplicated by `(symbol, exchange)`.
+At least a query or exchange is required to avoid a full-table scan; without either the endpoint returns `{"results": [], "total": 0}` rather than an error. Standard instruments use `database.symbol.enhanced_search_symbols()`. F&O filters or an F&O exchange use `database.token_db_enhanced.fno_search_symbols()`. Multi-value `exchange` and `instrumenttype` are evaluated as the union of every combination, and results are de-duplicated by `(symbol, exchange)`. The response shape is `{"results": [...], "total": <count>}`.
 
-The expiry helper accepts optional `exchange` and `underlying`. The underlying helper accepts optional `exchange` and `include_futures=true`; test symbols are filtered from its response.
+The expiry helper accepts optional `exchange`, `underlying` and `instrumenttype`, and returns `{"status": "success", "expiries": [...]}`. Option-chain tools pass `instrumenttype=options`; without it the list mixes futures and options expiries, which coincide on NFO but not on MCX.
+
+The underlying helper accepts optional `exchange` and `include_futures` (`1`, `true` or `yes`), and returns `{"status": "success", "underlyings": [...]}`. Exchange test symbols containing `NSETEST` or `BSETEST` are filtered from its response.
 
 ## Cache Model
 

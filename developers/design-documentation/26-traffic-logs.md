@@ -26,7 +26,7 @@ Static assets, the favicon, latency-log reads, and the traffic dashboard's own r
 
 ## Dashboard
 
-The supported React page is `/logs/traffic` (with `/traffic` retained as an alias). It calls session-authenticated routes under `/traffic`:
+The supported React page is `/logs/traffic`. `traffic_bp` is registered with `url_prefix="/traffic"`, and `GET /traffic/` still renders the older server-side template. The React page calls the session-authenticated routes under `/traffic`:
 
 | Route | Behavior |
 |---|---|
@@ -40,14 +40,14 @@ The table displays timestamp, method, path, status, duration, client IP, and hos
 
 ## Retention
 
-`init_traffic_logging()` initializes the store, purges rows beyond the configured retention policy, and then installs the middleware. Retention comes from security settings rather than a documented multi-tier archive scheme.
+`init_traffic_logging()` initializes the store, purges rows beyond the retention window, and then installs the middleware. `purge_old_traffic_logs()` deletes `traffic_logs` rows older than `TRAFFIC_LOG_RETENTION_DAYS` (env var, default `30`) and runs once at startup. Retention is not driven by the persisted security settings, and there is no multi-tier archive scheme.
 
 ## Security
 
 - Proxy-derived IP headers are trusted only when `TRUST_PROXY_HEADERS` is enabled for a controlled reverse proxy.
 - API keys and tokens are not captured because traffic logging stores metadata only.
 - Dashboard, stats, logs, and export routes require a valid application session and have explicit rate limits.
-- `logs.db` also contains IP-ban and invalid-attempt security data; it is separate from `openalgo.db`.
+- `logs.db` also contains IP-ban and invalid-attempt security data; it is separate from `openalgo.db`. Its location comes from `LOGS_DATABASE_URL` (default `sqlite:///db/logs.db`).
 
 ## Key Files
 

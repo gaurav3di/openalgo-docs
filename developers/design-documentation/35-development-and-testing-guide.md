@@ -22,7 +22,7 @@ uv run ruff format --check .
 uv run pytest
 ```
 
-The default pytest configuration discovers `test/test_*.py` and applies verbose output plus `--timeout=60`. Some tests require a configured/running application or broker-like state; CI therefore runs an explicit credential-free subset rather than the entire tree.
+The default pytest configuration sets `testpaths = ["test"]` and `python_files = ["test_*.py"]`, so discovery recurses into subdirectories such as `test/sandbox/`, and applies verbose output plus `--timeout=60`. `pythonpath = ["."]` makes the repo root importable so tests can import `services`, `database`, and `utils` directly. Some tests require a configured/running application or broker-like state; CI therefore runs an explicit credential-free subset rather than the entire tree.
 
 Focused example:
 
@@ -44,6 +44,10 @@ npm run e2e -- --project=chromium
 ```
 
 Playwright starts Vite on port 5173. Its local configuration defines Chromium, Firefox, WebKit, Mobile Chrome, and Mobile Safari; CI currently invokes Chromium only.
+
+## Pre-Commit Hooks
+
+`.pre-commit-config.yaml` runs Ruff (`--fix --exit-non-zero-on-fix`) and `ruff-format`, `biome check --write` over `frontend/src`, detect-secrets against `.secrets.baseline`, and the standard trailing-whitespace, end-of-file, YAML/JSON, and large-file checks. It is the only place detect-secrets runs; neither CI workflow invokes it.
 
 ## Main CI Workflow
 

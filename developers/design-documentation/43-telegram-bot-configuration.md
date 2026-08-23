@@ -4,11 +4,11 @@
 
 | Component | Responsibility |
 |---|---|
-| `blueprints/telegram.py` | Session-authenticated React UI APIs for config, lifecycle, users, analytics, explicit sends |
+| `blueprints/telegram.py` | Session-authenticated React UI APIs for config, lifecycle, users, analytics, explicit sends. Blueprint `telegram_bp`, `url_prefix="/telegram"` |
 | `restx_api/telegram_bot.py` | API-key REST management and direct notification resources |
 | `services/telegram_bot_service.py` | Bot initialization, polling, commands, lifecycle |
 | `services/telegram_alert_service.py` | Synchronous HTTP delivery, async executor, retry queue, formatting |
-| `database/telegram_db.py` | Encrypted config, linked users, preferences, notifications/stats |
+| `database/telegram_db.py` | Encrypted config, linked users, preferences, notifications/stats. Models `TelegramUser` (`telegram_users`), `BotConfig` (`bot_config`), `CommandLog` (`command_logs`), `NotificationQueue` (`notification_queue`), `UserPreference` (`user_preferences`) |
 | `subscribers/telegram_subscriber.py` | EventBus-to-alert mapping |
 
 The React pages live under `frontend/src/pages/telegram/` and use `frontend/src/api/telegram.ts`.
@@ -41,11 +41,17 @@ Current limitations must remain explicit:
 
 ## Webhook Security
 
-The expected secret comes from `TELEGRAM_WEBHOOK_SECRET`; if absent, the handler derives a fallback from the stored bot token. Missing and incorrect headers return 401 and 403. Payloads must be objects containing `update_id`.
+The expected secret comes from `TELEGRAM_WEBHOOK_SECRET`; if absent, `get_webhook_secret()` derives a fallback from the stored bot token as the first 32 characters of its SHA-256 digest. Missing and incorrect headers return 401 and 403. Payloads must be objects containing `update_id`, otherwise the handler returns 400. When neither the environment variable nor a bot token is configured, no secret can be resolved and the handler currently skips header verification instead of rejecting the request.
 
 ## Rate Limits
 
-REST Telegram calls normally use `TELEGRAM_RATE_LIMIT` (default 30 per minute). REST broadcast uses 5 per minute. Telegram's upstream limits and transient errors are handled separately by delivery/retry behavior.
+REST Telegram calls normally use `TELEGRAM_RATE_LIMIT` (default `"30 per minute"`, read in `restx_api/telegram_bot.py`). REST broadcast uses a hard-coded `"5 per minute"`.
+
+On the session-authenticated blueprint, `TELEGRAM_MESSAGE_RATE_LIMIT` (default `"10 per minute"`, read in `blueprints/telegram.py`) is applied to `/telegram/send-message` only. The other blueprint routes carry no `@limiter.limit` decorator.
+
+Neither `TELEGRAM_RATE_LIMIT` nor `TELEGRAM_MESSAGE_RATE_LIMIT` nor `TELEGRAM_WEBHOOK_SECRET` appears in `.sample.env`; each falls back to the default written in code.
+
+Telegram's upstream limits and transient errors are handled separately by delivery/retry behavior.
 
 ## Commands And Charts
 

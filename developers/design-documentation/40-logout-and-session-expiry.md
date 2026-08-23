@@ -33,12 +33,14 @@ If tokens materially change or are revoked, cache/feed invalidation remains requ
 
 ## Explicit Logout
 
-Logout removes the current active-session row, clears the Flask session, and follows the route's broker-token policy. The route is explicitly CSRF-exempt in app registration because both supported logout forms must work; other session-changing routes retain CSRF protection.
+`GET`/`POST /auth/logout` clears the Flask session, revokes the broker auth row through `upsert_auth(username, "", "", revoke=True)`, drops the auth/feed/symbol caches, removes every active-session row for the user through `clear_user_sessions()`, and emits `force_logout` plus a zeroed `active_sessions_update`. It is an all-device logout, not a single-device one.
+
+The route is deliberately NOT CSRF-exempt in `app.py`. The POST form is covered by Flask-WTF; the GET form, which Flask-WTF never validates, is covered inside the view by `_is_foreign_initiated()`, a `Sec-Fetch-Site` fetch-metadata check that aborts with 403 for any cross-site (or same-site but not same-origin) caller.
 
 ## Account Security Events
 
 - Password change clears all active-session rows, emits `force_logout`, and clears the current cookie.
-- Password reset and setup-sensitive flows clear or revoke session state according to their route logic.
+- Password reset also calls `clear_user_sessions()`, emits `force_logout`, and pops the `reset_token`, `reset_email`, `reset_method`, and `email_reset_token` keys from the session.
 - Active-session APIs under auth and security are read-only; there is no documented endpoint for remotely revoking one selected device.
 
 ## Frontend Behavior

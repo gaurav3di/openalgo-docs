@@ -48,6 +48,7 @@ The React Security page is `/logs/security`. Session-authenticated routes are re
 
 | Route | Purpose |
 |---|---|
+| `GET /security/` | Older server-side dashboard template, still registered |
 | `POST /security/ban` | Ban one validated IPv4/IPv6 address |
 | `POST /security/unban` | Remove one ban |
 | `POST /security/ban-host` | Resolve recent traffic for a validated host and ban matching IPs |

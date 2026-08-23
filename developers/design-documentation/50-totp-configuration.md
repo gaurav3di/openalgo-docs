@@ -2,7 +2,7 @@
 
 ## Model
 
-The local `User` model stores an encrypted `totp_secret` plus a master switch and three purpose flags:
+The local `User` model (`database/user_db.py`, `__tablename__ = "users"`) stores an encrypted `totp_secret` column plus a master switch and three purpose flags. All four flags are `Boolean, default=False, nullable=False`, so existing installs are never silently locked out.
 
 | Field | Meaning |
 |---|---|
@@ -29,14 +29,18 @@ Bad codes are rate limited through the login limit. One bad code does not immedi
 
 | Method/path | Purpose |
 |---|---|
-| `GET /auth/2fa/status` | Read master/purpose flags and last verification time |
+| `GET /auth/2fa/status` | Read master/purpose flags plus `last_totp_verified_at` |
 | `POST /auth/2fa/configure` | Atomically set master and purpose flags |
 
-Changing TOTP policy requires a valid current TOTP code, including disabling it. Disabling the master switch forces all purpose flags false.
+Both routes require a valid application session. Changing TOTP policy requires a valid current TOTP code, including disabling it. Disabling the master switch forces all purpose flags false in the same write.
+
+`last_totp_verified_at` is read from `session["totp_verified_at"]`, not from a database column: it reflects this browser session only, and a successful `POST /auth/2fa/configure` restamps it.
 
 ## Password Reset And MCP
 
-The password-reset route offers TOTP when configured for that purpose and verifies through the same user model. Remote MCP authorization can require recent `totp_verified_at` before granting write scope; freshness rules belong to `blueprints/mcp_oauth.py`.
+The password-reset route offers TOTP as one of two mutually exclusive methods and verifies through `User.verify_totp()`. The `password_reset` purpose flag works as a gate in the other direction: an account with it set is refused the email-link path at `step == "select_email"` and pushed to the authenticator.
+
+Remote MCP authorization requires recent TOTP before granting write scope. `blueprints/mcp_oauth._is_fresh_totp()` treats `session["totp_verified_at"]` as fresh for 60 seconds (`_FRESH_TOTP_SECONDS`), and only when `user.is_totp_required_for("mcp")` and write scope was requested. A successful consent-page TOTP restamps the marker.
 
 ## Security Rules
 

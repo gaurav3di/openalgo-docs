@@ -4,6 +4,8 @@
 
 OpenAlgo tracks order execution latency at multiple stages to help identify performance bottlenecks and ensure SLA compliance.
 
+Latency records live in their own database, `LATENCY_DATABASE_URL` (default `sqlite:///db/latency.db`), separate from both `openalgo.db` and `logs.db`.
+
 ## Architecture Diagram
 
 ```
@@ -59,80 +61,75 @@ OpenAlgo tracks order execution latency at multiple stages to help identify perf
 | overhead_ms | Total OpenAlgo overhead |
 | total_latency_ms | End-to-end time |
 
+The column names on `OrderLatency` are `validation_latency_ms` and `response_latency_ms`. The `request_body` and `response_body` columns exist but are always written as `None`: `_log_latency_async()` passes `request_body=None, response_body=None` to save space, so no payloads are stored.
+
 ### Database Schema
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                 order_latency table                 │
-├──────────────────┬──────────────┬───────────────────┤
-│ Column           │ Type         │ Description       │
-├──────────────────┼──────────────┼───────────────────┤
-│ id               │ INTEGER PK   │ Auto-increment    │
-│ timestamp        │ DATETIME     │ Log time          │
-│ order_id         │ VARCHAR(100) │ Order ID          │
-│ user_id          │ INTEGER      │ User ID           │
-│ broker           │ VARCHAR(50)  │ Broker name       │
-│ symbol           │ VARCHAR(50)  │ Trading symbol    │
-│ order_type       │ VARCHAR(20)  │ MARKET/LIMIT/SL   │
-│ rtt_ms           │ FLOAT        │ Round-trip time   │
-│ validation_ms    │ FLOAT        │ Validation time   │
-│ response_ms      │ FLOAT        │ Response time     │
-│ overhead_ms      │ FLOAT        │ OpenAlgo overhead │
-│ total_latency_ms │ FLOAT        │ Total time        │
-│ request_body     │ JSON         │ Original request  │
-│ response_body    │ JSON         │ Broker response   │
-│ status           │ VARCHAR(20)  │ SUCCESS/FAILED    │
-│ error            │ VARCHAR(500) │ Error message     │
-└──────────────────┴──────────────┴───────────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│                            order_latency table                            │
+├───────────────────────┬─────────────┬─────────────────────────────────────┤
+│ Column                │ Type        │ Description                         │
+├───────────────────────┼─────────────┼─────────────────────────────────────┤
+│ id                    │ Integer PK  │ Auto-increment                      │
+│ timestamp             │ DateTime    │ Log time, server default now()      │
+│ order_id              │ String(100) │ Order ID, not null                  │
+│ user_id               │ Integer     │ User ID                             │
+│ broker                │ String(50)  │ Broker name                         │
+│ symbol                │ String(50)  │ Trading symbol                      │
+│ order_type            │ String(20)  │ PLACE, SMART, MODIFY, CANCEL, ...   │
+│ rtt_ms                │ Float       │ Broker API round-trip time          │
+│ validation_latency_ms │ Float       │ Pre-request processing              │
+│ response_latency_ms   │ Float       │ Post-response processing            │
+│ overhead_ms           │ Float       │ Total OpenAlgo overhead             │
+│ total_latency_ms      │ Float       │ End to end, not null                │
+│ request_body          │ JSON        │ Declared but always written as None │
+│ response_body         │ JSON        │ Declared but always written as None │
+│ status                │ String(20)  │ SUCCESS, FAILED, PARTIAL            │
+│ error                 │ String(500) │ Error message if any                │
+└───────────────────────┴─────────────┴─────────────────────────────────────┘
 ```
 
 ## Implementation
 
 ### Latency Tracker Class
 
+`utils/latency_monitor.LatencyTracker` records named stages rather than fixed marks:
+
 ```python
 class LatencyTracker:
-    def __init__(self):
-        self.start_time = time.perf_counter()
-        self.validation_start = None
-        self.validation_end = None
-        self.broker_start = None
-        self.broker_end = None
-        self.response_start = None
-
-    def mark_validation_start(self):
-        self.validation_start = time.perf_counter()
-
-    def mark_validation_end(self):
-        self.validation_end = time.perf_counter()
-
-    def mark_broker_start(self):
-        self.broker_start = time.perf_counter()
-
-    def mark_broker_end(self):
-        self.broker_end = time.perf_counter()
-
-    def get_metrics(self):
-        end_time = time.perf_counter()
-        return {
-            'validation_ms': (self.validation_end - self.validation_start) * 1000,
-            'rtt_ms': (self.broker_end - self.broker_start) * 1000,
-            'response_ms': (end_time - self.broker_end) * 1000,
-            'total_ms': (end_time - self.start_time) * 1000
-        }
+    def start_stage(self, stage_name): ...
+    def end_stage(self): ...
+    def get_total_time(self): ...
+    def get_rtt(self): ...
+    def get_overhead(self): ...
 ```
 
-### Decorator Usage
+`get_rtt()` returns the broker round trip, `get_overhead()` the sum of the non-broker stages, and `get_total_time()` the end-to-end elapsed time. The record itself is written off the request thread by `_log_latency_async()` on a single-worker `ThreadPoolExecutor`, so the SQLite commit never delays the order response.
+
+### Decorator Wiring
+
+`track_latency(api_type)` is not applied by hand to route functions. `init_latency_monitoring(app)` walks the Flask-RESTX namespaces and wraps every resource method through `wrap_resource_methods()`, mapping each namespace name to an uppercase api_type.
 
 ```python
-from utils.latency_monitor import track_latency
+# utils/latency_monitor.py
+api_types = {
+    "place_order": "PLACE",
+    "place_smart_order": "SMART",
+    "modify_order": "MODIFY",
+    "cancel_order": "CANCEL",
+    "place_gtt_order": "GTT_PLACE",
+    "quotes": "QUOTES",
+    # ...
+}
 
-@bp.route('/api/v1/placeorder', methods=['POST'])
-@track_latency('placeorder')
-def place_order():
-    # Latency automatically tracked
-    pass
+for namespace in api.namespaces:
+    api_type = api_types.get(namespace.name, namespace.name.upper())
+    for resource in namespace.resources:
+        wrap_resource_methods(resource.resource, api_type)
 ```
+
+An unmapped namespace falls back to its uppercased name.
 
 ## Dashboard
 
@@ -140,6 +137,20 @@ def place_order():
 ```
 /logs/latency
 ```
+
+### Routes
+
+`latency_bp` is registered with `url_prefix="/latency"`. All routes require a valid session.
+
+| Route | Behavior |
+|-------|----------|
+| `GET /latency/` | Older server-side dashboard template, still registered |
+| `GET /latency/api/logs` | Recent records; `limit` defaults to 100 and is capped at 1,000 |
+| `GET /latency/api/stats` | Overall stats, per-broker stats, and per-broker RTT histograms |
+| `GET /latency/api/broker/<broker>/stats` | One broker's stats plus its histogram |
+| `GET /latency/export` | Export all records as `latency_logs.csv` |
+
+Histograms are computed with 30 numpy bins over the observed RTT range.
 
 ### Dashboard View
 
@@ -176,24 +187,28 @@ def place_order():
 
 ### Performance Thresholds
 
-| Metric | Target | Description |
-|--------|--------|-------------|
-| P50 | < 100ms | 50% of requests |
-| P90 | < 150ms | 90% of requests |
-| P95 | < 175ms | 95% of requests |
-| P99 | < 200ms | 99% of requests |
+`get_latency_stats()` reports two independent things: the share of orders under three hard-coded millisecond thresholds, and four percentiles of `total_latency_ms`. The thresholds are not configurable and there is no 175 ms bucket.
+
+| Field | Meaning |
+|-------|---------|
+| sla_100ms | Percent of orders under 100 ms end to end |
+| sla_150ms | Percent of orders under 150 ms end to end |
+| sla_200ms | Percent of orders under 200 ms end to end |
+| p50_total, p90_total, p95_total, p99_total | Percentiles of `total_latency_ms` |
 
 ### SLA Calculation
 
 ```python
-def calculate_sla_compliance():
-    total = LatencyLog.query.count()
-    within_sla = LatencyLog.query.filter(
-        LatencyLog.total_latency_ms < 200
-    ).count()
+# database/latency_db.py, condensed
+overall = latency_session.query(
+    func.count(OrderLatency.id).label("total"),
+    func.sum(case((OrderLatency.total_latency_ms < 200, 1), else_=0)).label("under_200"),
+).first()
 
-    return (within_sla / total) * 100 if total > 0 else 100
+sla_200ms = (overall.under_200 / overall.total * 100) if overall.total else 0
 ```
+
+The whole statistics block is computed in a handful of aggregate queries and cached for 60 seconds (`_stats_cache`, a `TTLCache` of size 1). Percentiles are computed only over the last `PERCENTILE_WINDOW_DAYS` (30) days so the fetch cannot grow without bound.
 
 ## Broker Comparison
 
@@ -213,34 +228,37 @@ def calculate_sla_compliance():
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## Retention
+
+`init_latency_monitoring(app)` calls `purge_old_data_logs(days=7)` once at startup.
+
+Order-execution records are kept forever. Everything else, meaning data and account queries, is deleted after seven days. The keep-forever set is `PLACE`, `SMART`, `MODIFY`, `CANCEL`, `CLOSE`, `CANCEL_ALL`, `BASKET`, `SPLIT`, `OPTIONS`, `OPTIONS_MULTI`, `GTT_PLACE`, `GTT_MODIFY`, and `GTT_CANCEL`. The same set is written out twice, in `utils/latency_monitor.KEEP_FOREVER_TYPES` and in `database/latency_db.purge_old_data_logs`, and the two must stay in step: a type listed in only the first is purged despite being an order.
+
 ## Alerting
 
-### Threshold Alerts
-
-```python
-def check_latency_alerts(metrics):
-    if metrics['total_ms'] > 500:
-        logger.warning(f"High latency: {metrics['total_ms']}ms")
-        send_alert('High latency detected')
-
-    if metrics['status'] == 'TIMEOUT':
-        logger.error('Broker request timeout')
-        send_alert('Broker timeout detected')
-```
+There is no latency alerting. Nothing in the codebase raises a notification on a slow order or a broker timeout. The monitor records, aggregates, and displays; acting on a threshold is left to the operator watching the dashboard.
 
 ## HTTP Client Integration
 
 ### Connection Timing
 
 ```python
-def _on_request(request):
-    request.extensions['start_time'] = time.perf_counter()
+# utils/httpx_client.py, registered as httpx event_hooks
+def log_request(request):
+    request.extensions["start_time"] = time.time()
 
-def _on_response(response):
-    start = response.request.extensions.get('start_time')
-    if start:
-        latency = (time.perf_counter() - start) * 1000
-        logger.debug(f"HTTP Request: {latency:.2f}ms")
+
+def log_response(response):
+    start_time = response.request.extensions.get("start_time")
+    if start_time:
+        duration_ms = (time.time() - start_time) * 1000
+        ...
+
+
+client = httpx.Client(
+    event_hooks={"request": [log_request], "response": [log_response]},
+    ...
+)
 ```
 
 ## Analytics Queries

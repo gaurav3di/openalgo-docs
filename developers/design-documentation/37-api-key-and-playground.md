@@ -36,7 +36,7 @@ OpenAlgo provides a secure API key management system and an interactive API Play
 │  │    api_key + pepper         │  │    api_key                            │   │
 │  │  )                          │  │  )                                    │   │
 │  │                              │  │                                       │  │
-│  │  → Stored in api_key_hash   │  │  → Stored in encrypted_api_key        │   │
+│  │  → Stored in api_key_hash   │  │  → Stored in api_key_encrypted        │   │
 │  └──────────────────────────────┘  └──────────────────────────────────────┘   │
 └───────────────────────────────────────────────────────────────────────────────┘
                                         │
@@ -45,7 +45,7 @@ OpenAlgo provides a secure API key management system and an interactive API Play
 │                            api_keys Table (SQLite)                            │
 │                                                                               │
 │  ┌─────────────────────────────────────────────────────────────────────┐      │
-│  │  id | user_id | api_key_hash | encrypted_api_key | order_mode      │       │
+│  │  id | user_id | api_key_hash | api_key_encrypted | order_mode      │       │
 │  │  ───┼─────────┼──────────────┼───────────────────┼─────────────────│       │
 │  │  1  | admin   | $argon2id... | gAAAAA...         | auto            │       │
 │  └─────────────────────────────────────────────────────────────────────┘      │
@@ -55,6 +55,8 @@ OpenAlgo provides a secure API key management system and an interactive API Play
 ## API Key Generation
 
 **Location:** `blueprints/apikey.py`
+
+Blueprint: `api_key_bp`, `url_prefix="/"`. It exposes `/apikey` (GET returns the current key state, POST regenerates the key) and `/apikey/mode` (POST). Both are guarded by `@check_session_validity` and neither carries a `@limiter.limit` decorator.
 
 ```python
 import secrets
@@ -78,50 +80,74 @@ def generate_api_key():
 
 ### Dual Storage for Different Use Cases
 
+The model is `ApiKeys` in `database/auth_db.py` with `__tablename__ = 'api_keys'`. Its columns are `id`, `user_id` (unique), `api_key_hash`, `api_key_encrypted`, `created_at` and `order_mode` (default `'auto'`).
+
 ```python
 # database/auth_db.py
-def upsert_api_key(user_id: str, api_key: str) -> int:
-    """Store API key with both hash (auth) and encryption (retrieval)"""
+def upsert_api_key(user_id, api_key):
+    """Store both hashed and encrypted API key"""
+    # Hash with Argon2 for verification
+    peppered_key = api_key + PEPPER
+    hashed_key = ph.hash(peppered_key)
 
-    # 1. Hash for authentication verification
-    api_key_with_pepper = api_key + API_KEY_PEPPER
-    api_key_hash = ph.hash(api_key_with_pepper)
+    # Encrypt for retrieval
+    encrypted_key = encrypt_token(api_key)
 
-    # 2. Encrypt for TradingView integration (needs plain key)
-    encrypted_api_key = encrypt_token(api_key)
+    api_key_obj = ApiKeys.query.filter_by(user_id=user_id).first()
+    if api_key_obj:
+        api_key_obj.api_key_hash = hashed_key
+        api_key_obj.api_key_encrypted = encrypted_key
+    else:
+        api_key_obj = ApiKeys(
+            user_id=user_id, api_key_hash=hashed_key, api_key_encrypted=encrypted_key
+        )
+        db_session.add(api_key_obj)
+    db_session.commit()
 
-    # Store both in database
-    api_key_obj = ApiKey(
-        user_id=user_id,
-        api_key_hash=api_key_hash,
-        encrypted_api_key=encrypted_api_key,
-        order_mode='auto'
-    )
+    # Security: Invalidate all caches when API key changes
+    invalidate_user_cache(user_id)
+
+    return api_key_obj.id
 ```
 
-### Three-Level Verification
+`order_mode` is not written by `upsert_api_key()`. It falls back to the column default `'auto'` on insert and is changed only through `update_order_mode()`.
+
+### API Key Verification
 
 ```
-API Request with Key
-        │
-        ▼
-┌───────────────────┐
-│ 1. Cache Lookup   │───→ Found → Validate hash → Allow/Deny
-│    (TTLCache)     │
-└─────────┬─────────┘
-          │ Not found
-          ▼
-┌───────────────────┐
-│ 2. Database Hash  │───→ Valid → Update cache → Allow
-│    Verification   │───→ Invalid → Deny
-└─────────┬─────────┘
-          │ No hash found
-          ▼
-┌───────────────────┐
-│ 3. Legacy Check   │───→ Plain text match → Allow (deprecated)
-│    (Fallback)     │───→ No match → Deny
-└───────────────────┘
+                         API request with apikey
+                                   │
+                                   ▼
+  ┌────────────────────────────────────────────────────────────────┐
+  │ cache_key = sha256(provided_api_key)                           │
+  └────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+  ┌────────────────────────────────────────────────────────────────┐
+  │ 1. invalid_api_key_cache  (maxsize 512, TTL 300s)              │
+  │    hit  -> return None, reject                                 │
+  └────────────────────────────────────────────────────────────────┘
+                                   │
+                                   │ miss
+                                   ▼
+  ┌────────────────────────────────────────────────────────────────┐
+  │ 2. verified_api_key_cache (maxsize 1024, TTL 36000s)           │
+  │    hit  -> return the cached user_id                           │
+  └────────────────────────────────────────────────────────────────┘
+                                   │
+                                   │ miss
+                                   ▼
+  ┌────────────────────────────────────────────────────────────────┐
+  │ 3. Argon2 verify provided_api_key + API_KEY_PEPPER             │
+  │    against every stored api_keys.api_key_hash                  │
+  │                                                                │
+  │    match    -> cache and return user_id                        │
+  │    no match -> cache the negative result and record            │
+  │                the attempt via InvalidAPIKeyTracker            │
+  └────────────────────────────────────────────────────────────────┘
 ```
+
+Only the SHA-256 cache key and the resolved `user_id` are cached, never the key itself. `upsert_api_key()` and `update_order_mode()` both call `invalidate_user_cache()`. Order mode is cached separately in `order_mode_cache` (TTLCache, maxsize 128, TTL 60 seconds).
 
 ## Order Mode
 
@@ -189,36 +215,58 @@ def update_api_key_mode():
 
 ### Endpoint Categories
 
+`categorize_endpoint()` matches against the lowercased path and returns one of `account`, `orders`, `data` or `utilities`. WebSocket entries bypass it: `load_bruno_endpoints()` assigns them to a fifth bucket, `websocket`, based on the `.bru` meta `type`.
+
 ```python
 def categorize_endpoint(path):
     """Categorize an endpoint based on its path"""
+    path_lower = path.lower()
 
     # Account endpoints
-    if any(x in path for x in ['/funds', '/orderbook', '/tradebook',
-                                '/positionbook', '/holdings']):
+    if any(x in path_lower for x in ['/funds', '/orderbook', '/tradebook',
+                                     '/positionbook', '/holdings',
+                                     '/analyzer', '/margin']):
         return 'account'
 
     # Order endpoints
-    if any(x in path for x in ['/placeorder', '/modifyorder',
-                                '/cancelorder', '/placesmartorder']):
+    if any(x in path_lower for x in ['/placeorder', '/placesmartorder',
+                                     '/placegttorder', '/modifygttorder',
+                                     '/cancelgttorder', '/gttorderbook',
+                                     '/optionsorder', '/optionsmultiorder',
+                                     '/basketorder', '/splitorder',
+                                     '/modifyorder', '/cancelorder',
+                                     '/cancelallorder', '/closeposition',
+                                     '/orderstatus', '/openposition',
+                                     '/closeall']):
         return 'orders'
 
     # Data endpoints
-    if any(x in path for x in ['/quotes', '/multiquotes', '/depth',
-                                '/history', '/intervals']):
+    if any(x in path_lower for x in ['/quotes', '/multiquotes', '/depth',
+                                     '/history', '/intervals', '/symbol',
+                                     '/search', '/expiry', '/optionsymbol',
+                                     '/optiongreeks', '/multioptiongreeks',
+                                     '/optionchain', '/ticker',
+                                     '/syntheticfuture', '/instruments']):
         return 'data'
 
+    # Default to utilities
     return 'utilities'
 ```
 
+`.bru` files are read from `collections/openalgo/<broker_type>/**/*.bru`, where `broker_type` is `IN_stock` (the default) or `crypto`, resolved from the logged in broker's capabilities. `collection.bru` metadata files are skipped, entries are ordered by the `seq` value in their `meta` block and then sorted alphabetically by name inside each category.
+
 ### API Endpoints
+
+Blueprint: `playground`, `url_prefix="/playground"`.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/playground/` | GET | Render playground UI |
+| `/playground/` | GET | Legacy URL. Redirects (302) to the React-served `/playground` page |
 | `/playground/api-key` | GET | Get user's API key |
 | `/playground/collections` | GET | Get Postman/Bruno collections |
 | `/playground/endpoints` | GET | Get structured endpoint list |
+
+The playground UI itself is served by the React SPA (`blueprints/react_app.py`), not by a Jinja template in this blueprint. `/playground/api-key`, `/playground/collections` and `/playground/endpoints` are guarded by `@check_session_validity`. `/playground/` is not.
 
 ## WebSocket Testing
 
@@ -261,17 +309,7 @@ import requests
 API_KEY = "your_64_character_api_key_here"
 BASE_URL = "http://localhost:5000/api/v1"
 
-# Using POST with body
-response = requests.post(
-    f"{BASE_URL}/quotes",
-    json={
-        "apikey": API_KEY,
-        "symbol": "SBIN",
-        "exchange": "NSE"
-    }
-)
-
-# Using header authentication
+# The /api/v1 endpoints read the key from the JSON body field "apikey"
 response = requests.post(
     f"{BASE_URL}/quotes",
     json={
@@ -281,6 +319,8 @@ response = requests.post(
     }
 )
 ```
+
+> **Note**: Header authentication with `X-API-KEY` is accepted only by the bot endpoints (`restx_api/telegram_bot.py` and `restx_api/whatsapp_bot.py`). The regular `/api/v1` trading and data endpoints take the key from the request body.
 
 ### TradingView Integration
 
@@ -306,10 +346,10 @@ response = requests.post(
 
 | Layer | Protection |
 |-------|------------|
-| Storage | Argon2 hash + Fernet encryption |
+| Storage | Argon2 hash (`api_key_hash`) plus Fernet encryption (`api_key_encrypted`) |
 | Transit | HTTPS recommended |
-| Verification | Pepper + constant-time comparison |
-| Caching | TTLCache (expires after broker logout) |
+| Verification | Pepper plus Argon2 `PasswordHasher.verify()` |
+| Caching | `verified_api_key_cache` TTL 36000s, `invalid_api_key_cache` TTL 300s, both keyed by SHA-256 of the key and invalidated on key regeneration |
 
 ### Playground Security
 

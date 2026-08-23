@@ -8,27 +8,36 @@ The utils directory contains shared utility functions used across the OpenAlgo p
 
 ```
 utils/
-├── auth_utils.py           # Authentication helpers
-├── session.py              # Session management
-├── security_middleware.py  # IP security
-├── logging.py              # Centralized logging
-├── traffic_logger.py       # HTTP traffic logging
-├── ip_helper.py            # IP address resolution
-├── httpx_client.py         # HTTP client pooling
-├── socketio_error_handler.py # Socket.IO errors
-├── latency_monitor.py      # Performance tracking
-├── api_analyzer.py         # API validation
-├── mpp_slab.py             # Market price protection
-├── number_formatter.py     # Indian number format
-├── constants.py            # Order constants
-├── config.py               # Config helpers
-├── env_check.py            # Environment validation
-├── version.py              # Version management
-├── plugin_loader.py        # Broker plugin loading
-├── email_utils.py          # Email sending
-├── email_debug.py          # Email debugging
-├── ngrok_manager.py        # Ngrok tunnels
-└── health_monitor.py       # Background health monitoring daemon
+├── auth_utils.py             # Broker auth handoff, token revoke, password rules
+├── session.py                # Protected-route session validity
+├── security_middleware.py    # Pre-Flask IP ban enforcement
+├── logging.py                # Centralized logging setup and filters
+├── traffic_logger.py         # HTTP traffic logging middleware
+├── ip_helper.py              # Trusted client-IP resolution
+├── httpx_client.py           # Shared pooled HTTP client
+├── socketio_error_handler.py # Socket.IO error suppression
+├── latency_monitor.py        # Per-endpoint latency tracking
+├── health_monitor.py         # Background health monitoring daemon
+├── api_analyzer.py           # Analyzer dashboard statistics
+├── event_bus.py              # In-process EventBus and the bus singleton
+├── db_sessions.py            # Scoped-session registry and teardown
+├── mpp_slab.py               # Market price protection slabs
+├── number_formatter.py       # Indian number formatting
+├── constants.py              # Exchanges, products, price types, required fields
+├── config.py                 # Config helpers
+├── env_config.py             # Environment-derived settings
+├── env_check.py              # Startup environment validation
+├── symbol_utils.py           # Symbol parsing helpers
+├── trading_calendar.py       # Market session and holiday helpers
+├── version.py                # Single source of truth for VERSION
+├── plugin_loader.py          # Broker plugin and capability discovery
+├── mcp_tool_registry.py      # MCP tool definitions and scopes
+├── oauth_codes.py            # Remote MCP authorization codes
+├── oauth_keys.py             # Remote MCP signing keys
+├── oauth_tokens.py           # Remote MCP access and refresh tokens
+├── email_utils.py            # SMTP sending
+├── email_debug.py            # SMTP diagnostics
+└── ngrok_manager.py          # Ngrok tunnel lifecycle
 ```
 
 ## Key Utilities
@@ -78,8 +87,12 @@ def protected_route():
     """Only accessible with valid session"""
 
 # Token revocation
-def revoke_user_tokens():
-    """Revoke all auth tokens on logout"""
+def revoke_user_tokens(revoke_db_tokens=True):
+    """Revoke all auth tokens on logout or daily rollover"""
+
+# Crypto/24-7 brokers can switch expiry off entirely
+def is_session_expiry_disabled():
+    """True when DISABLE_SESSION_EXPIRY is set"""
 ```
 
 ### 3. IP Helper (ip_helper.py)
@@ -87,22 +100,30 @@ def revoke_user_tokens():
 ```python
 def get_real_ip():
     """Get client IP from request"""
-    # Priority:
+    # TRUST_PROXY_HEADERS defaults to FALSE: forwarded headers are
+    # ignored entirely and request.remote_addr is returned, so a client
+    # reaching gunicorn directly cannot spoof its source IP.
+    #
+    # TRUST_PROXY_HEADERS=TRUE walks the headers in priority order:
     # 1. CF-Connecting-IP (Cloudflare)
     # 2. True-Client-IP
     # 3. X-Real-IP (nginx)
-    # 4. X-Forwarded-For
-    # 5. remote_addr
+    # 4. X-Forwarded-For (first IP)
+    # 5. X-Client-IP
+    # 6. remote_addr
+
+def get_real_ip_from_environ(environ):
+    """Same resolution for WSGI/WebSocket environs without a Flask request"""
 ```
 
 ### 4. HTTP Client (httpx_client.py)
 
 ```python
 def get_httpx_client():
-    """Get connection-pooled HTTP client"""
+    """Get connection-pooled HTTP client (module-level singleton)"""
     # Features:
-    # - HTTP/2 support
-    # - Connection pooling (20 keepalive, 50 max)
+    # - HTTP/2 when APP_MODE is not 'standalone', HTTP/1.1 always
+    # - Connection pooling (40 keepalive, 100 max, 30s keepalive expiry)
     # - 120-second timeout
     # - Latency tracking hooks
 
@@ -114,6 +135,15 @@ def get(url, **kwargs):
 
 def post(url, **kwargs):
     """HTTP POST shortcut"""
+
+def put(url, **kwargs):
+    """HTTP PUT shortcut"""
+
+def delete(url, **kwargs):
+    """HTTP DELETE shortcut"""
+
+def cleanup_httpx_client():
+    """Close the shared client on shutdown"""
 ```
 
 ### 5. Logging (logging.py)
@@ -164,14 +194,21 @@ def format_indian_currency(value):
 # Valid exchanges
 VALID_EXCHANGES = [
     'NSE', 'NFO', 'CDS', 'BSE', 'BFO',
-    'BCD', 'MCX', 'NCDEX', 'NSE_INDEX', 'BSE_INDEX'
+    'BCD', 'MCX', 'NCDEX', 'NCO',
+    'NSE_INDEX', 'BSE_INDEX', 'MCX_INDEX', 'GLOBAL_INDEX',
+    'CRYPTO'
 ]
 
+# Derivative-capable exchanges, and the crypto family
+FNO_EXCHANGES = {'NFO', 'BFO', 'MCX', 'CDS', 'BCD', 'NCDEX', 'NCO', 'CRYPTO'}
+CRYPTO_EXCHANGES = {'CRYPTO'}
+CRYPTO_BROKERS = {'deltaexchange'}
+
 # Valid products
-VALID_PRODUCTS = ['CNC', 'NRML', 'MIS']
+VALID_PRODUCT_TYPES = ['CNC', 'NRML', 'MIS']
 
 # Valid price types
-VALID_PRICE_TYPES = ['MARKET', 'LIMIT', 'SL', 'SLM']
+VALID_PRICE_TYPES = ['MARKET', 'LIMIT', 'SL', 'SL-M']
 
 # Valid actions
 VALID_ACTIONS = ['BUY', 'SELL']
@@ -187,46 +224,68 @@ REQUIRED_ORDER_FIELDS = [
 
 ```python
 def load_and_check_env_variables():
-    """Validate .env configuration"""
+    """Load and validate .env, or exit the process.
+
+    Returns None. On any failure it prints a remediation
+    message and calls sys.exit(1); it does not return an
+    error list.
+    """
     # Checks:
+    # - ENV_CONFIG_VERSION against .sample.env
     # - Required variables present
-    # - Valid formats (rate limits, ports)
-    # - Version compatibility
-    # - Broker API key formats
+    # - Valid formats (rate limits, ports, times, URLs)
+    # - Broker API key formats for 5paisa/Flattrade/Dhan
+    # - REDIRECT_URL broker name against VALID_BROKERS
+    # Side effects on first run:
+    # - Rotates placeholder APP_KEY / API_KEY_PEPPER
+    # - Generates FERNET_SALT and re-encrypts stored secrets
 ```
 
 ### 10. Latency Monitor (latency_monitor.py)
 
 ```python
 class LatencyTracker:
-    """Track API latency at multiple stages"""
+    """Track API latency stage by stage"""
 
-    def mark_validation_start(self):
-        pass
+    def start_stage(self, stage_name):
+        """Open a named stage: validation, broker_request, broker_response"""
 
-    def mark_broker_start(self):
-        pass
+    def end_stage(self):
+        """Close the currently open stage"""
 
-    def get_metrics(self):
-        return {
-            'validation_ms': ...,
-            'rtt_ms': ...,
-            'total_ms': ...
-        }
+    def get_total_time(self):
+        """Total elapsed milliseconds"""
+
+    def get_rtt(self):
+        """Broker round-trip milliseconds"""
+
+    def get_overhead(self):
+        """Total minus broker RTT"""
 
 @track_latency('placeorder')
 def api_endpoint():
     """Decorator for latency tracking"""
+
+def init_latency_monitoring(app):
+    """Wrap RESTX resources and register the monitoring hooks"""
 ```
 
 ### 11. Plugin Loader (plugin_loader.py)
 
 ```python
-def load_broker_auth_functions(broker_directory):
-    """Dynamically load broker modules"""
-    for broker in os.listdir(broker_directory):
-        module = import_module(f'broker.{broker}.api.auth_api')
-        yield broker, module
+def load_broker_auth_functions(broker_directory="broker"):
+    """Return a lazy dict of broker name -> auth function.
+
+    Discovery only walks the directory. Each broker's
+    broker.<name>.api.auth_api module is imported on first
+    access, so startup never pays for 36 broker imports.
+    """
+
+def load_broker_capabilities(broker_directory="broker"):
+    """Cache every broker's plugin.json in memory at startup"""
+
+def get_broker_capabilities(broker_name):
+    """Read one broker's cached capability metadata"""
 ```
 
 ### 12. Ngrok Manager (ngrok_manager.py)

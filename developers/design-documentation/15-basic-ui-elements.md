@@ -35,7 +35,7 @@ Current routed tools include:
 | `/oiprofile` | Candles plus OI profile | `oi_profile_service.py` |
 | `/maxpain` | Max-pain distribution | OI tracker max-pain route |
 | `/straddle` | ATM straddle chart | `straddle_chart_service.py` |
-| `/customstraddle` | Custom multi-leg straddle chart | `custom_straddle_service.py` |
+| `/straddlepnl` | Custom multi-leg straddle chart | `custom_straddle_service.py` |
 | `/arbitrage` | Futures calendar-spread scanner | `arbitrage_service.py` |
 | `/scalping` | Keyboard execution and server-side stop risk | `scalping.py`, risk monitor |
 

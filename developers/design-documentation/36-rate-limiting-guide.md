@@ -4,6 +4,8 @@
 
 OpenAlgo uses Flask-Limiter with a moving-window strategy to protect endpoints from abuse. Different rate limits apply to different endpoint categories based on their sensitivity and resource usage.
 
+Two properties of the current setup matter before reading the numbers below. `limiter.py` passes no `default_limits`, so an endpoint without an explicit `@limiter.limit(...)` decorator is unlimited. And `storage_uri` is `memory://`, so counters live in the worker process; a multi-worker deployment enforces each limit once per worker rather than once per install. There are no `limiter.exempt` registrations anywhere in the codebase, and `limiter.init_app(app)` runs unconditionally in `create_app()`.
+
 ## Architecture Diagram
 
 ```
@@ -56,37 +58,75 @@ OpenAlgo uses Flask-Limiter with a moving-window strategy to protect endpoints f
 
 ### Environment Variables
 
+These are the eight keys `.sample.env` ships and `utils/env_check.py` validates:
+
 ```bash
 # Login endpoints (authentication security)
-LOGIN_RATE_LIMIT_MIN=5 per minute
-LOGIN_RATE_LIMIT_HOUR=25 per hour
+LOGIN_RATE_LIMIT_MIN = "5 per minute"
+LOGIN_RATE_LIMIT_HOUR = "25 per hour"
+
+# Password reset
+RESET_RATE_LIMIT = "15 per hour"
 
 # General API endpoints (data queries)
-API_RATE_LIMIT=50 per second
+API_RATE_LIMIT="50 per second"
 
 # Order endpoints (trading operations)
-ORDER_RATE_LIMIT=10 per second
+ORDER_RATE_LIMIT="10 per second"
 
-# Smart order endpoints (AI/automated trading)
-SMART_ORDER_RATE_LIMIT=10 per second
+# Smart order endpoints (automated trading)
+SMART_ORDER_RATE_LIMIT="10 per second"
 
 # Webhook endpoints (external integrations)
-WEBHOOK_RATE_LIMIT=100 per minute
+WEBHOOK_RATE_LIMIT="100 per minute"
 
 # Strategy endpoints
-STRATEGY_RATE_LIMIT=200 per minute
+STRATEGY_RATE_LIMIT="200 per minute"
 ```
+
+`RESET_RATE_LIMIT` is read by `blueprints/auth.py` but is not in the `rate_limit_vars` list that `utils/env_check.py` validates, so a malformed value there is not caught at startup.
 
 ### Limit Breakdown
 
 | Category | Rate Limit | Endpoints | Purpose |
 |----------|------------|-----------|---------|
-| **Login** | 5/min, 25/hr | `/auth/login`, `/auth/reset-password` | Prevent brute force |
+| **Login** | 5/min, 25/hr | `/auth/login`, `/<broker>/callback` | Prevent brute force |
+| **Password reset** | 15/hr | `/auth/reset-password` | Prevent reset abuse |
 | **API** | 50/sec | `/api/v1/quotes`, `/api/v1/positionbook`, etc. | General data access |
 | **Order** | 10/sec | `/api/v1/placeorder`, `/api/v1/modifyorder`, `/api/v1/cancelorder` | Trading rate control |
 | **Smart Order** | 10/sec | `/api/v1/placesmartorder` | Automated order rate control |
 | **Webhook** | 100/min | `/chartink/webhook`, `/strategy/webhook` | External integrations |
-| **Strategy** | 200/min | Strategy-related operations | Strategy execution |
+| **Strategy** | 200/min | Strategy CRUD views in `blueprints/strategy.py` and `blueprints/chartink.py` | Strategy execution |
+
+### Code Defaults Differ From The Sample Values
+
+The number that applies when a key is absent from `.env` is the second argument to `os.getenv` in the module, not the value in `.sample.env`. For `API_RATE_LIMIT` the two disagree:
+
+| Default in code | Modules |
+|---|---|
+| `50 per second` | `blueprints/admin.py`, `blueprints/orders.py`, `blueprints/sandbox.py`, `restx_api/margin.py` |
+| `10 per second` | the other 32 `restx_api/*.py` modules, including `quotes.py`, `orderbook.py`, `holdings.py`, `funds.py`, `depth.py`, `history.py` and `cancel_all_order.py` |
+
+Because `.sample.env` sets `API_RATE_LIMIT="50 per second"`, a standard install gets 50/sec everywhere. Removing the key from `.env` silently drops most data endpoints to 10/sec. Keep the key present.
+
+### Additional Rate Limit Variables
+
+These are read by code but are not part of the validated set. Several are absent from `.sample.env` altogether.
+
+| Variable | Default in code | Applied by |
+|---|---|---|
+| `SIP_API_RATE_LIMIT` | `10 per minute` | `restx_api/sip.py` backtest POST |
+| `PORTFOLIO_API_RATE_LIMIT` | `10 per minute` | `restx_api/portfolio.py` backtest POST |
+| `PORTFOLIO_TEARSHEET_RATE_LIMIT` | `5 per minute` | `restx_api/portfolio.py` tearsheet |
+| `GREEKS_RATE_LIMIT` | `30 per minute` | `restx_api/option_greeks.py` |
+| `TELEGRAM_RATE_LIMIT` | `30 per minute` | `restx_api/telegram_bot.py` |
+| `WHATSAPP_RATE_LIMIT` | `30 per minute` | `restx_api/whatsapp_bot.py` |
+| `TELEGRAM_MESSAGE_RATE_LIMIT` | `10 per minute` | `blueprints/telegram.py` |
+| `WHATSAPP_MESSAGE_RATE_LIMIT` | `10 per minute` | `blueprints/whatsapp.py` |
+| `MCP_RATE_LIMIT_READ` | `60 per minute` | `blueprints/mcp_http.py` per-token scope quota |
+| `MCP_RATE_LIMIT_WRITE` | `50 per minute` | `blueprints/mcp_http.py` per-token scope quota |
+
+The MCP HTTP surface also carries two limits that are not environment-configurable: `_DISPATCH_RATE_LIMIT = "120 per minute"` on `/mcp` and `_SSE_RATE_LIMIT = "5 per minute"` on the SSE endpoint, both keyed by token rather than by remote address. None of these apply unless `MCP_HTTP_ENABLED` is `True`, since the blueprints are only registered in that case.
 
 ## Implementation
 
@@ -146,7 +186,7 @@ class PlaceOrder(Resource):
 # restx_api/quotes.py
 from limiter import limiter
 
-API_RATE_LIMIT = os.getenv('API_RATE_LIMIT', '50 per second')
+API_RATE_LIMIT = os.getenv('API_RATE_LIMIT', '10 per second')
 
 @api.route('/', strict_slashes=False)
 class Quotes(Resource):
@@ -156,10 +196,18 @@ class Quotes(Resource):
         ...
 ```
 
+Each module defines its own constant at import time. There is no shared constant, so the effective limit for a route is whatever that one module read from the environment when it was imported. Changing a rate limit therefore requires a restart, not just an `.env` edit.
+
 ## Rate Limit Format
 
 ```
 <number> per <timeunit>
+```
+
+Flask-Limiter also accepts compound limits joined by semicolons, and `utils/env_check.py` validates that form:
+
+```
+10 per second;40 per minute
 ```
 
 ### Valid Timeunits
@@ -248,7 +296,7 @@ def place_order_with_retry(order_data, max_retries=3):
 | `/api/v1/placeorder` | ORDER_RATE_LIMIT | 10/sec |
 | `/api/v1/modifyorder` | ORDER_RATE_LIMIT | 10/sec |
 | `/api/v1/cancelorder` | ORDER_RATE_LIMIT | 10/sec |
-| `/api/v1/cancelallorder` | API_RATE_LIMIT | 50/sec |
+| `/api/v1/cancelallorder` | API_RATE_LIMIT | 50/sec (10/sec if the key is unset) |
 | `/api/v1/placesmartorder` | SMART_ORDER_RATE_LIMIT | 10/sec |
 | `/api/v1/quotes` | API_RATE_LIMIT | 50/sec |
 | `/api/v1/multiquotes` | API_RATE_LIMIT | 50/sec |
@@ -268,16 +316,19 @@ def place_order_with_retry(order_data, max_retries=3):
 | Endpoint | Rate Limit Variable | Default |
 |----------|---------------------|---------|
 | `/auth/login` | LOGIN_RATE_LIMIT_MIN + HOUR | 5/min, 25/hr |
-| `/auth/reset-password` | LOGIN_RATE_LIMIT_HOUR | 25/hr |
+| `/auth/reset-password` | RESET_RATE_LIMIT | 15/hr |
 | `/<broker>/callback` | LOGIN_RATE_LIMIT_MIN + HOUR | 5/min, 25/hr |
+
+`blueprints/brlogin.py` resolves its two constants through `get_login_rate_limit_min()` and `get_login_rate_limit_hour()` in `utils/config.py`, while `blueprints/auth.py` reads the same environment variables directly. The defaults match, so behaviour is identical, but the two paths are duplicated rather than sharing one source.
 
 ### Webhook Endpoints
 
 | Endpoint | Rate Limit Variable | Default |
 |----------|---------------------|---------|
 | `/chartink/webhook` | WEBHOOK_RATE_LIMIT | 100/min |
-| `/strategy/webhook` | STRATEGY_RATE_LIMIT | 200/min |
-| `/flow/trigger/*` | WEBHOOK_RATE_LIMIT | 100/min |
+| `/strategy/webhook` | WEBHOOK_RATE_LIMIT | 100/min |
+
+`STRATEGY_RATE_LIMIT` is applied to the strategy management views in `blueprints/strategy.py` and `blueprints/chartink.py`, not to the webhook receivers. The Flow webhook receivers `/flow/webhook/<token>` and `/flow/webhook/<token>/<symbol>` carry no `@limiter.limit` decorator at all; they are CSRF-exempt and unlimited, so front them with a reverse proxy limit if they are internet-facing.
 
 ## Moving Window Strategy
 
@@ -315,28 +366,33 @@ More accurate than fixed-window approach.
 **Location:** `utils/env_check.py`
 
 ```python
-import re
-
 rate_limit_vars = [
-    'LOGIN_RATE_LIMIT_MIN',
-    'LOGIN_RATE_LIMIT_HOUR',
-    'API_RATE_LIMIT',
-    'ORDER_RATE_LIMIT',
-    'SMART_ORDER_RATE_LIMIT',
-    'WEBHOOK_RATE_LIMIT',
-    'STRATEGY_RATE_LIMIT'
+    "LOGIN_RATE_LIMIT_MIN",
+    "LOGIN_RATE_LIMIT_HOUR",
+    "API_RATE_LIMIT",
+    "ORDER_RATE_LIMIT",
+    "SMART_ORDER_RATE_LIMIT",
+    "WEBHOOK_RATE_LIMIT",
+    "STRATEGY_RATE_LIMIT",
 ]
-
-rate_limit_pattern = re.compile(r'^\d+\s+per\s+(second|minute|hour|day)$')
+# Single: "10 per second"
+# Compound (Flask-Limiter syntax): "10 per second;40 per minute"
+single_limit = r"\d+\s+per\s+(second|minute|hour|day)"
+rate_limit_pattern = re.compile(
+    rf"^{single_limit}(;{single_limit})*$"
+)
 
 for var in rate_limit_vars:
-    value = os.getenv(var, '')
+    value = os.getenv(var, "")
     if not rate_limit_pattern.match(value):
-        print(f"Error: Invalid {var} format.")
+        print(f"\nError: Invalid {var} format.")
         print("Format should be: 'number per timeunit'")
-        print("Example: '5 per minute', '10 per second'")
+        print("Compound limits use semicolons: 'number per timeunit;number per timeunit'")
+        print("Examples: '5 per minute', '10 per second', '10 per second;40 per minute'")
         sys.exit(1)
 ```
+
+Validation is fail-fast: an unset or malformed value in that list calls `sys.exit(1)` before the Flask app is built. `RESET_RATE_LIMIT` and every variable in the additional table above are outside this check.
 
 ## Tuning Recommendations
 
@@ -374,10 +430,13 @@ limiter = Limiter(
 
 | File | Purpose |
 |------|---------|
-| `limiter.py` | Flask-Limiter initialization |
-| `utils/env_check.py` | Rate limit validation |
+| `limiter.py` | Flask-Limiter construction |
+| `app.py` | `limiter.init_app(app)` and the 429 error handler |
+| `utils/env_check.py` | Rate limit format validation at startup |
+| `utils/config.py` | `get_login_rate_limit_min()`, `get_login_rate_limit_hour()` |
 | `restx_api/*.py` | API endpoint rate limits |
-| `blueprints/auth.py` | Login rate limits |
-| `blueprints/chartink.py` | Webhook rate limits |
-| `blueprints/strategy.py` | Strategy rate limits |
-| `app.py` | 429 error handler |
+| `blueprints/auth.py` | Login and password-reset rate limits |
+| `blueprints/brlogin.py` | Broker callback rate limits |
+| `blueprints/chartink.py` | Chartink webhook and strategy rate limits |
+| `blueprints/strategy.py` | Strategy webhook and strategy rate limits |
+| `blueprints/mcp_http.py` | Remote MCP dispatch, SSE and per-scope quotas |

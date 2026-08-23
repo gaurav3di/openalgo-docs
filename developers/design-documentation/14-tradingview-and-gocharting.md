@@ -139,6 +139,8 @@ http://your-domain.com/api/v1/placeorder
 
 ## Lot Sizes Reference
 
+> **Note**: Lot sizes and expiry days are not hard-coded in OpenAlgo. They come from the broker's master contract (`lotsize` on `SymToken`) and from the exchange calendar, so the table below is indicative only. Always confirm the current values from the downloaded master contract or the symbol search page.
+
 | Index | Lot Size | Exchange | Expiry |
 |-------|----------|----------|--------|
 | NIFTY | 65 | NFO | Tuesday |
@@ -210,20 +212,28 @@ OpenAlgo provides JSON generators for easy webhook configuration:
 
 ### TradingView JSON Generator
 
-**Endpoint:** `/tv-json`
+**Blueprint:** `tv_json_bp`, `url_prefix="/tradingview"`
+
+**Endpoint:** `/tradingview` (GET renders the page, POST returns the generated JSON)
 
 Features:
 - Select symbol, exchange, product
-- Generate webhook JSON
+- Two modes selected with the `mode` field in the POST body:
+  - `strategy` (default): emits `strategy: "TradingView Strategy"` with `action: "{{strategy.order.action}}"`, `quantity: "{{strategy.order.contracts}}"` and `position_size: "{{strategy.position_size}}"`, for use with `/api/v1/placesmartorder`
+  - `line`: requires `action` and `quantity` in the request and emits `strategy: "TradingView Line Alert"` with fixed values, for use with `/api/v1/placeorder`
+- The generated JSON embeds the user's real API key, resolved through `get_api_key_for_tradingview()`
+- The symbol is resolved through `enhanced_search_symbols()` and the first match is used
 - Copy to clipboard
 
 ### GoCharting JSON Generator
 
-**Endpoint:** `/gc-json`
+**Blueprint:** `gc_json_bp`, `url_prefix="/gocharting"`
+
+**Endpoint:** `/gocharting` (GET renders the page, POST returns the generated JSON)
 
 Features:
-- Select symbol, exchange, product
-- Generate webhook JSON
+- Select symbol, exchange, product, action and quantity (all five are required)
+- Emits `strategy: "GoCharting"` with `pricetype: "MARKET"`, for use with `/api/v1/placeorder`
 - Copy to clipboard
 
 ## Price Types

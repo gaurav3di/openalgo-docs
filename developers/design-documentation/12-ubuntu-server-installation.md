@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide covers deploying OpenAlgo on an Ubuntu server (20.04/22.04 LTS) with Nginx reverse proxy, systemd services, and SSL configuration for production use.
+This guide covers deploying OpenAlgo on an Ubuntu server (22.04 or 24.04 LTS) with an Nginx reverse proxy, a systemd service, and SSL for production use. `pyproject.toml` sets `requires-python = ">=3.12"`, so Python 3.12 or newer is mandatory. The steps below are the manual equivalent of `install/install.sh`, which automates the same work and additionally offers Remote MCP setup.
 
 ## Architecture Diagram
 
@@ -62,7 +62,8 @@ sudo apt install -y python3.12 python3.12-venv python3-pip \
                     git curl build-essential
 
 # Install Node.js (for frontend build)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# frontend/package.json requires Node >=20.20, >=22.22 or >=24.13
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
@@ -91,8 +92,8 @@ uv venv .venv
 source .venv/bin/activate
 uv sync
 
-# Install production dependencies
-uv pip install gunicorn eventlet==0.35.2
+# Install production dependencies (same pin the install script uses)
+uv pip install "gunicorn>=25.0,<26" eventlet
 ```
 
 ### 3. Configure Environment
@@ -137,20 +138,30 @@ User=www-data
 Group=www-data
 WorkingDirectory=/opt/openalgo
 Environment="PATH=/opt/openalgo/.venv/bin"
+# Keep numerical libraries from spawning a thread per core under systemd
+Environment="OPENBLAS_NUM_THREADS=2"
+Environment="OMP_NUM_THREADS=2"
+Environment="MKL_NUM_THREADS=2"
+Environment="NUMEXPR_NUM_THREADS=2"
+Environment="NUMBA_NUM_THREADS=2"
 ExecStart=/opt/openalgo/.venv/bin/gunicorn \
     --worker-class eventlet \
     -w 1 \
     --bind 127.0.0.1:5000 \
-    --timeout 120 \
+    --timeout 300 \
+    --log-level info \
     app:app
 Restart=always
-RestartSec=10
+RestartSec=5
+TimeoutSec=300
 
 [Install]
 WantedBy=multi-user.target
 ```
 
 **Important:** Use `-w 1` (single worker) for WebSocket compatibility.
+
+The bundled `install/install.sh` binds gunicorn to a unix socket under `/run` instead of `127.0.0.1:5000` and points the Nginx upstream at that socket. Either binding works; keep the systemd unit and the Nginx `proxy_pass` consistent with whichever you choose.
 
 ### 6. Set Permissions
 

@@ -44,13 +44,17 @@ Clients send JSON action envelopes. Supported actions are:
 
 | Action | Purpose |
 |---|---|
-| `authenticate` | Verify `api_key` or `apikey` and resolve broker |
+| `authenticate` (alias `auth`) | Verify `api_key` or `apikey` and resolve broker |
 | `subscribe` | Subscribe one `symbol` or a `symbols` array |
 | `unsubscribe` | Remove selected subscriptions |
 | `unsubscribe_all` | Remove all subscriptions for the client |
+| `subscribe_orders` | Account-scoped order-update stream, no symbol or mode |
+| `unsubscribe_orders` | Stop the order-update stream |
 | `get_broker_info` | Return active broker/capability information |
 | `get_supported_brokers` | Return proxy-supported brokers |
 | `ping` | Protocol keepalive/diagnostic |
+
+`server.py` reads the action from either `action` or `type`, so both spellings work for the same envelope.
 
 Authentication must complete within the configured grace period (15 seconds by default). Subscription modes accept `LTP`, `Quote`, or `Depth`, with integer modes 1, 2, and 3 normalized to those values. Responses report per-symbol success or failure.
 
@@ -58,7 +62,7 @@ Authentication must complete within the configured grace period (15 seconds by d
 
 The proxy indexes subscribers by normalized symbol, exchange, and mode, and constructs broker adapters through `websocket_proxy/broker_factory.py`. Connection pooling limits are controlled by environment settings, with defaults of 1000 symbols per broker connection and three connections.
 
-Public market data is fanned out to matching clients. Private order, position, and margin topics are deliberately skipped by public delivery.
+Public market data is fanned out to matching clients by symbol, exchange and mode. Order updates are a separate, account-scoped channel: a client must explicitly send `subscribe_orders`, and the stream is never fanned out as part of a market-data subscription. Order-update ingestion itself is governed by `ORDER_UPDATES_ENABLED` (default `TRUE`), with `ORDER_POLL_INTERVAL` (default 5 seconds) used for brokers that have no push mechanism. Position and margin topics are not published on the proxy at all.
 
 ## Shared Broker Feed
 

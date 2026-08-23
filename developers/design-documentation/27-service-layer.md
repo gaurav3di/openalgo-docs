@@ -25,9 +25,10 @@ RESTX or blueprint
 | Market data | `quotes_service.py`, `depth_service.py`, `history_service.py`, `instruments_service.py`, `intervals_service.py`, `search_service.py`, `symbol_service.py`, `expiry_service.py` |
 | Options analytics | `option_chain_service.py`, `option_greeks_service.py`, `option_symbol_service.py`, `synthetic_future_service.py` |
 | Tools | `gex_service.py`, `gamma_density_service.py`, `iv_chart_service.py`, `iv_smile_service.py`, `oi_tracker_service.py`, `oi_profile_service.py`, `vol_surface_service.py`, `straddle_chart_service.py`, `custom_straddle_service.py`, `arbitrage_service.py` |
-| Automation | `flow_executor_service.py`, `flow_scheduler_service.py`, `flow_price_monitor_service.py`, `flow_openalgo_client.py`, `historify_service.py`, `historify_scheduler_service.py` |
+| Portfolio and analytics | `portfolio_service.py`, `sip_service.py`, `strategy_pnl_service.py`, `indicator_service.py`, `chart_service.py` |
+| Automation | `flow_executor_service.py`, `flow_scheduler_service.py`, `flow_price_monitor_service.py`, `flow_order_update_monitor_service.py`, `flow_workflow_validator.py`, `flow_openalgo_client.py`, `historify_service.py`, `historify_scheduler_service.py` |
 | Messaging | `telegram_alert_service.py`, `telegram_bot_service.py`, `whatsapp_alert_service.py`, `whatsapp_bot_service.py` |
-| Runtime | `broker_keepalive_service.py`, `websocket_service.py`, `websocket_client.py`, `scalping_risk_monitor_service.py` |
+| Runtime | `broker_keepalive_service.py`, `order_update_service.py`, `websocket_service.py`, `websocket_client.py`, `scalping_risk_monitor_service.py` |
 
 Use `rg --files services` for the exact inventory; this table describes ownership rather than freezing a file count.
 
@@ -49,7 +50,7 @@ Market-data services normalize broker access without claiming every broker paylo
 
 ## Long-Lived Services
 
-Long-lived services need explicit start/stop ownership and cannot retain request-scoped sessions. The scalping risk monitor is a singleton that owns an internal market-data client; the WebSocket proxy has separate lifecycle integration; schedulers restore persisted jobs at startup.
+Long-lived services need explicit start/stop ownership and cannot retain request-scoped sessions, and they must release scoped sessions themselves through `utils/db_sessions.remove_all_scoped_sessions()` because no request teardown covers them. The scalping risk monitor is a singleton that owns an internal market-data client; `order_update_service.py` keeps one order-update adapter per broker session and republishes broker pushes as `order.update`; the WebSocket proxy has separate lifecycle integration; schedulers restore persisted jobs at startup.
 
 ## Errors And Logging
 

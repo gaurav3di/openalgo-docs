@@ -4,7 +4,7 @@
 
 OpenAlgo uses Flask 3.1 with Flask-RESTX, Flask-SocketIO, Flask-Limiter, Flask-WTF CSRF, SQLAlchemy, APScheduler, DuckDB, ZeroMQ, and a separate asyncio WebSocket proxy. Python `>=3.12` is required.
 
-The backend is a single-user application, but production can run multiple Flask workers. Process-local components such as caches and the EventBus are therefore per worker. Cross-process market-data and selected cache invalidation paths use ZeroMQ.
+The backend is a single-user application. Production runs Gunicorn with a single eventlet worker (`start.sh` passes `--worker-class eventlet --workers 1`), and the market-data proxy runs outside it in its own process. Process-local components such as caches and the EventBus are therefore per process, not shared. Cross-process market-data and selected cache invalidation paths use ZeroMQ.
 
 ## Request Surfaces
 
@@ -21,7 +21,7 @@ Flask-RESTX's Swagger UI is intentionally disabled through `doc=False`. The [API
 
 ## Application Factory
 
-`create_app()` initializes Flask, Socket.IO, EventBus subscribers, CSRF, limiter, CORS, CSP, security middleware, traffic/latency/health hooks, React routes, RESTX, feature blueprints, and teardown handlers. Remote MCP blueprints are imported and registered only when `MCP_HTTP_ENABLED=True` passes startup safety checks.
+`create_app()` initializes Flask, Socket.IO, EventBus subscribers, CSRF, limiter, CORS, CSP, security middleware, traffic/latency/health hooks, React routes, RESTX, feature blueprints, the broker keepalive service, and the real-time order-update adapters. The scoped-session teardown handler is registered at module scope after the factory returns. Remote MCP blueprints are imported and registered only when `MCP_HTTP_ENABLED=True` passes startup safety checks.
 
 ## Service Flow
 
@@ -39,20 +39,21 @@ live broker  sandbox   Action Center
 module       manager   pending execution
         |
         v
-typed EventBus events -> log / Socket.IO / Telegram / WhatsApp subscribers
+typed EventBus events -> log / Socket.IO / Telegram / WhatsApp / proxy-relay / strategy-book subscribers
 ```
 
 Order services strip sensitive fields before logging events. Analyzer mode routes supported operations to sandbox managers. Semi-auto mode queues eligible operations in Action Center and blocks specific destructive calls according to each service's policy.
 
 ## Persistence
 
-SQLAlchemy modules use scoped sessions and `NullPool` for SQLite. `app.py` removes known scoped sessions after every request. Historify owns a separate DuckDB file and its own connection discipline. See [18 Database Structure](18-database-structure.md).
+SQLAlchemy modules use scoped sessions and `NullPool` for SQLite. `utils/db_sessions.py` owns the registry of every scoped session; `app.py`'s `teardown_appcontext` handler calls `remove_all_scoped_sessions()` after each request, and background threads that run without an app context call the same function themselves. Historify owns a separate DuckDB file and its own connection discipline. See [18 Database Structure](18-database-structure.md).
 
 ## Background Components
 
 - APScheduler jobs for Flow, Python strategies, Historify, and maintenance paths.
 - Sandbox execution, square-off, and settlement workers.
 - Broker keepalive service.
+- Real-time order-update adapters that ingest broker order pushes or postbacks and republish them as `order.update` events.
 - Scalping risk monitor that subscribes to live ticks and survives browser navigation.
 - Telegram/WhatsApp service startup when configured.
 - WebSocket proxy process under eventlet/gunicorn, or OS thread in direct development startup.
@@ -62,7 +63,7 @@ SQLAlchemy modules use scoped sessions and `NullPool` for SQLite. `app.py` remov
 
 - `APP_KEY` and `API_KEY_PEPPER` are startup requirements.
 - Broker tokens and retrievable API keys are Fernet-encrypted; API-key verification uses Argon2 plus a pepper.
-- Session routes retain CSRF except explicit callbacks/webhooks/logout/health exemptions.
+- Session routes retain CSRF except explicit broker-callback, webhook, postback, and health exemptions. `auth.logout` is deliberately not exempt.
 - `/api/v1` is CSRF-exempt because it uses API-key authentication.
 - CORS, CSP, proxy-header trust, IP bans, cookie security, and session expiry are environment controlled.
 - Debug mode on a non-loopback host is refused unless explicitly overridden; Remote MCP refuses debug mode.
@@ -77,5 +78,6 @@ SQLAlchemy modules use scoped sessions and `NullPool` for SQLite. `app.py` remov
 | `services/order_router_service.py` | Auto/semi-auto routing |
 | `utils/plugin_loader.py` | Broker discovery and lazy auth imports |
 | `database/engine_factory.py` | SQLite engine policy |
+| `utils/db_sessions.py` | Scoped-session registry and release |
 | `utils/event_bus.py` | Per-process async event dispatch |
 | `websocket_proxy/app_integration.py` | Proxy lifecycle selection |

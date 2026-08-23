@@ -1,8 +1,8 @@
 # OpenAlgo Design Documentation
 
-This directory describes the implemented architecture of OpenAlgo `2.0.1.7`. OpenAlgo is a self-hosted, single-user trading application with a Flask/Flask-RESTX backend, React 19 frontend, broker plugins, a separate WebSocket proxy, sandbox execution, hosted strategies, Flow automation, portfolio analytics, chart trading, and optional local or remote MCP access.
+This directory describes the implemented architecture of OpenAlgo `2.0.2.1`. OpenAlgo is a self-hosted, single-user trading application with a Flask/Flask-RESTX backend, React 19 frontend, broker plugins, a separate WebSocket proxy, sandbox execution, hosted strategies, Flow automation, portfolio analytics, chart trading, and optional local or remote MCP access.
 
-The current plugin inventory contains 35 broker directories with `plugin.json`. Broker capabilities are metadata-driven; a plugin's presence does not imply every optional broker operation is supported.
+The current inventory is 36 broker plugins: 34 securities brokers, Delta Exchange for crypto derivatives, and a Dhan sandbox plugin for paper trading. Every one of the 36 has a `plugin.json`. Broker capabilities are metadata-driven; a plugin's presence does not imply every optional broker operation is supported.
 
 ## Documentation Policy
 
@@ -68,7 +68,7 @@ The current plugin inventory contains 35 broker directories with `plugin.json`. 
 | [37 API Key And Playground](37-api-key-and-playground.md) | API key management and WebSocket tester |
 | [41 MCP Architecture](41-mcp-architecture.md) | Local stdio and opt-in remote OAuth transport |
 | [43 Telegram Bot](43-telegram-bot-configuration.md) | Bot lifecycle, commands, automatic and explicit alerts |
-| [43 Toast Notifications](44-toast-notifications-system.md) | Browser notification categories |
+| [44 Toast Notifications](44-toast-notifications-system.md) | Browser notification categories |
 | [44 PnL Tracker](44-pnl-tracker.md) | Live P&L charting |
 | [46 Search](46-search.md) | Contract and underlying search |
 | [49 Themes](49-themes.md) | Theme and accent persistence |

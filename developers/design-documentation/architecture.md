@@ -6,17 +6,20 @@ The frontend is a React 19 TypeScript SPA built with Vite 8. Current package con
 
 | Concern | Implementation |
 |---|---|
-| Routing | `react-router-dom` 7.15 |
+| Routing | `react-router` 8 |
 | Server state | TanStack Query 5 |
 | Client state | Zustand 5 |
 | Styling | Tailwind CSS 4 and local shadcn-style components |
 | Icons | Lucide React |
-| Forms/editors | Radix primitives, CodeMirror |
+| Forms/editors | Radix primitives, CodeMirror 6 through `@uiw/react-codemirror` |
 | Flow canvas | XYFlow 12 |
-| Charts | Plotly 3 and Lightweight Charts 5 |
-| Live app events | Socket.IO client |
+| Charts | Plotly 3 (`plotly.js-dist-min`) and Lightweight Charts 5 |
+| Live app events | Socket.IO client 4 |
+| Language | TypeScript 7 |
 | Tests | Vitest 4, Testing Library, axe, Playwright |
 | Formatting/lint | Biome 2 |
+
+Routing uses the `react-router` package directly. `react-router-dom` is no longer a dependency, so imports come from `react-router`.
 
 Supported Node versions are `>=20.20.0 || >=22.22.0 || >=24.13.0`.
 

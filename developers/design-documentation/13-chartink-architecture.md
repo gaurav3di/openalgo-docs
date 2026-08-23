@@ -16,57 +16,64 @@ Chartink integration allows OpenAlgo to receive trading signals from Chartink sc
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                               Chartink Platform                               │
 │                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐      │
-│  │  Scanner/Screener Alert                                              │     │
-│  │                                                                      │     │
-│  │  When condition met → Trigger Webhook                               │      │
-│  │  Example: Price > 20 DMA, Volume spike, RSI crossover               │      │
-│  └─────────────────────────────────────────────────────────────────────┘      │
+│   ┌────────────────────────────────────────────────────────────────────┐      │
+│   │ Scanner or screener alert                                          │      │
+│   │                                                                    │      │
+│   │ When the condition is met Chartink calls the webhook.              │      │
+│   │ Example: price above 20 DMA, volume spike, RSI crossover.          │      │
+│   └────────────────────────────────────────────────────────────────────┘      │
 └───────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         │ HTTP POST
                                         ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                           OpenAlgo Chartink Webhook                           │
-│                            POST /chartink/webhook                             │
+│                      POST /chartink/webhook/<webhook_id>                      │
 │                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐      │
-│  │  Rate Limit: WEBHOOK_RATE_LIMIT (100 per minute)                    │      │
-│  │                                                                      │     │
-│  │  Payload:                                                           │      │
-│  │  {                                                                   │     │
-│  │    "webhook_id": "your_webhook_id",                                 │      │
-│  │    "stocks": "SBIN,RELIANCE,INFY"                                   │      │
-│  │  }                                                                   │     │
-│  └─────────────────────────────────────────────────────────────────────┘      │
+│   ┌────────────────────────────────────────────────────────────────────┐      │
+│   │ Rate limit: WEBHOOK_RATE_LIMIT, default 100 per minute             │      │
+│   │                                                                    │      │
+│   │ Payload:                                                           │      │
+│   │ {                                                                  │      │
+│   │   "stocks": "SBIN,RELIANCE,INFY",                                  │      │
+│   │   "trigger_prices": "820.5,2950.1,1580.0",                         │      │
+│   │   "scan_name": "Momentum BUY"                                      │      │
+│   │ }                                                                  │      │
+│   │                                                                    │      │
+│   │ The webhook id is in the path, not in the body.                    │      │
+│   └────────────────────────────────────────────────────────────────────┘      │
 └───────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                              Chartink Processing                              │
 │                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐      │
-│  │  1. Validate webhook_id against database                            │      │
-│  │  2. Get strategy configuration                                       │     │
-│  │  3. Check time-based trading controls                               │      │
-│  │     - Is current time within start_time and end_time?               │      │
-│  │     - Is strategy active?                                           │      │
-│  │  4. Parse stock list                                                │      │
-│  │  5. For each stock:                                                 │      │
-│  │     - Lookup symbol mapping (chartink_symbol → exchange/qty/product)│      │
-│  │     - Queue order for execution                                      │     │
-│  └─────────────────────────────────────────────────────────────────────┘      │
+│   ┌────────────────────────────────────────────────────────────────────┐      │
+│   │ 1. Resolve <webhook_id> to a ChartinkStrategy row                  │      │
+│   │ 2. Derive the action from a BUY, SELL, SHORT or COVER              │      │
+│   │    keyword in scan_name. No keyword means HTTP 400.                │      │
+│   │ 3. Check the strategy is active and the clock is between           │      │
+│   │    start_time and end_time                                         │      │
+│   │ 4. Split the stocks list                                           │      │
+│   │ 5. For each stock, look up ChartinkSymbolMapping for the           │      │
+│   │    exchange, quantity and product. Unmapped symbols are            │      │
+│   │    logged and skipped, there are no defaults.                      │      │
+│   └────────────────────────────────────────────────────────────────────┘      │
 └───────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                                Order Execution                                │
 │                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐      │
-│  │  REST API: /api/v1/placeorder or /api/v1/placesmartorder            │      │
-│  │                                                                      │     │
-│  │  Order queued → Rate-limited execution → Broker API                 │      │
-│  └─────────────────────────────────────────────────────────────────────┘      │
+│   ┌────────────────────────────────────────────────────────────────────┐      │
+│   │ Entries  -> /api/v1/placeorder                                     │      │
+│   │ Exits    -> /api/v1/placesmartorder with quantity 0 and            │      │
+│   │             position_size 0                                        │      │
+│   │                                                                    │      │
+│   │ Every payload carries the strategy name, prefixed with             │      │
+│   │ chartink_. Orders are queued and rate paced before the             │      │
+│   │ broker call.                                                       │      │
+│   └────────────────────────────────────────────────────────────────────┘      │
 └───────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -81,15 +88,15 @@ class ChartinkStrategy(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)           # Strategy name
-    webhook_id = Column(String(36), unique=True)         # UUID for webhook
+    webhook_id = Column(String(36), unique=True, nullable=False)  # UUID for webhook
     user_id = Column(String(255), nullable=False)        # Owner
     is_active = Column(Boolean, default=True)            # Enable/disable
     is_intraday = Column(Boolean, default=True)          # Intraday mode flag
     start_time = Column(String(5))                       # Trading start (HH:MM format)
     end_time = Column(String(5))                         # Trading end (HH:MM format)
     squareoff_time = Column(String(5))                   # Auto square-off time (HH:MM)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
     symbol_mappings = relationship("ChartinkSymbolMapping", back_populates="strategy",
@@ -103,11 +110,11 @@ class ChartinkSymbolMapping(Base):
     id = Column(Integer, primary_key=True)
     strategy_id = Column(Integer, ForeignKey('chartink_strategies.id'), nullable=False)
     chartink_symbol = Column(String(50), nullable=False)  # Symbol from Chartink
-    exchange = Column(String(10), nullable=False)         # NSE/BSE/NFO
+    exchange = Column(String(10), nullable=False)         # NSE/BSE
     quantity = Column(Integer, nullable=False)            # Order quantity
-    product_type = Column(String(10), nullable=False)     # MIS/CNC/NRML
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    product_type = Column(String(10), nullable=False)     # MIS/CNC
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
     strategy = relationship("ChartinkStrategy", back_populates="symbol_mappings")
@@ -121,31 +128,34 @@ class ChartinkSymbolMapping(Base):
 
 1. Go to Chartink Scanner
 2. Edit scanner settings
-3. Add webhook URL: `http://your-domain/chartink/webhook`
-4. Set webhook body:
+3. Add webhook URL: `http://your-domain/chartink/webhook/<webhook_id>` (the webhook ID is part of the URL path, not the body)
+4. Chartink posts its standard alert body. OpenAlgo reads three fields from it:
 
 ```json
 {
-    "webhook_id": "your_webhook_id_from_openalgo",
-    "stocks": "{stocks}"
+    "stocks": "SBIN,RELIANCE,INFY",
+    "trigger_prices": "625.5,2450.1,1650.0",
+    "scan_name": "My BUY Scan"
 }
 ```
+
+> **Important**: The action is derived from the keyword in `scan_name`. `BUY` and `SHORT` are entry orders sent to `placeorder` with the mapped quantity. `SELL` and `COVER` are exit orders sent to `placesmartorder` with `quantity=0` and `position_size=0`. A scan name containing none of these four keywords is rejected with HTTP 400.
 
 ### OpenAlgo Setup
 
 1. Navigate to `/chartink`
-2. Create new strategy
+2. Create new strategy. The name is automatically prefixed with `chartink_` if it does not already start with it.
 3. Copy the generated `webhook_id`
-4. Configure time-based trading controls:
+4. Configure time-based trading controls (required when the strategy type is intraday):
    - **Start Time**: When to start accepting signals (HH:MM)
-   - **End Time**: When to stop accepting signals (HH:MM)
+   - **End Time**: When to stop accepting entry signals (HH:MM)
    - **Square-off Time**: Auto close positions (HH:MM)
    - **Intraday Mode**: Enable for MIS trades
 
 5. Add symbol mappings with per-symbol configuration:
    - **Chartink Symbol**: Symbol as sent by Chartink
-   - **Exchange**: NSE/BSE/NFO
-   - **Product Type**: MIS/CNC/NRML
+   - **Exchange**: NSE or BSE only
+   - **Product Type**: MIS or CNC only
    - **Quantity**: Order quantity for this symbol
 
 ## Symbol Mapping
@@ -158,7 +168,7 @@ Each symbol in a strategy has its own trading configuration:
 | RELIANCE | NSE | CNC | 10 |
 | INFY | NSE | MIS | 50 |
 
-> **Note**: Unlike scanner-level defaults, each symbol must have its exchange, product, and quantity explicitly configured in the symbol mapping.
+> **Note**: Unlike scanner-level defaults, each symbol must have its exchange, product, and quantity explicitly configured in the symbol mapping. There are no fallback defaults: a symbol arriving in the webhook with no mapping is logged and skipped, and a strategy with no mappings at all rejects the webhook with HTTP 400.
 
 ## Processing Flow
 
@@ -167,60 +177,74 @@ Each symbol in a strategy has its own trading configuration:
 │                   Chartink Webhook Processing                    │
 └──────────────────────────────────────────────────────────────────┘
 
-Webhook Received
-      │
-      ▼
-┌─────────────────────┐
-│ Validate webhook_id │
-└─────────┬───────────┘
-          │
-          ▼
-┌─────────────────────┐
-│ Check scanner active│
-└─────────┬───────────┘
-          │
-          ▼
-┌──────────────────────┐
-│ Parse stocks list    │
-│ "SBIN,RELIANCE"      │
-│ → ["SBIN","RELIANCE"]│
-└─────────┬────────────┘
-          │
-          ▼
-┌────────────────────────────────────────────────────┐
-│ For each stock:                                    │
-│                                                    │
-│  1. Check symbol mapping                           │
-│     - If mapping exists: use mapped values         │
-│     - If not: use scanner defaults                 │
-│                                                    │
-│  2. Build order payload:                           │
-│     {                                              │
-│       "apikey": "user_api_key",                    │
-│       "symbol": "SBIN",                            │
-│       "exchange": "NSE",                           │
-│       "action": "BUY",                             │
-│       "quantity": 100,                             │
-│       "product": "MIS",                            │
-│       "pricetype": "MARKET"                        │
-│     }                                              │
-│                                                    │
-│  3. Queue order for execution                      │
-└────────────────────────────────────────────────────┘
+                           Webhook received
+                                   │
+                                   ▼
+    ┌────────────────────────────────────────────────────────────┐
+    │ Resolve <webhook_id> to a ChartinkStrategy row             │
+    └────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+    ┌────────────────────────────────────────────────────────────┐
+    │ Derive BUY / SELL / SHORT / COVER from scan_name           │
+    │ No keyword means HTTP 400                                  │
+    └────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+    ┌────────────────────────────────────────────────────────────┐
+    │ Strategy active and clock inside start_time..end_time      │
+    └────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+    ┌────────────────────────────────────────────────────────────┐
+    │ Split stocks: "SBIN,RELIANCE" -> ["SBIN","RELIANCE"]       │
+    └────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+    ┌────────────────────────────────────────────────────────────┐
+    │ For each stock:                                            │
+    │                                                            │
+    │   1. Look up ChartinkSymbolMapping                         │
+    │      Found     -> use its exchange, quantity, product      │
+    │      Not found -> log and skip, there are no defaults      │
+    │                                                            │
+    │   2. Build the order payload:                              │
+    │      {                                                     │
+    │        "apikey": "<user api key>",                         │
+    │        "strategy": "chartink_<name>",                      │
+    │        "symbol": "SBIN",                                   │
+    │        "exchange": "NSE",                                  │
+    │        "action": "BUY",                                    │
+    │        "quantity": 100,                                    │
+    │        "product": "MIS",                                   │
+    │        "pricetype": "MARKET"                               │
+    │      }                                                     │
+    │                                                            │
+    │   3. Queue the order for paced execution                   │
+    └────────────────────────────────────────────────────────────┘
 ```
 
 ## API Endpoints
 
+Blueprint: `chartink_bp`, `url_prefix="/chartink"`.
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/chartink/webhook` | POST | Receive Chartink alerts |
+| `/chartink/webhook/<webhook_id>` | POST | Receive Chartink alerts |
 | `/chartink/` | GET | List strategies |
 | `/chartink/new` | GET/POST | Create strategy |
-| `/chartink/<id>` | GET | View strategy |
-| `/chartink/<id>/edit` | GET/POST | Edit strategy |
-| `/chartink/<id>/delete` | POST | Delete strategy |
-| `/chartink/<id>/toggle` | POST | Enable/disable strategy |
-| `/chartink/<id>/symbols` | GET/POST | Symbol mappings |
+| `/chartink/<strategy_id>` | GET | View strategy |
+| `/chartink/<strategy_id>/delete` | POST | Delete strategy |
+| `/chartink/<strategy_id>/toggle` | POST | Enable/disable strategy |
+| `/chartink/<strategy_id>/configure` | GET/POST | Add symbol mappings (single or bulk) |
+| `/chartink/<strategy_id>/symbol/<mapping_id>/delete` | POST | Delete one symbol mapping |
+| `/chartink/search` | GET | Symbol search helper |
+| `/chartink/api/strategies` | GET | List strategies as JSON |
+| `/chartink/api/strategy/<strategy_id>` | GET | Strategy details as JSON |
+| `/chartink/api/strategy` | POST | Create strategy as JSON |
+| `/chartink/api/strategy/<strategy_id>/toggle` | POST | Toggle strategy as JSON |
+
+Rate limits actually applied: `WEBHOOK_RATE_LIMIT` on the webhook route only. `STRATEGY_RATE_LIMIT` on `/new`, `/<strategy_id>/delete`, `/<strategy_id>/configure`, `/<strategy_id>/symbol/<mapping_id>/delete` and `/api/strategy`. The remaining routes carry no `@limiter.limit` decorator.
 
 ## Database Functions
 
@@ -244,24 +268,51 @@ Webhook Received
 
 ### From Chartink
 
+Posted to `/chartink/webhook/abc123-def456-ghi789`:
+
 ```json
 {
-    "webhook_id": "abc123-def456-ghi789",
-    "stocks": "SBIN,RELIANCE,INFY,TATAMOTORS"
+    "stocks": "SBIN,RELIANCE,INFY,TATAMOTORS",
+    "trigger_prices": "625.5,2450.1,1650.0,720.4",
+    "scan_name": "Momentum BUY Scan"
 }
 ```
 
-### Processed Order
+### Processed Order (entry, BUY or SHORT)
+
+Queued to `/api/v1/placeorder`:
 
 ```json
 {
     "apikey": "user_api_key",
+    "strategy": "chartink_momentum",
     "symbol": "SBIN",
     "exchange": "NSE",
     "action": "BUY",
-    "quantity": 100,
     "product": "MIS",
-    "pricetype": "MARKET"
+    "pricetype": "MARKET",
+    "quantity": "100"
+}
+```
+
+### Processed Order (exit, SELL or COVER)
+
+Queued to `/api/v1/placesmartorder`:
+
+```json
+{
+    "apikey": "user_api_key",
+    "strategy": "chartink_momentum",
+    "symbol": "SBIN",
+    "exchange": "NSE",
+    "action": "SELL",
+    "product": "MIS",
+    "pricetype": "MARKET",
+    "quantity": "0",
+    "position_size": "0",
+    "price": "0",
+    "trigger_price": "0",
+    "disclosed_quantity": "0"
 }
 ```
 
@@ -269,10 +320,15 @@ Webhook Received
 
 ### Environment Variables
 
+Defaults as written in `blueprints/chartink.py`:
+
 ```bash
-WEBHOOK_RATE_LIMIT=100 per minute
-STRATEGY_RATE_LIMIT=200 per minute
+WEBHOOK_RATE_LIMIT="100 per minute"
+STRATEGY_RATE_LIMIT="200 per minute"
+HOST_SERVER="http://127.0.0.1:5000"
 ```
+
+`HOST_SERVER` is the base URL the queued orders are posted back to.
 
 ### Strategy Settings
 
@@ -292,9 +348,9 @@ STRATEGY_RATE_LIMIT=200 per minute
 | Setting | Description | Required |
 |---------|-------------|----------|
 | `chartink_symbol` | Symbol from Chartink | Yes |
-| `exchange` | Trading exchange (NSE/BSE/NFO) | Yes |
-| `quantity` | Order quantity | Yes |
-| `product_type` | Product type (MIS/CNC/NRML) | Yes |
+| `exchange` | Trading exchange (NSE or BSE only) | Yes |
+| `quantity` | Order quantity (must be greater than 0) | Yes |
+| `product_type` | Product type (MIS or CNC only) | Yes |
 
 ## Use Cases
 

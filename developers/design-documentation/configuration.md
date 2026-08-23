@@ -4,7 +4,7 @@
 
 OpenAlgo's Sandbox/Analyzer mode provides a local walk-forward execution environment with ₹1 Crore default sandbox capital, margin/leverage simulation, auto square-off, and T+1 settlement behavior. It stores trading state separately from live broker state in `db/sandbox.db`.
 
-Analyzer mode does not implement GTT place, modify, cancel, or orderbook services; those operations currently return 501 even though sandbox GTT tables exist.
+Analyzer mode implements GTT place, modify, cancel and orderbook through `sandbox/gtt_manager.py`, backed by the `sandbox_gtt` and `sandbox_gtt_legs` tables. The 501 responses on those four endpoints belong to live mode instead: `import_broker_gtt_module(broker)` returns `None` for any broker without an `api/gtt_api.py`, which today means every broker except Dhan and Zerodha.
 
 ## Architecture Diagram
 
@@ -1866,6 +1866,7 @@ Service       API
 | `sandbox/squareoff_manager.py` | Auto square-off scheduling |
 | `sandbox/holdings_manager.py` | T+1 settlement logic |
 | `sandbox/order_manager.py` | Order CRUD operations |
+| `sandbox/gtt_manager.py` | `GTTManager` analyzer GTT lifecycle and OCO leg handling |
 | `sandbox/catch_up_processor.py` | Startup catch-up for missed events |
 | `sandbox/execution_thread.py` | Execution engine thread management |
 | `sandbox/websocket_execution_engine.py` | WebSocket-based order execution |
@@ -1892,3 +1893,22 @@ Service       API
 | `/sandbox/squareoff-status` | GET | Current square-off status |
 | `/sandbox/mypnl` | GET | P&L history page |
 | `/sandbox/mypnl/api/data` | GET | P&L history data (JSON) |
+| `/sandbox/mypnl/export/daily` | GET | Daily P&L export |
+| `/sandbox/mypnl/export/positions` | GET | Positions export |
+| `/sandbox/mypnl/export/holdings` | GET | Holdings export |
+| `/sandbox/mypnl/export/trades` | GET | Trades export |
+
+---
+
+## Analyzer GTT
+
+`sandbox/gtt_manager.py` implements the analyzer side of GTT. `services/sandbox_service.py` exposes `sandbox_place_gtt_order`, `sandbox_modify_gtt_order`, `sandbox_cancel_gtt_order` and `sandbox_gtt_orderbook`, each of which constructs a `GTTManager(user_id)` and calls the matching method:
+
+| Service function | `GTTManager` method |
+|---|---|
+| `sandbox_place_gtt_order` | `place_gtt(gtt_data, last_price)` |
+| `sandbox_modify_gtt_order` | `modify_gtt(trigger_id, gtt_data)` |
+| `sandbox_cancel_gtt_order` | `cancel_gtt(trigger_id)` |
+| `sandbox_gtt_orderbook` | `list_gtts(status_filter)` |
+
+State lives in the `sandbox_gtt` and `sandbox_gtt_legs` tables. Each of the four GTT services checks `get_analyze_mode()` first and routes here; only the live branch can return 501, and only when the selected broker has no `api/gtt_api.py`.

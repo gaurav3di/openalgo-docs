@@ -52,8 +52,8 @@ The Action Center is a centralized order approval system for semi-automated trad
 │  ┌─────────────────────────────────────────────────────────────────────┐     │
 │  │  Strategy │ Symbol │ Exchange │ Action │ Qty │ Price │ Actions      │     │
 │  ├─────────────────────────────────────────────────────────────────────┤     │
-│  │  MyStrat  │ SBIN   │ NSE      │ BUY    │ 100 │ MKT   │ ✓ Approve    │     │
-│  │           │        │          │        │     │       │ ✗ Reject     │     │
+│  │  MyStrat  │ SBIN   │ NSE      │ BUY    │ 100 │ MKT   │ Approve      │     │
+│  │           │        │          │        │     │       │ Reject       │     │
 │  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
 │                            [Approve All Pending]                             │
@@ -89,8 +89,10 @@ order_mode = 'semi_auto'  # Queue for approval
 POST /apikey/mode
 Content-Type: application/json
 
-{"mode": "semi_auto"}
+{"user_id": "admin", "mode": "semi_auto"}
 ```
+
+Both `user_id` and `mode` are required. `mode` must be exactly `auto` or `semi_auto`; anything else returns HTTP 400.
 
 ## Semi-Auto Workflow
 
@@ -169,73 +171,109 @@ CREATE INDEX idx_created_at ON pending_orders(created_at);
 
 ## Executor-Supported Queued Types
 
-| API Type | Description |
-|----------|-------------|
-| placeorder | Standard order |
-| smartorder | Position-aware order |
-| basketorder | Multiple orders |
-| splitorder | Split large orders |
-| optionsorder | Options contracts |
+| API Type | Description | Service called on approval |
+|----------|-------------|----------------------------|
+| placeorder | Standard order | `place_order_service.place_order` |
+| smartorder | Position-aware order | `place_smart_order_service.place_smart_order` |
+| basketorder | Multiple orders | `basket_order_service.place_basket_order` |
+| splitorder | Split large orders | `split_order_service.split_order` |
+| optionsorder | Options contracts | `place_options_order_service.place_options_order` |
+| optionsmultiorder | Multi-leg options order | `options_multiorder_service.place_options_multiorder` |
+| placegttorder | GTT order placement | `place_gtt_order_service.place_gtt_order` |
 
-Approval dispatch in `services/pending_order_execution_service.py` currently handles only these five API types.
+Approval dispatch in `services/pending_order_execution_service.py` handles these seven API types. Any other `api_type` is answered with `Unknown order type: <api_type>` and HTTP 400, and the row's broker status is set to `rejected`.
 
-`optionsmultiorder` and `placegttorder` services can currently call `queue_order()` in semi-auto mode, but the approval executor has no matching dispatch branch. Such rows are stored, then approval reports `Unknown order type` and marks broker execution rejected. This is a known implementation conflict, not supported Action Center behavior.
+`placegttorder` is handled specially on success: the executor stores the broker's `trigger_id` as `broker_order_id` and sets `broker_status` to `open`. If the GTT placement succeeds without a trigger ID, the row is marked rejected and the call returns HTTP 502.
+
+`calculate_action_center_stats()` reports a counter per API type as well: `total_placeorder`, `total_smartorder`, `total_basketorder`, `total_splitorder`, `total_optionsorder`, `total_optionsmultiorder` and `total_placegttorder`.
 
 ## Restricted Operations
 
-These operations are never queued. Read-only operations execute immediately; destructive operations apply their own service policy and are blocked in semi-auto mode unless analyzer behavior explicitly permits them.
+These operations are never queued. Read-only operations execute immediately; destructive operations apply their own service policy and are blocked in semi-auto mode unless analyzer behavior explicitly permits them. The set is `IMMEDIATE_EXECUTION_OPERATIONS` in `services/order_router_service.py`, and `should_route_to_pending()` compares against it case-insensitively.
 
 | Operation | Reason |
 |-----------|--------|
 | closeposition | Blocked by close-position service in semi-auto live mode |
+| closeallpositions | Blocked by close-position service in semi-auto live mode |
 | cancelorder | Blocked by cancel-order service in semi-auto live mode |
 | cancelallorder | Blocked by cancel-all service in semi-auto live mode |
 | modifyorder | Blocked by modify-order service in semi-auto live mode |
 | modifygttorder / cancelgttorder | Blocked because a delayed change may target a stale trigger |
+| gttorderbook | Data retrieval |
 | orderstatus | Status query |
 | orderbook | Data retrieval |
 | tradebook | Data retrieval |
-| positionbook / openposition | Data retrieval |
+| positions / openposition | Data retrieval |
 | holdings | Data retrieval |
 | funds | Data retrieval |
 
 ## API Endpoints
 
+All Action Center routes are defined on `orders_bp` (`blueprints/orders.py`, `url_prefix="/"`) and require a valid session. Every route except `/action-center/count` also carries `@limiter.limit(API_RATE_LIMIT)`.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/action-center` | GET | Server-rendered page (the React SPA serves the same path) |
+| `/action-center/api/data` | GET | Orders and statistics as JSON |
+| `/action-center/approve/<order_id>` | POST | Approve and execute one order |
+| `/action-center/reject/<order_id>` | POST | Reject one order |
+| `/action-center/delete/<order_id>` | DELETE | Delete one non-pending order |
+| `/action-center/approve-all` | POST | Approve and execute every pending order |
+| `/action-center/count` | GET | Pending count for the nav badge |
+
 ### Get Orders
 
 ```
-POST /action-center/api/data?status=pending
+GET /action-center/api/data?status=pending
 ```
+
+`status` accepts `pending`, `approved`, `rejected` or `all`, and defaults to `pending`. Statistics are always calculated over all of the user's orders, not just the filtered subset.
 
 **Response:**
 ```json
 {
     "status": "success",
-    "orders": [
-        {
-            "id": 1,
-            "strategy": "MyStrategy",
-            "symbol": "SBIN",
-            "exchange": "NSE",
-            "action": "BUY",
-            "quantity": 100,
-            "price": 0,
-            "price_type": "MARKET",
-            "product": "MIS",
-            "order_type": "placeorder",
-            "status": "pending",
-            "created_at": "5 minutes ago"
+    "data": {
+        "orders": [
+            {
+                "id": 1,
+                "user_id": "admin",
+                "api_type": "placeorder",
+                "status": "pending",
+                "created_at_ist": "2024-01-15 09:30:00 IST",
+                "strategy": "MyStrategy",
+                "symbol": "SBIN",
+                "exchange": "NSE",
+                "action": "BUY",
+                "quantity": 100,
+                "price": "0",
+                "trigger_price": "0",
+                "price_type": "MARKET",
+                "product_type": "MIS",
+                "broker_order_id": null,
+                "broker_status": null,
+                "raw_order_data": {}
+            }
+        ],
+        "statistics": {
+            "total_pending": 3,
+            "total_approved": 15,
+            "total_rejected": 2,
+            "total_buy_orders": 10,
+            "total_sell_orders": 10,
+            "total_placeorder": 20,
+            "total_smartorder": 0,
+            "total_basketorder": 0,
+            "total_splitorder": 0,
+            "total_optionsorder": 0,
+            "total_optionsmultiorder": 0,
+            "total_placegttorder": 0
         }
-    ],
-    "statistics": {
-        "total_pending": 3,
-        "total_approved": 15,
-        "total_rejected": 2,
-        "total_buy_orders": 10,
-        "total_sell_orders": 10
     }
 }
 ```
+
+`raw_order_data` is the stored payload with `apikey` and `api_key` stripped out.
 
 ### Approve Order
 
@@ -247,10 +285,12 @@ POST /action-center/approve/{order_id}
 ```json
 {
     "status": "success",
-    "message": "Order approved and executed",
+    "message": "Order approved and executed successfully",
     "broker_order_id": "123456789"
 }
 ```
+
+If the order is approved but broker execution fails, the response is `{"status": "warning", "message": "Order approved but execution failed", "error": "..."}` returned with the service's own status code.
 
 ### Reject Order
 
@@ -271,11 +311,14 @@ POST /action-center/approve-all
 ```json
 {
     "status": "success",
-    "approved": 5,
-    "executed": 5,
-    "failed": 0
+    "message": "Successfully approved and executed all 5 orders",
+    "approved_count": 5,
+    "executed_count": 5,
+    "failed_executions": []
 }
 ```
+
+`status` is `success` when every approved order executed, `warning` when some executed, and `error` when none did. With nothing pending, the response is `{"status": "info", "message": "No pending orders to approve"}`.
 
 ### Delete Order
 
@@ -304,8 +347,10 @@ GET /action-center/count
 
 | Event | Trigger | Data |
 |-------|---------|------|
-| pending_order_created | New order queued | order_id, user_id |
-| pending_order_updated | Approve/Reject | order_id, status |
+| pending_order_created | New order queued by `order_router_service.queue_order()` | `pending_order_id`, `user_id`, `api_type`, `message` |
+| pending_order_updated | Approve, reject, delete or approve-all | `action` (`approved`, `rejected`, `deleted` or `batch_approved`), `order_id`, `user_id`. The batch variant sends `count` instead of `order_id` |
+
+`pending_order_created` is emitted through `socketio.start_background_task()` and is best-effort: if the emit fails, the queued row still stands and the caller still receives a success response.
 
 ### Frontend Handling
 
@@ -383,31 +428,46 @@ Click chevron to view raw order data:
 ```python
 def should_route_to_pending(api_key, api_type=None):
     """Return True only for queue-eligible requests in semi-auto mode."""
-    if api_type in IMMEDIATE_EXECUTION_OPERATIONS:
+    if api_type and api_type.lower() in IMMEDIATE_EXECUTION_OPERATIONS:
         return False
     user_id = verify_api_key(api_key)
-    return bool(user_id and get_order_mode(user_id) == 'semi_auto')
+    if not user_id:
+        return False
+    return get_order_mode(user_id) == 'semi_auto'
 ```
+
+Any exception inside `should_route_to_pending()` is caught and returns `False`, so an unexpected failure falls back to immediate execution rather than silently queueing.
 
 ### Queue Order
 
 ```python
 def queue_order(api_key, order_data, api_type):
     """Queue order for approval"""
-    user_id = get_user_id_from_api_key(api_key)
+    user_id = verify_api_key(api_key)
+    if not user_id:
+        return False, {'status': 'error', 'message': 'Invalid API key'}, 403
 
-    pending_order_id = create_pending_order(
-        user_id=user_id,
-        api_type=api_type,
-        order_data=order_data
-    )
+    # The API key is stripped before the payload is persisted
+    order_data_clean = order_data.copy()
+    order_data_clean.pop('apikey', None)
+
+    pending_order_id = create_pending_order(user_id, api_type, order_data_clean)
 
     # Emit best-effort UI notification after persistence.
-    socketio.emit('pending_order_created', {'order_id': pending_order_id, 'user_id': user_id})
+    socketio.start_background_task(
+        socketio.emit,
+        'pending_order_created',
+        {
+            'pending_order_id': pending_order_id,
+            'user_id': user_id,
+            'api_type': api_type,
+            'message': f'New {api_type} order queued for approval',
+        },
+    )
 
     return True, {
         'status': 'success',
-        'message': 'Order queued for approval',
+        'message': 'Order queued for approval in Action Center',
         'mode': 'semi_auto',
         'pending_order_id': pending_order_id
     }, 200
@@ -416,26 +476,37 @@ def queue_order(api_key, order_data, api_type):
 ### Execute Approved Order
 
 ```python
-def execute_approved_order(pending_order_id):
+def execute_approved_order(pending_order_id) -> tuple[bool, dict, int]:
     """Execute approved order with broker"""
-    order = get_pending_order_by_id(pending_order_id)
+    pending_order = get_pending_order_by_id(pending_order_id)
+    if not pending_order:
+        return False, {'status': 'error', 'message': 'Pending order not found'}, 404
 
-    # Route to appropriate service
-    if order.api_type == 'placeorder':
-        result = place_order(order.order_data, api_key)
-    elif order.api_type == 'smartorder':
-        result = place_smart_order(order.order_data, api_key)
-    # ... other types
+    # Only a row already marked 'approved' can be executed
+    if pending_order.status != 'approved':
+        return False, {'status': 'error', 'message': '...'}, 400
 
-    # Update broker status
-    update_broker_status(
-        pending_order_id,
-        result['orderid'],
-        result['broker_status']
-    )
+    order_data = json.loads(pending_order.order_data)
 
-    return result
+    # Credentials are resolved at execution time, never stored on the row
+    api_key = get_api_key_for_tradingview(pending_order.user_id)
+    auth_token = get_auth_token(pending_order.user_id)
+    broker = Auth.query.filter_by(name=pending_order.user_id).first().broker
+
+    # Route to appropriate service on pending_order.api_type
+    if pending_order.api_type == 'placeorder':
+        success, response_data, status_code = place_order(
+            order_data=order_data, api_key=api_key, auth_token=auth_token, broker=broker
+        )
+    # ... six other types
+
+    update_broker_status(pending_order_id, broker_order_id, broker_status)
+    return success, response_data, status_code
 ```
+
+Passing `auth_token` and `broker` into the service is what stops the approved order from being routed back into the pending queue a second time. If any of `api_key`, `auth_token` or `broker` is missing, the row is marked rejected and the call returns HTTP 403.
+
+Batch responses (basket and split orders) are flattened by `_flatten_execution_results()` and the resulting broker order IDs are joined into the 255 character `broker_order_id` column, truncated to `<first_id> (+N more)` when they do not fit.
 
 ## Security & Compliance
 
@@ -455,7 +526,7 @@ All actions are logged with:
 
 ### Analyzer Mode Restriction
 
-When in semi_auto mode, analyzer toggle is blocked to ensure RA compliance.
+When in semi_auto mode, the API-key path of the analyzer toggle (`services/analyzer_service.py`) is blocked with HTTP 403 to ensure SEBI Research Analyst compliance: mode switching stays a client-only decision made through the UI. Internal calls that already carry `auth_token` and `broker` are not affected.
 
 ## Key Files Reference
 

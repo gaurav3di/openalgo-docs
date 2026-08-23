@@ -38,7 +38,9 @@ OpenAlgo provides comprehensive log viewing and management through the web inter
 
 ### 1. API Order Logs
 
-**Route:** `/logs`
+**Backend:** `log_bp`, registered with `url_prefix="/logs"`
+
+**React page:** `/logs/live` (`/logs` itself is the logs index page)
 
 Displays all API request/response pairs for order operations.
 
@@ -51,10 +53,10 @@ Displays all API request/response pairs for order operations.
 │ ┌─────────────────────────────────────────────────────────────────────────┐ │
 │ │ Time          │ API Type    │ Request          │ Response      │ Status │ │
 │ ├───────────────┼─────────────┼──────────────────┼───────────────┼────────┤ │
-│ │ 09:30:15 IST  │ placeorder  │ SBIN BUY 100 MIS │ orderid: 123  │ ✓      │ │
-│ │ 09:31:20 IST  │ placeorder  │ INFY SELL 50 CNC │ orderid: 124  │ ✓      │ │
-│ │ 09:35:45 IST  │ cancelorder │ orderid: 124     │ Cancelled     │ ✓      │ │
-│ │ 10:15:00 IST  │ placeorder  │ RELIANCE BUY 25  │ Margin error  │ ✗      │ │
+│ │ 09:30:15 IST  │ placeorder  │ SBIN BUY 100 MIS │ orderid: 123  │ OK     │ │
+│ │ 09:31:20 IST  │ placeorder  │ INFY SELL 50 CNC │ orderid: 124  │ OK     │ │
+│ │ 09:35:45 IST  │ cancelorder │ orderid: 124     │ Cancelled     │ OK     │ │
+│ │ 10:15:00 IST  │ placeorder  │ RELIANCE BUY 25  │ Margin error  │ FAIL   │ │
 │ └─────────────────────────────────────────────────────────────────────────┘ │
 │                                                                             │
 │ Pagination: [< Prev] Page 1 of 25 [Next >]                                  │
@@ -63,15 +65,19 @@ Displays all API request/response pairs for order operations.
 
 ### 2. Analyzer Logs
 
-**Route:** `/analyzer-logs`
+**Backend:** `analyzer_bp`, registered with `url_prefix="/analyzer"`
 
-Logs from sandbox/sandbox trading mode.
+**React page:** `/logs/sandbox`
+
+Logs from sandbox (analyzer) trading mode, stored in the `analyzer_logs` table.
 
 ### 3. Application Logs
 
-**Location:** `log/openalgo.log`
+**Location:** `log/openalgo_<YYYY-MM-DD>.log` (directory from `LOG_DIR`, default `log`)
 
-File-based logs for debugging and monitoring.
+File-based logs for debugging and monitoring, written only when `LOG_TO_FILE=True`. `log/errors.jsonl` is always written and holds ERROR-and-above records in JSON Lines form.
+
+A consolidated `/logging/` page (`logging_bp`) links the live, analyzer, traffic, latency, and security views.
 
 ## Database Schema
 
@@ -111,8 +117,11 @@ File-based logs for debugging and monitoring.
 
 ### Get Order Logs
 
+There is no separate JSON endpoint. `GET /logs/` returns JSON when the request carries the AJAX header and renders the `logs.html` template otherwise.
+
 ```
-GET /logs/api/orders
+GET /logs/
+X-Requested-With: XMLHttpRequest
 ```
 
 **Query Parameters:**
@@ -120,38 +129,46 @@ GET /logs/api/orders
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | page | int | Page number (default: 1) |
-| per_page | int | Items per page (default: 50) |
-| api_type | string | Filter by API type |
 | start_date | string | Start date (YYYY-MM-DD) |
 | end_date | string | End date (YYYY-MM-DD) |
-| search | string | Search in request/response |
+| search | string | Case-insensitive match on api_type, request, or response |
+
+Page size is fixed at 20 rows inside `view_logs()` and is not a query parameter. When neither `start_date` nor `end_date` is given, the query defaults to today in IST.
 
 **Response:**
 
 ```json
 {
-    "status": "success",
-    "data": [
+    "logs": [
         {
             "id": 1,
             "api_type": "placeorder",
-            "request_data": "{\"symbol\": \"SBIN\", ...}",
-            "response_data": "{\"status\": \"success\", ...}",
-            "created_at": "2024-01-15 09:30:15"
+            "request_data": {"symbol": "SBIN", "exchange": "NSE"},
+            "response_data": {"status": "success", "orderid": "123"},
+            "strategy": "Python",
+            "created_at": "2024-01-15 09:30:15 AM"
         }
     ],
-    "pagination": {
-        "page": 1,
-        "per_page": 50,
-        "total": 1250,
-        "pages": 25
-    }
+    "total_pages": 25,
+    "current_page": 1
 }
 ```
+
+`request_data` and `response_data` come back as parsed objects, not JSON strings, and `strategy` is lifted out of the request payload.
+
+### Export Order Logs
+
+```
+GET /logs/export
+```
+
+Accepts the same `start_date`, `end_date`, and `search` parameters, skips pagination, and returns `openalgo_logs_<YYYYMMDD_HHMMSS>.csv`.
 
 ## Log Filtering
 
 ### By API Type
+
+There is no dedicated `api_type` parameter. The `search` term is matched case-insensitively against `api_type` as well as the request and response bodies, so typing an API type filters to it.
 
 | API Type | Description |
 |----------|-------------|
@@ -159,8 +176,11 @@ GET /logs/api/orders
 | placesmartorder | Smart orders |
 | modifyorder | Order modifications |
 | cancelorder | Order cancellations |
-| cancelallorders | Bulk cancellations |
+| cancelallorder | Bulk cancellations |
 | closeposition | Position closures |
+| basketorder, splitorder | Basket and split placements |
+| placegttorder, modifygttorder, cancelgttorder | GTT orders |
+| orderbook, tradebook, positionbook, holdings, funds, quotes, depth, history | Data reads |
 
 ### By Date Range
 
@@ -181,12 +201,20 @@ Searches in both request and response JSON data.
 ### Non-Blocking Log Writes
 
 ```python
+# database/apilog_db.py
 from concurrent.futures import ThreadPoolExecutor
 
-executor = ThreadPoolExecutor(max_workers=10)
+executor = ThreadPoolExecutor(10)
+
 
 def async_log_order(api_type, request_data, response_data):
-    executor.submit(_write_log, api_type, request_data, response_data)
+    """Runs synchronously. Callers submit it to the executor above so the
+    SQLite write does not block the request thread."""
+    ...
+
+
+# Caller side
+executor.submit(async_log_order, "placeorder", request_data, response_data)
 ```
 
 ### Benefits
@@ -202,22 +230,20 @@ def async_log_order(api_type, request_data, response_data):
 ```typescript
 // frontend/src/pages/Logs.tsx
 
-export function Logs() {
-    const { data, isLoading } = useQuery({
-        queryKey: ['logs', filters],
-        queryFn: () => api.getLogs(filters),
-        refetchInterval: 30000  // Auto-refresh every 30s
-    });
+const params = new URLSearchParams()
+params.append('page', page.toString())
+if (startDate) params.append('start_date', startDate)
+if (endDate) params.append('end_date', endDate)
+if (searchQuery) params.append('search', searchQuery)
 
-    return (
-        <DataTable
-            data={data}
-            columns={columns}
-            pagination={true}
-            search={true}
-        />
-    );
-}
+const response = await webClient.get<LogsResponse>(`/logs/?${params.toString()}`, {
+  headers: { 'X-Requested-With': 'XMLHttpRequest' },
+})
+
+setLogs(Array.isArray(response.data.logs) ? response.data.logs : [])
+
+// Export opens the CSV route directly
+window.open(`/logs/export?${params.toString()}`, '_blank')
 ```
 
 ### Features
@@ -243,11 +269,16 @@ LOG_RETENTION=14
 
 ### Rotation Settings
 
+Rotation is time based, not size based: `utils/logging.py` installs a `TimedRotatingFileHandler`.
+
 | Setting | Value | Description |
 |---------|-------|-------------|
-| Max Size | 10 MB | Rotate when exceeded |
-| Backup Count | 14 | Files to keep |
-| Compression | None | Plain text |
+| when | `midnight` | Roll over daily |
+| interval | 1 | One day per file |
+| backupCount | `LOG_RETENTION` (default 14) | Files to keep |
+| Compression | None | Plain text, UTF-8 |
+
+`cleanup_old_logs()` also deletes files older than `LOG_RETENTION` days at startup.
 
 ### Log Format
 
@@ -261,7 +292,7 @@ LOG_RETENTION=14
 
 ### Via Web UI
 
-1. Navigate to `/logs`
+1. Navigate to `/logs/live`
 2. Apply filters as needed
 3. Click row to expand details
 4. Use export for download
@@ -269,14 +300,14 @@ LOG_RETENTION=14
 ### Via Command Line
 
 ```bash
-# View current log
-tail -f log/openalgo.log
+# View today's log
+tail -f log/openalgo_$(date +%F).log
 
 # Search for errors
-grep ERROR log/openalgo.log
+grep ERROR log/openalgo_$(date +%F).log
 
-# View last 100 lines
-tail -100 log/openalgo.log
+# Structured ERROR-and-above records
+tail -f log/errors.jsonl
 ```
 
 ## Security Considerations
@@ -284,13 +315,19 @@ tail -100 log/openalgo.log
 ### API Key Redaction
 
 ```python
-def sanitize_log_data(request_data):
-    """Remove sensitive fields before logging"""
-    data = json.loads(request_data)
-    if 'apikey' in data:
-        del data['apikey']
-    return json.dumps(data)
+# blueprints/log.py
+def sanitize_request_data(data):
+    """Remove sensitive information from request data"""
+    if isinstance(data, str):
+        data = json.loads(data)
+    if isinstance(data, dict):
+        sanitized = data.copy()
+        sanitized.pop("apikey", None)
+        return sanitized
+    return data
 ```
+
+Redaction happens on read, in the log viewer. The stored `request_data` column holds the serialized payload as submitted.
 
 ### Access Control
 
@@ -302,7 +339,9 @@ def sanitize_log_data(request_data):
 
 | File | Purpose |
 |------|---------|
-| `blueprints/log.py` | Log viewer routes |
+| `blueprints/log.py` | Order-log viewer and CSV export routes |
+| `blueprints/analyzer.py` | Analyzer log routes (`/analyzer`) |
+| `blueprints/logging.py` | Consolidated `/logging/` landing page |
 | `database/apilog_db.py` | Order logs model |
 | `database/analyzer_db.py` | Analyzer logs model |
 | `utils/logging.py` | Logging configuration |

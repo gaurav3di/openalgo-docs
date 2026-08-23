@@ -34,9 +34,12 @@ The proxy's SUB socket is the sole binder on the configured endpoint. Broker mar
 ```bash
 MAX_SYMBOLS_PER_WEBSOCKET=1000
 MAX_WEBSOCKET_CONNECTIONS=3
+ENABLE_CONNECTION_POOLING=true
 ZMQ_HOST=127.0.0.1
 ZMQ_PORT=5555
 ```
+
+These are the defaults read in `websocket_proxy/base_adapter.py` and `websocket_proxy/connection_manager.py`. Setting `ENABLE_CONNECTION_POOLING=false` falls back to one connection per broker.
 
 `ZMQ_HOST` defaults to loopback. Multi-host deployments can point publishers at the host where the proxy binds, but the endpoint must be consistent for all processes.
 
@@ -55,7 +58,7 @@ Requested depth levels are retained with the subscription so authentication reco
 
 The pool creates one thread-safe `SharedZmqPublisher` singleton per process. Pooled adapters publish through that object instead of creating individual ZeroMQ contexts and sockets. The publisher connects lazily and idempotently to `tcp://<ZMQ_HOST>:<ZMQ_PORT>`.
 
-The WebSocket proxy maintains an O(1) subscription index keyed by symbol, exchange, and numeric mode. A higher-mode tick can satisfy lower-mode subscribers, while private orders, positions, and margins topics are excluded from public delivery.
+The WebSocket proxy maintains an O(1) subscription index keyed by symbol, exchange, and numeric mode. A higher-mode tick can satisfy lower-mode subscribers. Topics ending in `_positions` and `_margins` are private account events and are skipped entirely. Topics ending in `_orders` are the order-update relay published by `subscribers/wsproxy_subscriber.py`; the proxy routes them only to the owning authenticated client that sent `subscribe_orders`, never to the market-data fan-out.
 
 ## Lifecycle
 

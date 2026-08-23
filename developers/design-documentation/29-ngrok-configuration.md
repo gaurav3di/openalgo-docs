@@ -11,7 +11,13 @@ NGROK_ALLOW='TRUE'
 HOST_SERVER='https://your-domain.ngrok.app'
 ```
 
-`NGROK_ALLOW` is the actual enable flag. There are no OpenAlgo `NGROK_ENABLED`, `NGROK_AUTH_TOKEN`, or `NGROK_DOMAIN` environment variables in the current application contract. `pyngrok` obtains its ngrok credentials from its normal ngrok configuration.
+`NGROK_ALLOW` is the actual enable flag. It defaults to `FALSE` in code
+(`os.getenv("NGROK_ALLOW", "FALSE").upper() != "TRUE"`), so the comparison is
+case-insensitive and any value other than `TRUE` leaves the tunnel off. `.sample.env`
+ships `NGROK_ALLOW = 'FALSE'` and `HOST_SERVER = 'http://127.0.0.1:5000'`. There are no
+OpenAlgo `NGROK_ENABLED`, `NGROK_AUTH_TOKEN`, or `NGROK_DOMAIN` environment variables in
+the current application contract. `pyngrok` obtains its ngrok credentials from its normal
+ngrok configuration.
 
 When `HOST_SERVER` is a non-local URL, the manager extracts its host and asks ngrok for that custom domain. With a local `HOST_SERVER`, ngrok allocates a random public URL. A reserved custom domain must already be available to the configured ngrok account.
 

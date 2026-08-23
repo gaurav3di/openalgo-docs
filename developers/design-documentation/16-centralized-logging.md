@@ -14,60 +14,62 @@ OpenAlgo implements centralized Python logging with configurable levels, colored
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                            Application Components                             │
 │                                                                               │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐               │
-│  │  Flask     │  │  REST API  │  │  WebSocket │  │  Services  │               │
-│  │  Routes    │  │  Endpoints │  │  Proxy     │  │            │               │
-│  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘               │
-│        │               │               │               │                      │
-│        └───────────────┴───────────────┴───────────────┘                      │
+│  ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐         │
+│  │ Flask      │    │ REST API   │    │ WebSocket  │    │ Services   │         │
+│  │ Routes     │    │ Endpoints  │    │ Proxy      │    │            │         │
+│  └──────┬─────┘    └──────┬─────┘    └──────┬─────┘    └──────┬─────┘         │
+│         │                 │                 │                 │               │
+│         └─────────────────┴────────┬────────┴─────────────────┘               │
 │                                    │                                          │
 │                                    ▼                                          │
-│                          ┌─────────────────┐                                  │
-│                          │  get_logger()   │                                  │
-│                          │  (utils/logging)│                                  │
-│                          └────────┬────────┘                                  │
-└───────────────────────────────────┼───────────────────────────────────────────┘
-                                    │
-                    ┌───────────────┴───────────────┐
-                    │                               │
-                    ▼                               ▼
-┌────────────────────────────┐    ┌────────────────────────────┐
-│      Console Handler       │    │       File Handler         │
-│                            │    │    (if LOG_TO_FILE=True)   │
-│  - Colored output          │    │                            │
-│  - Level-based formatting  │    │  - Rotating files          │
-│  - Immediate display       │    │  - Configurable retention  │
-└────────────────────────────┘    └────────────────────────────┘
-                                              │
-                                              ▼
-                                  ┌────────────────────────────┐
-                                  │       log/ directory       │
-                                  │                            │
-                                  │  - openalgo.log            │
-                                  │  - openalgo.log.1          │
-                                  │  - openalgo.log.2          │
-                                  └────────────────────────────┘
+│                    ┌──────────────────────────────┐                           │
+│                    │ setup_logging(): root logger │                           │
+│                    └──────────────────────────────┘                           │
+└────────────────────────────────────┼──────────────────────────────────────────┘
+                                     │
+                    ┌────────────────┴──────────────────────┐
+                    │                                       │
+                    ▼                                       ▼
+   ┌────────────────────────────────┐      ┌────────────────────────────────┐
+   │ Console handler                │      │ TimedRotatingFileHandler       │
+   │ ColoredFormatter, LOG_COLORS   │      │ when="midnight", interval=1    │
+   │ SensitiveDataFilter            │      │ backupCount=LOG_RETENTION      │
+   │ stdout, always on              │      │ only if LOG_TO_FILE=True       │
+   └────────────────────────────────┘      └────────────────────────────────┘
+                    │                                       │
+                    ▼                                       ▼
+   ┌────────────────────────────────┐      ┌────────────────────────────────┐
+   │ log/errors.jsonl               │      │ log/openalgo_YYYY-MM-DD.log    │
+   │ ERROR and above, JSON lines    │      │ one file per day, kept for     │
+   │ always on, trimmed at boot     │      │ LOG_RETENTION days             │
+   └────────────────────────────────┘      └────────────────────────────────┘
 ```
 
 ## Configuration
 
 ### Environment Variables
 
+Defaults below are the values `utils/logging.py` falls back to when the variable is
+unset.
+
 ```bash
-# Enable/disable file logging
-LOG_TO_FILE=True
+# Enable/disable file logging (default: False)
+LOG_TO_FILE='False'
 
-# Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-LOG_LEVEL=INFO
+# Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: INFO)
+LOG_LEVEL='INFO'
 
-# Log directory
-LOG_DIR=log
+# Log directory (default: log)
+LOG_DIR='log'
 
 # Log format
-LOG_FORMAT=[%(asctime)s] %(levelname)s in %(module)s: %(message)s
+LOG_FORMAT='[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
 
-# Days to retain log files
-LOG_RETENTION=14
+# Days of rotated log files to retain (default: 14)
+LOG_RETENTION='14'
+
+# Colored console output (default: True)
+LOG_COLORS='True'
 ```
 
 ## Usage
@@ -101,35 +103,80 @@ logger.critical("Critical message")
 
 **Location:** `utils/logging.py`
 
+Handlers are attached once to the **root** logger by `setup_logging()`, which runs at
+module import. `get_logger(name)` is only a thin wrapper around `logging.getLogger(name)`,
+so per-module loggers inherit the root configuration.
+
 ```python
 import logging
 import os
-from logging.handlers import RotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler
 
-def get_logger(name):
-    """Get a configured logger instance"""
-    logger = logging.getLogger(name)
+def setup_logging():
+    """Initialize the logging configuration from environment variables."""
+    root_logger = logging.getLogger()
+    root_logger.setLevel(getattr(logging, log_level, logging.INFO))
+    root_logger.handlers = []
 
-    if not logger.handlers:
-        # Console handler
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(get_formatter())
-        logger.addHandler(console_handler)
+    sensitive_filter = SensitiveDataFilter()
 
-        # File handler (if enabled)
-        if os.getenv('LOG_TO_FILE', 'False').lower() == 'true':
-            file_handler = RotatingFileHandler(
-                filename=os.path.join(os.getenv('LOG_DIR', 'log'), 'openalgo.log'),
-                maxBytes=10*1024*1024,  # 10MB
-                backupCount=int(os.getenv('LOG_RETENTION', '14'))
-            )
-            file_handler.setFormatter(get_formatter())
-            logger.addHandler(file_handler)
+    # Console handler - ColoredFormatter honours LOG_COLORS
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(ColoredFormatter(log_format, enable_colors=log_colors))
+    console_handler.addFilter(sensitive_filter)
+    root_logger.addHandler(console_handler)
 
-        logger.setLevel(os.getenv('LOG_LEVEL', 'INFO'))
+    # File handler (only when LOG_TO_FILE=True) - rotates daily at midnight
+    if log_to_file:
+        cleanup_old_logs(log_path, log_retention)
+        log_file = log_path / f"openalgo_{datetime.now().strftime('%Y-%m-%d')}.log"
+        file_handler = TimedRotatingFileHandler(
+            filename=str(log_file),
+            when="midnight",
+            interval=1,
+            backupCount=log_retention,
+            encoding="utf-8",
+        )
+        file_handler.setFormatter(logging.Formatter(log_format))
+        file_handler.addFilter(sensitive_filter)
+        root_logger.addHandler(file_handler)
 
-    return logger
+    # JSON error log - always active, ERROR and above, log/errors.jsonl
+    json_handler = logging.FileHandler(filename=str(errors_file), encoding="utf-8")
+    json_handler.setLevel(logging.ERROR)
+    json_handler.setFormatter(JSONErrorFormatter())
+    json_handler.addFilter(sensitive_filter)
+    root_logger.addHandler(json_handler)
+
+
+def get_logger(name: str) -> logging.Logger:
+    """Get a logger instance for a module."""
+    return logging.getLogger(name)
+
+
+# Initialize logging on import
+setup_logging()
 ```
+
+### Filters And Noise Suppression
+
+| Class | Effect |
+|-------|--------|
+| `SensitiveDataFilter` | Redacts credentials and tokens from every handler |
+| `ColoredFormatter` | Level-based console colors, controlled by `LOG_COLORS` |
+| `JSONErrorFormatter` | Structured `ERROR`+ records for `log/errors.jsonl` |
+| `WerkzeugErrorFilter` | Drops known development-server noise |
+| `WebSocketHandshakeFilter` | Drops short-lived WebSocket handshake errors |
+
+`setup_logging()` also raises the level of `werkzeug`, `urllib3`, `requests`, `httpx`,
+`httpcore`, `hpack`, `apscheduler`, `websockets` and `telegram` loggers so third-party
+chatter stays out of the console.
+
+### Error Log
+
+`log/errors.jsonl` is written unconditionally, independent of `LOG_TO_FILE`. It captures
+`ERROR` and above as one JSON object per line and is truncated to the last 1000 entries at
+startup so it cannot grow without bound.
 
 ## Log Categories
 
@@ -157,44 +204,49 @@ def get_logger(name):
 ```python
 from utils.logging import log_startup_banner
 
-# Display startup banner with version and URLs
-log_startup_banner(version, web_url, ws_url, ngrok_url)
+def log_startup_banner(logger_instance, title: str, url: str,
+                       separator_char: str = "=", width: int = 60):
+    """Log a highlighted startup banner with a single URL."""
+
+log_startup_banner(logger, "OpenAlgo is running", "http://127.0.0.1:5000")
 ```
 
-Output:
+The banner is three logged lines between two separator lines of `separator_char`, not a
+drawn box. Colors come from colorama and are suppressed when `LOG_COLORS` is false unless
+`FORCE_COLOR` is set. `app.py` imports the helper but does not currently call it.
+
+Sample output at the default `separator_char="="` and `width=60`:
 
 ```
-╭─── OpenAlgo v1.3.0 ──────────────────────────────────────────╮
-│                                                              │
-│             Your Personal Algo Trading Platform              │
-│                                                              │
-│ Endpoints                                                    │
-│ Web App    http://127.0.0.1:5000                             │
-│ WebSocket  ws://127.0.0.1:8765                               │
-│ Docs       https://docs.openalgo.in                          │
-│                                                              │
-│ Status     Ready                                             │
-│                                                              │
-╰──────────────────────────────────────────────────────────────╯
+============================================================
+OpenAlgo is running
+Access the application at: http://127.0.0.1:5000
+============================================================
 ```
 
 ## File Rotation
 
 ```
 log/
-├── openalgo.log        # Current log file
-├── openalgo.log.1      # Previous rotation
-├── openalgo.log.2      # Older rotation
+├── openalgo_2026-08-23.log    # Today, written while LOG_TO_FILE=True
+├── openalgo_2026-08-22.log    # Rolled at midnight
 ├── ...
-└── openalgo.log.14     # Oldest (based on LOG_RETENTION)
+├── openalgo_2026-08-09.log    # Oldest kept, backupCount=LOG_RETENTION
+├── errors.jsonl               # ERROR and above, always on
+└── strategies/                # Per-strategy subprocess logs
 ```
+
+Rotation is time based, not size based. `TimedRotatingFileHandler` rolls at midnight and keeps `LOG_RETENTION` days of history.
 
 ### Rotation Settings
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Max Size | 10 MB | Rotate when file exceeds |
-| Backup Count | 14 | Number of rotated files to keep |
+| Setting | Value in code | Description |
+|---------|---------------|-------------|
+| Handler | `TimedRotatingFileHandler` | Time based, not size based |
+| When | `midnight`, `interval=1` | One rotation per day |
+| Backup Count | `LOG_RETENTION` (default 14) | Number of rotated files to keep |
+| Encoding | `utf-8` | File handler encoding |
+| Startup cleanup | `cleanup_old_logs(log_dir, retention_days)` | Deletes files older than the retention window |
 | Compression | None | Rotated files are not compressed |
 
 ## Viewing Logs
@@ -202,33 +254,36 @@ log/
 ### File Logs
 
 ```bash
-# View current log
-cat log/openalgo.log
+# View today's log
+cat log/openalgo_$(date +%F).log
 
 # Follow log in real-time
-tail -f log/openalgo.log
+tail -f log/openalgo_$(date +%F).log
 
 # View last 100 lines
-tail -100 log/openalgo.log
+tail -100 log/openalgo_$(date +%F).log
 
 # Search for errors
-grep ERROR log/openalgo.log
+grep ERROR log/openalgo_$(date +%F).log
+
+# Structured error records (always written)
+tail -f log/errors.jsonl
 ```
 
 ### UI Log Viewer
 
-Access log viewer at `/logs`:
-- Filter by level
-- Search by keyword
-- Date range selection
-- Download logs
+`blueprints/log.py` serves the order-log viewer at `/logs` (with `/logs/export`), and
+`blueprints/logging.py` serves the consolidated dashboard at `/logging`, which links
+live logs, analyzer logs, traffic, latency and security views.
 
 ## Key Files Reference
 
 | File | Purpose |
 |------|---------|
-| `utils/logging.py` | Logger configuration |
-| `blueprints/logging.py` | Log viewer UI routes |
+| `utils/logging.py` | `setup_logging()`, `get_logger()`, formatters and filters |
+| `blueprints/log.py` | Order log viewer at `/logs` and `/logs/export` |
+| `blueprints/logging.py` | Consolidated logging dashboard at `/logging` |
 | `database/apilog_db.py` | Order API audit rows in the main database |
 | `database/analyzer_db.py` | Analyzer audit rows in the main database |
-| `log/` | Log file directory |
+| `database/traffic_db.py` | Request traffic rows in `logs.db` |
+| `log/` | Dated log files plus `errors.jsonl` |
