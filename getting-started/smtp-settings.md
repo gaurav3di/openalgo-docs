@@ -17,7 +17,7 @@ SMTP Server: smtp.gmail.com
 SMTP Port: 587
 Username: your-email@gmail.com
 Password: [App Password - see below]
-Use TLS/SSL: ✓ (checked)
+Use TLS/SSL: Yes (checked)
 From Email: your-email@gmail.com
 HELO Hostname: smtp.gmail.com
 ```
@@ -42,7 +42,7 @@ SMTP Server: smtp-relay.gmail.com
 SMTP Port: 465
 Username: your-email@yourcompany.com
 Password: [App Password - see below]
-Use TLS/SSL: ✓ (checked)
+Use TLS/SSL: Yes (checked)
 From Email: your-email@yourcompany.com
 HELO Hostname: smtp.gmail.com
 ```
@@ -82,7 +82,7 @@ SMTP Server: smtp.gmail.com
 SMTP Port: 587
 Username: your-email@yourcompany.com
 Password: [App Password]
-Use TLS/SSL: ✓ (checked)
+Use TLS/SSL: Yes (checked)
 From Email: your-email@yourcompany.com
 HELO Hostname: smtp.gmail.com
 ```
@@ -212,18 +212,18 @@ SMTP Port: 587 (instead of 465)
 **Debug Output (Success):**
 
 ```
-✓ SMTP connection successful
-✓ Authentication passed
-✓ TLS encryption enabled
-✓ Server ready to accept messages
+OK: SMTP connection successful
+OK: Authentication passed
+OK: TLS encryption enabled
+OK: Server ready to accept messages
 ```
 
 **Debug Output (Common Issues):**
 
 ```
-✗ Mail relay denied → Check IP registration in Admin Console
-✗ Authentication failed → Verify App Password
-✗ Connection timeout → Check firewall/network settings
+FAIL: Mail relay denied → Check IP registration in Admin Console
+FAIL: Authentication failed → Verify App Password
+FAIL: Connection timeout → Check firewall/network settings
 ```
 
 #### Testing Different Scenarios
@@ -300,7 +300,7 @@ SMTP Server: smtp.office365.com
 SMTP Port: 587
 Username: your-email@yourcompany.com
 Password: [Account Password or App Password]
-Use TLS/SSL: ✓ (checked)
+Use TLS/SSL: Yes (checked)
 From Email: your-email@yourcompany.com
 HELO Hostname: smtp.office365.com
 ```
@@ -312,7 +312,7 @@ SMTP Server: smtp-mail.outlook.com
 SMTP Port: 587
 Username: your-email@outlook.com
 Password: [Account Password]
-Use TLS/SSL: ✓ (checked)
+Use TLS/SSL: Yes (checked)
 From Email: your-email@outlook.com
 HELO Hostname: smtp-mail.outlook.com
 ```
@@ -324,7 +324,7 @@ SMTP Server: smtp.mail.yahoo.com
 SMTP Port: 587
 Username: your-email@yahoo.com
 Password: [App Password from Yahoo Account Security]
-Use TLS/SSL: ✓ (checked)
+Use TLS/SSL: Yes (checked)
 From Email: your-email@yahoo.com
 HELO Hostname: smtp.mail.yahoo.com
 ```

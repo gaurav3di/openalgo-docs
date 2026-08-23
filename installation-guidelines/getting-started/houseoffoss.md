@@ -10,13 +10,13 @@ description: One-Click OpenAlgo Installation with House Of FOSS
 
 ### Overview
 
-You can now install **OpenAlgo**, the 100% open-source algorithmic trading platform, directly in the cloud - with just **one click** — using [**House of FOSS**](https://www.houseoffoss.com/).
+You can now install **OpenAlgo**, the 100% open-source algorithmic trading platform, directly in the cloud - with just **one click**, using [**House of FOSS**](https://www.houseoffoss.com/).
 
 No complex setups.\
 No manual server configuration.\
 Just pure **self-hosted freedom**.
 
-House of FOSS provides a platform to install and manage open-source software just like SaaS — but you **own everything**. It’s designed for developers, traders, and startups who want full control without worrying about backend infrastructure.
+House of FOSS provides a platform to install and manage open-source software just like SaaS, but you **own everything**. It’s designed for developers, traders, and startups who want full control without worrying about backend infrastructure.
 
 {% embed url="https://www.youtube.com/watch?v=GgPPwX3M2FM" %}
 
@@ -26,7 +26,7 @@ House of FOSS provides a platform to install and manage open-source software jus
 
 **House of FOSS** is a managed open-source software platform. It allows you to deploy and run applications like OpenAlgo, Excalidraw, or Anything LLM with a single click.
 
-You don’t need any knowledge of Linux, Docker, or cloud setup — House of FOSS takes care of:
+You don’t need any knowledge of Linux, Docker, or cloud setup, House of FOSS takes care of:
 
 * Installation
 * SSL and domain management
@@ -60,7 +60,7 @@ After installation, you can click **“Visit Application”** to access OpenAlgo
 
 ### 3. Initial Configuration
 
-After the instance is live, allow **2–3 minutes** for backend configuration.\
+After the instance is live, allow **2 to 3 minutes** for backend configuration.\
 Then go to:
 
 * **View Application → Config**
@@ -91,9 +91,9 @@ We’ve suggested a few improvements to House of FOSS for traders:
 ### 6. Why House of FOSS?
 
 * One-click deployment for OpenAlgo and other open-source tools.
-* No server management — everything is automated.
+* No server management, everything is automated.
 * Pay only for **usage**, not monthly subscription.
-* 100% open-source and self-hosted — **you own the data and code**.
+* 100% open-source and self-hosted, **you own the data and code**.
 
 ***
 
@@ -107,7 +107,7 @@ You get:
 * Broker integrations
 * TradingView automation support
 
-Whether you’re a trader, developer, or algo enthusiast — this setup gives you the same power as a professional cloud deployment with minimal effort.
+Whether you’re a trader, developer, or algo enthusiast, this setup gives you the same power as a professional cloud deployment with minimal effort.
 
 ***
 

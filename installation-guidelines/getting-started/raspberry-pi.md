@@ -1,6 +1,6 @@
 # Raspberry Pi
 
-## OpenAlgo on Raspberry Pi — Setup Guide
+## OpenAlgo on Raspberry Pi: Setup Guide
 
 **This guide helps you install and configure OpenAlgo on Raspberry Pi models 3, 4, or 5 (4GB+ RAM), preferably running Ubuntu 24.04+ server edition.**
 

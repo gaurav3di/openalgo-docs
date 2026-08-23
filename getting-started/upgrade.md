@@ -3,14 +3,14 @@
 Follow the steps for **your installation method**. The procedure differs depending on how you installed OpenAlgo.
 
 {% hint style="danger" %}
-**Never run `cp .sample.env .env` on an existing installation.** It erases your broker keys and replaces your `API_KEY_PEPPER` — which permanently invalidates every stored password hash and encrypted broker token. Your `.env` is not tracked by git, so `git pull` always preserves it. When an update introduces new environment variables, copy **only those new lines** from `.sample.env` into your existing `.env` (see "Handling new environment variables" below).
+**Never run `cp .sample.env .env` on an existing installation.** It erases your broker keys and replaces your `API_KEY_PEPPER`, which permanently invalidates every stored password hash and encrypted broker token. Your `.env` is not tracked by git, so `git pull` always preserves it. When an update introduces new environment variables, copy **only those new lines** from `.sample.env` into your existing `.env` (see "Handling new environment variables" below).
 {% endhint %}
 
 ***
 
 ### Option 1: Ubuntu Server (installed via install.sh)
 
-Your installation lives at `/var/python/openalgo` and runs as the systemd service `openalgo`. Use the bundled update script — it performs the entire upgrade safely in one command:
+Your installation lives at `/var/python/openalgo` and runs as the systemd service `openalgo`. Use the bundled update script, it performs the entire upgrade safely in one command:
 
 ```bash
 cd /var/python/openalgo
@@ -50,26 +50,26 @@ CI publishes a multi-architecture image (amd64 and arm64) on every push to
 `main`:
 
 * [`marketcalls/openalgo`](https://hub.docker.com/r/marketcalls/openalgo) on Docker Hub
-* `marketcalls/openalgo:latest` — the current `main`
-* `marketcalls/openalgo:<commit-sha>` — every build, so you can pin or roll back to an exact version
+* `marketcalls/openalgo:latest`, the current `main`
+* `marketcalls/openalgo:<commit-sha>`, every build, so you can pin or roll back to an exact version
 
 **Which upgrade path applies to you depends on how you installed:**
 
 | Install method | Image source | Upgrade |
 | --- | --- | --- |
 | `docker-run.sh` (Desktop) | Pulls `marketcalls/openalgo:latest` | `./docker-run.sh pull` then `./docker-run.sh restart` |
-| `install-docker.sh` (custom domain) | **Builds locally** from the repo | `git pull` then rebuild — Option 2a |
-| `install-docker-multi-custom-ssl.sh` | **Builds locally** per instance | Re-run the installer in update mode — Option 2b |
+| `install-docker.sh` (custom domain) | **Builds locally** from the repo | `git pull` then rebuild, Option 2a |
+| `install-docker-multi-custom-ssl.sh` | **Builds locally** per instance | Re-run the installer in update mode, Option 2b |
 | Manual clone | **Builds locally** | Option 2 |
 
 The server install scripts build locally rather than pulling, so a `docker pull`
-alone will not update them. If you would rather pull than build — it is much
-faster, since no build step runs — see "Using the pre-built image instead of
+alone will not update them. If you would rather pull than build, it is much
+faster, since no build step runs, see "Using the pre-built image instead of
 building" below.
 
 ***
 
-### Option 2: Docker — manual clone (no custom domain)
+### Option 2: Docker: manual clone (no custom domain)
 
 Use this if you cloned OpenAlgo yourself and run it with `docker compose`.
 
@@ -89,7 +89,7 @@ sudo docker compose up -d
 sudo docker compose logs -f
 ```
 
-Your `.env` file and the named volumes persist across the rebuild — no reconfiguration needed. Database migrations run automatically on container startup.
+Your `.env` file and the named volumes persist across the rebuild, no reconfiguration needed. Database migrations run automatically on container startup.
 
 {% hint style="warning" %}
 **If you installed with `install-docker.sh` or `install-docker-multi-custom-ssl.sh`, your installation is NOT in `~/openalgo`.** It is under `/opt/openalgo`. Use Option 2a or 2b below instead.
@@ -131,7 +131,7 @@ sudo docker compose logs -f
 
 Because nginx and the certificate live outside the repo, **a Docker upgrade cannot break your domain or SSL.** You do not need to re-run certbot, and you do not need to touch nginx.
 
-You also do **not** need to change your broker's redirect URL — it stays `https://<your-domain>/<broker>/callback`.
+You also do **not** need to change your broker's redirect URL, it stays `https://<your-domain>/<broker>/callback`.
 
 ***
 
@@ -152,7 +152,7 @@ When it finds an existing instance it asks:
 Instance for yourdomain.com already exists. Update code only? (y=update, n=skip, r=reinstall):
 ```
 
-Answer **`y`**. It pulls the latest code and **preserves your existing configuration** — broker keys, API secrets and domain settings are read back out of the instance's `.env` and reused. Answer `n` to skip an instance you do not want to touch.
+Answer **`y`**. It pulls the latest code and **preserves your existing configuration**, broker keys, API secrets and domain settings are read back out of the instance's `.env` and reused. Answer `n` to skip an instance you do not want to touch.
 
 To upgrade a single instance by hand instead:
 
@@ -165,7 +165,7 @@ sudo docker compose up -d
 ```
 
 {% hint style="info" %}
-Each instance has its own directory, its own `.env`, its own volumes and its own nginx site. Upgrading one does not affect the others — which is also why you must repeat the steps for each domain you want on the new version.
+Each instance has its own directory, its own `.env`, its own volumes and its own nginx site. Upgrading one does not affect the others, which is also why you must repeat the steps for each domain you want on the new version.
 {% endhint %}
 
 ***
@@ -195,7 +195,7 @@ sudo docker compose pull
 sudo docker compose up -d
 ```
 
-**Pinning to an exact version** is the main practical benefit — it makes
+**Pinning to an exact version** is the main practical benefit, it makes
 rollback immediate and unambiguous:
 
 ```yaml
@@ -214,7 +214,7 @@ migration files, and you want those current alongside the image.
 
 {% hint style="warning" %}
 Only `main` is published as `latest`. If you are testing a branch, you must
-build locally — there is no published image for it.
+build locally, there is no published image for it.
 {% endhint %}
 
 ***
@@ -223,7 +223,7 @@ build locally — there is no published image for it.
 
 Named volumes are not touched by `docker compose build`, but take a copy before any upgrade.
 
-**The simplest method — copy straight out of the running container:**
+**The simplest method, copy straight out of the running container:**
 
 ```bash
 cd /opt/openalgo
@@ -286,7 +286,7 @@ sudo docker compose build --no-cache
 sudo docker compose up -d
 ```
 
-Restore the database only if the upgrade actually migrated it and you need the earlier schema — migrations are forward-only, so a rollback of code without the matching database can fail to start.
+Restore the database only if the upgrade actually migrated it and you need the earlier schema, migrations are forward-only, so a rollback of code without the matching database can fail to start.
 
 ***
 
@@ -308,13 +308,13 @@ curl -I https://yourdomain.com
 sudo certbot certificates
 ```
 
-Then in the browser: log in, confirm the dashboard loads, and confirm live data updates — a working page with frozen prices means the WebSocket upgrade through nginx is not working, which is the one thing worth checking specifically on a custom-domain setup.
+Then in the browser: log in, confirm the dashboard loads, and confirm live data updates, a working page with frozen prices means the WebSocket upgrade through nginx is not working, which is the one thing worth checking specifically on a custom-domain setup.
 
 ***
 
-### Option 3: Desktop / Local — Update Scripts (Recommended)
+### Option 3: Desktop / Local: Update Scripts (Recommended)
 
-OpenAlgo runs cross-platform — Windows, macOS and Linux desktops all have a one-command update path using the bundled scripts.
+OpenAlgo runs cross-platform, Windows, macOS and Linux desktops all have a one-command update path using the bundled scripts.
 
 #### Windows
 
@@ -354,7 +354,7 @@ INFO in symbol: Initializing Master Contract DB
 
 ### Option 4: Manual Upgrade (any platform)
 
-If you prefer to run the steps yourself, only the backup step differs by platform — everything else is identical on Windows, macOS and Linux.
+If you prefer to run the steps yourself, only the backup step differs by platform, everything else is identical on Windows, macOS and Linux.
 
 #### 1. Backup the databases
 
@@ -392,7 +392,7 @@ uv sync
 
 #### 4. Run the migration script
 
-Migrations are idempotent — safe to run on every upgrade:
+Migrations are idempotent, safe to run on every upgrade:
 
 ```bash
 uv run upgrade/migrate_all.py
@@ -408,7 +408,7 @@ uv run app.py
 
 ### Handling new environment variables
 
-Newer releases often introduce new environment variables that OpenAlgo needs to function. **Do not recreate your `.env` from the sample** — merge instead:
+Newer releases often introduce new environment variables that OpenAlgo needs to function. **Do not recreate your `.env` from the sample**, merge instead:
 
 1. Open `.sample.env` and check `ENV_CONFIG_VERSION` at the top. If it is newer than the version in your `.env`, new variables were added.
 2. On startup, OpenAlgo's configuration check reports exactly which variables are missing.
@@ -423,7 +423,7 @@ The update scripts (`install/update.sh` on Linux/macOS, `install\update.bat` on 
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-And never change `API_KEY_PEPPER` on an installation that already has users or broker logins — it is used to hash passwords and encrypt broker tokens, and rotating it makes that data unrecoverable. If you genuinely need to rotate it, use the dedicated migration: `uv run python upgrade/rotate_pepper.py`.
+And never change `API_KEY_PEPPER` on an installation that already has users or broker logins, it is used to hash passwords and encrypt broker tokens, and rotating it makes that data unrecoverable. If you genuinely need to rotate it, use the dedicated migration: `uv run python upgrade/rotate_pepper.py`.
 {% endhint %}
 
 ***
@@ -436,13 +436,13 @@ And never change `API_KEY_PEPPER` on an installation that already has users or b
 * Broker login works and the master contract downloads
 * API requests and strategies function normally
 
-If anything fails after an upgrade, check `log/errors.jsonl` first — it contains structured error details including full tracebacks.
+If anything fails after an upgrade, check `log/errors.jsonl` first, it contains structured error details including full tracebacks.
 
 ***
 
 ### Optional: testing the gthread worker
 
-OpenAlgo currently runs on Gunicorn's **eventlet** worker, which is retired software — Gunicorn 26 removes it entirely. An experimental migration to the threaded **gthread** worker is available for testing.
+OpenAlgo currently runs on Gunicorn's **eventlet** worker, which is retired software, Gunicorn 26 removes it entirely. An experimental migration to the threaded **gthread** worker is available for testing.
 
 It is **opt-in and not the default**: a normal upgrade leaves you on eventlet with no change in behaviour.
 

@@ -17,7 +17,7 @@ If you upgrade and do nothing, OpenAlgo continues to run on eventlet exactly as 
 
 OpenAlgo has always run as `gunicorn --worker-class eventlet -w 1`.
 
-**Eventlet is retired software, and Gunicorn 26 removed the eventlet worker entirely.** That pins OpenAlgo to `gunicorn>=25.0,<26` permanently — a version that will stop receiving fixes, with no upgrade path.
+**Eventlet is retired software, and Gunicorn 26 removed the eventlet worker entirely.** That pins OpenAlgo to `gunicorn>=25.0,<26` permanently, a version that will stop receiving fixes, with no upgrade path.
 
 This is not a performance project. It is about not being stranded on a dead dependency.
 
@@ -26,7 +26,7 @@ Two options were evaluated and rejected before settling on gthread:
 | Option | Verdict |
 | ------ | ------- |
 | **Granian** | Rejected. Its WSGI mode cannot provide the socket that `simple_websocket` needs, so Socket.IO WebSocket transport breaks. |
-| **uvicorn / ASGI** | Deferred. Would require converting Flask to an ASGI application — a far larger change than the problem justifies today. |
+| **uvicorn / ASGI** | Deferred. Would require converting Flask to an ASGI application, a far larger change than the problem justifies today. |
 | **gthread** | Chosen. Supported by Flask-SocketIO, keeps Flask and WSGI, and changes one launch flag rather than the framework. |
 
 ***
@@ -39,7 +39,7 @@ This is the single sentence that governs the whole migration:
 
 **Eventlet** uses cooperative green threads. Your code runs uninterrupted until it chooses to yield (on I/O, or an explicit sleep). Two requests never interleave in the middle of a calculation.
 
-**gthread** uses real operating system threads. The OS can suspend a thread **anywhere** — between two lines, or between reading a dictionary and writing it back.
+**gthread** uses real operating system threads. The OS can suspend a thread **anywhere**, between two lines, or between reading a dictionary and writing it back.
 
 The practical consequence is that code which was *accidentally* safe under eventlet is genuinely racy under real threads. This matters most on a server that runs all day, places real orders, and is never restarted.
 
@@ -48,7 +48,7 @@ The practical consequence is that code which was *accidentally* safe under event
 These were reproduced, not theorised:
 
 * Order cancellation releasing blocked margin **twice**
-* Expired-contract settlement releasing margin twice — triggerable by leaving two browser tabs open
+* Expired-contract settlement releasing margin twice, triggerable by leaving two browser tabs open
 * The symbol lookup going **blank during its daily refresh**, so a valid symbol briefly looks like it does not exist
 * MCP quota admitting 7 and 8 concurrent requests against a configured limit of 5
 * Sandbox catch-up and square-off sweeps each running twice
@@ -64,14 +64,14 @@ The migration did not introduce them. It found them.
 
 ### What we gain from this
 
-#### Strategic — the actual reason
+#### Strategic: the actual reason
 
 * **Unblocks Gunicorn 26 and beyond.** Eventlet's removal currently pins OpenAlgo to `gunicorn<26` permanently.
 * **Removes a retired dependency** that no longer has active maintenance.
 * **Keeps Flask and WSGI.** No framework rewrite, unlike the ASGI route.
 * **One launch flag changes**, not the architecture.
 
-#### Correctness — the unexpected payoff
+#### Correctness: the unexpected payoff
 
 * Forced a full concurrency audit that surfaced **real money-path defects**: margin released twice on cancellation, the symbol cache blanking mid-refresh, duplicate sandbox sweeps.
 * Those defects were **already live for every Windows and macOS user**, whose development server has always used real threads.
@@ -80,14 +80,14 @@ The migration did not introduce them. It found them.
 #### Operational
 
 * An **explicit, tunable thread budget** instead of an unbounded pool of green threads.
-* Real OS threads are **visible to standard tooling** — `top`, `py-spy` and thread dumps all work normally, where green threads are invisible to them.
+* Real OS threads are **visible to standard tooling**, `top`, `py-spy` and thread dumps all work normally, where green threads are invisible to them.
 * Diagnostics report the **live worker class, thread count and open stream counts**.
 * **No dependency change to adopt.** Gunicorn 25.3 already ships both workers.
 
 #### Risk profile
 
 * **Opt-in behind a single `.env` line**; the default is unchanged.
-* **Rollback is deleting that line and restarting** — no rebuild, no dependency change.
+* **Rollback is deleting that line and restarting**, no rebuild, no dependency change.
 
 {% hint style="info" %}
 **This is not a performance improvement.** Expect broadly similar throughput. The value is being able to move to a supported Gunicorn, plus the correctness work the migration forced. Treat any claim that gthread makes OpenAlgo faster with suspicion.
@@ -102,7 +102,7 @@ The migration did not introduce them. It found them.
 | Docker | Yes | **Yes** |
 | Ubuntu server via `install.sh` (systemd + nginx) | Yes | **Yes** |
 | Ubuntu multi-instance via `install-multi.sh` | Yes | **Yes** |
-| Windows / macOS desktop (`uv run app.py`) | No — already real threads | No change |
+| Windows / macOS desktop (`uv run app.py`) | No, already real threads | No change |
 
 Windows and macOS desktop users do not run Gunicorn at all, so there is nothing to opt into. The concurrency fixes on the branch still benefit you.
 
@@ -123,7 +123,7 @@ Progress notes live in `docs/progress/gthread/` on the branch, and every item is
 
 ***
 
-### Step 1 — Get the branch
+### Step 1: Get the branch
 
 The opt-in variable does nothing on code built from `main`. The worker-resolution logic only exists on the `gthread` branch, so you must switch the checkout first.
 
@@ -142,7 +142,7 @@ Your `.env` is not tracked by git and is preserved.
 
 ***
 
-### Step 2 — Opt in
+### Step 2: Opt in
 
 Add **one line** to your `.env`:
 
@@ -156,11 +156,11 @@ That is sufficient. A safe thread count is chosen for you.
 **Do not set the thread count on its own.** `OPENALGO_GUNICORN_THREADS` does nothing without the worker class, and Gunicorn's own default of one thread would let a single live strategy log or MCP stream block the entire server.
 {% endhint %}
 
-There is no dependency change. Gunicorn 25.3 — the version already pinned in OpenAlgo — ships **both** the eventlet and gthread workers.
+There is no dependency change. Gunicorn 25.3, the version already pinned in OpenAlgo, ships **both** the eventlet and gthread workers.
 
 ***
 
-### Step 3 — Apply it
+### Step 3: Apply it
 
 #### Docker
 
@@ -192,7 +192,7 @@ Threads are per instance, so the host cost is `threads x instances`. With the de
 
 ***
 
-### Step 4 — Verify it is actually running
+### Step 4: Verify it is actually running
 
 Do not trust the `.env` file alone. Confirm the running process.
 
@@ -288,7 +288,7 @@ The updater restores the previous unit automatically. Check `install/logs/` for 
 Report it on issue #1722 with your thread count. This is exactly the failure mode the thread budget exists to prevent.
 
 **"database is locked" errors.**
-Real threads make SQLite writers genuinely collide where green threads did not. A 15-second busy timeout and a retry for stale-snapshot conflicts are already in place — please report the full entry from `log/errors.jsonl`.
+Real threads make SQLite writers genuinely collide where green threads did not. A 15-second busy timeout and a retry for stale-snapshot conflicts are already in place, please report the full entry from `log/errors.jsonl`.
 
 ***
 
@@ -296,12 +296,12 @@ Real threads make SQLite writers genuinely collide where green threads did not. 
 
 Starting up is not evidence. What is genuinely useful:
 
-* **Your broker, through a full trading day** — login, order placement, positions, and the roughly 3:00 AM IST token rollover
-* **Live WebSocket streaming** — `/websocket/test` and the option chain tools under real market data
-* **Python strategies** — especially multi-file strategies and scheduled start/stop
-* **Sandbox mode** — order fills, square-off, expiry settlement
+* **Your broker, through a full trading day**, login, order placement, positions, and the roughly 3:00 AM IST token rollover
+* **Live WebSocket streaming**, `/websocket/test` and the option chain tools under real market data
+* **Python strategies**, especially multi-file strategies and scheduled start/stop
+* **Sandbox mode**, order fills, square-off, expiry settlement
 * **Telegram alerts, scalping and charting terminals**
-* **Thread and stream counts from the admin runtime panel under real load** — these numbers are what will justify the final thread budget
+* **Thread and stream counts from the admin runtime panel under real load**, these numbers are what will justify the final thread budget
 
 Report on [issue #1722](https://github.com/marketcalls/openalgo/issues/1722) with your **broker, operating system, deployment method and thread count**. Negative results are as valuable as positive ones.
 
@@ -333,4 +333,4 @@ No. The branch carries a built frontend, as `main` does.
 Yes. The setting is per instance, and comparing the two on one host is a genuinely useful test.
 
 **Is my data at risk?**
-The switch does not alter the database schema. Normal upgrade care still applies — take backups before switching branches.
+The switch does not alter the database schema. Normal upgrade care still applies, take backups before switching branches.

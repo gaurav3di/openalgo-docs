@@ -8,7 +8,7 @@ Dev Tunnels is a feature built into [Visual Studio Code (VS Code)](https://code.
 
 #### Key Benefits of Dev Tunnels
 
-**Flexibility:** Ideal for testing webhooks, APIs, and various integrations—especially for services like TradingView.
+**Flexibility:** Ideal for testing webhooks, APIs, and various integrations, especially for services like TradingView.
 
 **Security:** Dev Tunnels establish encrypted, secure connections between your local environment and the public internet.
 
@@ -46,7 +46,7 @@ Begin by launching your OpenAlgo application locally from your VS Code. Open you
 
 * In the **Ports** tab, right-click on the forwarded address.
 * Select **“Port Visibility”** and then **“Public.”**
-* VS Code will warn you that this action will expose your service to the internet—confirm to proceed.
+* VS Code will warn you that this action will expose your service to the internet, confirm to proceed.
 * If prompted, sign up or log in using your **GitHub or Microsoft account** to create an encrypted URL.
 * Once completed, verify your new public URL.
 
@@ -70,7 +70,7 @@ Begin by launching your OpenAlgo application locally from your VS Code. Open you
 
 #### 7. Configure the TradingView Alert Message (JSON Payload)
 
-The JSON payload sent by TradingView is pivotal—it instructs OpenAlgo on how to execute orders.
+The JSON payload sent by TradingView is pivotal, it instructs OpenAlgo on how to execute orders.
 
 * Return to the [**OpenAlgo documentation**](https://docs.openalgo.in/api-documentation/v1/orders-api/placeorder) and copy the JSON payload structure.
 * Ensure your TradingView alert message matches the required format so that OpenAlgo can correctly interpret and act on the alert.

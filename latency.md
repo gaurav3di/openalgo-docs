@@ -31,7 +31,7 @@ Platform Latency = Total Time - Broker API Time - Network Overhead
 * Response formatting: \~1ms
 * Async logging: \~1-2ms
 
-**Target:** < 10ms **Current Performance:** 5-10ms ✅
+**Target:** < 10ms **Current Performance:** 5-10ms
 
 **2. Broker API Latency (External Processing)**
 
@@ -483,9 +483,9 @@ Red    (> 400ms):  Poor - Investigate immediately
 
 1. **Know your strategy's latency requirements**
    * HFT: < 10ms (needs co-location)
-   * Scalping: < 100ms (OpenAlgo is suitable ✅)
-   * MFT: < 200ms (OpenAlgo is excellent ✅)
-   * LFT: < 1000ms (OpenAlgo is more than sufficient ✅)
+   * Scalping: < 100ms (OpenAlgo is suitable)
+   * MFT: < 200ms (OpenAlgo is excellent)
+   * LFT: < 1000ms (OpenAlgo is more than sufficient)
 2. **Focus on strategy logic, not micro-optimization**
    * 50ms vs 60ms rarely matters for retail strategies
    * Strategy robustness matters more
@@ -535,7 +535,7 @@ With 95% reduction in platform overhead, OpenAlgo's latency is now limited by ex
 
 1. **Broker API response time** (50-80ms) - Primary bottleneck
 2. **Network latency** (20-40ms each way) - Geography-dependent
-3. **Platform processing** (5-10ms) - Optimized ✅
+3. **Platform processing** (5-10ms) - Optimized
 
 For retail and institutional traders running MFT/LFT strategies, this performance is more than adequate. Focus on strategy development, risk management, and execution consistency rather than chasing microseconds.
 

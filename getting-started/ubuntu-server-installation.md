@@ -9,7 +9,7 @@
 **System Requirements**
 
 * Ubuntu Server (22.04 LTS or later recommended)
-* Minimum 2 GB RAM (or 0.5 GB + 2 GB swap — the installer auto-creates the swap file if needed)
+* Minimum 2 GB RAM (or 0.5 GB + 2 GB swap, the installer auto-creates the swap file if needed)
 * 1 GB free disk
 * 1 vCPU
 * Clean installation recommended
@@ -31,7 +31,7 @@ OpenAlgo runs on Ubuntu, Debian, Raspbian, RHEL, Rocky, AlmaLinux, Amazon Linux,
        Content: YOUR_SERVER_IP
        Proxy status: Proxied
        ```
-   *   Add a CNAME record for `www` (optional — not required for `sub.yourdomain.com`)
+   *   Add a CNAME record for `www` (optional, not required for `sub.yourdomain.com`)
 
        ```
        Type: CNAME
@@ -91,12 +91,12 @@ The script will interactively prompt you for:
 * Broker selection from the 36 installed plugins
 * Broker API credentials (Key + Secret)
 * For XTS-based brokers (5paisa XTS, Compositedge, IIFL, etc.): additional market-data API key/secret
-* **Enable Remote MCP?** (y/N) — opt-in to expose `/mcp` and `/oauth/*` for hosted AI clients (Claude.ai, ChatGPT) at the same domain. You can also enable this later from the admin UI
+* **Enable Remote MCP?** (y/N), opt-in to expose `/mcp` and `/oauth/*` for hosted AI clients (Claude.ai, ChatGPT) at the same domain. You can also enable this later from the admin UI
 
 The installer will:
 
 * Detect your distro (Ubuntu / Debian / RHEL / Fedora / Arch / Amazon Linux) and use the right package manager
-* Install required packages, including Chromium (used for Telegram /chart rendering — non-fatal if unavailable)
+* Install required packages, including Chromium (used for Telegram /chart rendering, non-fatal if unavailable)
 * Install the `uv` package manager (via snap on Ubuntu, or the Astral standalone installer on PEP 668 systems like Ubuntu 24.04+)
 * Configure Nginx with HTTPS via Let's Encrypt (Certbot)
 * Set up the OpenAlgo application under `/var/python/openalgo`
@@ -116,7 +116,7 @@ After a successful run, the install lives at:
 /etc/nginx/sites-available/openalgo.conf   Nginx vhost (stable name across domain changes)
 ```
 
-The Nginx vhost name `openalgo.conf` is intentionally fixed — `install/change-domain.sh` updates `server_name` in place rather than renaming the file.
+The Nginx vhost name `openalgo.conf` is intentionally fixed, `install/change-domain.sh` updates `server_name` in place rather than renaming the file.
 
 **Multi-Domain Deployment (Optional)**
 
@@ -175,12 +175,12 @@ Each deployment gets its own service, configuration, virtual environment, SSL ce
 
 #### Remote MCP
 
-Remote MCP exposes `/mcp` and `/oauth/*` so hosted AI clients (claude.ai, chatgpt.com) can connect to your OpenAlgo install over HTTPS. Local stdio MCP (Claude Desktop, Cursor, Windsurf) is unaffected — it works regardless of this setting.
+Remote MCP exposes `/mcp` and `/oauth/*` so hosted AI clients (claude.ai, chatgpt.com) can connect to your OpenAlgo install over HTTPS. Local stdio MCP (Claude Desktop, Cursor, Windsurf) is unaffected, it works regardless of this setting.
 
 You can enable Remote MCP two ways:
 
-1. **At install time** — answer `y` when `install.sh` prompts. The installer sets `MCP_HTTP_ENABLED='True'` and `MCP_PUBLIC_URL='https://yourdomain.com'` in `.env` for you.
-2.  **From the admin UI** — visit `https://yourdomain.com/admin/remote-mcp`. The settings card at the top of the page lets you flip Remote MCP on or off, edit the public HTTPS origin, and adjust the OAuth posture toggles. Saving writes the new values to `.env`; a yellow banner then prompts you to restart the service:
+1. **At install time**, answer `y` when `install.sh` prompts. The installer sets `MCP_HTTP_ENABLED='True'` and `MCP_PUBLIC_URL='https://yourdomain.com'` in `.env` for you.
+2.  **From the admin UI**, visit `https://yourdomain.com/admin/remote-mcp`. The settings card at the top of the page lets you flip Remote MCP on or off, edit the public HTTPS origin, and adjust the OAuth posture toggles. Saving writes the new values to `.env`; a yellow banner then prompts you to restart the service:
 
     ```bash
     sudo systemctl restart openalgo
@@ -196,7 +196,7 @@ You can enable Remote MCP two ways:
 | Auto-approve hosted clients | `MCP_OAUTH_REQUIRE_APPROVAL`    | `False` (auto-approve ON) |
 | Allow order placement       | `MCP_OAUTH_WRITE_SCOPE_ENABLED` | `True`                    |
 
-The MCP URL to give your AI client is the same as your dashboard URL with `/mcp` appended — e.g. `https://yourdomain.com/mcp`. The admin page displays it with a copy button when MCP is configured.
+The MCP URL to give your AI client is the same as your dashboard URL with `/mcp` appended, e.g. `https://yourdomain.com/mcp`. The admin page displays it with a copy button when MCP is configured.
 
 #### Troubleshooting
 
@@ -335,7 +335,7 @@ The script updates `.env` (`HOST_SERVER`, `WEBSOCKET_URL`), the Nginx vhost's `s
     Indian broker tokens expire daily at \~3:00 AM IST and the app forces a re-login at that time. For 24/7 crypto brokers (Delta Exchange), the installer detects this and disables the auto-logout.
 5.  **Single user per deployment**
 
-    OpenAlgo is designed for one trader per server. There is no multi-user model — server access equals full control of the broker session. Don't share the host.
+    OpenAlgo is designed for one trader per server. There is no multi-user model, server access equals full control of the broker session. Don't share the host.
 
 #### Post-Installation
 

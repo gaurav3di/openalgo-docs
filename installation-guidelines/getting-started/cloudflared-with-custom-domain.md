@@ -118,7 +118,7 @@ Once the tunnel is "Active" in your terminal:
 
 * **Order Book:** When the alert triggers, check the **Order Book** tab in OpenAlgo to see the executed trade.
 * **Latency Monitor:** Go to **Logs** -> **Latency Monitor**.
-  * Cloudflare Tunnels typically offer latency between **150ms – 300ms**, which is faster than Ngrok or Pagekite in many regions.
+  * Cloudflare Tunnels typically offer latency between **150ms  to  300ms**, which is faster than Ngrok or Pagekite in many regions.
 * **Security:** Because the tunnel is outbound-only, your local IP address remains hidden from the public internet.
 
 ***
