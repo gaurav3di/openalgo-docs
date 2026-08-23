@@ -120,10 +120,10 @@ Portfolio endpoints are authenticated and read-only. The holdings resource reads
 
 | Method | Path | Documentation |
 |---|---|---|
-| GET | `/sip/frequencies` | Not yet documented |
-| POST | `/sip/backtest` | Not yet documented |
+| GET | `/sip/frequencies` | [SIP Backtest](./utilities-api/sip-backtest.md) |
+| POST | `/sip/backtest` | [SIP Backtest](./utilities-api/sip-backtest.md) |
 
-The SIP backtester namespace is registered in `restx_api/__init__.py` but has no page in this section yet. `/sip/backtest` validates against `SipBacktestSchema` and requires a valid API key; `source: "api"` additionally requires a broker session. `/sip/frequencies` returns the frequency list the engine supports. Both use `SIP_API_RATE_LIMIT`, default `10 per minute`.
+`/sip/backtest` validates against `SipBacktestSchema` and requires a valid API key; `source: "api"` additionally requires a broker session. `/sip/frequencies` returns the frequency list the engine supports and is the one v1 resource that does not verify the API key. Both use `SIP_API_RATE_LIMIT`, default `10 per minute`.
 
 ### Messaging
 

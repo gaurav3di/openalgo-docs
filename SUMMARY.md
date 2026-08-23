@@ -3,6 +3,7 @@
 * [What is OpenAlgo?](README.md)
 * [Why to Build with OpenAlgo?](why-to-build-with-openalgo.md)
 * [OpenAlgo Architecture](openalgo-architecture.md)
+* [Analytics and Options Tools](analytics-and-options-tools.md)
 * [Mini FOSS Universe](mini-foss-universe.md)
 * [Community Support](community-support.md)
 * [OpenAlgo GPT](openalgo-gpt.md)
@@ -163,6 +164,7 @@
     * [Timings](api-documentation/v1/utilities-api/timings.md)
     * [Telegram](api-documentation/v1/utilities-api/telegram.md)
     * [WhatsApp](api-documentation/v1/utilities-api/whatsapp.md)
+    * [SIP Backtest](api-documentation/v1/utilities-api/sip-backtest.md)
   * [Portfolio API](api-documentation/v1/portfolio.md)
   * [Websockets](api-documentation/v1/websockets.md)
   * [Order Constants](api-documentation/v1/order-constants.md)
@@ -256,6 +258,7 @@
 * [Telegram](trading-platform/telegram.md)
 * [Whatsapp](trading-platform/whatsapp.md)
 * [Chrome Extension](trading-platform/chrome-extension.md)
+* [Mobile App](trading-platform/mobile-app.md)
 
 ***
 
