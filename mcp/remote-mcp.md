@@ -1,6 +1,6 @@
 # Remote MCP
 
-Lets hosted AI clients — ChatGPT, Claude.ai, Claude mobile — talk to your OpenAlgo install over the internet so you can ask them to fetch quotes, summarise positions, or place orders in plain English.
+Lets hosted AI clients (ChatGPT, Claude.ai, Claude mobile) talk to your OpenAlgo install over the internet so you can ask them to fetch quotes, summarise positions, or place orders in plain English.
 
 {% embed url="https://www.youtube.com/watch?v=iq0Tbq22u0c" %}
 
@@ -10,7 +10,7 @@ Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your 
 | ---------------------------------------------------------------- | ---------------------------------- |
 | Trade from your laptop using Claude Desktop, Cursor, or Windsurf | **Local stdio** (MCP setup guide)  |
 | Trade from ChatGPT.com, Claude.ai, or the Claude mobile app      | **Remote MCP** (this guide)        |
-| Both                                                             | Enable both — they don't interfere |
+| Both                                                             | Enable both, they don't interfere |
 
 ***
 
@@ -18,7 +18,7 @@ Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your 
 
 1. **OpenAlgo on your own domain with HTTPS.** Dashboard reachable at `https://yourdomain.com`, login + broker auth + orders all working through the web UI. If you're not there yet, start with one of the install scripts: `install/install.sh`, `install/install-multi.sh`, `install/install-docker.sh`, or `install/install-docker-multi-custom-ssl.sh`.
 2. **OpenAlgo 2.0.1.0 or later.** The dashboard footer shows the version; `GET https://yourdomain.com/auth/app-info` returns it as JSON. On older builds run `install/update.sh` first.
-3. **An OpenAlgo API key.** Generate one at **Profile → API Keys**. The MCP server uses it server-side; hosted clients never see it — they get OAuth tokens instead.
+3. **An OpenAlgo API key.** Generate one at **Profile → API Keys**. The MCP server uses it server-side; hosted clients never see it, they get OAuth tokens instead.
 4. **A hosted client account that supports custom MCP connectors.** Check the client's current plan and workspace requirements; these are controlled by the client vendor.
 
 ***
@@ -27,7 +27,7 @@ Local stdio MCP (Claude Desktop / Cursor / Windsurf on the same machine as your 
 
 #### Native install (`install.sh`)
 
-The installer asks at run time whether to enable Remote MCP. If you said **yes**, it's already on at `https://yourdomain.com/mcp` — skip to _Connecting_.
+The installer asks at run time whether to enable Remote MCP. If you said **yes**, it's already on at `https://yourdomain.com/mcp`, skip to _Connecting_.
 
 If you said no and want to flip it now, edit `/var/python/openalgo/.env`:
 
@@ -80,15 +80,15 @@ With `MCP_OAUTH_REQUIRE_APPROVAL=True`, the first connection pauses until you ap
 
 #### Adding OpenAlgo to ChatGPT
 
-> Heads up — ChatGPT recently renamed **Connectors → Apps**. Same feature, new menu name. The in-chat menu still says _Connectors_, so don't be confused.
+> Heads up: ChatGPT recently renamed **Connectors → Apps**. Same feature, new menu name. The in-chat menu still says _Connectors_, so don't be confused.
 
-**Step 1 — Open Apps settings**
+**Step 1: Open Apps settings**
 
 1. Avatar (bottom left) → **Settings**
 2. Sidebar → **Apps**
 3. Top right → **Add more** → opens **New App BETA**
 
-**Step 2 — Fill in the form**
+**Step 2: Fill in the form**
 
 | Field          | Value                                |
 | -------------- | ------------------------------------ |
@@ -97,19 +97,19 @@ With `MCP_OAUTH_REQUIRE_APPROVAL=True`, the first connection pauses until you ap
 | MCP Server URL | `https://yourdomain.com/mcp`         |
 | Authentication | `OAuth`                              |
 
-**Step 3 — Advanced OAuth settings**
+**Step 3: Advanced OAuth settings**
 
 Expand **Advanced OAuth settings** → **Registration method** → `Dynamic Client Registration (DCR)`.
 
-The notice _"CIMD is unavailable…"_ is expected — OpenAlgo advertises DCR. DCR is the right pick.
+The notice _"CIMD is unavailable…"_ is expected, OpenAlgo advertises DCR. DCR is the right pick.
 
 Default scopes ChatGPT requests are `read:market read:account`. Add `write:orders` only if you've turned `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` on the server **and** you want this connector to place orders.
 
-**Step 4 — Acknowledge and create**
+**Step 4: Acknowledge and create**
 
 Tick _"I understand and want to continue"_ under the orange warning, then **Create**.
 
-**Step 5 — Pending approval (when enabled)**
+**Step 5: Pending approval (when enabled)**
 
 ChatGPT will show:
 
@@ -117,20 +117,20 @@ ChatGPT will show:
 
 This is expected only when `MCP_OAUTH_REQUIRE_APPROVAL=True`. Your server saw the registration but is holding it until you approve. Don't dismiss the modal.
 
-**Step 6 — Approve in OpenAlgo**
+**Step 6: Approve in OpenAlgo**
 
 1. New tab → `https://yourdomain.com/admin/remote-mcp`
 2. Sign in (TOTP if MCP 2FA is on)
 3. **Pending approvals** → verify name + timestamp match → **Approve**
 
-**Step 7 — Complete OAuth**
+**Step 7: Complete OAuth**
 
 1. Back in ChatGPT → **Reconnect**
 2. A tab pops to `https://yourdomain.com/oauth/authorize?...`
 3. Sign in if needed → consent screen lists scopes (verify the redirect URI is a `chatgpt.com` URL) → **Authorize**
 4. App moves from Drafts to Enabled
 
-**Step 8 — Use it**
+**Step 8: Use it**
 
 In any new chat, click **+** below the message box → **Connectors** → toggle **OpenAlgo** ON.
 
@@ -157,36 +157,36 @@ OpenAlgo exposes tools allowed by the granted OAuth scopes. ChatGPT can apply ad
 
 #### Adding OpenAlgo to Claude.ai
 
-**Step 1 — Connectors page**
+**Step 1: Connectors page**
 
 claude.ai → name (bottom left) → **Settings** → **Connectors**.
 
-**Step 2 — Add custom**
+**Step 2: Add custom**
 
 Top right **+** → **Add custom connector**.
 
-**Step 3 — Fill in**
+**Step 3: Fill in**
 
 | Field                 | Value                        |
 | --------------------- | ---------------------------- |
 | Name                  | `OpenAlgo`                   |
 | Remote MCP server URL | `https://yourdomain.com/mcp` |
 
-Leave **Advanced settings** alone — OAuth is detected automatically. Click **Add**.
+Leave **Advanced settings** alone, OAuth is detected automatically. Click **Add**.
 
-**Step 4 — Pending approval (when enabled)**
+**Step 4: Pending approval (when enabled)**
 
 When `MCP_OAUTH_REQUIRE_APPROVAL=True`, the first attempt fails with a pending-approval error. Keep the page open. With approval disabled, continue directly to OAuth consent.
 
-**Step 5 — Approve in OpenAlgo**
+**Step 5: Approve in OpenAlgo**
 
 `https://yourdomain.com/admin/remote-mcp` → **Pending approvals** → **Approve**.
 
-**Step 6 — Complete OAuth**
+**Step 6: Complete OAuth**
 
 Back in claude.ai → **Connect** on the connector card → sign in to OpenAlgo (+ TOTP if on) → consent screen (verify redirect URI is `claude.ai`) → **Authorize**. Card switches to **Disconnect** when you're live.
 
-**Step 7 — Tool permissions**
+**Step 7: Tool permissions**
 
 Click your **OpenAlgo** connector to expand permissions:
 
@@ -196,9 +196,9 @@ Click your **OpenAlgo** connector to expand permissions:
 | Read-only tools                                                        | **Always allow**                                                 |
 | App-only tools                                                         | **Always allow**                                                 |
 
-You can override individual tools — e.g. _Always allow_ most things but force _Ask me_ for `cancel_all_orders`.
+You can override individual tools, e.g. _Always allow_ most things but force _Ask me_ for `cancel_all_orders`.
 
-**Step 8 — Use it**
+**Step 8: Use it**
 
 In any chat, click the **Tools** icon below the message box → toggle **OpenAlgo** on.
 
@@ -213,19 +213,19 @@ OpenAlgo exposes the same scoped registry to Claude.ai, but Claude can apply cli
 **Recommended posture for write tools**
 
 * Start in **Sandbox / Analyzer mode** (`/analyzer`) and dry-run prompts before turning live trading on
-* Keep **MCP 2FA** on — fresh authorization for `write:orders` then requires TOTP
+* Keep **MCP 2FA** on, fresh authorization for `write:orders` then requires TOTP
 * Set a tight `MCP_RATE_LIMIT_WRITE` (e.g. `5 per minute`) so a runaway model can't fire a flurry of orders before you intervene
-* Tail `log/mcp.jsonl` while testing — every call recorded with timestamp, scope, outcome, latency
+* Tail `log/mcp.jsonl` while testing, every call recorded with timestamp, scope, outcome, latency
 * Keep the **Kill switch** at `/admin/remote-mcp` one click away
 
 **Useful Claude prompts**
 
 * _"Place a limit BUY for 1 share of TCS at ₹3500 in CNC product on NSE"_
-* _"Modify my last open INFY order — change the quantity to 5"_
+* _"Modify my last open INFY order, change the quantity to 5"_
 * _"Cancel all my open orders"_
 * _"What was my P\&L today?"_
 
-For more example prompts per tool, see the Tool References — the same prompts work on Remote MCP.
+For more example prompts per tool, see the Tool References, the same prompts work on Remote MCP.
 
 ***
 
@@ -238,7 +238,7 @@ Already connected with `read:market read:account` and want to add `write:orders`
 3. Re-add it with the broader scope set
 4. Re-approve at `/admin/remote-mcp`
 
-OAuth doesn't let an existing token widen its scope — re-consent is required. By design.
+OAuth doesn't let an existing token widen its scope, re-consent is required. By design.
 
 ***
 
@@ -248,9 +248,9 @@ OAuth doesn't let an existing token widen its scope — re-consent is required. 
 
 | Section                 | What it's for                                                                                               |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Pending approvals**   | New clients land here. Approve only ones you recognise — the name is set by the hosted client itself        |
+| **Pending approvals**   | New clients land here. Approve only ones you recognise, the name is set by the hosted client itself        |
 | **Approved clients**    | Currently authorised. Each row shows last-used time                                                         |
-| **Revoked clients**     | Historical — cannot re-authorize without admin re-approval                                                  |
+| **Revoked clients**     | Historical: cannot re-authorize without admin re-approval                                                  |
 | **MCP tool call audit** | Every tool call: timestamp, client, tool, scope, outcome, latency. Filter by tool or outcome                |
 | **Kill switch**         | Revokes every refresh token across approved clients. Existing access JWTs remain valid until their short expiry |
 
@@ -262,7 +262,7 @@ Same data as the admin page, written to `log/mcp.jsonl` as JSON Lines. Tail with
 tail -f log/mcp.jsonl
 ```
 
-Tool **arguments are hashed**, not stored verbatim — the log itself is not a data leak.
+Tool **arguments are hashed**, not stored verbatim, so the log itself is not a data leak.
 
 #### 2FA enforcement
 
@@ -274,7 +274,7 @@ Profile → TOTP → **2FA Enforcement** lets you gate three independent purpose
 | Remote MCP authorization | Fresh TOTP at `/oauth/authorize` for every `write:orders` grant |
 | Password reset           | Forces TOTP path (no email fallback)                            |
 
-All three default off so existing installs see no change. Saving requires a fresh TOTP code in the same request — proves you have authenticator access for both enabling and disabling.
+All three default off so existing installs see no change. Saving requires a fresh TOTP code in the same request, proves you have authenticator access for both enabling and disabling.
 
 ***
 
@@ -304,15 +304,15 @@ All keys live in `.env` (native) or the bind-mounted `.env` (Docker). Native ins
 
 The defenses, in plain order:
 
-1. **Optional approval gate** — with `MCP_OAUTH_REQUIRE_APPROVAL=True`, clients cannot complete OAuth until you approve them at `/admin/remote-mcp`
-2. **Scope gate** — `write:orders` is invisible in OAuth discovery when `MCP_OAUTH_WRITE_SCOPE_ENABLED=False`
-3. **Short access tokens** — 15-minute TTL caps the damage window if a token is stolen
-4. **Rate limits** — per-token, separately for reads and writes
-5. **PKCE + JWT** — S256-only PKCE, exact redirect\_uri matching, signed access JWTs, and rotating refresh tokens
-6. **Refresh-token family protection** — reuse of an already-rotated refresh token revokes its entire token family
-7. **Kill switch** — one click revokes all refresh tokens; already-issued access JWTs remain valid until expiry
+1. **Optional approval gate**: with `MCP_OAUTH_REQUIRE_APPROVAL=True`, clients cannot complete OAuth until you approve them at `/admin/remote-mcp`
+2. **Scope gate**: `write:orders` is invisible in OAuth discovery when `MCP_OAUTH_WRITE_SCOPE_ENABLED=False`
+3. **Short access tokens**: 15-minute TTL caps the damage window if a token is stolen
+4. **Rate limits**: per-token, separately for reads and writes
+5. **PKCE + JWT**: S256-only PKCE, exact redirect\_uri matching, signed access JWTs, and rotating refresh tokens
+6. **Refresh-token family protection**: reuse of an already-rotated refresh token revokes its entire token family
+7. **Kill switch**: one click revokes all refresh tokens; already-issued access JWTs remain valid until expiry
 
-> **The blast radius is real.** A stolen access token can place orders the broker accepts — they originate from your registered server IP. The 15-minute default TTL limits the window, but the kill switch does not immediately invalidate an access JWT. Never combine `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` with `MCP_OAUTH_REQUIRE_APPROVAL=False` on a public deployment — that lets any internet client register, auto-approve, and request order scope.
+> **The blast radius is real.** A stolen access token can place orders the broker accepts; they originate from your registered server IP. The 15-minute default TTL limits the window, but the kill switch does not immediately invalidate an access JWT. Never combine `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` with `MCP_OAUTH_REQUIRE_APPROVAL=False` on a public deployment: that lets any internet client register, auto-approve, and request order scope.
 
 For the implementation boundaries behind these controls, see [MCP Architecture](../developers/design-documentation/41-mcp-architecture.md).
 
@@ -325,13 +325,13 @@ For the implementation boundaries behind these controls, see [MCP Architecture](
 | `unauthorized_client` after Create / Add          | DCR client not approved yet                            | Approve at `/admin/remote-mcp`                                                    |
 | `invalid_client` on retry                         | Client revoked or DB reset; old `client_id` cached     | Disconnect + re-add to force fresh DCR                                            |
 | _"Server doesn't implement OAuth"_                | Old build                                              | Update to 2.0.1.0+                                                                |
-| _"CIMD is unavailable"_ in ChatGPT                | OpenAlgo advertises DCR, not CIMD                      | Expected — pick **DCR**                                                           |
+| _"CIMD is unavailable"_ in ChatGPT                | OpenAlgo advertises DCR, not CIMD                      | Expected: pick **DCR**                                                           |
 | Tools missing from chat                           | Connector not toggled on for that chat                 | `+` menu (ChatGPT) or Tools menu (Claude)                                         |
 | `bad_arguments` on a tool call                    | Hosted client guessed parameter names                  | Update OpenAlgo (newer builds expose strict tool schemas)                         |
 | Sudden 401 on every call                          | Refresh token expired or kill switch fired             | **Reconnect** on the connector                                                    |
 | `place_order` blocked on ChatGPT                  | OpenAI's safety policy                                 | Use Claude.ai for order placement                                                 |
 | _"Failed to connect to the server"_ on tool calls | Loopback misconfigured                                 | Confirm `HOST_SERVER` in `.env` matches your dashboard URL; restart               |
-| Tokens issued but `/mcp` returns 401              | `MCP_PUBLIC_URL` doesn't match the URL the client uses | Make them exactly equal — `https://example.com` ≠ `https://www.example.com`       |
+| Tokens issued but `/mcp` returns 401              | `MCP_PUBLIC_URL` doesn't match the URL the client uses | Make them exactly equal: `https://example.com` ≠ `https://www.example.com`       |
 | Form submit blocked by CSP                        | Old build                                              | Update to 2.0.1.0+                                                                |
 | Container won't restart after enabler             | Bad `.env` change                                      | Run the rollback one-liner the enabler printed; restart; check `log/errors.jsonl` |
 
@@ -339,7 +339,7 @@ For the implementation boundaries behind these controls, see [MCP Architecture](
 
 ### Subdomain mode (advanced)
 
-If you want MCP on a separate hostname (e.g. `mcp.yourdomain.com`) so its cookies, CORS, and TLS lifecycle are isolated from the dashboard, the manual recipe is in `install/Remote-MCP-readme.md`. Same nginx + certbot pattern as `install-docker-multi-custom-ssl.sh`. Most users don't need this — same-domain is what the installer automates.
+If you want MCP on a separate hostname (e.g. `mcp.yourdomain.com`) so its cookies, CORS, and TLS lifecycle are isolated from the dashboard, the manual recipe is in `install/Remote-MCP-readme.md`. Same nginx + certbot pattern as `install-docker-multi-custom-ssl.sh`. Most users don't need this; same-domain is what the installer automates.
 
 ***
 
@@ -361,7 +361,7 @@ sudo sed -i "s|MCP_HTTP_ENABLED.*|MCP_HTTP_ENABLED = 'False'|" /opt/openalgo/<do
 cd /opt/openalgo/<domain> && sudo docker compose restart
 ```
 
-OAuth + MCP routes immediately stop responding. Existing tokens hit 404. **Local stdio MCP is unaffected** — it runs over stdin/stdout and doesn't touch the HTTP transport.
+OAuth + MCP routes immediately stop responding. Existing tokens hit 404. **Local stdio MCP is unaffected**: it runs over stdin/stdout and doesn't touch the HTTP transport.
 
 For a softer takedown that keeps Remote MCP enabled, visit `/admin/remote-mcp` → **Kill switch**. It revokes refresh tokens, so hosted clients must complete OAuth again after their current access JWT expires. To stop access immediately, disable Remote MCP and restart the application.
 
@@ -369,11 +369,11 @@ For a softer takedown that keeps Remote MCP enabled, visit `/admin/remote-mcp` �
 
 ### Related
 
-* MCP Server Setup Guide — local stdio integration with Claude Desktop / Cursor / Windsurf
-* Tool References — every tool with parameters and example prompts (shared across both transports)
-* OpenAlgo Symbol Format — how equity / future / option symbols are constructed
-* `install/Remote-MCP-readme.md` — operator-focused install + threat model in the source tree
-* [MCP Architecture](../developers/design-documentation/41-mcp-architecture.md) — transport and OAuth implementation boundaries
+* MCP Server Setup Guide: local stdio integration with Claude Desktop / Cursor / Windsurf
+* Tool References: every tool with parameters and example prompts (shared across both transports)
+* OpenAlgo Symbol Format: how equity / future / option symbols are constructed
+* `install/Remote-MCP-readme.md`: operator-focused install + threat model in the source tree
+* [MCP Architecture](../developers/design-documentation/41-mcp-architecture.md): transport and OAuth implementation boundaries
 
 ***
 

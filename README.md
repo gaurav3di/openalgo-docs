@@ -1,6 +1,6 @@
 # What is OpenAlgo?
 
-OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 35 broker plugins: 34 securities integrations and Delta Exchange for crypto derivatives. It supports automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets.
+OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 36 broker plugins: 34 securities brokers, Delta Exchange for crypto derivatives, and a Dhan sandbox plugin for paper trading. It supports automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets.
 
 ### Overview
 
@@ -178,7 +178,7 @@ Let's be clear about what OpenAlgo doesn't do:
 | Aspect                | OpenAlgo                                         |
 | --------------------- | ------------------------------------------------ |
 | **Cost**              | Free (Open Source, AGPL License)                 |
-| **Brokers**           | 35 plugins: 34 securities integrations + Delta Exchange |
+| **Brokers**           | 36 plugins: 34 securities brokers, Delta Exchange (crypto), Dhan Sandbox |
 | **Exchanges**         | NSE, NFO, BSE, BFO, MCX, CDS, BCD                |
 | **Signal Sources**    | TradingView, Amibroker, ChartInk, Python, AI     |
 | **Strategy Building** | Flow (Visual), Python Hosting, External Webhooks |

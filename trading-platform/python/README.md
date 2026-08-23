@@ -27,6 +27,30 @@ client = api(api_key='your_api_key_here', host='http://127.0.0.1:5000')
 
 ```
 
+The full constructor is:
+
+```python
+api(api_key, host="http://127.0.0.1:5000", version="v1", timeout=120.0,
+    ws_port=8765, ws_url=None, verbose=False, auto_reconnect=True)
+```
+
+* `host` (str): base URL of your OpenAlgo server. REST calls go to `{host}/api/{version}/`.
+* `version` (str): API version. Defaults to `v1`.
+* `timeout` (float): REST request timeout in seconds. Defaults to `120.0`.
+* `ws_port` (int): WebSocket port. Defaults to `8765`.
+* `ws_url` (str): full WebSocket URL. Overrides `host` and `ws_port`. When omitted it is derived as `ws://<host-name>:<ws_port>`, so a local install needs no `ws_url` at all.
+* `verbose` (int): SDK log level for the WebSocket feed. `0`/`False` silent, `1`/`True` basic, `2` full debug. See [Websockets (Verbose Control)](websockets-verbose-control.md).
+* `auto_reconnect` (bool): defaults to `True`. The SDK reconnects, re-authenticates and replays every active subscription after a drop, with exponential backoff. Set to `False` for manual reconnect handling.
+
+All order and data methods are keyword-only, so every argument must be passed by name.
+
+The client keeps a pooled HTTP connection open. Call `client.close()` when you are done, or use it as a context manager:
+
+```python
+with api(api_key='your_api_key_here', host='http://127.0.0.1:5000') as client:
+    print(client.funds())
+```
+
 ### Check OpenAlgo Version
 
 ```python
@@ -125,7 +149,7 @@ response = client.optionsorder(
       option_type="CE",
       action="BUY",
       quantity=75,
-      pricetype="MARKET",
+      price_type="MARKET",
       product="NRML",
       splitsize = 0
   )
@@ -160,7 +184,7 @@ response = client.optionsorder(
       option_type="PE",
       action="BUY",
       quantity=75,
-      pricetype="MARKET",
+      price_type="MARKET",
       product="NRML",
       splitsize = 0
   )
@@ -195,7 +219,7 @@ response = client.optionsorder(
       option_type="CE",
       action="BUY",
       quantity=75,
-      pricetype="MARKET",
+      price_type="MARKET",
       product="NRML",
       splitsize = 0
   )
@@ -1419,9 +1443,9 @@ print(response)
 
 #### WhatsApp Alert Example
 
-Prerequisites: open `/whatsapp` in the OpenAlgo web UI, click **Pair**, scan the QR with your phone. Pairing is admin-only on purpose — the REST API exposes only the send endpoint so a leaked API key cannot re-pair the device. Once paired, the bot auto-reconnects on every server boot from the encrypted session blob stored in `openalgo.db`.
+Prerequisites: open `/whatsapp` in the OpenAlgo web UI, click **Pair**, scan the QR with your phone. Pairing is admin-only on purpose: the REST API exposes only the send endpoint so a leaked API key cannot re-pair the device. Once paired, the bot auto-reconnects on every server boot from the encrypted session blob stored in `openalgo.db`.
 
-One unified call handles every common case — text, image, document, self-send, single recipient, or small broadcast (max 5).
+One unified call handles every common case: text, image, document, self-send, single recipient, or small broadcast (max 5).
 
 **Send to yourself (simplest case)**
 

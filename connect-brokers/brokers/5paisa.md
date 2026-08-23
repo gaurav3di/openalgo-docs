@@ -48,3 +48,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/fivepaisa/callback'
 #### Conclusion
 
 By following the steps outlined in this guide, you have successfully configured your 5Paisa account for use with OpenAlgo. You can now leverage the power of algorithmic trading to enhance your trading strategies and make data-driven decisions. Should you encounter any issues or need further assistance, please refer to the OpenAlgo community or support resources. Happy trading!
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/fivepaisa/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

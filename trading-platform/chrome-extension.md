@@ -47,15 +47,17 @@ A lightweight Chrome extension for the OpenAlgo trading platform with a DaisyUI-
 <figure><img src="../.gitbook/assets/image (92).png" alt=""><figcaption></figcaption></figure>
 
 1. **Configure Settings**:
-   * Click the 3-dot (⋮) icon next to the button panel
+   * Click the 3-dot menu icon next to the button panel
    * Fill in the following fields:
      * Host URL (e.g., `http://127.0.0.1:5000`)
      * API Key
      * Symbol (e.g., `RELIANCE` or `NIFTY27APR25FUT`)
-     * Exchange (e.g., NSE, BSE, NFO, etc.)
+     * Exchange. The dropdown offers exactly six values: NSE, BSE, BFO, NFO, MCX and CDS
      * Product (MIS, NRML, CNC)
      * Quantity (e.g., 10, 20, etc.). Futures or Options symbols it is always the total number of shares instead of Lot Size
 2. **Save Settings**: Click **Save** to apply your configuration
+
+Settings are stored in Chrome's synced storage, so they follow your Chrome profile across machines. Every field is mandatory: if any one of them is blank the buttons refuse to fire and the settings panel opens instead.
 
 <figure><img src="../.gitbook/assets/image (91).png" alt=""><figcaption></figcaption></figure>
 
@@ -66,7 +68,14 @@ A lightweight Chrome extension for the OpenAlgo trading platform with a DaisyUI-
 * **SE (Red)**: Short Entry (Sell to Open Short)
 * **SX (Blue)**: Short Exit (Buy to Close Short)
 
-These buttons appear on supported charting pages and can be repositioned.
+The two entry buttons post a MARKET order to `/api/v1/placeorder` with your configured Quantity, and OpenAlgo records the strategy as `Chrome`.
+
+The two exit buttons post to `/api/v1/placesmartorder` with `position_size` set to `0`. That tells OpenAlgo to look up your live open position for that symbol, exchange and product and flatten it, whatever its size and direction. Two consequences worth knowing:
+
+* An exit closes the whole position. The Quantity field in settings is not used for exits.
+* If there is no open position, nothing is sent to the broker and OpenAlgo replies that the position already matches.
+
+The extension is a content script registered against all URLs, so the button bar can be injected on any page you have open, not only charting sites. It can be repositioned anywhere on the screen.
 
 #### Draggable Interface
 
@@ -85,4 +94,4 @@ These buttons appear on supported charting pages and can be repositioned.
 
 ***
 
-The OpenAlgo Chrome Extension is designed to simplify and streamline your trading experience. With a clean interface and real-time trading controls built right into your browser, it allows you to react quickly to market opportunities with just one click. Whether you're managing long or short positions, this extension brings the power of OpenAlgo directly into your charting tools, making intraday trading more efficient and intuitive. Configure once, trade instantly—let technology work for you while you focus on strategy.
+The OpenAlgo Chrome Extension is designed to simplify and streamline your trading experience. With a clean interface and real-time trading controls built right into your browser, it allows you to react quickly to market opportunities with just one click. Whether you're managing long or short positions, this extension brings the power of OpenAlgo directly into your charting tools, making intraday trading more efficient and intuitive. Configure once, trade instantly, and let technology work for you while you focus on strategy.

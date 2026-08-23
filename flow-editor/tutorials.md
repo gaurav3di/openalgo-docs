@@ -11,7 +11,7 @@ real output from that run, not illustration.
 1. Open `/flow`, click **Import**
 2. Paste the JSON (or save it as a `.json` file and use the file picker)
 3. Click **Save**, then **Run** to execute once
-4. Read the execution log panel — every node reports what it did
+4. Read the execution log panel, every node reports what it did
 
 Turn **Analyzer mode on** first. Orders will be simulated.
 
@@ -90,14 +90,14 @@ Var check: 43.385612 < 70.0 = True
 **Key point.** `varCondition` compares any two interpolated values. Unlike
 `priceCondition` (which always re-fetches a live quote field), it works on
 indicator outputs, previous-period levels, and literals. If an operand does
-not resolve to a number it **refuses to evaluate and takes neither branch** —
+not resolve to a number it **refuses to evaluate and takes neither branch**:
 a typo cannot silently route your else-path into a trade.
 
 ---
 
 ## 3. Crossovers
 
-There is no crossover node — `crossover` needs two series. Build it from two
+There is no crossover node, `crossover` needs two series. Build it from two
 indicator nodes and an `andGate`.
 
 A golden cross means: fast is above slow **now**, and fast was at or below
@@ -137,7 +137,7 @@ slow **on the previous bar**.
 }
 ```
 
-Verified output — a genuine EMA9/EMA21 cross on NIFTY daily:
+Verified output, a genuine EMA9/EMA21 cross on NIFTY daily:
 
 ```
 ema latest: {'value': 24055.354181}     <- fast
@@ -209,7 +209,7 @@ AND Gate: [True, True] -> True
 ```
 
 **Key point.** Two indicator nodes on the same symbol at *different*
-intervals are two distinct fetches — the cache only collapses identical
+intervals are two distinct fetches, the cache only collapses identical
 requests. That is correct and unavoidable.
 
 ---
@@ -265,7 +265,7 @@ today. That makes the filter entirely stateless.
 }
 ```
 
-Verified output — the filter correctly declined a gap-up that never retested:
+Verified output, the filter correctly declined a gap-up that never retested:
 
 ```
 previous_day OHLC for NIFTY: H=24041.15 L=23954.6 C=23985.35
@@ -280,7 +280,7 @@ AND Gate: [False, True, False, True] -> False
 `{{q.data.high}} >= {{pd.pdl}}`.
 
 **"One trade per breakout"** is enforced by `positionCheck` with
-`not_exists` — it asks the broker, so it survives restarts, unlike a counter
+`not_exists`, it asks the broker, so it survives restarts, unlike a counter
 variable.
 
 To actually trade it, replace the `go` log node with the options entry from
@@ -291,7 +291,7 @@ Tutorial 7.
 ## 6. Historical lookback
 
 Previous day, previous week, a bar five sessions back, and an indicator value
-five bars back — all in one workflow.
+five bars back, all in one workflow.
 
 ```json
 {
@@ -325,13 +325,13 @@ five bars back — all in one workflow.
 **Key point.** `offsetBars: 5` on a daily chart is five *trading* bars, which
 spans seven calendar days across a weekend. Supertrend legitimately holds a
 flat level through a sustained trend, so identical values at different
-offsets are often correct, not a bug — check `out1` (direction) to confirm.
+offsets are often correct, not a bug, check `out1` (direction) to confirm.
 
 ---
 
 ## 7. Risk-guarded ATM options entry
 
-Two guards — available funds and no existing position — before buying a
+Two guards, available funds and no existing position, before buying a
 current-week ATM call.
 
 ```json
@@ -379,20 +379,20 @@ Options order result: {'status': 'success', 'orderid': '26072924089946',
 
 **Key points.**
 
-* `optionsOrder` resolves the expiry and strike for you — you never hand-write
+* `optionsOrder` resolves the expiry and strike for you: you never hand-write
   `NIFTY04AUG2624250CE`.
 * `quantity` here is **in lots**. `placeOrder`, `smartOrder`, `splitOrder`,
   and `basketOrder` take quantity in **shares**. This asymmetry is the single
   most common sizing mistake.
 * `expiryType` accepts `current_week`, `next_week`, `current_month`,
   `next_month`.
-* `offset` accepts `ATM`, `ITM1`–`ITM5`, `OTM1`–`OTM10`.
+* `offset` accepts `ATM`, `ITM1`-`ITM5`, `OTM1`-`OTM10`.
 
 ---
 
 ## 8. Reacting to a fill
 
-`orderUpdateTrigger` fires the moment a matching order changes status — no
+`orderUpdateTrigger` fires the moment a matching order changes status, no
 polling loop.
 
 ```json
@@ -416,14 +416,14 @@ The event payload is exposed as `{{webhook.*}}`: `orderid`, `symbol`,
 
 * Set at least one of Order ID or Symbol. An unfiltered watch would fire on
   every order in the account and is rejected.
-* Order ID must be a **literal** broker order id — a trigger has no upstream
+* Order ID must be a **literal** broker order id, a trigger has no upstream
   node, so `{{ce.orderid}}` cannot be resolved and is rejected with a 400.
   Filter by symbol instead.
 * `status` accepts `any`, `open`, `trigger pending`, `complete`, `rejected`,
   `cancelled`.
 * `trigger: "once"` stops watching after the first match; `"every_time"`
   keeps watching.
-* Watches survive a restart — they are restored from active workflows on boot.
+* Watches survive a restart, they are restored from active workflows on boot.
 
 ---
 
@@ -482,7 +482,7 @@ realized=0.0  unrealized=5250.0  total=5250.0  openQty=75.0  unpriced_legs=0
   `placeOrder` or `smartOrder` (`positionSize: 0`) instead.
 
 **Before relying on this.** The strategy book is built from orders placed
-**through OpenAlgo with a strategy tag** — Flow nodes and `/api/v1/` calls
+**through OpenAlgo with a strategy tag**, Flow nodes and `/api/v1/` calls
 that carry `strategy`. A position you opened by hand in the broker terminal is
 invisible to it, so its P&L is not counted. Check `unpriced_legs` too: it
 counts open legs with no live price, which are excluded from `unrealized`, so
@@ -523,7 +523,7 @@ holiday. The `calendar` node answers it directly.
 **Key points.**
 
 * The schedule runs every weekday; the `calendar` node decides whether today is
-  the day. That is deliberate — a monthly schedule could not know which date
+  the day. That is deliberate, a monthly schedule could not know which date
   the exchange actually opens on.
 * Swap `is_new_month` for `is_new_week`, `is_new_quarter` or `is_new_year`. Use
   `is_last_day_of_month` for a month-end square-off instead.
@@ -549,6 +549,6 @@ Real 2026 dates this handles correctly, and the naive tests do not:
 
 ## Where to go next
 
-* [Limitations and Gotchas](limitations.md) — read before trading these live
-* [Indicators](indicators.md) — the full 116-function reference
-* [Market Data](market-data.md) — timeframes, the 200-bar ceiling, rate limits
+* [Limitations and Gotchas](limitations.md): read before trading these live
+* [Indicators](indicators.md): the full 116-function reference
+* [Market Data](market-data.md): timeframes, the 200-bar ceiling, rate limits

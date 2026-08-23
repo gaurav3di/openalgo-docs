@@ -24,6 +24,8 @@ curl -X POST 'http://127.0.0.1:5000/api/v1/ping' \
 }
 ```
 
+`PingSchema` declares only `apikey`. Any other field returns HTTP 400.
+
 This is not an anonymous process-health endpoint. An invalid key or revoked/missing broker session returns HTTP 403.
 
 **Back to**: [API documentation](../README.md)

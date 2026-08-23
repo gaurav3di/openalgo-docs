@@ -24,10 +24,15 @@ The `indicator` node runs any of **116 technical indicators** from the
 | `indicatorName` | Function name, lowercase (`rsi`, `sma`, `supertrend`, `macd`, …) |
 | `params` | JSON object of the indicator's own arguments, as a string |
 | `lookbackBars` | How much history to compute over (capped at 200) |
-| `tailBars` | Length of the returned `series` array |
-| `offsetBars` | Which bar `at_offset` should read (0 = latest closed) |
-| `sourceSeries` | Optional — compute over another series instead of fetching |
-| `sourceField` | Optional — which field to read from each `sourceSeries` row |
+| `tailBars` | Length of the returned `series` array (also capped at 200) |
+| `offsetBars` | Which bar `at_offset` should read (0 = latest closed, max 199) |
+| `sourceSeries` | Optional: compute over another series instead of fetching |
+| `sourceField` | Optional: which field to read from each `sourceSeries` row |
+
+The node fetches `lookbackBars` plus a fixed 50-bar warm-up so the indicator
+has settled by the time the requested window starts, and the sum is still
+capped at 200. That is why `{{rsi.bars_used}}` can be larger than the
+`lookbackBars` you asked for.
 
 ## Reading the result
 
@@ -50,8 +55,8 @@ own order:
 | --- | --- | --- | --- |
 | `macd` | MACD line | signal | histogram |
 | `bbands` | upper | middle | lower |
-| `supertrend` | level | direction (`-1` up, `1` down) | — |
-| `stochastic` | %K | %D | — |
+| `supertrend` | level | direction (`-1` up, `1` down) | none |
+| `stochastic` | %K | %D | none |
 | `adx` | +DI | -DI | ADX |
 | `donchian` | upper | middle | lower |
 
@@ -78,7 +83,7 @@ unambiguous.
 ## Nesting indicators
 
 Set `sourceSeries` to another indicator's series to compute an indicator *of*
-an indicator — for example a 9-period SMA of RSI:
+an indicator, for example a 9-period SMA of RSI:
 
 ```json
 { "id": "smoothed", "type": "indicator", "position": { "x": 300, "y": 100 },
@@ -87,15 +92,15 @@ an indicator — for example a 9-period SMA of RSI:
             "outputVariable": "rsiSma" } }
 ```
 
-Give the upstream node a large enough `tailBars` to feed the nested window —
-a 9-period SMA needs at least 9 upstream values.
+Give the upstream node a large enough `tailBars` to feed the nested window.
+A 9-period SMA needs at least 9 upstream values.
 
 Only **single-series** indicators can be nested (`sma`, `ema`, `rsi`, `wma`,
 `stdev`, `highest`, `lowest`, …). Anything needing independent high/low/close
 inputs (`atr`, `supertrend`, `adx`, …) cannot be reconstructed from one
 collapsed output series and returns a clear error.
 
-`sourceSeries` also accepts a raw `history` array — `{{h.data}}` uses each
+`sourceSeries` also accepts a raw `history` array, `{{h.data}}` uses each
 row's `close`. Override with `sourceField` to use `high`, `low`, or a
 specific `out1`.
 
@@ -103,7 +108,7 @@ specific `out1`.
 
 `crossover`, `crossunder`, and `cross` are **not** available as an
 `indicator` node: they need two independent series, and this node reads one
-symbol. Build a crossover from two indicator nodes plus an `andGate` — see
+symbol. Build a crossover from two indicator nodes plus an `andGate`, see
 [Tutorial 3](tutorials.md#3-crossovers).
 
 `correlation` and `beta` are excluded for the same reason (they compare two
@@ -111,15 +116,16 @@ symbols).
 
 ## The complete exclusion list
 
-`openalgo.ta` ships more functions than the `indicator` node exposes. Eight
-need a second series, and one is unsupported, leaving the **116** you can use:
+`openalgo.ta` ships 127 public functions, more than the `indicator` node
+exposes. Eight need a second series and three cannot be computed by the
+installed build, leaving the **116** you can use:
 
 | Excluded | Why | What to do instead |
 | --- | --- | --- |
-| `crossover`, `crossunder`, `cross` | Compare two series | Two `indicator` nodes plus an `andGate` — [Tutorial 3](tutorials.md#3-crossovers) |
+| `crossover`, `crossunder`, `cross` | Compare two series | Two `indicator` nodes plus an `andGate`, [Tutorial 3](tutorials.md#3-crossovers) |
 | `correlation`, `beta` | Compare two symbols | Not available in Flow; use the Python Strategy Host |
 | `exrem`, `flip`, `valuewhen` | Need a second boolean series, and carry state across bars | Restructure as a stateless condition, or use the Python Strategy Host |
-| `median_bands` | Not supported | — |
+| `median_bands`, `ulcerindex`, `vi` | The installed `openalgo` build returns no usable values for these | Not available; selecting one fails the run with an explicit message |
 
 Everything else in the library works as an `indicator` node.
 
@@ -129,15 +135,15 @@ Everything else in the library works as an `indicator` node.
 | --- | --- |
 | **Trend** | sma, ema, wma, dema, tema, hma, vwma, alma, kama, zlema, t3, frama, trima, mcginley, vidya, alligator, ma_envelopes, supertrend, ichimoku, ckstop |
 | **Momentum** | rsi, macd, stochastic, stochf, stochrsi, cci, williams_r, bop, elderray, fisher, crsi, cmo, trix, mom, apo, ppo, po, dpo |
-| **Volatility** | atr, natr, true_range, bbands, bbpercent, bbwidth, keltner, donchian, chaikin, rvi, ultimate_oscillator, uo_oscillator, massindex, chandelier_exit, hv, ulcerindex, starc |
+| **Volatility** | atr, natr, true_range, bbands, bbpercent, bbwidth, keltner, donchian, chaikin, rvi, ultimate_oscillator, uo_oscillator, massindex, chandelier_exit, hv, starc |
 | **Volume** | obv, obv_smoothed, vwap, mfi, adl, cmf, emv, force_index, nvi, nvi_with_ema, pvi, pvi_with_signal, volosc, vroc, kvo, pvt, rvol |
-| **Oscillators** | roc, rocp, rocr, rocr100, awesome_oscillator, accelerator_oscillator, aroon_oscillator, cho, chop, kst, tsi, vi, stc, gator_oscillator, coppock |
+| **Oscillators** | roc, rocp, rocr, rocr100, awesome_oscillator, accelerator_oscillator, aroon_oscillator, cho, chop, kst, tsi, stc, gator_oscillator, coppock |
 | **Statistical** | linreg, linregangle, linregintercept, lrslope, variance, tsf, median, mode |
 | **Hybrid** | adx, adxr, dx, dmi, minus_dm, plus_dm, aroon, pivot_points, psar, fractals, rwi |
 | **Price transform** | avgprice, medprice, midprice, midpoint, typprice, wclprice |
 | **Utility** | highest, lowest, change, stdev, rising, falling |
 
-Parameter names follow the `openalgo.ta` signatures — `{"period": 14}` for
+Parameter names follow the `openalgo.ta` signatures, `{"period": 14}` for
 most, `{"fast_period": 12, "slow_period": 26, "signal_period": 9}` for MACD,
 `{"period": 10, "multiplier": 3}` for Supertrend. Required parameters get
 sensible defaults if you omit them.

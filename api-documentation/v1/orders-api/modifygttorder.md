@@ -126,7 +126,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/modifygttorder \
 | strategy | Strategy identifier (string) | Mandatory | - |
 | trigger_id | The trigger ID returned by `PlaceGTTOrder` — identifies which active GTT to modify (string) | Mandatory | - |
 | trigger_type | `SINGLE` or `OCO` — must match the original trigger's type (string) | Mandatory | - |
-| exchange | NSE, BSE, NFO, BFO, CDS, BCD, MCX (string) | Mandatory | - |
+| exchange | Any value in the shared `VALID_EXCHANGES` list (string) | Mandatory | - |
 | symbol | Trading symbol in OpenAlgo format (string) | Mandatory | - |
 | action | `BUY` or `SELL` (string). For OCO, applies to both legs. | Mandatory | - |
 | product | `CNC` (equity delivery) or `NRML` (F&O overnight). MIS is **not** supported for GTT. (string) | Mandatory | - |
@@ -137,6 +137,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/modifygttorder \
 | triggerprice_tg | New trigger price above LTP. **SINGLE**: use this OR `triggerprice_sl`. **OCO**: required (the target-leg trigger). (float) | Conditional | `0` |
 | stoploss | **OCO only** — new limit price for the stoploss leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
 | target | **OCO only** — new limit price for the target leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
+
+`ModifyGTTOrderSchema` has no `expires_at` field: expiry cannot be changed on an existing trigger. Like the place schema it sets `unknown = EXCLUDE`, so unrecognized fields are dropped rather than rejected, and dropped fields never reach the broker.
 
 ### Trigger Field Rules
 

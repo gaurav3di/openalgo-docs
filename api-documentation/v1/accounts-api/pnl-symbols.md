@@ -39,6 +39,8 @@ curl -X POST 'http://127.0.0.1:5000/api/v1/pnl/symbols' \
 }
 ```
 
-A request made in live mode returns HTTP 400. An invalid API key returns HTTP 403.
+`PnlSymbolsSchema` declares only `apikey`. Any other field returns HTTP 400.
+
+A request made in live mode returns HTTP 400 before the schema is even loaded, with the message "This endpoint is only available in sandbox/analyzer mode". An invalid API key returns HTTP 403.
 
 **Back to**: [API documentation](../README.md)

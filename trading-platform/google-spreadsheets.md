@@ -17,7 +17,7 @@
 #### Step 2: Configure API Settings
 
 1. Open the cloned spreadsheet
-2. Go to Extensions > AppScript editor
+2. Go to Extensions > Apps Script
 3. Locate these lines in the script:
 4.
 
@@ -26,8 +26,8 @@
     var hostServer = "https://your-ngrok-domain.ngrok-free.app"; 
     ```
 5. Replace with your OpenAlgo credentials:
-   * `apikey`: Your unique OpenAlgo API key
-   * HostSefver: Your Custom Domain or Free Ngrok Domain where OpenAlgo is hosted
+   * `apikey`: Your unique OpenAlgo API key, generated on the API Key page of the OpenAlgo dashboard. This is not your broker's API key.
+   * `hostServer`: The URL where OpenAlgo is reachable from Google's servers. Apps Script runs in Google's cloud, so `http://127.0.0.1:5000` will never work. Use a custom domain, or a tunnel such as ngrok, Cloudflare Tunnel or a VS Code Dev Tunnel. Do not leave a trailing slash.
 
 #### Spreadsheet Structure
 
@@ -40,20 +40,24 @@ The template contains two main sheets:
 
 | Column | Description     | Example                                                                                  |
 | ------ | --------------- | ---------------------------------------------------------------------------------------- |
-| C3     | Exchange        | NSE, BSE, NFO, MCX, CDS                                                                  |
+| C3     | Exchange        | NSE, NFO, CDS, BSE, BFO, BCD, MCX, NCDEX, NCO, NSE\_INDEX, BSE\_INDEX                    |
 | D3     | OpenAlgo Symbol | INFY, RELIANCE                                                                           |
 | E3     | Action          | BUY/SELL                                                                                 |
 | F3     | Price Type      | MARKET/LIMIT/SL/SL-M                                                                     |
 | G3     | Total Quantity  | 100                                                                                      |
-| H3     | Price           | 1500.50 (for LIMIT/STOP)                                                                 |
-| I3     | Trigger Price   | 1480.00 (for STOP)                                                                       |
+| H3     | Price           | 1500.50 (used by LIMIT and SL, send 0 otherwise)                                         |
+| I3     | Trigger Price   | 1480.00 (used by SL and SL-M, send 0 otherwise)                                          |
 | J3     | Split Size      | <p>0 - No SplitOrder<br>Specific Number - Send Split order  with split size quantity</p> |
-| K3     | Product Type    | INTRADAY/DELIVERY                                                                        |
+| K3     | Product Type    | MIS (intraday), NRML (carry forward), CNC (delivery)                                     |
+
+The values in C3, E3, F3 and K3 are sent to the OpenAlgo API exactly as typed, so they must match the API's own vocabulary. `product` accepts only `MIS`, `NRML` and `CNC`. Words such as INTRADAY or DELIVERY are rejected by the API with a validation error.
 
 #### Split Order Functionality
 
-* **Split Size 0**: Entire quantity in one order
-* **Split Size > 0**: Multiple orders of specified size
+* **Split Size 0**: Entire quantity in one order. The script sends the total quantity as the split size, so the API produces exactly one order.
+* **Split Size > 0**: Multiple orders of the specified size, plus one final order for the remainder if the total does not divide evenly.
+* A split order may produce at most 100 child orders. Beyond that the API rejects the request.
+* Child orders are placed sequentially, paced from `ORDER_RATE_LIMIT` (10 per second by default), so 100 child orders take roughly 10 seconds.
 
 #### Execution
 

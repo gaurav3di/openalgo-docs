@@ -80,8 +80,12 @@ curl -X POST http://127.0.0.1:5000/api/v1/expiry \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | symbol | Underlying symbol (e.g., NIFTY, BANKNIFTY) | Mandatory | - |
-| exchange | Exchange code: NFO, BFO, CDS, BCD, MCX | Mandatory | - |
-| instrumenttype | Instrument type: "options" or "futures" | Mandatory | - |
+| exchange | Derivatives exchange: NFO, BFO, MCX, CDS, NCO, BCD, NCDEX, CRYPTO | Mandatory | - |
+| instrumenttype | Instrument type: `futures` or `options`, lowercase | Mandatory | - |
+
+`ExpirySchema` declares exactly these four fields and all four are required. Any other field returns HTTP 400. In particular there is no `expirytype` parameter: this endpoint returns every expiry for the underlying, and weekly versus monthly is not a filter you can pass. Filter the returned array on the client instead.
+
+`exchange` is validated against the derivatives list above, which is narrower than the full exchange set. Cash and index exchanges such as `NSE` or `NSE_INDEX` return HTTP 400 here.
 
 ## Response Fields
 
@@ -97,7 +101,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/expiry \
 - Weekly expiries are included for index options (NIFTY, BANKNIFTY)
 - Monthly expiries extend further into the future
 - Use this data to populate expiry dropdowns in your application
-- Format is **DD-MMM-YY** (e.g., 10-JUL-25)
+- Format is **DD-MMM-YY** (e.g., 10-JUL-25). Note that the option and order endpoints that take an `expiry_date` want the compact **DDMMMYY** form (e.g., 10JUL25), so strip the hyphens before passing a value through.
+- When the underlying has no expiries in that exchange, the response is still `status: "success"` with an empty `data` array and an explanatory `message`
 
 ## Use Cases
 

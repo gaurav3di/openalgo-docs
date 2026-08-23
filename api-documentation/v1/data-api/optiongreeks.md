@@ -70,12 +70,16 @@ curl -X POST http://127.0.0.1:5000/api/v1/optiongreeks \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | symbol | Option symbol | Mandatory | - |
-| exchange | Exchange: NFO, BFO, CDS, MCX, CRYPTO | Mandatory | - |
-| interest_rate | Risk-free interest rate (annualized %) | Optional | Exchange default |
-| underlying_symbol | Underlying symbol for spot price | Optional | Derived from option |
-| underlying_exchange | Underlying exchange | Optional | NSE_INDEX |
-| forward_price | Custom forward/synthetic futures price | Optional | - |
-| expiry_time | Custom expiry time in "HH:MM" format | Optional | - |
+| exchange | Derivatives exchange: NFO, BFO, MCX, CDS, NCO, BCD, NCDEX, CRYPTO | Mandatory | - |
+| interest_rate | Risk-free interest rate as an annualized percentage, 0 to 100 | Optional | Exchange default |
+| forward_price | Custom forward or synthetic futures price, non-negative. When supplied, the underlying price fetch is skipped | Optional | Resolved automatically |
+| underlying_symbol | Underlying symbol for the reference price (e.g., `NIFTY` or `NIFTY28NOV24FUT`) | Optional | Derived from the option symbol |
+| underlying_exchange | Underlying exchange (e.g., `NSE_INDEX`, `NFO`). Not enum-validated | Optional | Derived from the option symbol |
+| expiry_time | Custom expiry time in `HH:MM` format (e.g., `15:30`, `19:00`) | Optional | Exchange default |
+
+These eight fields are the complete `OptionGreeksSchema`. Any other field returns HTTP 400. `exchange` is validated against the derivatives list, so cash and index exchanges are rejected here.
+
+This endpoint uses `GREEKS_RATE_LIMIT`, whose in-code fallback is 30 per minute, rather than the shared `API_RATE_LIMIT`.
 
 ## Response Fields
 

@@ -53,8 +53,10 @@ curl -X POST http://127.0.0.1:5000/api/v1/syntheticfuture \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | underlying | Underlying symbol (NIFTY, BANKNIFTY, SENSEX) | Mandatory | - |
-| exchange | Exchange: NSE_INDEX, BSE_INDEX | Mandatory | - |
-| expiry_date | Expiry date in DDMMMYY format | Mandatory | - |
+| exchange | Underlying's exchange. Any value in the shared `VALID_EXCHANGES` list passes validation; the practical values are NSE_INDEX, NSE, BSE_INDEX, BSE | Mandatory | - |
+| expiry_date | Expiry date in DDMMMYY format (e.g., 25NOV25) | Mandatory | - |
+
+These four fields are the complete `SyntheticFutureSchema`. Any other field returns HTTP 400. There is no `strategy` field on this endpoint.
 
 ## Response Fields
 

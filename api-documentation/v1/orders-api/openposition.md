@@ -59,10 +59,14 @@ curl -X POST http://127.0.0.1:5000/api/v1/openposition \
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
+| strategy | Strategy identifier | Mandatory | - |
 | symbol | Trading symbol | Mandatory | - |
-| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX | Mandatory | - |
+| exchange | Exchange code | Mandatory | - |
 | product | Product type: MIS, CNC, NRML | Mandatory | - |
-| strategy | Strategy identifier | Optional | - |
+
+All five fields are required by `OpenPositionSchema`; omitting `strategy` returns HTTP 400, and any additional field returns HTTP 400 as well.
+
+Unlike the order schemas, `exchange` here is a plain string with no enum validation, so an unknown exchange is not rejected at the API boundary. It simply fails to match any position and the response comes back with `quantity` of `0`. Use a valid exchange code from [Order Constants](../order-constants.md).
 
 ## Response Fields
 

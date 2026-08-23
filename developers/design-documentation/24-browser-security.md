@@ -11,31 +11,31 @@ OpenAlgo implements browser-side security measures including session management,
 │                       Browser Security Architecture                          │
 └──────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Security Layers                                    │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                               Security Layers                                │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Layer 1: Session Security                                           │   │
-│  │  - Session-based authentication                                      │   │
-│  │  - Auto-expiry at 3 AM IST (configurable)                           │   │
-│  │  - Token revocation on logout                                        │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  Layer 1: Session Security                                           │    │
+│  │  - Session-based authentication                                      │    │
+│  │  - Auto-expiry at 3 AM IST (configurable)                           │     │
+│  │  - Token revocation on logout                                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Layer 2: Cookie Security                                            │   │
-│  │  - Secure flag (HTTPS only)                                          │   │
-│  │  - HttpOnly flag (no JS access)                                      │   │
-│  │  - SameSite=Lax (CSRF protection)                                    │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  Layer 2: Cookie Security                                            │    │
+│  │  - Secure flag (HTTPS only)                                          │    │
+│  │  - HttpOnly flag (no JS access)                                      │    │
+│  │  - SameSite=Lax (CSRF protection)                                    │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Layer 3: Authentication Flow                                        │   │
-│  │  - Argon2 password hashing                                           │   │
-│  │  - TOTP support for 2FA                                              │   │
-│  │  - Rate limiting on login                                            │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  Layer 3: Authentication Flow                                        │    │
+│  │  - Argon2 password hashing                                           │    │
+│  │  - TOTP support for 2FA                                              │    │
+│  │  - Rate limiting on login                                            │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Session Management
@@ -43,12 +43,12 @@ OpenAlgo implements browser-side security measures including session management,
 ### Session Lifecycle
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                    Session Lifecycle                            │
+┌─────────────────────────────────────────────────────────────────┐
+│                        Session Lifecycle                        │
 │                                                                 │
-│  Login → Create Session → Set Expiry → Validate on Request    │
+│  Login → Create Session → Set Expiry → Validate on Request      │
 │                                            │                    │
-│              ┌─────────────────────────────┴───────┐           │
+│              ┌─────────────────────────────┴───────┐            │
 │              │                                     │            │
 │           Valid                               Expired           │
 │              │                                     │            │
@@ -56,7 +56,7 @@ OpenAlgo implements browser-side security measures including session management,
 │         Continue                            Redirect to         │
 │         Request                             Login Page          │
 │                                                                 │
-└────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Session Expiry Configuration
@@ -173,16 +173,16 @@ def login():
 ### Setup Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    2FA Setup Flow                                │
+┌──────────────────────────────────────────────────────────────────┐
+│                          2FA Setup Flow                          │
 │                                                                  │
-│  1. User enables 2FA in settings                                │
-│  2. Generate TOTP secret                                        │
-│  3. Display QR code for authenticator app                       │
-│  4. User enters code to verify                                  │
-│  5. Store encrypted secret in database                          │
+│  1. User enables 2FA in settings                                 │
+│  2. Generate TOTP secret                                         │
+│  3. Display QR code for authenticator app                        │
+│  4. User enters code to verify                                   │
+│  5. Store encrypted secret in database                           │
 │                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### TOTP Validation

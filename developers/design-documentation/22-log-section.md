@@ -11,27 +11,27 @@ OpenAlgo provides comprehensive log viewing and management through the web inter
 │                          Log Section Architecture                            │
 └──────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Log Types                                          │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                  Log Types                                   │
 │                                                                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
-│  │   API Logs      │  │  Analyzer Logs  │  │  Application    │             │
-│  │   /logs         │  │                 │  │  Logs           │             │
-│  │                 │  │                 │  │                 │             │
-│  │  - placeorder   │  │  - Analyzer     │  │  - log/*.log    │             │
-│  │  - cancelorder  │  │    orders       │  │  - Console      │             │
-│  │  - modifyorder  │  │  - Sandbox      │  │  - Rotating     │             │
-│  │  - Response     │  │    trades       │  │                 │             │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘             │
-│           │                    │                    │                       │
-│           └────────────────────┼────────────────────┘                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐               │
+│  │   API Logs      │  │  Analyzer Logs  │  │  Application    │               │
+│  │   /logs         │  │                 │  │  Logs           │               │
+│  │                 │  │                 │  │                 │               │
+│  │  - placeorder   │  │  - Analyzer     │  │  - log/*.log    │               │
+│  │  - cancelorder  │  │    orders       │  │  - Console      │               │
+│  │  - modifyorder  │  │  - Sandbox      │  │  - Rotating     │               │
+│  │  - Response     │  │    trades       │  │                 │               │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘               │
+│           │                    │                    │                        │
+│           └────────────────────┼────────────────────┘                        │
 │                                │                                             │
 │                                ▼                                             │
-│           ┌─────────────────────────────────────────────────────────┐       │
+│           ┌─────────────────────────────────────────────────────────┐        │
 │           │               Main Database (openalgo.db)                │       │
 │           │               order_logs / analyzer_logs                 │       │
-│           └─────────────────────────────────────────────────────────┘       │
-└─────────────────────────────────────────────────────────────────────────────┘
+│           └─────────────────────────────────────────────────────────┘        │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Log Types
@@ -43,22 +43,22 @@ OpenAlgo provides comprehensive log viewing and management through the web inter
 Displays all API request/response pairs for order operations.
 
 ```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                           API Logs View                                     │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                API Logs View                                │
 │                                                                             │
-│ Filters: [Date Range] [API Type ▼] [Search...]                             │
+│ Filters: [Date Range] [API Type ▼] [Search...]                              │
 │                                                                             │
-│ ┌─────────────────────────────────────────────────────────────────────────┐│
-│ │ Time          │ API Type    │ Request          │ Response      │ Status ││
-│ ├───────────────┼─────────────┼──────────────────┼───────────────┼────────┤│
-│ │ 09:30:15 IST  │ placeorder  │ SBIN BUY 100 MIS │ orderid: 123  │ ✓      ││
-│ │ 09:31:20 IST  │ placeorder  │ INFY SELL 50 CNC │ orderid: 124  │ ✓      ││
-│ │ 09:35:45 IST  │ cancelorder │ orderid: 124     │ Cancelled     │ ✓      ││
-│ │ 10:15:00 IST  │ placeorder  │ RELIANCE BUY 25  │ Margin error  │ ✗      ││
-│ └─────────────────────────────────────────────────────────────────────────┘│
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ Time          │ API Type    │ Request          │ Response      │ Status │ │
+│ ├───────────────┼─────────────┼──────────────────┼───────────────┼────────┤ │
+│ │ 09:30:15 IST  │ placeorder  │ SBIN BUY 100 MIS │ orderid: 123  │ ✓      │ │
+│ │ 09:31:20 IST  │ placeorder  │ INFY SELL 50 CNC │ orderid: 124  │ ✓      │ │
+│ │ 09:35:45 IST  │ cancelorder │ orderid: 124     │ Cancelled     │ ✓      │ │
+│ │ 10:15:00 IST  │ placeorder  │ RELIANCE BUY 25  │ Margin error  │ ✗      │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
 │                                                                             │
-│ Pagination: [< Prev] Page 1 of 25 [Next >]                                 │
-└────────────────────────────────────────────────────────────────────────────┘
+│ Pagination: [< Prev] Page 1 of 25 [Next >]                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 2. Analyzer Logs
@@ -78,33 +78,33 @@ File-based logs for debugging and monitoring.
 ### order_logs Table
 
 ```
-┌────────────────────────────────────────────────────┐
-│                 order_logs table                    │
-├──────────────┬──────────────┬──────────────────────┤
-│ Column       │ Type         │ Description          │
-├──────────────┼──────────────┼──────────────────────┤
-│ id           │ INTEGER PK   │ Auto-increment       │
-│ api_type     │ TEXT         │ placeorder, cancel   │
-│ request_data │ TEXT         │ JSON request         │
-│ response_data│ TEXT         │ JSON response        │
-│ created_at   │ DATETIME     │ Timestamp (IST)      │
-└──────────────┴──────────────┴──────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                  order_logs table                   │
+├───────────────┬────────────┬────────────────────────┤
+│ Column        │ Type       │ Description            │
+├───────────────┼────────────┼────────────────────────┤
+│ id            │ INTEGER PK │ Auto-increment         │
+│ api_type      │ TEXT       │ placeorder, cancel     │
+│ request_data  │ TEXT       │ JSON request           │
+│ response_data │ TEXT       │ JSON response          │
+│ created_at    │ DATETIME   │ Timestamp (IST)        │
+└───────────────┴────────────┴────────────────────────┘
 ```
 
 ### analyzer_logs Table
 
 ```
-┌────────────────────────────────────────────────────┐
-│               analyzer_logs table                   │
-├──────────────┬──────────────┬──────────────────────┤
-│ Column       │ Type         │ Description          │
-├──────────────┼──────────────┼──────────────────────┤
-│ id           │ INTEGER PK   │ Auto-increment       │
-│ api_type     │ VARCHAR(50)  │ API endpoint type    │
-│ request_data │ TEXT         │ JSON request         │
-│ response_data│ TEXT         │ JSON response        │
-│ created_at   │ DATETIME     │ Timestamp            │
-└──────────────┴──────────────┴──────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                 analyzer_logs table                 │
+├───────────────┬─────────────┬───────────────────────┤
+│ Column        │ Type        │ Description           │
+├───────────────┼─────────────┼───────────────────────┤
+│ id            │ INTEGER PK  │ Auto-increment        │
+│ api_type      │ VARCHAR(50) │ API endpoint type     │
+│ request_data  │ TEXT        │ JSON request          │
+│ response_data │ TEXT        │ JSON response         │
+│ created_at    │ DATETIME    │ Timestamp             │
+└───────────────┴─────────────┴───────────────────────┘
 ```
 
 ## API Endpoints

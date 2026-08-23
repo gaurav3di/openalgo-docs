@@ -50,6 +50,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/intervals \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 
+`IntervalsSchema` declares only `apikey`. Any other field returns HTTP 400.
+
 ## Response Fields
 
 | Field | Type | Description |
@@ -82,6 +84,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/intervals \
 | D | Daily |
 | W | Weekly |
 | M | Monthly |
+
+The full set that [`/history`](./history.md#supported-intervals) will accept at the schema level is larger than this. What a given broker returns here is the subset it can actually serve.
 
 ## Notes
 

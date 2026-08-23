@@ -93,7 +93,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/symbol \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | symbol | Trading symbol in OpenAlgo format | Mandatory | - |
-| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX | Mandatory | - |
+| exchange | Any value in the shared `VALID_EXCHANGES` list | Mandatory | - |
+
+These three fields are the complete `SymbolSchema`. Any other field returns HTTP 400.
 
 ## Response Fields
 

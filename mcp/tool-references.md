@@ -1,8 +1,8 @@
 # Tool References
 
-## OpenAlgo MCP — Tool Reference & Prompt Examples
+## OpenAlgo MCP: Tool Reference & Prompt Examples
 
-Companion reference to the main MCP setup guide. Once the MCP server is wired into Claude Desktop, Cursor, Windsurf, Antigravity, or any other MCP-capable client, you can ask for these operations in plain English — the client decides which tool to call.
+Companion reference to the main MCP setup guide. Once the MCP server is wired into Claude Desktop, Cursor, Windsurf, Antigravity, or any other MCP-capable client, you can ask for these operations in plain English; the client decides which tool to call.
 
 The supported tools are grouped below. The live MCP `tools/list` response is authoritative for the exact registry and schemas exposed by a running version. Each entry includes:
 
@@ -12,7 +12,7 @@ The supported tools are grouped below. The live MCP `tools/list` response is aut
 
 ### Conventions
 
-* **Default strategy tag**: `python mcp` — every MCP-triggered order is tagged so you can filter MCP activity in OpenAlgo logs and the Analyzer. Override by saying _"use strategy 'my scalper'"_ in the prompt.
+* **Default strategy tag**: `python mcp`. Every MCP-triggered order is tagged so you can filter MCP activity in OpenAlgo logs and the Analyzer. Override by saying _"use strategy 'my scalper'"_ in the prompt.
 * **Product type defaults**: `MIS` for equity. Use `NRML` for F\&O carry; `CNC` for delivery.
 * **Exchange codes**: `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX` + `NSE_INDEX` / `BSE_INDEX` for index values.
 * **Lot size**: never hardcoded. The model will call `get_option_symbol` / `get_option_chain` / `get_symbol_info` to read the live `lotsize` from the broker master contract, then compute `quantity = lots × lotsize` for you.
@@ -27,7 +27,7 @@ Place a single market / limit / stop-loss order.
 
 | Param                                          | Required | Notes                                             |
 | ---------------------------------------------- | -------- | ------------------------------------------------- |
-| `symbol`, `quantity`, `action`                 | Yes      | —                                                 |
+| `symbol`, `quantity`, `action`                 | Yes      | none |
 | `exchange`                                     | No       | Default `NSE`                                     |
 | `price_type`                                   | No       | `MARKET`, `LIMIT`, `SL`, `SL-M`. Default `MARKET` |
 | `product`                                      | No       | `CNC`, `NRML`, `MIS`. Default `MIS`               |
@@ -82,15 +82,15 @@ Break a large order into equal chunks (helpful for low-liquidity names or to avo
 
 #### `place_options_order`
 
-Single-leg option order using offset-based strike selection (ATM / ITM1–ITM50 / OTM1–OTM50). The server resolves the strike against the live option chain.
+Single-leg option order using offset-based strike selection (ATM / ITM1-ITM50 / OTM1-OTM50). The server resolves the strike against the live option chain.
 
 | Param                                                                   | Required | Notes                                                            |
 | ----------------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| `underlying`, `exchange`, `offset`, `option_type`, `action`, `quantity` | Yes      | —                                                                |
+| `underlying`, `exchange`, `offset`, `option_type`, `action`, `quantity` | Yes      | none |
 | `expiry_date`                                                           | No       | Optional if underlying includes expiry (e.g., `NIFTY28OCT25FUT`) |
 | `price_type`, `product`, `price`, `trigger_price`                       | No       | Same as `place_order`                                            |
 
-> **Lot size note**: if you don't know it, just ask — the assistant will pull `lotsize` from `get_option_symbol` first, then size the quantity correctly.
+> **Lot size note**: if you don't know it, just ask: the assistant will pull `lotsize` from `get_option_symbol` first, then size the quantity correctly.
 
 **Prompts:**
 
@@ -101,7 +101,7 @@ Single-leg option order using offset-based strike selection (ATM / ITM1–ITM50 
 
 #### `place_options_multi_order`
 
-Multi-leg option strategies (up to 20 legs). BUY legs are fired first for margin efficiency, then SELL legs. Supports per-leg overrides for `expiry_date`, `pricetype`, `price`, `product`, etc. — perfect for calendar / diagonal spreads.
+Multi-leg option strategies (up to 20 legs). BUY legs are fired first for margin efficiency, then SELL legs. Supports per-leg overrides for `expiry_date`, `pricetype`, `price`, `product`, etc., perfect for calendar / diagonal spreads.
 
 **Prompts:**
 
@@ -117,12 +117,12 @@ Change price / quantity / type / trigger on a working order.
 
 | Param                                                                      | Required | Notes                                                                   |
 | -------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `order_id`, `symbol`, `action`, `exchange`, `product`, `quantity`, `price` | Yes      | `price` is mandatory per the REST spec — use current price if unchanged |
+| `order_id`, `symbol`, `action`, `exchange`, `product`, `quantity`, `price` | Yes      | `price` is mandatory per the REST spec, use current price if unchanged |
 | `price_type`, `trigger_price`, `disclosed_quantity`                        | No       | Sensible defaults                                                       |
 
 **Prompts:**
 
-* _"Modify order 250408001002736 — change limit price to 16.5"_
+* _"Modify order 250408001002736, change limit price to 16.5"_
 * _"Increase quantity of my open NIFTY CE buy order to 2 lots"_
 
 ***
@@ -194,7 +194,7 @@ Cash, collateral, realized/unrealized M2M, utilized margin.
 
 #### `get_order_status`
 
-**Prompt:** _"Check status of order 250828000185002 — did it fill?"_
+**Prompt:** _"Check status of order 250828000185002, did it fill?"_
 
 ***
 
@@ -263,7 +263,7 @@ OHLCV history. Two sources:
 
 #### `get_option_chain`
 
-Real-time chain with CE/PE data per strike — LTP, bid/ask, OHLC, volume, OI, `lotsize`, moneyness labels. Use `strike_count=N` to limit to N strikes around ATM.
+Real-time chain with CE/PE data per strike, LTP, bid/ask, OHLC, volume, OI, `lotsize`, moneyness labels. Use `strike_count=N` to limit to N strikes around ATM.
 
 **Prompts:**
 
@@ -309,7 +309,7 @@ Resolve ATM/ITM/OTM offset to the exact option symbol plus `lotsize`, `tick_size
 
 #### `get_option_greeks`
 
-Delta, Gamma, Theta, Vega, Rho + Implied Volatility using Black-76. Underlying is auto-detected — override with `underlying_symbol` / `underlying_exchange`, supply `forward_price` for custom / illiquid underlyings, and `expiry_time` for non-standard MCX contracts.
+Delta, Gamma, Theta, Vega, Rho + Implied Volatility using Black-76. Underlying is auto-detected, override with `underlying_symbol` / `underlying_exchange`, supply `forward_price` for custom / illiquid underlyings, and `expiry_time` for non-standard MCX contracts.
 
 **Prompts:**
 
@@ -320,7 +320,7 @@ Delta, Gamma, Theta, Vega, Rho + Implied Volatility using Black-76. Underlying i
 
 #### `get_synthetic_future`
 
-Put-call parity synthetic future price — useful for illiquid futures or weekly expiries that lack a traded future.
+Put-call parity synthetic future price, useful for illiquid futures or weekly expiries that lack a traded future.
 
 **Prompt:** _"What's the NIFTY synthetic future price for 25NOV25?"_
 
@@ -344,7 +344,7 @@ Supported timeframes for `get_historical_data`.
 
 #### `get_instruments`
 
-Bulk instrument master download for an exchange (or all exchanges when `exchange` is omitted). Output is paginated — default limit 500, with a `truncated` flag.
+Bulk instrument master download for an exchange (or all exchanges when `exchange` is omitted). Output is paginated, default limit 500, with a `truncated` flag.
 
 **Prompts:**
 
@@ -360,7 +360,7 @@ Returns the full standardized OpenAlgo index symbol list (57 NSE + 40 BSE), roll
 **Prompts:**
 
 * _"List all NSE index symbols I can subscribe to"_
-* _"Show me the BSE index list — I want to stream SENSEX50"_
+* _"Show me the BSE index list, I want to stream SENSEX50"_
 
 ***
 
@@ -389,12 +389,12 @@ Am I in simulated (analyzer) or live mode?
 
 #### `analyzer_toggle`
 
-Flip between simulated and live trading. Analyzer mode returns `SB-xxx` pseudo-orderids without touching the broker — perfect for testing strategies end-to-end.
+Flip between simulated and live trading. Analyzer mode returns `SB-xxx` pseudo-orderids without touching the broker, perfect for testing strategies end-to-end.
 
 **Prompts:**
 
 * _"Switch to analyzer mode before I test this strategy"_
-* _"Turn off analyzer — I want to go live"_
+* _"Turn off analyzer, I want to go live"_
 
 ***
 
@@ -435,7 +435,7 @@ This tool is registered and appears in MCP clients, but it is currently **unavai
 
 #### `validate_order_constants`
 
-Quick cheat-sheet of valid exchanges, product types, price types, actions, and intervals — useful when the model wants to double-check a parameter before sending an order.
+Quick cheat-sheet of valid exchanges, product types, price types, actions, and intervals, useful when the model wants to double-check a parameter before sending an order.
 
 **Prompt:** _"Remind me of the valid product types and price types"_
 
@@ -443,7 +443,7 @@ Quick cheat-sheet of valid exchanges, product types, price types, actions, and i
 
 #### `send_telegram_alert`
 
-Push a Telegram notification via the OpenAlgo Telegram bot (must be configured in OpenAlgo settings first). Supports `priority` 1–10.
+Push a Telegram notification via the OpenAlgo Telegram bot (must be configured in OpenAlgo settings first). Supports `priority` 1-10.
 
 **Prompts:**
 
@@ -518,7 +518,7 @@ Real strength shows when the assistant chains tools on its own. Example prompts:
 
 **1. End-to-end iron condor (analyzer mode):**
 
-> _"Set up a NIFTY iron condor for next week's expiry. Find the expiry, pull the option chain, use OTM5 strikes on both sides, calculate the margin required, and — only if margin is under ₹1L — place it in analyzer mode using 1 lot per leg."_
+> _"Set up a NIFTY iron condor for next week's expiry. Find the expiry, pull the option chain, use OTM5 strikes on both sides, calculate the margin required, and, only if margin is under ₹1L, place it in analyzer mode using 1 lot per leg."_
 
 The assistant will chain: `get_expiry_dates` → `get_option_chain` → `get_option_symbol` (for lot size) → `calculate_margin` → `analyzer_status` / `analyzer_toggle` → `place_options_multi_order`.
 
@@ -530,7 +530,7 @@ Chains: `get_timings` → `get_funds` → `get_position_book` → `get_quote`.
 
 **3. Options greeks scan:**
 
-> _"Pull the NIFTY option chain for 25NOV25 within 5 strikes of ATM, then compute greeks for the ATM CE and PE with 6.5% interest rate — tell me which has higher vega."_
+> _"Pull the NIFTY option chain for 25NOV25 within 5 strikes of ATM, then compute greeks for the ATM CE and PE with 6.5% interest rate, tell me which has higher vega."_
 
 Chains: `get_option_chain` → `get_option_symbol` (ATM) × 2 → `get_option_greeks` × 2.
 
@@ -557,15 +557,15 @@ Chains: `cancel_all_orders` → `close_all_positions` → `get_trade_book` → `
 
 ### Safety Tips
 
-* Start in **analyzer mode** (`analyzer_toggle True`) while you get comfortable — orders look real but never leave OpenAlgo.
-* Use phrases like _"only if margin is under X"_ or _"ask me to confirm before placing"_ — the assistant will pause for your OK.
+* Start in **analyzer mode** (`analyzer_toggle True`) while you get comfortable. Orders look real but never leave OpenAlgo.
+* Use phrases like _"only if margin is under X"_ or _"ask me to confirm before placing"_ and the assistant will pause for your OK.
 * Use a unique `strategy` name per use-case (e.g., _"use strategy 'nifty scalper'"_) so MCP-driven activity is cleanly separable from manual orders in logs.
-* For live trading, set up the OpenAlgo Telegram bot and ask the assistant to _"send a Telegram alert after every order fill"_ — you get a realtime feed without staring at the screen.
+* For live trading, set up the OpenAlgo Telegram bot and ask the assistant to _"send a Telegram alert after every order fill"_. You get a realtime feed without staring at the screen.
 
 ***
 
 ### Related
 
-* MCP Server Setup Guide — install, configure Claude / Cursor / Windsurf, broker prerequisites
-* OpenAlgo Symbol Format — how equity / future / option symbols are constructed
-* API Documentation — underlying REST endpoints each MCP tool wraps
+* MCP Server Setup Guide: install, configure Claude / Cursor / Windsurf, broker prerequisites
+* OpenAlgo Symbol Format: how equity / future / option symbols are constructed
+* API Documentation: underlying REST endpoints each MCP tool wraps

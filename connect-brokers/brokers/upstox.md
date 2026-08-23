@@ -35,3 +35,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/upstox/callback'
 
 
 Integrating OpenAlgo with Upstox'sAPI opens up possibilities for automated trading strategies, providing a powerful tool for traders and developers to exploit market opportunities efficiently. It's essential to follow best practices for API integration, including handling rate limits, managing API keys securely, and ensuring robust error handling and logging mechanisms are in place.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/upstox/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`, `GLOBAL_INDEX`

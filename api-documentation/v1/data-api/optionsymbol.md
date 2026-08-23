@@ -111,11 +111,15 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionsymbol \
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
-| underlying | Underlying symbol (NIFTY, BANKNIFTY, SENSEX) | Mandatory | - |
-| exchange | Exchange: NSE_INDEX, BSE_INDEX | Mandatory | - |
-| expiry_date | Expiry date in DDMMMYY format | Mandatory | - |
+| underlying | Underlying symbol (NIFTY, BANKNIFTY, SENSEX) or a futures symbol that already carries the expiry, such as `NIFTY28OCT25FUT` | Mandatory | - |
+| exchange | Underlying's exchange. Any value in the shared `VALID_EXCHANGES` list passes validation; the practical values are NSE_INDEX, NSE, BSE_INDEX, BSE, NFO, BFO | Mandatory | - |
+| expiry_date | Expiry date in DDMMMYY format. Not required when `underlying` already includes the expiry | Optional | Derived from `underlying` |
+| strike_int | Strike interval, positive integer or `null`. Omit it so the actual strikes in the instrument master are used, which is recommended | Optional | Derived from the instrument master |
 | offset | Strike offset: ATM, ITM1-ITM50, OTM1-OTM50 | Mandatory | - |
-| option_type | Option type: CE or PE | Mandatory | - |
+| option_type | Option type: CE or PE (lowercase accepted) | Mandatory | - |
+| strategy | Deprecated. Accepted and ignored; it will be removed in a future version | Optional | - |
+
+These eight fields are the complete `OptionSymbolSchema`. Any other field returns HTTP 400. If you omit both `expiry_date` and an expiry-bearing `underlying`, the request fails in the service rather than at validation.
 
 ## Response Fields
 
@@ -139,11 +143,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionsymbol \
 
 ## Lot Sizes
 
-| Underlying | Lot Size |
-|------------|----------|
-| NIFTY | 65 |
-| BANKNIFTY | 30 |
-| SENSEX | 20 |
+Lot sizes come from the downloaded instrument master, not from a fixed table. The exchanges revise them, so read `lotsize` from the response rather than hard-coding a value. The examples on this page reflect one particular master contract.
 
 ## Notes
 

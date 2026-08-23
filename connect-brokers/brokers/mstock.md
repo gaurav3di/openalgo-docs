@@ -52,4 +52,11 @@ BROKER_API_SECRET = 'your_mstock_api_key_generated'
 REDIRECT_URL = 'http://127.0.0.1:5000/mstock/callback'
 ```
 
-Integrating with **mstock APIs** unlocks the ability to automate strategies, execute trades, and analyze data directly within your own infrastructure. When used with **OpenAlgo**, you can self-host and run your entire algo trading stack — with full control and zero vendor lock-in.
+Integrating with **mstock APIs** unlocks the ability to automate strategies, execute trades, and analyze data directly within your own infrastructure. When used with **OpenAlgo**, you can self-host and run your entire algo trading stack, with full control and zero vendor lock-in.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/mstock/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

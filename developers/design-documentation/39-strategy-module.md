@@ -20,40 +20,40 @@ The Strategy Module provides a webhook-based system for receiving trading signal
                               │
                               ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                      Strategy Webhook Endpoint                               │
-│                      POST /strategy/webhook/<webhook_id>                     │
+│                          Strategy Webhook Endpoint                           │
+│                     POST /strategy/webhook/<webhook_id>                      │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  1. Rate Limiting (100/min for webhooks)                             │   │
-│  │  2. Validate webhook_id → Get strategy                               │   │
-│  │  3. Check strategy enabled & time window                             │   │
-│  │  4. Parse signal (action, symbol, quantity)                          │   │
-│  │  5. Apply symbol mapping overrides                                   │   │
-│  │  6. Queue order for execution                                        │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  1. Rate Limiting (100/min for webhooks)                             │    │
+│  │  2. Validate webhook_id → Get strategy                               │    │
+│  │  3. Check strategy enabled & time window                             │    │
+│  │  4. Parse signal (action, symbol, quantity)                          │    │
+│  │  5. Apply symbol mapping overrides                                   │    │
+│  │  6. Queue order for execution                                        │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 └──────────────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
+                                       │
+                                       ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                         Order Queueing System                                │
+│                            Order Queueing System                             │
 │                                                                              │
-│  ┌──────────────────────┐        ┌──────────────────────┐                   │
-│  │   Regular Queue      │        │   Smart Order Queue  │                   │
-│  │   (placeorder)       │        │   (placesmartorder)  │                   │
-│  │                      │        │                      │                   │
-│  │   Rate: 10/sec       │        │   Rate: 1/sec        │                   │
-│  │   (ORDER_RATE_LIMIT) │        │   (SMART_ORDER_RATE) │                   │
-│  └──────────┬───────────┘        └──────────┬───────────┘                   │
-│             │                               │                               │
-│             └───────────────┬───────────────┘                               │
-│                             │                                               │
-│                             ▼                                               │
-│                    ┌────────────────┐                                       │
+│  ┌──────────────────────┐        ┌──────────────────────┐                    │
+│  │   Regular Queue      │        │   Smart Order Queue  │                    │
+│  │   (placeorder)       │        │   (placesmartorder)  │                    │
+│  │                      │        │                      │                    │
+│  │   Rate: 10/sec       │        │   Rate: 1/sec        │                    │
+│  │   (ORDER_RATE_LIMIT) │        │   (SMART_ORDER_RATE) │                    │
+│  └──────────┬───────────┘        └──────────┬───────────┘                    │
+│             │                               │                                │
+│             └───────────────┬───────────────┘                                │
+│                             │                                                │
+│                             ▼                                                │
+│                    ┌────────────────┐                                        │
 │                    │ Order Processor │                                       │
 │                    │ (Background)    │                                       │
-│                    └────────┬───────┘                                       │
-│                             │                                               │
-└─────────────────────────────┼───────────────────────────────────────────────┘
+│                    └────────┬───────┘                                        │
+│                             │                                                │
+└─────────────────────────────┼────────────────────────────────────────────────┘
                               │
                               ▼
                     ┌────────────────┐

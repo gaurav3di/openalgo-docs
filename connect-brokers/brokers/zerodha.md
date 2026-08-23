@@ -32,3 +32,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/zerodha/callback'
 ```
 
 Utilizing the Kite API from Zerodha presents a wealth of opportunities for developers and traders aiming to create bespoke trading tools and strategies. Leveraging this API effectively calls for a commitment to best practices such as secure storage and management of API keys, mindful adherence to API rate limits, and the implementation of solid error handling and logging mechanisms. When harnessed properly, the Kite API can become a powerful asset in the arsenal of any trader or fintech application developer, enabling them to capitalize on the dynamism of financial markets with precision and efficiency.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/zerodha/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`, `NCO`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`, `MCX_INDEX`, `GLOBAL_INDEX`

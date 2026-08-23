@@ -42,9 +42,17 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
 {
   "status": "success",
   "underlying": "NIFTY",
+  "underlying_symbol": "NIFTY",
+  "underlying_exchange": "NSE_INDEX",
   "underlying_ltp": 26215.55,
+  "underlying_prev_close": 26150.3,
   "expiry_date": "30DEC25",
+  "expiry_ts": 1767087000,
+  "server_ts": 1766115900,
   "atm_strike": 26200.0,
+  "quotes_included": true,
+  "greeks_included": false,
+  "forward_price": null,
   "chain": [
     {
       "strike": 26100.0,
@@ -54,6 +62,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
         "ltp": 490,
         "bid": 490,
         "ask": 491,
+        "bid_qty": 375,
+        "ask_qty": 150,
         "open": 540,
         "high": 571,
         "low": 444.75,
@@ -155,21 +165,33 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | underlying | Underlying symbol (NIFTY, BANKNIFTY, SENSEX) | Mandatory | - |
-| exchange | Underlying exchange accepted by the shared validation constants | Mandatory | - |
+| exchange | Underlying exchange. Any value in the shared `VALID_EXCHANGES` list | Mandatory | - |
 | expiry_date | Expiry date in DDMMMYY format | Mandatory | - |
-| strike_count | Number of strikes above and below ATM | Optional | All strikes |
+| strike_count | Number of strikes above and below ATM, 1 to 100, or `null` | Optional | All strikes |
+| with_greeks | When `true`, attaches `implied_volatility`, `delta`, `gamma`, `theta`, and `vega` to every CE and PE leg, computed from the quotes already fetched | Optional | `false` |
+| interest_rate | Annualized risk-free rate as a percentage, 0 to 100. Used only when `with_greeks` is `true` | Optional | Exchange default |
 
-`strike_count` must be between 1 and 100 when supplied. Broker adapters may use an optimized option-chain call; otherwise the service resolves contracts locally and retrieves quotes through the normalized market-data layer.
+These seven fields are the complete `OptionChainSchema`. Any other field returns HTTP 400.
+
+Broker adapters may use an optimized option-chain call; otherwise the service resolves contracts locally and retrieves quotes through the normalized market-data layer.
 
 ## Response Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
 | status | string | "success" or "error" |
-| underlying | string | Underlying symbol |
+| underlying | string | Underlying base symbol |
+| underlying_symbol | string | The exact symbol whose quote was used as the reference price |
+| underlying_exchange | string | The exchange that reference quote came from |
 | underlying_ltp | number | Current underlying price |
-| expiry_date | string | Expiry date |
+| underlying_prev_close | number | Underlying previous close |
+| expiry_date | string | Expiry date in DDMMMYY format |
+| expiry_ts | number | Exact expiry instant as a Unix epoch value in seconds, or `null` if it could not be derived |
+| server_ts | number | Server time as a Unix epoch value in seconds, so a client can correct for its own clock skew before computing time to expiry |
 | atm_strike | number | At-the-money strike price |
+| quotes_included | boolean | Whether live quotes were attached to the legs |
+| greeks_included | boolean | Whether Greeks were attached, that is `with_greeks` was true and quotes were available |
+| forward_price | number | Forward price used for the Greeks, or `null` when Greeks were not computed |
 | chain | array | Array of strike data |
 
 ### Chain Array Fields
@@ -177,8 +199,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
 | Field | Type | Description |
 |-------|------|-------------|
 | strike | number | Strike price |
-| ce | object | Call option data |
-| pe | object | Put option data |
+| ce | object | Call option data, or `null` when no CE contract exists at that strike |
+| pe | object | Put option data, or `null` when no PE contract exists at that strike |
 
 ### Option Data Fields
 
@@ -189,6 +211,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
 | ltp | number | Last traded price |
 | bid | number | Best bid price |
 | ask | number | Best ask price |
+| bid_qty | number | Quantity at the best bid |
+| ask_qty | number | Quantity at the best ask |
 | open | number | Day's open |
 | high | number | Day's high |
 | low | number | Day's low |
@@ -197,6 +221,13 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
 | oi | number | Open interest |
 | lotsize | number | Lot size |
 | tick_size | number | Tick size |
+| implied_volatility | number | Only when `with_greeks` is true |
+| delta | number | Only when `with_greeks` is true |
+| gamma | number | Only when `with_greeks` is true |
+| theta | number | Only when `with_greeks` is true |
+| vega | number | Only when `with_greeks` is true |
+
+There is no `rho` on chain legs. Use [Option Greeks](./optiongreeks.md) for a single contract when you need it.
 
 ## Notes
 
@@ -205,6 +236,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
 - For CE options: strikes below ATM are ITM, above are OTM
 - For PE options: strikes above ATM are ITM, below are OTM
 - Use this for **options analysis** and **strategy selection**
+- Greeks are skipped, and `greeks_included` comes back `false`, when the expiry instant cannot be derived or the chain has already expired
 
 ## Use Cases
 

@@ -27,7 +27,7 @@ Condition nodes have **two output handles**. An edge leaving one carries a
 { "id": "e3", "source": "cond", "sourceHandle": "false", "target": "skip" }
 ```
 
-An edge from a condition **without** a `sourceHandle` is a *pass-through* —
+An edge from a condition **without** a `sourceHandle` is a *pass-through*:
 it is followed no matter which way the condition went. This is how you attach
 logging or alerting that should see every evaluation.
 
@@ -72,12 +72,12 @@ Built-ins are always available:
 | `{{week_of_year}}`, `{{day_of_year}}` | `31`, `211` | ISO week, day of year |
 
 For "has a new day, week, month or quarter started", use the
-[`calendar` node](node-reference.md) rather than comparing these — it accounts
+[`calendar` node](node-reference.md) rather than comparing these, it accounts
 for weekends and exchange holidays, which a `{{day}} == 1` test does not.
 
 **If a path does not resolve, the literal `{{...}}` text is passed through.**
-The workflow does not stop. This is deliberate — it makes typos visible in
-the execution log rather than crashing a live strategy — but it means you
+The workflow does not stop. This is deliberate, it makes typos visible in
+the execution log rather than crashing a live strategy, but it means you
 should read your logs after the first run. A `varCondition` given an
 unresolved operand is the one exception: it refuses to evaluate rather than
 treating the text as zero.
@@ -86,7 +86,7 @@ treating the text as zero.
 
 A run starts at the single trigger node and walks the graph **depth-first**,
 following each outgoing edge in order. There is no parallelism and no
-scheduler — one node finishes completely before the next begins.
+scheduler, one node finishes completely before the next begins.
 
 Two consequences matter:
 
@@ -122,7 +122,7 @@ and they behave differently.
 ```
 
 Both conditions always reach the gate, so the gate sees `[True, False]` and
-can evaluate to false — meaning **its `false` branch works**.
+can evaluate to false, meaning **its `false` branch works**.
 
 **True-handle wiring.** Edges carry `sourceHandle: "true"`:
 
@@ -149,7 +149,7 @@ A workflow must contain exactly one trigger, and it must be one of:
 | `priceAlert` | A polled LTP condition is met (one-shot by default) |
 | `orderUpdateTrigger` | A matching order changes status (fill, reject, cancel) |
 
-A second trigger does not raise an error — it is **silently ignored**. The
+A second trigger does not raise an error, it is **silently ignored**. The
 executor walks the graph from the first trigger it finds, so the second
 trigger and everything downstream of it simply never runs. Verified: a
 workflow with two `start` nodes feeding two separate log branches produced
@@ -163,12 +163,12 @@ and the order book are not cached, so the split layout is what trips a rate
 limit first.
 
 Triggers are entry points, so **their configuration cannot reference
-`{{variables}}`** — there is no upstream node to resolve against. The
+`{{variables}}`**, there is no upstream node to resolve against. The
 `orderUpdateTrigger` rejects an interpolated Order ID with a clear 400 rather
 than storing a placeholder that could never match.
 
 `marketHoursOnly: true` on a `start` node pauses the schedule outside
-09:15–15:30 IST on weekdays.
+09:15-15:30 IST on weekdays.
 
 ## Execution limits
 

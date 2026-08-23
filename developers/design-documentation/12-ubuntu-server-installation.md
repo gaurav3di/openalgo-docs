@@ -12,19 +12,19 @@ This guide covers deploying OpenAlgo on an Ubuntu server (20.04/22.04 LTS) with 
 └──────────────────────────────────────────────────────────────────────────────┘
 
                          Internet
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Nginx (Reverse Proxy)                               │
-│                          Port 80/443                                         │
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            Nginx (Reverse Proxy)                             │
+│                                 Port 80/443                                  │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  - SSL termination (Let's Encrypt)                                   │   │
-│  │  - HTTP → HTTPS redirect                                             │   │
-│  │  - WebSocket upgrade support                                         │   │
-│  │  - Static file serving                                               │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  - SSL termination (Let's Encrypt)                                   │    │
+│  │  - HTTP → HTTPS redirect                                             │    │
+│  │  - WebSocket upgrade support                                         │    │
+│  │  - Static file serving                                               │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
+└──────────────────────────────────────────────────────────────────────────────┘
                     │                       │
                     ▼                       ▼
 ┌─────────────────────────────────────────────────────┐
@@ -37,17 +37,17 @@ This guide covers deploying OpenAlgo on an Ubuntu server (20.04/22.04 LTS) with 
 └─────────────────────────────────────────────────────┘
                            │
                            ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          File System                                         │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                 File System                                  │
 │                                                                              │
-│  /opt/openalgo/                                                             │
-│  ├── .venv/              # Virtual environment                              │
-│  ├── db/                 # SQLite databases                                 │
-│  ├── log/                # Application logs                                 │
-│  ├── strategies/         # User strategies                                  │
-│  ├── .env                # Configuration                                    │
-│  └── app.py              # Main application                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
+│  /opt/openalgo/                                                              │
+│  ├── .venv/              # Virtual environment                               │
+│  ├── db/                 # SQLite databases                                  │
+│  ├── log/                # Application logs                                  │
+│  ├── strategies/         # User strategies                                   │
+│  ├── .env                # Configuration                                     │
+│  └── app.py              # Main application                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Prerequisites

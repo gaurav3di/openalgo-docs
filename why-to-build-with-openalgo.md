@@ -25,7 +25,7 @@ It's not just an API wrapper. It's a **full-stack, open-source trading platform*
 
 | | |
 | --- | --- |
-| **35 broker plugins** | 34 securities integrations plus Delta Exchange for crypto derivatives |
+| **36 broker plugins** | 34 securities brokers, Delta Exchange for crypto derivatives, and a Dhan sandbox plugin |
 | **6 official SDKs** | Python, Node.js, Java, .NET, Go, Rust |
 | **53 node types** | In the Flow visual strategy builder |
 | **90+ indicators** | In the built-in charting terminal |
@@ -116,7 +116,7 @@ See [Historify](new-features/historify.md) and [Portfolio Backtester and Analyze
 
 #### Multi-Broker, Multi-Platform
 
-OpenAlgo ships **35 broker plugins**: 34 securities integrations and Delta Exchange for crypto derivatives. The securities plugins share normalized API and WebSocket interfaces, reducing broker-specific strategy code.
+OpenAlgo ships **36 broker plugins**: 34 securities brokers, Delta Exchange for crypto derivatives, and a Dhan sandbox plugin for paper trading. The securities plugins share normalized API and WebSocket interfaces, reducing broker-specific strategy code.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -272,7 +272,7 @@ With direct broker APIs, you'd have to build:
 | **Trade Dashboard** | React UI, real-time updates | Full React frontend included |
 | **Log Storage** | Database, query interface | SQLite with traffic logs |
 | **Latency Tracking** | Timing, metrics, alerts | Latency monitor built-in |
-| **Multi-Broker Support** | N broker integrations | 35 plugin directories |
+| **Multi-Broker Support** | N broker integrations | 36 plugin directories |
 | **Security Layer** | Auth, rate limiting, CSRF | Enterprise security included |
 | **Notifications** | Telegram, WhatsApp, alerts | Both integrated |
 

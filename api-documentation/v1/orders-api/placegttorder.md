@@ -150,7 +150,7 @@ LTP is currently below 1450 → trigger sits **above** LTP → use `triggerprice
 | apikey | OpenAlgo API key (string) | Mandatory | - |
 | strategy | Strategy identifier (string, used as broker correlation id where supported) | Mandatory | - |
 | trigger_type | `SINGLE` or `OCO` (string) | Mandatory | - |
-| exchange | NSE, BSE, NFO, BFO, CDS, BCD, MCX (string) | Mandatory | - |
+| exchange | Any value in the shared `VALID_EXCHANGES` list (string) | Mandatory | - |
 | symbol | Trading symbol in OpenAlgo format (string) | Mandatory | - |
 | action | `BUY` or `SELL` (string). For OCO, applies to both legs. | Mandatory | - |
 | product | `CNC` (equity delivery) or `NRML` (F&O overnight). MIS is **not** supported — GTTs can sit for days. (string) | Mandatory | - |
@@ -161,6 +161,9 @@ LTP is currently below 1450 → trigger sits **above** LTP → use `triggerprice
 | triggerprice_tg | Trigger price above LTP. **SINGLE**: use this OR `triggerprice_sl`. **OCO**: required (the target-leg trigger). (float) | Conditional | `0` |
 | stoploss | **OCO only** — limit price for the stoploss leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
 | target | **OCO only** — limit price for the target leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
+| expires_at | Requested expiry for the trigger, passed through to brokers that support one. Brokers without an explicit expiry ignore it. (string or `null`) | Optional | `null` |
+
+Unlike most OpenAlgo request schemas, `PlaceGTTOrderSchema` sets `unknown = EXCLUDE`, so an unrecognized field is dropped rather than rejected with HTTP 400. Do not rely on that to smuggle broker-specific parameters through: dropped fields never reach the broker. `last_price` in particular is fetched server-side and is discarded if you send it.
 
 ### Trigger Field Rules
 

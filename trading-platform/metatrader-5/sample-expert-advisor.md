@@ -1,6 +1,10 @@
 # Sample Expert Advisor
 
-Here is a sample EMA Crossover Based Simple Expert Advisor which places orders to OpenAlgo Connected Brokers
+Here is a sample EMA Crossover Based Simple Expert Advisor which places orders to OpenAlgo Connected Brokers.
+
+Before attaching it to a chart, tick **Allow DLL imports** in the EA's Common tab. The OpenAlgo library sends its requests through `wininet.dll`, so without that permission no order leaves MetaTrader.
+
+`TradingSymbol` is the OpenAlgo symbol of the instrument you want to trade, and it is independent of the MetaTrader chart the EA runs on. The EA reads its EMAs from the chart symbol (`_Symbol`) but routes every order to `TradingSymbol` through OpenAlgo. The input is deliberately not called `Symbol`, because that would shadow MQL5's built-in `Symbol()` function.
 
 ```cpp
 //+------------------------------------------------------------------+
@@ -18,7 +22,7 @@ Here is a sample EMA Crossover Based Simple Expert Advisor which places orders t
 input string ApiUrl = "http://127.0.0.1:5000";
 input string ApiKey = "your_app_apikey";
 input string Strategy = "Metatrader 5 Strategy";
-input string Symbol = "SAIL";
+input string TradingSymbol = "SAIL";
 input int Quantity = 1;
 
 // Enums as input parameters
@@ -87,14 +91,14 @@ void OnTick()
         if (isPositiveCrossover)
         {
             // Correct action for a positive crossover
-            PlaceOrder("BUY", Quantity, ApiUrl, ApiKey, Strategy, Symbol, Exchange, Product, PriceType);
+            PlaceOrder("BUY", Quantity, ApiUrl, ApiKey, Strategy, TradingSymbol, Exchange, Product, PriceType);
             Print("Placing BUY order on positive EMA crossover");
             lastOrderTime = currentCandleTime; // Update the last order time
         }
         else if (isNegativeCrossover)
         {
             // Correct action for a negative crossover
-            PlaceOrder("SELL", Quantity, ApiUrl, ApiKey, Strategy, Symbol, Exchange, Product, PriceType);
+            PlaceOrder("SELL", Quantity, ApiUrl, ApiKey, Strategy, TradingSymbol, Exchange, Product, PriceType);
             Print("Placing SELL order on negative EMA crossover");
             lastOrderTime = currentCandleTime; // Update the last order time
         }

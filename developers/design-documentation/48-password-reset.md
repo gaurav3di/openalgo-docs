@@ -11,84 +11,84 @@ OpenAlgo provides a secure multi-step password reset flow that supports both ema
 │                        Password Reset Architecture                           │
 └──────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Step 1: Initiate Reset                               │
-│                         /forgot-password                                     │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            Step 1: Initiate Reset                            │
+│                               /forgot-password                               │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  User enters email address                                           │   │
-│  │                                                                      │   │
-│  │  Email: [user@example.com                    ]                       │   │
-│  │                                                                      │   │
-│  │  [Send Reset Link]                                                   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  User enters email address                                           │    │
+│  │                                                                      │    │
+│  │  Email: [user@example.com                    ]                       │    │
+│  │                                                                      │    │
+│  │  [Send Reset Link]                                                   │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                    │                                         │
 │                                    ▼                                         │
-│                          Validate email exists                               │
+│                            Validate email exists                             │
 │                                    │                                         │
-│              ┌─────────────────────┴─────────────────────┐                  │
+│              ┌─────────────────────┴─────────────────────┐                   │
 │              │                                           │                   │
-│         Email Found                                 Not Found                │
+│            Email Found                                 Not Found             │
 │              │                                           │                   │
 │              ▼                                           ▼                   │
 │     Generate reset token                        Show generic message         │
 │     Store in database                           (prevent enumeration)        │
 │     Send email with link                                                     │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     │ User clicks email link
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Step 2: Verify Identity                              │
-│                         /reset-password?token=xxx                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       │ User clicks email link
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           Step 2: Verify Identity                            │
+│                          /reset-password?token=xxx                           │
 │                                                                              │
-│                          Validate reset token                                │
+│                             Validate reset token                             │
 │                                    │                                         │
-│              ┌─────────────────────┴─────────────────────┐                  │
+│              ┌─────────────────────┴─────────────────────┐                   │
 │              │                                           │                   │
 │       Token Valid                                  Token Invalid/Expired     │
 │              │                                           │                   │
 │              ▼                                           ▼                   │
 │     Check if TOTP enabled                         Show error message         │
 │              │                                                               │
-│    ┌─────────┴─────────┐                                                    │
+│    ┌─────────┴─────────┐                                                     │
 │    │                   │                                                     │
-│ TOTP Enabled      No TOTP                                                   │
+│ TOTP Enabled      No TOTP                                                    │
 │    │                   │                                                     │
 │    ▼                   ▼                                                     │
-│ Show TOTP Form    Show Password Form                                        │
+│ Show TOTP Form    Show Password Form                                         │
 │                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     │ After verification
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Step 3: Set New Password                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       │ After verification
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           Step 3: Set New Password                           │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  New Password:     [••••••••••••••••                 ]               │   │
-│  │  Confirm Password: [••••••••••••••••                 ]               │   │
-│  │                                                                      │   │
-│  │  Requirements:                                                       │   │
-│  │  ✓ At least 8 characters                                            │   │
-│  │  ✓ Contains uppercase letter                                        │   │
-│  │  ✓ Contains lowercase letter                                        │   │
-│  │  ✓ Contains number                                                  │   │
-│  │  ✓ Contains special character                                       │   │
-│  │                                                                      │   │
-│  │  [Reset Password]                                                    │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  New Password:     [••••••••••••••••                 ]               │    │
+│  │  Confirm Password: [••••••••••••••••                 ]               │    │
+│  │                                                                      │    │
+│  │  Requirements:                                                       │    │
+│  │  ✓ At least 8 characters                                            │     │
+│  │  ✓ Contains uppercase letter                                        │     │
+│  │  ✓ Contains lowercase letter                                        │     │
+│  │  ✓ Contains number                                                  │     │
+│  │  ✓ Contains special character                                       │     │
+│  │                                                                      │    │
+│  │  [Reset Password]                                                    │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                    │                                         │
 │                                    ▼                                         │
-│                    Hash password with Argon2 + pepper                        │
-│                    Update user record                                        │
-│                    Invalidate reset token                                    │
-│                    Invalidate all sessions                                   │
-│                    Redirect to login                                         │
+│                      Hash password with Argon2 + pepper                      │
+│                              Update user record                              │
+│                            Invalidate reset token                            │
+│                           Invalidate all sessions                            │
+│                              Redirect to login                               │
 │                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Database Schema
@@ -96,20 +96,20 @@ OpenAlgo provides a secure multi-step password reset flow that supports both ema
 ### password_reset_tokens Table
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                password_reset_tokens table                      │
-├──────────────────┬──────────────┬──────────────────────────────┤
-│ Column           │ Type         │ Description                  │
-├──────────────────┼──────────────┼──────────────────────────────┤
-│ id               │ INTEGER PK   │ Auto-increment               │
-│ user_id          │ VARCHAR(255) │ User ID reference            │
-│ token_hash       │ VARCHAR(255) │ SHA-256 hash of token        │
-│ created_at       │ DATETIME     │ Token creation time          │
-│ expires_at       │ DATETIME     │ Expiration (1 hour)          │
-│ used_at          │ DATETIME     │ When token was used          │
-│ ip_address       │ VARCHAR(50)  │ Requester IP                 │
-│ user_agent       │ TEXT         │ Browser user agent           │
-└──────────────────┴──────────────┴──────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                   password_reset_tokens table                   │
+├────────────┬──────────────┬─────────────────────────────────────┤
+│ Column     │ Type         │ Description                         │
+├────────────┼──────────────┼─────────────────────────────────────┤
+│ id         │ INTEGER PK   │ Auto-increment                      │
+│ user_id    │ VARCHAR(255) │ User ID reference                   │
+│ token_hash │ VARCHAR(255) │ SHA-256 hash of token               │
+│ created_at │ DATETIME     │ Token creation time                 │
+│ expires_at │ DATETIME     │ Expiration (1 hour)                 │
+│ used_at    │ DATETIME     │ When token was used                 │
+│ ip_address │ VARCHAR(50)  │ Requester IP                        │
+│ user_agent │ TEXT         │ Browser user agent                  │
+└────────────┴──────────────┴─────────────────────────────────────┘
 ```
 
 ## Token Generation
@@ -401,21 +401,21 @@ def complete_password_reset(token, new_password, totp_code=None):
 ### Rate Limiting
 
 ```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                         Rate Limiting Rules                                 │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Rate Limiting Rules                             │
 │                                                                             │
 │  Per Email:                                                                 │
-│  • Max 3 reset requests per hour                                           │
-│  • Max 10 reset requests per day                                           │
+│  • Max 3 reset requests per hour                                            │
+│  • Max 10 reset requests per day                                            │
 │                                                                             │
 │  Per IP Address:                                                            │
-│  • Max 10 reset requests per hour                                          │
-│  • Max 50 reset requests per day                                           │
+│  • Max 10 reset requests per hour                                           │
+│  • Max 50 reset requests per day                                            │
 │                                                                             │
 │  Global:                                                                    │
-│  • Max 100 reset requests per minute                                       │
+│  • Max 100 reset requests per minute                                        │
 │                                                                             │
-└────────────────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Audit Logging

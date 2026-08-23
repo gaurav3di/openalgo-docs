@@ -49,6 +49,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelgttorder \
 | strategy | Strategy identifier (used in event logs) | Mandatory | - |
 | trigger_id | Active trigger ID returned by `PlaceGTTOrder` | Mandatory | - |
 
+`CancelGTTOrderSchema` declares exactly these three fields and all three are required. Unlike the GTT place and modify schemas, it does not drop unknown fields: any additional key returns HTTP 400.
+
 ## Response Fields
 
 | Field | Type | Description |

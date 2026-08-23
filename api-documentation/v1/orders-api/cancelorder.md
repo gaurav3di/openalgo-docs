@@ -47,7 +47,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelorder \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | orderid | Order ID to cancel | Mandatory | - |
-| strategy | Strategy identifier | Optional | - |
+| strategy | Strategy identifier | Mandatory | - |
+
+`CancelOrderSchema` declares exactly these three fields and all three are required. Omitting `strategy` returns HTTP 400, and any additional field returns HTTP 400 as well.
 
 ## Response Fields
 

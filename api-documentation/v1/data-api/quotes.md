@@ -45,7 +45,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/quotes \
     "ask": 1188.0,
     "bid": 1187.85,
     "prev_close": 1165.7,
-    "volume": 14414545
+    "volume": 14414545,
+    "oi": 0
   }
 }
 ```
@@ -56,7 +57,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/quotes \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | symbol | Trading symbol | Mandatory | - |
-| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX | Mandatory | - |
+| exchange | Any value in the shared `VALID_EXCHANGES` list | Mandatory | - |
+
+These three fields are the complete `QuotesSchema`. Any other field returns HTTP 400.
 
 ## Response Fields
 
@@ -77,6 +80,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/quotes \
 | bid | number | Best bid price |
 | prev_close | number | Previous day's close price |
 | volume | number | Total traded volume |
+| oi | number | Open interest. `0` for cash instruments and for brokers that do not report it |
+
+The `data` object is the broker adapter's normalized quote. The fields above are the common contract; individual brokers may add fields, and a broker that cannot supply a value returns `0` rather than omitting the key.
 
 ## Notes
 

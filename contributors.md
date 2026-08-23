@@ -227,7 +227,7 @@ openalgo/
 │   ├── auth.py               # Authentication routes
 │   ├── react_app.py          # Serves React SPA from frontend/dist/
 │   └── ...
-├── broker/                   # 35 broker plugin directories
+├── broker/                   # 36 broker plugin directories
 │   ├── zerodha/              # Reference implementation
 │   ├── dhan/                 # Modern API design
 │   ├── angel/                # AngelOne integration
@@ -274,7 +274,7 @@ git remote -v
 
 > **Important: Disable GitHub Actions on Your Fork**
 >
-> After forking, go to your fork's **Settings → Actions → General** (`https://github.com/YOUR_USERNAME/openalgo/settings/actions`) and select **"Disable actions"** under Actions permissions. This prevents CI workflows (frontend builds, Docker pushes) from running on your fork unnecessarily — those workflows are only meant to run on the upstream repository.
+> After forking, go to your fork's **Settings → Actions → General** (`https://github.com/YOUR_USERNAME/openalgo/settings/actions`) and select **"Disable actions"** under Actions permissions. This prevents CI workflows (frontend builds, Docker pushes) from running on your fork unnecessarily; those workflows are only meant to run on the upstream repository.
 
 #### 2. Frontend Build Assets (Auto-Built by CI)
 
@@ -290,8 +290,8 @@ The `/frontend/dist` directory is **gitignored** and not tracked in the reposito
 **For Contributors:**
 
 * Build locally for development: `cd frontend && npm install && npm run build`
-* Do NOT commit `frontend/dist/` — it is gitignored
-* Focus on source code changes — CI handles production builds
+* Do NOT commit `frontend/dist/`, it is gitignored
+* Focus on source code changes, CI handles production builds
 
 #### 3. Create a Feature Branch
 
@@ -455,9 +455,9 @@ Additionally, many contributions today are developed with AI assistance, which c
 
 * Break large features into small, self-contained pull requests
 * Each PR should be independently reviewable and testable
-* Submit them sequentially — wait for one to be reviewed before sending the next
+* Submit them sequentially, wait for one to be reviewed before sending the next
 * Large monolithic PRs or full-project integrations will not be accepted in their current form
-* **Exception — New broker integrations** may be submitted as a single PR since they are self-contained within their own `broker/` directory and don't modify core platform code
+* **Exception: new broker integrations** may be submitted as a single PR since they are self-contained within their own `broker/` directory and don't modify core platform code
 
 **If you have a large integration or project built on OpenAlgo:**
 
@@ -838,7 +838,7 @@ Use Tailwind utility classes directly. Always use responsive and theme-aware pat
   <div>Column 3</div>
 </div>
 
-{/* Use CSS variables for theme colors — adapts to light/dark mode */}
+{/* Use CSS variables for theme colors, adapts to light/dark mode */}
 <div className="bg-background text-foreground">
   Automatically adapts to theme
 </div>
@@ -978,7 +978,7 @@ npm run check
         symbol_cache[symbol] = info
         return info
     ```
-3.  **Minimize API calls — use batch endpoints**
+3.  **Minimize API calls: use batch endpoints**
 
     ```python
     # Bad - Multiple API calls
@@ -1080,10 +1080,10 @@ uv run app.py
 
 #### Before Asking for Help
 
-1. **Search existing issues** — your question might already be answered
-2. **Check documentation** — review docs at docs.openalgo.in
-3. **Review error logs** — include error messages when asking for help
-4. **Provide context** — share your environment (OS, Python version, Node version, broker)
+1. **Search existing issues**: your question might already be answered
+2. **Check documentation**: review docs at docs.openalgo.in
+3. **Review error logs**: include error messages when asking for help
+4. **Provide context**: share your environment (OS, Python version, Node version, broker)
 
 #### Asking Good Questions
 
@@ -1172,4 +1172,4 @@ Thank you for contributing to OpenAlgo! Your efforts help democratize algorithmi
 
 ***
 
-_Built by traders, for traders — making algo trading accessible to everyone._
+_Built by traders, for traders. Making algo trading accessible to everyone._

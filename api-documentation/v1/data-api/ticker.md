@@ -29,6 +29,10 @@ curl --get 'http://127.0.0.1:5000/api/v1/ticker/NSE:RELIANCE' \
 | `to` | Yes | End date in `YYYY-MM-DD` |
 | `format` | No | `json` or `txt`; defaults to `json` |
 
+`interval` accepts the same values as [`/history`](./history.md#supported-intervals) because the handler validates the assembled request with `HistorySchema`. `from` and `to` are mapped onto that schema's `start_date` and `end_date`, so both must be `YYYY-MM-DD` strings.
+
+This is a GET resource reading `request.args`, so unrecognized query parameters are ignored rather than rejected. `adjusted` and `sort` appear in the route's Swagger metadata but nothing reads them; passing either has no effect.
+
 The path must contain one colon. If it does not, the implementation falls back to `NSE:RELIANCE`; callers should not rely on that fallback.
 
 ## JSON Response

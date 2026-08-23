@@ -30,6 +30,8 @@ OpenAlgo implements differentiated rate limiting for various types of operations
 - `/api/v1/optionsorder` and `/api/v1/optionsmultiorder` - Options execution
 - `/api/v1/placegttorder`, `/api/v1/modifygttorder`, and `/api/v1/cancelgttorder` - GTT writes
 
+`ORDER_RATE_LIMIT` does **not** cover every order-related route. `/api/v1/basketorder`, `/api/v1/splitorder`, `/api/v1/cancelallorder`, `/api/v1/closeposition`, and `/api/v1/gttorderbook` are decorated with `API_RATE_LIMIT` instead.
+
 ### Smart Order API
 
 | Scope | Limit | Description |
@@ -47,11 +49,30 @@ OpenAlgo implements differentiated rate limiting for various types of operations
 |-------|-------|-------------|
 | Per Second | 50 per second | All other API endpoints including market data |
 
-**Applies to all other API endpoints including:**
-- Market data APIs (quotes, depth, history)
-- Account APIs (funds, positions, holdings)
-- Information APIs (orderbook, tradebook)
-- Search and symbol APIs
+**Applies to most other API endpoints including:**
+- Market data APIs (quotes, multiquotes, depth, history, ticker, intervals)
+- Account APIs (funds, margin, positions, holdings)
+- Information APIs (orderbook, tradebook, orderstatus, openposition)
+- Search, symbol, expiry, instruments, option chain, and synthetic future
+- Analyzer, ping, chart preferences, sandbox P&L, market holidays and timings
+
+### Endpoints With Their Own Limiter
+
+Several resources do not use `API_RATE_LIMIT`. Each reads its own environment variable and falls back to the value shown when that variable is unset. These variables are not present in `.sample.env`, so the fallback is the effective default on a stock install.
+
+| Environment variable | Fallback | Applies to |
+|---|---|---|
+| `GREEKS_RATE_LIMIT` | 30 per minute | `/api/v1/optiongreeks` |
+| `PORTFOLIO_API_RATE_LIMIT` | 10 per minute | `/api/v1/portfolio/backtest`, `/api/v1/portfolio/holdings` |
+| `PORTFOLIO_TEARSHEET_RATE_LIMIT` | 5 per minute | `/api/v1/portfolio/tearsheet` |
+| `SIP_API_RATE_LIMIT` | 10 per minute | `/api/v1/sip/frequencies`, `/api/v1/sip/backtest` |
+| `TELEGRAM_RATE_LIMIT` | 30 per minute | Telegram resources except broadcast |
+| (hard-coded) | 5 per minute | `/api/v1/telegram/broadcast` |
+| `WHATSAPP_RATE_LIMIT` | 30 per minute | `/api/v1/whatsapp/notify` |
+
+`/api/v1/multioptiongreeks` uses `API_RATE_LIMIT`, not `GREEKS_RATE_LIMIT`. `/api/v1/portfolio/benchmarks` also uses `API_RATE_LIMIT`.
+
+Note that the in-code fallback for `API_RATE_LIMIT` itself is `10 per second`, lower than the `50 per second` that `.sample.env` ships. If `API_RATE_LIMIT` is absent from your `.env`, the effective limit is 10 per second, not 50.
 
 ### Webhook APIs
 
@@ -87,6 +108,7 @@ You can adjust the rate limits by editing the following variables in your `.env`
 # Login rate limits
 LOGIN_RATE_LIMIT_MIN="5 per minute"
 LOGIN_RATE_LIMIT_HOUR="25 per hour"
+RESET_RATE_LIMIT="15 per hour"
 
 # API rate limits
 API_RATE_LIMIT="50 per second"
@@ -95,6 +117,8 @@ SMART_ORDER_RATE_LIMIT="10 per second"
 WEBHOOK_RATE_LIMIT="100 per minute"
 STRATEGY_RATE_LIMIT="200 per minute"
 ```
+
+`RESET_RATE_LIMIT` (default `15 per hour`) applies to the password-reset flow, not to the v1 API.
 
 These limits follow [Flask-Limiter syntax](https://flask-limiter.readthedocs.io/en/stable/#rate-limit-string-format) and support formats like:
 - `10 per second`

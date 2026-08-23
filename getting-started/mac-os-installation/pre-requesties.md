@@ -1,8 +1,10 @@
 # Pre-Requesties
 
-* **Mac OS 11** or Higher
+* **macOS 12 (Monterey)** or higher
 * Install **HomeBrew**
 * **Visual Studio Code (VS Code)** is installed.
-* **Python** version 3.10 or higher version installed
-* **Git** for cloning the repository (Download from terminal using the command brew install github).
+* **Python 3.12 or newer** installed (OpenAlgo requires `>=3.12`). Install with `brew install python@3.12` or from python.org.
+* **Git** for cloning the repository (install from terminal with `brew install git`).
+* **uv**, the package manager OpenAlgo uses to create the virtual environment and install dependencies. Install it once with `brew install uv` or `pip3 install uv`.
 
+Node.js is **not** required to run OpenAlgo. The repository ships the pre-built React frontend in `frontend/dist`. You only need Node.js (20.20+, 22.22+ or 24.13+) if you intend to rebuild the frontend yourself.

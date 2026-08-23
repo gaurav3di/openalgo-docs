@@ -129,6 +129,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/basketorder \
 | product | Product type: MIS, CNC, NRML | Optional | MIS |
 | price | Order price (for LIMIT orders) | Optional | 0 |
 | trigger_price | Trigger price (for SL orders) | Optional | 0 |
+| disclosed_quantity | Disclosed quantity for iceberg orders | Optional | 0 |
+
+The top-level body accepts only `apikey`, `strategy`, and `orders`; each item in `orders` accepts only the eight fields above. Any other key, at either level, returns HTTP 400. In particular there is no per-order `strategy` field.
 
 ## Response Fields
 
@@ -153,6 +156,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/basketorder \
 - If some orders fail, others still execute (partial success possible)
 - Each order in the basket is independent
 - Fractional quantities are accepted only for `CRYPTO`; non-crypto quantities must be whole numbers.
+- **Rate limit**: `API_RATE_LIMIT`, not `ORDER_RATE_LIMIT`
 - Use for:
   - **Portfolio rebalancing**: Buy/sell multiple stocks together
   - **Pair trading**: Simultaneous long/short positions

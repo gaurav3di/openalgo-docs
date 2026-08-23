@@ -67,3 +67,10 @@ REDIRECT_URL = 'https://openalgo.local/hdfcsky/callback'
 ```
 
 Integrating OpenAlgo with HDFC Sky's Open API opens up possibilities for automated trading strategies, providing a powerful tool for traders and developers to act on market opportunities efficiently. It's essential to follow best practices for API integration, including handling rate limits, managing credentials securely, and ensuring robust error handling and logging mechanisms are in place.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/hdfcsky/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

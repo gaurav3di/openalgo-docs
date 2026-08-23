@@ -7,42 +7,42 @@ The Admin section provides system configuration and management capabilities incl
 ## Architecture Diagram
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────────────────────────────┐
 │                          Admin Section Architecture                           │
-└──────────────────────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Admin Dashboard                                 │
-│                              /admin                                          │
-│                                                                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
-│  │  Freeze Qty     │  │   Holidays      │  │  Market Timings │             │
-│  │  Management     │  │   Calendar      │  │  Configuration  │             │
-│  │  /admin/freeze  │  │  /admin/holidays│  │  /admin/timings │             │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘             │
-│           │                    │                    │                       │
-│           └────────────────────┼────────────────────┘                       │
-│                                │                                             │
-│                                ▼                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                     Admin API Endpoints                              │   │
-│  │                     /admin/api/*                                     │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                                Admin Dashboard                                │
+│                                    /admin                                     │
+│                                                                               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
+│  │  Freeze Qty     │  │   Holidays      │  │  Market Timings │                │
+│  │  Management     │  │   Calendar      │  │  Configuration  │                │
+│  │  /admin/freeze  │  │  /admin/holidays│  │  /admin/timings │                │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘                │
+│           │                    │                    │                         │
+│           └────────────────────┼────────────────────┘                         │
+│                                │                                              │
+│                                ▼                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │                     Admin API Endpoints                              │     │
+│  │                     /admin/api/*                                     │     │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Monitoring Dashboards                               │
-│                                                                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
-│  │    Security     │  │    Traffic      │  │    Latency      │             │
-│  │   Dashboard     │  │   Dashboard     │  │   Dashboard     │             │
-│  │ /logs/security  │  │  /logs/traffic  │  │  /logs/latency  │             │
-│  │                 │  │                 │  │                 │             │
-│  │  - IP bans      │  │  - HTTP logs    │  │  - Order RTT    │             │
-│  │  - 404 tracking │  │  - Request/sec  │  │  - Percentiles  │             │
-│  │  - API abuse    │  │  - Error rates  │  │  - SLA metrics  │             │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                             Monitoring Dashboards                             │
+│                                                                               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
+│  │    Security     │  │    Traffic      │  │    Latency      │                │
+│  │   Dashboard     │  │   Dashboard     │  │   Dashboard     │                │
+│  │ /logs/security  │  │  /logs/traffic  │  │  /logs/latency  │                │
+│  │                 │  │                 │  │                 │                │
+│  │  - IP bans      │  │  - HTTP logs    │  │  - Order RTT    │                │
+│  │  - 404 tracking │  │  - Request/sec  │  │  - Percentiles  │                │
+│  │  - API abuse    │  │  - Error rates  │  │  - SLA metrics  │                │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Freeze Quantity Management
@@ -63,16 +63,16 @@ Manage F&O freeze quantity limits for automatic order splitting.
 ### Database Schema
 
 ```
-┌────────────────────────────────────────────────────┐
-│                 qty_freeze table                    │
-├──────────────┬──────────────┬──────────────────────┤
-│ Column       │ Type         │ Description          │
-├──────────────┼──────────────┼──────────────────────┤
-│ id           │ INTEGER PK   │ Auto-increment       │
-│ exchange     │ VARCHAR(10)  │ NFO, BFO, CDS, MCX   │
-│ symbol       │ VARCHAR(50)  │ Trading symbol       │
-│ freeze_qty   │ INTEGER      │ Max order quantity   │
-└──────────────┴──────────────┴──────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                  qty_freeze table                   │
+├────────────┬─────────────┬──────────────────────────┤
+│ Column     │ Type        │ Description              │
+├────────────┼─────────────┼──────────────────────────┤
+│ id         │ INTEGER PK  │ Auto-increment           │
+│ exchange   │ VARCHAR(10) │ NFO, BFO, CDS, MCX       │
+│ symbol     │ VARCHAR(50) │ Trading symbol           │
+│ freeze_qty │ INTEGER     │ Max order quantity       │
+└────────────┴─────────────┴──────────────────────────┘
 ```
 
 ### Example Request
@@ -111,27 +111,27 @@ Maintain trading holidays calendar for all exchanges.
 ### Database Schema
 
 ```
-┌────────────────────────────────────────────────────┐
-│               market_holidays table                 │
-├──────────────────┬──────────────┬──────────────────┤
-│ Column           │ Type         │ Description      │
-├──────────────────┼──────────────┼──────────────────┤
-│ id               │ INTEGER PK   │ Auto-increment   │
-│ holiday_date     │ DATE         │ Holiday date     │
-│ description      │ VARCHAR(255) │ Holiday name     │
-│ holiday_type     │ VARCHAR(50)  │ Type of holiday  │
-│ year             │ INTEGER      │ Year             │
-└──────────────────┴──────────────┴──────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                market_holidays table                │
+├──────────────┬──────────────┬───────────────────────┤
+│ Column       │ Type         │ Description           │
+├──────────────┼──────────────┼───────────────────────┤
+│ id           │ INTEGER PK   │ Auto-increment        │
+│ holiday_date │ DATE         │ Holiday date          │
+│ description  │ VARCHAR(255) │ Holiday name          │
+│ holiday_type │ VARCHAR(50)  │ Type of holiday       │
+│ year         │ INTEGER      │ Year                  │
+└──────────────┴──────────────┴───────────────────────┘
 
-┌────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────┐
 │           market_holiday_exchanges table            │
-├──────────────────┬──────────────┬──────────────────┤
-│ Column           │ Type         │ Description      │
-├──────────────────┼──────────────┼──────────────────┤
-│ holiday_id       │ INTEGER FK   │ Holiday reference│
-│ exchange_code    │ VARCHAR(10)  │ Exchange code    │
-│ is_open          │ BOOLEAN      │ Exchange open?   │
-└──────────────────┴──────────────┴──────────────────┘
+├───────────────┬─────────────┬───────────────────────┤
+│ Column        │ Type        │ Description           │
+├───────────────┼─────────────┼───────────────────────┤
+│ holiday_id    │ INTEGER FK  │ Holiday reference     │
+│ exchange_code │ VARCHAR(10) │ Exchange code         │
+│ is_open       │ BOOLEAN     │ Exchange open?        │
+└───────────────┴─────────────┴───────────────────────┘
 ```
 
 ### Holiday Types
@@ -212,20 +212,20 @@ POST /settings/analyze-mode/analyze  → Switch to analyzer
 ### Settings Schema
 
 ```
-┌────────────────────────────────────────────────────┐
-│                  settings table                     │
-├────────────────────┬──────────┬────────────────────┤
-│ Column             │ Type     │ Description        │
-├────────────────────┼──────────┼────────────────────┤
-│ id                 │ INT PK   │ Single row (id=1)  │
-│ analyze_mode       │ BOOLEAN  │ Live/Analyzer mode │
-│ smtp_server        │ VARCHAR  │ SMTP server        │
-│ smtp_port          │ INTEGER  │ SMTP port          │
-│ smtp_password_enc  │ TEXT     │ Encrypted password │
-│ security_404_threshold    │ INT │ 404 ban limit   │
-│ security_api_threshold    │ INT │ API ban limit   │
-│ security_ban_duration     │ INT │ Ban hours       │
-└────────────────────┴──────────┴────────────────────┘
+┌───────────────────────────────────────────────────────┐
+│                    settings table                     │
+├────────────────────────┬─────────┬────────────────────┤
+│ Column                 │ Type    │ Description        │
+├────────────────────────┼─────────┼────────────────────┤
+│ id                     │ INT PK  │ Single row (id=1)  │
+│ analyze_mode           │ BOOLEAN │ Live/Analyzer mode │
+│ smtp_server            │ VARCHAR │ SMTP server        │
+│ smtp_port              │ INTEGER │ SMTP port          │
+│ smtp_password_enc      │ TEXT    │ Encrypted password │
+│ security_404_threshold │ INT     │ 404 ban limit      │
+│ security_api_threshold │ INT     │ API ban limit      │
+│ security_ban_duration  │ INT     │ Ban hours          │
+└────────────────────────┴─────────┴────────────────────┘
 ```
 
 ## Security Dashboard
@@ -238,26 +238,26 @@ POST /settings/analyze-mode/analyze  → Switch to analyzer
 ### Features
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Security Dashboard                            │
+┌──────────────────────────────────────────────────────────────────┐
+│                        Security Dashboard                        │
 │                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
+│  ┌───────────────────────────────────────────────────────────┐   │
 │  │  IP Bans                                                   │  │
 │  │                                                            │  │
-│  │  IP Address      │ Reason        │ Expires     │ Actions  │  │
-│  │  192.168.1.100   │ 404 abuse     │ 24h         │ Unban    │  │
-│  │  10.0.0.50       │ API brute     │ Permanent   │ Unban    │  │
-│  └───────────────────────────────────────────────────────────┘  │
+│  │  IP Address      │ Reason        │ Expires     │ Actions  │   │
+│  │  192.168.1.100   │ 404 abuse     │ 24h         │ Unban    │   │
+│  │  10.0.0.50       │ API brute     │ Permanent   │ Unban    │   │
+│  └───────────────────────────────────────────────────────────┘   │
 │                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
+│  ┌───────────────────────────────────────────────────────────┐   │
 │  │  Security Thresholds                                       │  │
 │  │                                                            │  │
 │  │  Automatic bans: Off by default                            │  │
-│  │  404 Errors: 100/day → 0h (permanent) when enabled        │  │
-│  │  API Abuse:  100/day → 0h (permanent) when enabled        │  │
+│  │  404 Errors: 100/day → 0h (permanent) when enabled        │   │
+│  │  API Abuse:  100/day → 0h (permanent) when enabled        │   │
 │  │  Repeat Offender: 2 bans → Permanent                       │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+│  └───────────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### Security Tables

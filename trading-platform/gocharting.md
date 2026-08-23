@@ -76,7 +76,7 @@ If you're running OpenAlgo locally (on your computer) and want to test webhooks,
     ```
 5. Restart OpenAlgo application
 
-⚠️ **Important Notes:**
+**Important Notes:**
 
 * Tunnel URLs may change each time you restart (unless using paid plans)
 * Free tier tunnels may have bandwidth/time limitations
@@ -92,24 +92,30 @@ If you're running OpenAlgo locally (on your computer) and want to test webhooks,
 **Login to OpenAlgo**
 
 * Navigate to your OpenAlgo dashboard
-* Go to **Platforms** from the main navigation menu
+* Go to **Trading Platforms** from the main navigation menu (`/platforms`)
 
 <figure><img src="../.gitbook/assets/image (141).png" alt=""><figcaption></figcaption></figure>
 
 **Open GoCharting Configuration**
 
-* Click on the **"Configure GoCharting"** card
-* You'll be redirected to `/gocharting/`
+* Click the **GoCharting** card
+* You'll be redirected to `/gocharting`
 
 <figure><img src="../.gitbook/assets/image (142).png" alt=""><figcaption></figcaption></figure>
 
 **Configure Your Trade Parameters**
 
+* **Symbol**: type at least two characters and pick a match from the autocomplete list. Selecting a result also fills in the exchange.
+* **Exchange**: the list is built from what your connected broker actually supports.
+* **Product Type**: MIS (intraday), NRML (carry forward) or CNC (delivery). This selector is hidden for crypto brokers such as Delta Exchange because they ignore it.
+* **Action**: BUY or SELL.
+* **Quantity**: total units, not lots. For futures and options send the full contract quantity.
 
+Your API key is read from OpenAlgo automatically and embedded in the generated payload, so treat the JSON as a secret.
 
 1. **Generate JSON**
-   * Click the **"Generate JSON"** button
-   * The webhook configuration will be displayed on the right side
+   * The JSON regenerates as you change the form. The **"Generate JSON"** button forces a refresh.
+   * The webhook configuration is displayed on the right side
 2. **Copy Configuration**
    *   **Webhook URL**: Click "Copy" button next to the webhook URL
 
@@ -121,12 +127,12 @@ If you're running OpenAlgo locally (on your computer) and want to test webhooks,
        ```json
        {
          "apikey": "your_api_key_here",
-         "strategy": "GoCharting",
+         "strategy": "GoCharting Alert",
          "symbol": "SAIL",
-         "action": "BUY",
          "exchange": "NSE",
-         "pricetype": "MARKET",
+         "action": "BUY",
          "product": "MIS",
+         "pricetype": "MARKET",
          "quantity": "10"
        }
        ```
@@ -159,12 +165,12 @@ Configure the alert parameters:
     ```json
     {
       "apikey": "your_api_key_here",
-      "strategy": "GoCharting",
+      "strategy": "GoCharting Alert",
       "symbol": "SAIL",
-      "action": "BUY",
       "exchange": "NSE",
-      "pricetype": "MARKET",
+      "action": "BUY",
       "product": "MIS",
+      "pricetype": "MARKET",
       "quantity": "10"
     }
     ```

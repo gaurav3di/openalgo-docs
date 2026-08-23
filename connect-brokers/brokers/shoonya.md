@@ -1,6 +1,6 @@
 # Shoonya
 
-Shoonya, developed by Finvasia, is a trading platform in India that allows users to trade across multiple segments—including equities, commodities, currencies, and derivatives. The platform is accessible via mobile, web, and desktop applications, offering features like advanced charting tools, real-time data, and integration with third-party platforms for algorithmic trading.
+Shoonya, developed by Finvasia, is a trading platform in India that allows users to trade across multiple segments including equities, commodities, currencies, and derivatives. The platform is accessible via mobile, web, and desktop applications, offering features like advanced charting tools, real-time data, and integration with third-party platforms for algorithmic trading.
 
 ## Getting API Credentials
 
@@ -35,3 +35,10 @@ BROKER_API_KEY = 'your_userid_here:::your_ClientId_here'
 BROKER_API_SECRET = 'your_Secretcode_here'
 REDIRECT_URL = 'https://openalgo.local/shoonya/callback'
 ```
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/shoonya/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

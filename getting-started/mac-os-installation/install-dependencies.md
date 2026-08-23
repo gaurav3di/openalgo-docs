@@ -1,7 +1,24 @@
 # Install Dependencies
 
-Windows users Navigate to the directory where OpenAlgo is cloned and execute:
+Navigate to the directory where OpenAlgo is cloned and install `uv`, the package manager OpenAlgo uses:
 
-`pip3 install -r requirements.txt`
+```bash
+cd openalgo
+brew install uv    # or: pip3 install uv
+```
+
+`uv` creates the `.venv` virtual environment and resolves every dependency from `pyproject.toml` the first time you start OpenAlgo, so there is no separate install step:
+
+```bash
+uv run app.py
+```
+
+The first run takes a few minutes while the environment is built. Later runs start immediately.
+
+If you prefer to install the dependencies ahead of time rather than on first launch, run:
+
+```bash
+uv sync
+```
 
 <figure><img src="../../.gitbook/assets/Install dependencies.png" alt=""><figcaption></figcaption></figure>

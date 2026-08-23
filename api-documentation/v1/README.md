@@ -23,9 +23,15 @@ Most POST endpoints accept the OpenAlgo API key as `apikey` in a JSON object. GE
 
 Never put broker credentials or broker access tokens in these requests. The OpenAlgo API key resolves the active broker session server-side.
 
+## Strict Request Validation
+
+POST bodies are deserialized by marshmallow schemas that do not set `Meta.unknown`, so marshmallow's default of `RAISE` applies: a field the schema does not declare makes the whole request fail with HTTP 400, even when every other field is valid. Treat each endpoint page's request-body table as the exact allowed field set rather than a summary. The GTT place and modify schemas set `unknown = EXCLUDE` and silently drop extras instead; chart preferences sets `unknown = INCLUDE` because arbitrary preference keys are the point of that resource.
+
+GET resources (`/instruments`, `/ticker/<symbol>`, `/chart`, `/telegram/*`) read query parameters directly and ignore unrecognized ones.
+
 ## Registered REST Inventory
 
-The current v1 surface contains **61 method/path pairs**. A resource with both GET and POST counts as two endpoints.
+The current v1 surface contains **63 method/path pairs**. A resource with both GET and POST counts as two endpoints.
 
 ### Order Management
 
@@ -110,6 +116,15 @@ There is no public `/api/v1/checkholiday` endpoint. Use `/market/timings` for a 
 
 Portfolio endpoints are authenticated and read-only. The holdings resource reads the active broker account, but none of these resources places, modifies, or cancels an order.
 
+### SIP Analytics
+
+| Method | Path | Documentation |
+|---|---|---|
+| GET | `/sip/frequencies` | Not yet documented |
+| POST | `/sip/backtest` | Not yet documented |
+
+The SIP backtester namespace is registered in `restx_api/__init__.py` but has no page in this section yet. `/sip/backtest` validates against `SipBacktestSchema` and requires a valid API key; `source: "api"` additionally requires a broker session. `/sip/frequencies` returns the frequency list the engine supports. Both use `SIP_API_RATE_LIMIT`, default `10 per minute`.
+
 ### Messaging
 
 | Method | Path | Documentation |
@@ -173,7 +188,7 @@ Common status codes are:
 
 ## Rate Limits
 
-Defaults from `.sample.env` are `API_RATE_LIMIT="50 per second"`, `ORDER_RATE_LIMIT="10 per second"`, and `SMART_ORDER_RATE_LIMIT="10 per second"`. Some messaging endpoints use their own limiter. All values are deployment configuration and may contain compound semicolon-separated limits. See [rate limiting](./rate-limiting.md).
+Defaults from `.sample.env` are `API_RATE_LIMIT="50 per second"`, `ORDER_RATE_LIMIT="10 per second"`, and `SMART_ORDER_RATE_LIMIT="10 per second"`. Option Greeks, portfolio, SIP, Telegram, and WhatsApp resources each read their own variable, none of which appears in `.sample.env`, so their in-code fallbacks apply on a stock install. All values are deployment configuration and may contain compound semicolon-separated limits. See [rate limiting](./rate-limiting.md).
 
 ## Client Libraries
 

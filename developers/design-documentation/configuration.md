@@ -9,29 +9,29 @@ Analyzer mode does not implement GTT place, modify, cancel, or orderbook service
 ## Architecture Diagram
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                        Sandbox Architecture                                   │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                             Sandbox Architecture                              │
+└───────────────────────────────────────────────────────────────────────────────┘
 
                               API Request
-                                  │
-                                  ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         Mode Router (is_sandbox_mode())                       │
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                        Mode Router (is_sandbox_mode())                        │
 │                                                                               │
-│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
 │  │  if is_sandbox_mode():                                                   │ │
 │  │      → Route to Sandbox Services (OrderManager, FundManager, etc.)       │ │
 │  │  else:                                                                   │ │
 │  │      → Route to Live Broker Services (broker/*/api/*)                    │ │
-│  └─────────────────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────────────────┘
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────────────────────────────┘
                     │                               │
            Analyzer Mode ON                    Live Mode
                     │                               │
                     ▼                               ▼
 ┌───────────────────────────────────┐    ┌───────────────────────────────┐
-│      Sandbox Services              │    │      Live Broker Services      │
+│         Sandbox Services          │    │     Live Broker Services      │
 │                                   │    │                               │
 │  ┌─────────────────────────────┐  │    │  ┌─────────────────────────┐  │
 │  │    Order Manager            │  │    │  │   Broker Order API      │  │
@@ -796,9 +796,9 @@ def _update_position(self, order, execution_price):
 #### Execution Flow Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Order Execution Flow                          │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                       Order Execution Flow                       │
+└──────────────────────────────────────────────────────────────────┘
 
                     Pending Order (status='open')
                               │
@@ -1672,9 +1672,9 @@ def toggle_analyzer_mode(mode: bool):
 ## Complete Order Flow Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Complete Sandbox Order Flow                           │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         Complete Sandbox Order Flow                          │
+└──────────────────────────────────────────────────────────────────────────────┘
 
 User places order via API
          │
@@ -1743,62 +1743,62 @@ Service       API
 └──────────┬──────────┘
            │
            ▼
-┌───────────────────────────────────────────────────────────────────┐
-│                  Background: Execution Engine                      │
+┌────────────────────────────────────────────────────────────────────┐
+│                    Background: Execution Engine                    │
 │                                                                    │
 │  Every 5 seconds:                                                  │
-│  ┌─────────────────┐                                              │
-│  │ 1. Get pending  │                                              │
-│  │    orders       │                                              │
-│  └────────┬────────┘                                              │
+│  ┌─────────────────┐                                               │
+│  │ 1. Get pending  │                                               │
+│  │    orders       │                                               │
+│  └────────┬────────┘                                               │
 │           │                                                        │
 │           ▼                                                        │
-│  ┌─────────────────┐                                              │
-│  │ 2. Fetch quotes │ ← Multiquotes API (batch)                    │
-│  │    (batched)    │   or individual quotes                       │
-│  └────────┬────────┘                                              │
+│  ┌─────────────────┐                                               │
+│  │ 2. Fetch quotes │ ← Multiquotes API (batch)                     │
+│  │    (batched)    │   or individual quotes                        │
+│  └────────┬────────┘                                               │
 │           │                                                        │
 │           ▼                                                        │
-│  ┌─────────────────┐                                              │
-│  │ 3. Check price  │ MARKET: Execute immediately                  │
-│  │    conditions   │ LIMIT: LTP vs limit                          │
-│  │                 │ SL: Trigger check                            │
-│  └────────┬────────┘                                              │
+│  ┌─────────────────┐                                               │
+│  │ 3. Check price  │ MARKET: Execute immediately                   │
+│  │    conditions   │ LIMIT: LTP vs limit                           │
+│  │                 │ SL: Trigger check                             │
+│  └────────┬────────┘                                               │
 │           │                                                        │
 │      Condition met?                                                │
 │           │                                                        │
-│    ┌──────┴──────┐                                                │
-│    │ Yes         │ No                                             │
-│    ▼             ▼                                                │
-│  Execute     Keep pending                                         │
+│    ┌──────┴──────┐                                                 │
+│    │ Yes         │ No                                              │
+│    ▼             ▼                                                 │
+│  Execute     Keep pending                                          │
 │    │                                                               │
 │    ▼                                                               │
-│  ┌─────────────────┐                                              │
-│  │ 4. Create trade │                                              │
-│  │    Update order │                                              │
-│  │    status       │                                              │
-│  └────────┬────────┘                                              │
+│  ┌─────────────────┐                                               │
+│  │ 4. Create trade │                                               │
+│  │    Update order │                                               │
+│  │    status       │                                               │
+│  └────────┬────────┘                                               │
 │           │                                                        │
 │           ▼                                                        │
-│  ┌─────────────────┐                                              │
-│  │ 5. Update       │ NEW: Create position                         │
-│  │    position     │ SAME: Average entry                          │
-│  │    (netting)    │ OPPOSITE: Close/reverse                      │
-│  └────────┬────────┘                                              │
+│  ┌─────────────────┐                                               │
+│  │ 5. Update       │ NEW: Create position                          │
+│  │    position     │ SAME: Average entry                           │
+│  │    (netting)    │ OPPOSITE: Close/reverse                       │
+│  └────────┬────────┘                                               │
 │           │                                                        │
 │           ▼                                                        │
-│  ┌─────────────────┐                                              │
-│  │ 6. Margin       │ Release proportional margin                  │
-│  │    adjustment   │ Update P&L                                   │
-│  └────────┬────────┘                                              │
+│  ┌─────────────────┐                                               │
+│  │ 6. Margin       │ Release proportional margin                   │
+│  │    adjustment   │ Update P&L                                    │
+│  └────────┬────────┘                                               │
 │           │                                                        │
 │           ▼                                                        │
-│  ┌─────────────────┐                                              │
-│  │ 7. Validate     │ used_margin == sum(position.margin_blocked)  │
-│  │    consistency  │                                              │
-│  └─────────────────┘                                              │
+│  ┌─────────────────┐                                               │
+│  │ 7. Validate     │ used_margin == sum(position.margin_blocked)   │
+│  │    consistency  │                                               │
+│  └─────────────────┘                                               │
 │                                                                    │
-└───────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -1806,9 +1806,9 @@ Service       API
 ## Session and Settlement Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Daily Session & Settlement Flow                           │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                       Daily Session & Settlement Flow                        │
+└──────────────────────────────────────────────────────────────────────────────┘
 
 09:00 AM ─── Market Opens ───
          │

@@ -107,6 +107,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/splitorder \
 | product | Product type: MIS, CNC, NRML | Optional | MIS |
 | price | Order price (for LIMIT orders) | Optional | 0 |
 | trigger_price | Trigger price (for SL orders) | Optional | 0 |
+| disclosed_quantity | Disclosed quantity applied to each child order | Optional | 0 |
+
+These eleven fields are the complete `SplitOrderSchema`. Any other field returns HTTP 400.
 
 ## Response Fields
 
@@ -144,8 +147,9 @@ Total: 105 units
 
 ## Notes
 
-- **Maximum 100 orders** per split request
+- **Maximum 100 child orders** per split request. A `quantity` and `splitsize` combination that would produce more than 100 orders is rejected before any order is sent.
 - The last order contains the **remainder** (quantity % splitsize)
+- **Rate limit**: `API_RATE_LIMIT`, not `ORDER_RATE_LIMIT`
 - Live child orders are placed sequentially using a delay derived from `ORDER_RATE_LIMIT`; analyzer mode prefetches one quote and uses the sandbox path.
 - Fractional total quantities are accepted only for `CRYPTO`; non-crypto total quantities must be whole numbers. `splitsize` is always a positive integer.
 - Use for:

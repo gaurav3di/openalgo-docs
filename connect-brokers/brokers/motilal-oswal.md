@@ -49,6 +49,23 @@ Visit the Motilal Oswal OpenAPI registration portal:
 # Motilal Oswal API Configuration
 BROKER_API_KEY = 'your_client_code' #Use your client code as api key
 BROKER_API_SECRET = 'your_api_key_here'  #Use your generated API Key as API secret in .env file
+REDIRECT_URL = 'http://127.0.0.1:5000/motilal/callback'
 ```
 
-Integrating with M**otilal APIs** unlocks the ability to automate strategies, execute trades, and analyze data directly within your own infrastructure. When used with **OpenAlgo**, you can self-host and run your entire algo trading stack — with full control and zero vendor lock-in.
+### Logging in
+
+Clicking Connect opens the Motilal Oswal login form. It asks for four values:
+
+* **User ID**, your client code
+* **Password**, your trading password (OpenAlgo hashes it with the API key before sending it)
+* **TOTP**, the 6-digit code from the authenticator app you set up in Step 2
+* **Date of Birth**, the 2FA date in `DD/MM/YYYY` format
+
+Integrating with **Motilal APIs** unlocks the ability to automate strategies, execute trades, and analyze data directly within your own infrastructure. When used with **OpenAlgo**, you can self-host and run your entire algo trading stack, with full control and zero vendor lock-in.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/motilal/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

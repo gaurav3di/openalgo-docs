@@ -10,11 +10,11 @@ For traders using an Indian broker, static IP configuration is now mandatory for
 
 Make sure the following are available on your Ubuntu system before you begin.
 
-Python 3
+Python 3.12 or newer (OpenAlgo requires `>=3.12`)
 
 Git
 
-UV package manager
+uv package manager
 
 Visual Studio Code or any code editor
 
@@ -24,6 +24,8 @@ Broker API credentials
 
 For Indian brokers, a static IPv4 address
 
+Node.js is not required. The repository ships the pre-built React frontend in `frontend/dist`.
+
 ### Step 1 Create a Project Folder
 
 Create a new folder on your Ubuntu desktop or laptop for the OpenAlgo project. The folder name can be anything you prefer.
@@ -32,25 +34,42 @@ Open this folder in your code editor.
 
 ### Step 2 Check Required Software
 
-Open the terminal inside the project folder and confirm that Python 3, Git, and UV are installed on your system.
+Open the terminal inside the project folder and confirm the versions:
 
-These are the core requirements needed to run OpenAlgo.
+```bash
+python3 --version    # must report 3.12 or newer
+git --version
+uv --version
+```
+
+If `uv` is missing, install it:
+
+```bash
+pip install uv
+# or, on PEP 668 systems such as Ubuntu 24.04:
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+If `python3` reports anything older than 3.12, install a newer interpreter before continuing. OpenAlgo will not start on 3.11 or below.
 
 ### Step 3 Download the OpenAlgo Source Code
 
-Go to the OpenAlgo portal and copy the GitHub repository URL.
+Clone the repository into your project folder:
 
-Download the OpenAlgo source code into your project folder.
-
-This gives you the full local project needed for installation and configuration.
+```bash
+git clone https://github.com/marketcalls/openalgo.git
+cd openalgo
+```
 
 ### Step 4 Create the Environment File
 
-Inside the downloaded project, locate the sample environment file.
+Copy the sample environment file to `.env`:
 
-Create a copy of this sample file and rename it as the main environment file.
+```bash
+cp .sample.env .env
+```
 
-This file is used to store your broker related settings and credentials.
+This file holds your broker settings and credentials. Never copy `.sample.env` over an existing `.env` on a working installation: it discards your credentials and replaces `API_KEY_PEPPER` and `FERNET_SALT`, which makes stored passwords and encrypted broker tokens unrecoverable.
 
 ### Step 5 Configure Broker Credentials
 
@@ -58,13 +77,15 @@ Open the environment file and update the required values.
 
 You will typically need to enter the following details.
 
-Broker name
+```dotenv
+BROKER_API_KEY = 'YOUR_BROKER_API_KEY'
+BROKER_API_SECRET = 'YOUR_BROKER_API_SECRET'
+REDIRECT_URL = 'http://127.0.0.1:5000/<broker>/callback'
+```
 
-Redirect URL
+Replace `<broker>` with your broker's key, for example `http://127.0.0.1:5000/zerodha/callback`.
 
-Broker API key
-
-Broker API secret
+Leave `APP_KEY`, `API_KEY_PEPPER` and `FERNET_SALT` at their `OPENALGO_PLACEHOLDER_...` values. OpenAlgo replaces them with fresh random secrets on first start and prints a one-time `[OpenAlgo first-run setup]` message when it does.
 
 The exact values and process depend on the broker you use.
 
@@ -98,7 +119,7 @@ A static IPv4 address is required because brokers do not generally support IPv6 
 
 For desktop users, one option is to request a static IP from the internet service provider. Another option is to use a VPS, which usually includes a static IP by default.
 
-More details are available on the OpenAlgo static IP page.
+More details are available on the [OpenAlgo static IP page](../static-ip.md).
 
 ### Step 8 Save Changes Properly
 
@@ -108,13 +129,17 @@ Whenever you change the API key, API secret, or related broker settings, save th
 
 ### Step 9 Start OpenAlgo
 
-Launch OpenAlgo from the project directory.
+Launch OpenAlgo from the project directory:
 
-On the first run, the application will create its environment, install required libraries, and start the local service.
+```bash
+uv run app.py
+```
 
-The first launch may take longer than later launches.
+On the first run, `uv` creates the `.venv` virtual environment and installs every dependency from `pyproject.toml`, so the first launch takes several minutes. Later launches start immediately.
 
-OpenAlgo runs locally on port 5000, and you can access it through your browser after startup.
+When the server is ready it prints a banner with the live endpoints: the web app on `http://127.0.0.1:5000` and the WebSocket proxy on `ws://127.0.0.1:8765`. Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
+
+Press `Ctrl+C` in the terminal to stop OpenAlgo.
 
 ### Step 10 Complete First Time Account Setup
 

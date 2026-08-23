@@ -36,3 +36,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/tradesmart/callback'
 Where: • `client_id` is your TradeSmart login/client id (for example `YTNR739`) • `api_key` is the **App ID** generated on the dashboard • `secret_key` is the **Secret Key** revealed via the eye / Show Credentials toggle
 
 > The Redirect URL in your .env must match the Redirect URL configured on the TradeSmart API Dashboard exactly, and your login IP must match the Primary Static IP you registered.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/tradesmart/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

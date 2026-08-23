@@ -9,65 +9,65 @@ Chartink integration allows OpenAlgo to receive trading signals from Chartink sc
 ## Architecture Diagram
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                        Chartink Integration                                   │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                             Chartink Integration                              │
+└───────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Chartink Platform                                   │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Scanner/Screener Alert                                              │   │
-│  │                                                                      │   │
-│  │  When condition met → Trigger Webhook                               │   │
-│  │  Example: Price > 20 DMA, Volume spike, RSI crossover               │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                              │
-                              │ HTTP POST
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     OpenAlgo Chartink Webhook                                │
-│                     POST /chartink/webhook                                   │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Rate Limit: WEBHOOK_RATE_LIMIT (100 per minute)                    │   │
-│  │                                                                      │   │
-│  │  Payload:                                                           │   │
-│  │  {                                                                   │   │
-│  │    "webhook_id": "your_webhook_id",                                 │   │
-│  │    "stocks": "SBIN,RELIANCE,INFY"                                   │   │
-│  │  }                                                                   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Chartink Processing                                     │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  1. Validate webhook_id against database                            │   │
-│  │  2. Get strategy configuration                                       │   │
-│  │  3. Check time-based trading controls                               │   │
-│  │     - Is current time within start_time and end_time?               │   │
-│  │     - Is strategy active?                                           │   │
-│  │  4. Parse stock list                                                │   │
-│  │  5. For each stock:                                                 │   │
-│  │     - Lookup symbol mapping (chartink_symbol → exchange/qty/product)│   │
-│  │     - Queue order for execution                                      │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Order Execution                                     │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  REST API: /api/v1/placeorder or /api/v1/placesmartorder            │   │
-│  │                                                                      │   │
-│  │  Order queued → Rate-limited execution → Broker API                 │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                               Chartink Platform                               │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  Scanner/Screener Alert                                              │     │
+│  │                                                                      │     │
+│  │  When condition met → Trigger Webhook                               │      │
+│  │  Example: Price > 20 DMA, Volume spike, RSI crossover               │      │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        │ HTTP POST
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                           OpenAlgo Chartink Webhook                           │
+│                            POST /chartink/webhook                             │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  Rate Limit: WEBHOOK_RATE_LIMIT (100 per minute)                    │      │
+│  │                                                                      │     │
+│  │  Payload:                                                           │      │
+│  │  {                                                                   │     │
+│  │    "webhook_id": "your_webhook_id",                                 │      │
+│  │    "stocks": "SBIN,RELIANCE,INFY"                                   │      │
+│  │  }                                                                   │     │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                              Chartink Processing                              │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  1. Validate webhook_id against database                            │      │
+│  │  2. Get strategy configuration                                       │     │
+│  │  3. Check time-based trading controls                               │      │
+│  │     - Is current time within start_time and end_time?               │      │
+│  │     - Is strategy active?                                           │      │
+│  │  4. Parse stock list                                                │      │
+│  │  5. For each stock:                                                 │      │
+│  │     - Lookup symbol mapping (chartink_symbol → exchange/qty/product)│      │
+│  │     - Queue order for execution                                      │     │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                                Order Execution                                │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  REST API: /api/v1/placeorder or /api/v1/placesmartorder            │      │
+│  │                                                                      │     │
+│  │  Order queued → Rate-limited execution → Broker API                 │      │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Database Schema
@@ -163,9 +163,9 @@ Each symbol in a strategy has its own trading configuration:
 ## Processing Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Chartink Webhook Processing                   │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                   Chartink Webhook Processing                    │
+└──────────────────────────────────────────────────────────────────┘
 
 Webhook Received
       │
@@ -180,33 +180,33 @@ Webhook Received
 └─────────┬───────────┘
           │
           ▼
-┌─────────────────────┐
-│ Parse stocks list   │
-│ "SBIN,RELIANCE"     │
+┌──────────────────────┐
+│ Parse stocks list    │
+│ "SBIN,RELIANCE"      │
 │ → ["SBIN","RELIANCE"]│
-└─────────┬───────────┘
+└─────────┬────────────┘
           │
           ▼
-┌───────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────┐
 │ For each stock:                                    │
 │                                                    │
 │  1. Check symbol mapping                           │
-│     - If mapping exists: use mapped values        │
-│     - If not: use scanner defaults                │
+│     - If mapping exists: use mapped values         │
+│     - If not: use scanner defaults                 │
 │                                                    │
 │  2. Build order payload:                           │
 │     {                                              │
-│       "apikey": "user_api_key",                   │
-│       "symbol": "SBIN",                           │
-│       "exchange": "NSE",                          │
-│       "action": "BUY",                            │
-│       "quantity": 100,                            │
-│       "product": "MIS",                           │
-│       "pricetype": "MARKET"                       │
+│       "apikey": "user_api_key",                    │
+│       "symbol": "SBIN",                            │
+│       "exchange": "NSE",                           │
+│       "action": "BUY",                             │
+│       "quantity": 100,                             │
+│       "product": "MIS",                            │
+│       "pricetype": "MARKET"                        │
 │     }                                              │
 │                                                    │
 │  3. Queue order for execution                      │
-└───────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────┘
 ```
 
 ## API Endpoints

@@ -6,7 +6,7 @@ This guide will walk you through the installation and configuration of the OpenA
 
 ### Prerequisites
 
-* AmiBroker 6.0+ or higher installed on your system
+* AmiBroker 6.0 or higher installed on your system
 * OpenAlgo server running (ensure it's accessible at your configured host URL)
 * Your OpenAlgo API key
 
@@ -16,15 +16,24 @@ This guide will walk you through the installation and configuration of the OpenA
 
 ### Features
 
--1-minute intraday data (last 30 days)\
--Daily (EOD) data (up to 1 year)\
--Intelligent backfill with gap detection\
--Incremental updates (fetch only new data)\
--Connects to all OpenAlgo-supported brokers providing historical data and live quotes\
--Multi Exchange Coverage NSE, BSE, MCX, NFO, CDS\
--symbol format INFY-NSE , CRUDEOIL19NOV25FUT-MCX, TCS-BSE (symbol : -OpenAlgo Symbol, Exchange - OpenAlgo Exchange format)\
--Visual LED indicator in AmiBroker status bar\
--Supports Mixed EOD Timeframe
+* 1-minute intraday history, with manual backfill of 3 months, 6 months or 1 year
+* Daily (EOD) history, with manual backfill of 5, 10 or 25 years
+* Automatic intraday refresh on a configurable cadence, seeded from the existing cache so only new bars are fetched
+* Realtime chart candles built from live WebSocket ticks
+* Realtime Quote Window fed from live WebSocket quote and depth frames
+* WebSocket reconnect, ping/pong and automatic resubscription
+* Connects to all OpenAlgo-supported brokers that provide historical data and live quotes
+* Exchange coverage follows OpenAlgo: NSE, NSE_INDEX, BSE, BSE_INDEX, NFO, BFO, MCX, CDS and the other OpenAlgo exchanges
+* Symbol format is `OPENALGO_SYMBOL-OPENALGO_EXCHANGE`, for example `INFY-NSE`, `CRUDEOIL19NOV25FUT-MCX`, `TCS-BSE`
+* Coloured status indicator in the AmiBroker status bar
+* Supports mixed EOD/intraday databases
+
+The plugin uses two separate channels, and both have to be reachable:
+
+* **Historical data** comes from the OpenAlgo REST API, `POST /api/v1/history`, on the HTTP port (default `5000`). The plugin requests `interval=1m` for 1-minute charts and `interval=D` for daily charts. No other OpenAlgo interval is exposed through the plugin.
+* **Live data** comes from the OpenAlgo WebSocket proxy (default `ws://127.0.0.1:8765`). The plugin authenticates with your OpenAlgo API key, then subscribes each symbol in mode 1 (LTP), mode 2 (Quote) and mode 3 (Depth).
+
+Streaming windows deliberately do not fall back to `POST /api/v1/quotes`. Live charts and the Quote Window therefore stay empty when the WebSocket connection is down, even if **Test Connection** on the HTTP side succeeds.
 
 <figure><img src="../../.gitbook/assets/Amibroker Charts (1).png" alt=""><figcaption></figcaption></figure>
 
@@ -94,12 +103,12 @@ Launch AmiBroker. The OpenAlgo plugin should now be loaded automatically.
 
 #### 3. Configure OpenAlgo Plugin Settings
 
-1. Click on  **Configure Button**
+1. Click on  **Configure Button** (also reachable from **File** -> **Database Settings** -> **Configure**)
 2. Configure the **Server Settings**:
    * **Server**: Enter your OpenAlgo server address (e.g., `127.0.0.1`)
    * **Port**: Enter the port number (default: `5000`)
    * **API Key**: Enter your OpenAlgo API key
-   * **Refresh Interval**: Set the data refresh interval in seconds (default: `5`)
+   * **Backfill Refresh (sec)**: How often the plugin re-fetches 1-minute history for cached symbols (default: `30`). It does not control the live tick rate, which is driven by the WebSocket feed. The connection heartbeat is fixed internally at 30 seconds.
    * **Time Shift (hours)**: Set time shift if needed (default: `0`)
 3. Click **Test Connection** to verify server connectivity
 4. Configure the **WebSocket Settings**:
@@ -113,11 +122,21 @@ Launch AmiBroker. The OpenAlgo plugin should now be loaded automatically.
 
 #### 4. Add Symbols
 
-1. In AmiBroker, go to **Symbol** → **New to add anew symbol**
+1. In AmiBroker, go to **Symbol** → **New** to add a new symbol
 2. Click **New** to add a new symbol
-3. Enter the symbol ticker (e.g., `SBIN-NSE`, `RELIANCE-BSE`, `NIFTY-NIFTY_INDEX`)
+3. Enter the symbol ticker (e.g., `SBIN-NSE`, `RELIANCE-BSE`, `NIFTY-NSE_INDEX`, `CRUDEOIL18JUN26FUT-MCX`)
 4. symbol format is `openalgo symbol-openalgo exchange`
-5. The plugin will automatically fetch live data for the symbol
+5. If the exchange suffix is omitted the plugin falls back to `NSE`, which is wrong for futures, options, MCX and BSE symbols, so always include it
+6. The plugin will automatically fetch live data for the symbol
+
+#### 5. Backfill History
+
+Right-click the OpenAlgo status area in the AmiBroker status bar to open the plugin menu. Apart from **Connect**, **Disconnect** and **Configure...**, it offers:
+
+* **Backfill 1-Minute Data**: 3 Months, 6 Months or 1 Year, for the current symbol or for all symbols
+* **Backfill Daily Data**: 5 Years, 10 Years or 25 Years, for the current symbol or for all symbols
+
+"Current symbol" is the active chart symbol. "All symbols" covers the symbols already in the chart cache or subscribed over the WebSocket. Backfill runs one symbol at a time on purpose, so a large "All Symbols" request finishes sequentially rather than bursting requests at your broker.
 
 ### Verification
 
@@ -126,6 +145,16 @@ Launch AmiBroker. The OpenAlgo plugin should now be loaded automatically.
 3. Open a chart for the symbol
 4. You should see live data streaming into the chart
 5. Check the AmiBroker log window for any connection or data errors
+
+The plugin status area in the AmiBroker status bar reports the connection state as a coloured indicator:
+
+| Indicator | Colour | Meaning                    |
+| --------- | ------ | -------------------------- |
+| WAIT      | Yellow | Waiting for connection     |
+| OK        | Green  | Connected                  |
+| ERR       | Red    | Disconnected or error      |
+| OFF       | Purple | Shut down by the user      |
+| ???       | Grey   | State unknown              |
 
 ### Troubleshooting
 

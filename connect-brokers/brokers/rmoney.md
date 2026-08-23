@@ -56,3 +56,10 @@ Ensure you have installed dependencies and set up the broker configuration prope
 This completes the integration process for RMoney broker with OpenAlgo.
 
 Integrating OpenAlgo with RMoney’s XTS API empowers traders and developers to automate and streamline their trading workflows with precision and speed. Users can build robust trading systems capable of reacting to market conditions in real time. Always ensure secure handling of API credentials, implement proper error handling, and monitor your integration to maintain reliability and compliance.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/rmoney/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

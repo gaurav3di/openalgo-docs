@@ -88,7 +88,7 @@ sudo ./install.sh
 The script will interactively prompt you for:
 
 * Your domain name (root domains and subdomains both supported)
-* Broker selection from the 35 installed plugins
+* Broker selection from the 36 installed plugins
 * Broker API credentials (Key + Secret)
 * For XTS-based brokers (5paisa XTS, Compositedge, IIFL, etc.): additional market-data API key/secret
 * **Enable Remote MCP?** (y/N) — opt-in to expose `/mcp` and `/oauth/*` for hosted AI clients (Claude.ai, ChatGPT) at the same domain. You can also enable this later from the admin UI
@@ -128,15 +128,29 @@ chmod +x install-multi.sh
 sudo ./install-multi.sh
 ```
 
-Multi-deploy installs use a per-deployment layout:
+`install-multi.sh` asks how many instances you want, then collects a domain, broker and credentials for each. Instances are numbered, not named after the domain:
 
 ```
-/var/python/openalgo-flask/<domain-broker>/openalgo/
-/var/python/openalgo-flask/<domain-broker>/venv/
-openalgo-<domain-broker>.service
+/var/python/openalgo-flask/openalgo1/        instance 1 repo
+/var/python/openalgo-flask/openalgo1/venv/   its virtual environment
+/var/python/openalgo-flask/openalgo1/.env    its configuration
+openalgo1.service                            its systemd unit
+/etc/nginx/sites-available/<domain>          its nginx vhost, named after the domain
 ```
 
-Each deployment gets its own service, configuration, virtual environment, SSL certificate, and log file. The single-deploy `update.sh` and `change-domain.sh` scripts also handle this layout transparently — they detect the simple path first and fall back to scanning `/var/python/openalgo-flask/`.
+Each instance also gets its own ports, allocated in sequence from the single-deploy defaults:
+
+| Instance | Flask | WebSocket | ZeroMQ |
+| -------- | ----- | --------- | ------ |
+| 1        | 5000  | 8765      | 5555   |
+| 2        | 5001  | 8766      | 5556   |
+| 3        | 5002  | 8767      | 5557   |
+
+Each deployment gets its own service, configuration, virtual environment, SSL certificate, and log file.
+
+{% hint style="warning" %}
+`install/update.sh` currently detects the single-deploy layout at `/var/python/openalgo` and an older multi-deploy layout of the form `/var/python/openalgo-flask/<name>/openalgo/` with a service called `openalgo-<name>`. It does not recognise the `openalgo1`, `openalgo2` directories that the current `install-multi.sh` creates. Update those instances by hand: `cd /var/python/openalgo-flask/openalgo1 && sudo git pull`, re-sync dependencies, then `sudo systemctl restart openalgo1`.
+{% endhint %}
 
 **3. Verify the Installation**
 
@@ -258,17 +272,17 @@ The MCP URL to give your AI client is the same as your dashboard URL with `/mcp`
 
 **Multi-Domain Deployment Notes**
 
-If you ran `install-multi.sh` (per-deployment layout), substitute the deployment-specific names everywhere:
+If you ran `install-multi.sh`, the services are numbered `openalgo1`, `openalgo2` and so on:
 
 ```bash
 # List all OpenAlgo services on this host
 systemctl list-units 'openalgo*'
 
-# Manage a specific deployment (example: trading1.yourdomain.com + Fyers)
-sudo systemctl status openalgo-trading1-yourdomain-com-fyers
-sudo journalctl -fu openalgo-trading1-yourdomain-com-fyers
+# Manage a specific instance
+sudo systemctl status openalgo1
+sudo journalctl -fu openalgo1
 
-# Per-deployment install directories
+# Per-instance install directories
 ls /var/python/openalgo-flask/
 ```
 
@@ -281,7 +295,9 @@ chmod +x update.sh
 sudo ./update.sh
 ```
 
-The update script detects both layouts (single-deploy at `/var/python/openalgo` and legacy multi-deploy under `/var/python/openalgo-flask/`) and asks which to update if multiple are present. It runs `git pull`, `uv sync`, and restarts the service.
+The update script backs up every database to a timestamped `db/backup_<timestamp>/` folder, runs `git pull`, reports any new variables found in `.sample.env`, re-installs dependencies from `requirements-nginx.txt` into the deployment's virtual environment, runs `upgrade/migrate_all.py`, and restarts the service. Your `.env` is never overwritten.
+
+It detects the single-deploy layout at `/var/python/openalgo` first and falls back to scanning `/var/python/openalgo-flask/` for the legacy `<name>/openalgo/` layout, asking which to update when several are present.
 
 #### Changing the Domain
 

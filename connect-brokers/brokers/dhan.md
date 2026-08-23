@@ -1,6 +1,6 @@
 # Dhan
 
-Dhan is a new-generation financial services platform that empowers traders and investors to build, automate, and execute their trading strategies. Through **DhanHQ APIs**, users can connect their Dhan account with tools like **OpenAlgo** and create their own trading automation setup — fully self-hosted and secure.
+Dhan is a new-generation financial services platform that empowers traders and investors to build, automate, and execute their trading strategies. Through **DhanHQ APIs**, users can connect their Dhan account with tools like **OpenAlgo** and create their own trading automation setup that is fully self-hosted and secure.
 
 {% embed url="https://www.youtube.com/watch?v=Gs657PKGgcE" %}
 
@@ -52,8 +52,8 @@ Use the toggle on the top-right to switch to **API Key Mode**.
 #### **Step 4: Generate a New API Key**
 
 1. Under **Generate new API Key**, enter:
-   * **Application Name** → e.g. `openalgo`
-   * **Redirect URL** → `http://127.0.0.1:5000/dhan/callback`
+   * **Application Name**: e.g. `openalgo`
+   * **Redirect URL**: `http://127.0.0.1:5000/dhan/callback`
    * (Optional) **Postback URL** if your system supports order postbacks
 2. Click **Generate API Key**.
 3. Copy your:
@@ -109,8 +109,8 @@ REDIRECT_URL = 'http://127.0.0.1:5000/dhan/callback'
 
 | API Type         | Description                                                       | Cost                                        |
 | ---------------- | ----------------------------------------------------------------- | ------------------------------------------- |
-| **Trading APIs** | Order, Position, Portfolio, Funds & Report APIs                   | ✅ **Free of Cost**                          |
-| **Data APIs**    | Real-time + Historical Data (5 years), Market Depth, Option Chain | 💸 ₹499/month (or ₹399/month billed yearly) |
+| **Trading APIs** | Order, Position, Portfolio, Funds & Report APIs                   | **Free of Cost**                          |
+| **Data APIs**    | Real-time + Historical Data (5 years), Market Depth, Option Chain | ₹499/month (or ₹399/month billed yearly) |
 
 ***
 
@@ -125,6 +125,13 @@ REDIRECT_URL = 'http://127.0.0.1:5000/dhan/callback'
 ***
 
 Integrating with **DhanHQ APIs** unlocks the ability to automate strategies, execute trades, and analyze data directly within your own infrastructure.\
-When used with **OpenAlgo**, you can self-host and run your entire algo trading stack — with full control and zero vendor lock-in.
+When used with **OpenAlgo**, you can self-host and run your entire algo trading stack, with full control and zero vendor lock-in.
 
 ***
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/dhan/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

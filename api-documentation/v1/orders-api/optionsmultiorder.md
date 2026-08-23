@@ -154,22 +154,30 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionsmultiorder \
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | strategy | Strategy identifier | Mandatory | - |
 | underlying | Underlying symbol (NIFTY, BANKNIFTY, etc.) | Mandatory | - |
-| exchange | Exchange: NSE_INDEX, BSE_INDEX | Mandatory | - |
-| expiry_date | Common expiry date (can be overridden per leg) | Optional | - |
-| legs | Array of leg objects | Mandatory | - |
+| exchange | Underlying's exchange. Any value in the shared `VALID_EXCHANGES` list passes validation; the practical values are NSE_INDEX, NSE, BSE_INDEX, BSE | Mandatory | - |
+| expiry_date | Common expiry date in DDMMMYY format (can be overridden per leg) | Optional | Derived when `underlying` includes expiry |
+| strike_int | Strike interval, positive integer or `null`. Omit it so the actual strikes in the instrument master are used | Optional | Derived from the instrument master |
+| legs | Array of 1 to 20 leg objects | Mandatory | - |
+
+These six fields are the complete top-level `OptionsMultiOrderSchema`. Any other top-level field returns HTTP 400.
 
 ### Leg Object Fields
 
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | offset | Strike offset: ATM, ITM1-ITM50, OTM1-OTM50 | Mandatory | - |
-| option_type | Option type: CE or PE | Mandatory | - |
-| action | Order action: BUY or SELL | Mandatory | - |
-| quantity | Order quantity | Mandatory | - |
-| expiry_date | Leg-specific expiry (for diagonal spreads) | Optional | Uses common expiry |
+| option_type | Option type: CE or PE (lowercase accepted) | Mandatory | - |
+| action | Order action: BUY or SELL (lowercase accepted) | Mandatory | - |
+| quantity | Order quantity, positive integer | Mandatory | - |
+| splitsize | Split size for this leg (0 = no split) | Optional | 0 |
+| expiry_date | Leg-specific expiry (for calendar and diagonal spreads) | Optional | Uses the top-level expiry |
 | pricetype | Price type: MARKET, LIMIT, SL, SL-M | Optional | MARKET |
-| product | Product type: MIS, NRML | Optional | MIS |
-| splitsize | Split size for this leg | Optional | 0 |
+| product | Product type: MIS or NRML. CNC is rejected for options | Optional | MIS |
+| price | Limit price (for LIMIT orders) | Optional | 0 |
+| trigger_price | Trigger price (for SL orders) | Optional | 0 |
+| disclosed_quantity | Disclosed quantity | Optional | 0 |
+
+A leg carries no `symbol` and no `strike`: the contract is resolved from `offset` plus the shared `underlying`. Any field outside this list returns HTTP 400 for the whole request.
 
 ## Response Fields
 
@@ -212,6 +220,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionsmultiorder \
 - If a leg fails, subsequent legs are still attempted
 - The **underlying_ltp** is used for all legs to ensure consistent ATM calculation
 - The request schema accepts 1 to 20 legs; broker limits can be stricter.
+- **Rate limit**: `ORDER_RATE_LIMIT`, default 10 requests per second
 
 ---
 

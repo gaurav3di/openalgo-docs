@@ -76,7 +76,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelallorder \
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
-| strategy | Strategy identifier | Optional | - |
+| strategy | Strategy identifier | Mandatory | - |
+
+`CancelAllOrderSchema` declares exactly these two fields and both are required. Omitting `strategy` returns HTTP 400, and any additional field returns HTTP 400 as well.
 
 ## Response Fields
 
@@ -103,8 +105,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelallorder \
   - AMO orders (if supported by broker)
 - Orders that are **already executed** or **in transit** cannot be cancelled
 - The API returns success even if some orders fail to cancel
-- Use **strategy** parameter to track which strategy initiated the cancellation
+- The **strategy** value is used for event logging and tracking; it does not filter which orders are cancelled. Every eligible open order is cancelled regardless of which strategy placed it.
 - This is a **bulk operation** - use with caution in production
+- **Rate limit**: `API_RATE_LIMIT`, not `ORDER_RATE_LIMIT`
 
 ## Use Cases
 

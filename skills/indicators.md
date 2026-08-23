@@ -2,7 +2,7 @@
 
 ## OpenAlgo Indicator Skills for Agentic Coding Tools
 
-A comprehensive collection of technical indicator skills for charting, analysis, and custom indicator development using OpenAlgo. Works with **40+ AI coding agents** via [skills.sh](https://github.com/vercel-labs/skills) — including Claude Code, Cursor, Codex, OpenCode, Cline, Windsurf, GitHub Copilot, Gemini CLI, Roo Code, and more.
+A comprehensive collection of technical indicator skills for charting, analysis, and custom indicator development using OpenAlgo. Works with **40+ AI coding agents** via [skills.sh](https://github.com/vercel-labs/skills), including Claude Code, Cursor, Codex, OpenCode, Cline, Windsurf, GitHub Copilot, Gemini CLI, Roo Code, and more.
 
 Supports **Indian markets** via OpenAlgo and **US/Global markets** via yfinance. Includes 100+ Numba-optimized indicators, Plotly dark-themed charts, Dash and Streamlit web dashboards, real-time WebSocket feeds, multi-symbol scanners, and a custom indicator builder with Numba JIT + NumPy.
 
@@ -69,7 +69,7 @@ The `npx skills add` command detects which agents you have installed and places 
 | **India (F\&O)**   | OpenAlgo    | `client.history(exchange="NFO")`       | NIFTY30DEC25FUT      |
 | **US/Global**      | yfinance    | `yf.download()`                        | AAPL, MSFT, SPY      |
 
-> **Market detection**: If a symbol looks Indian (SBIN, RELIANCE, NIFTY), skills use OpenAlgo. If US (AAPL, MSFT), skills use yfinance. Automatic — no configuration needed.
+> **Market detection**: If a symbol looks Indian (SBIN, RELIANCE, NIFTY), skills use OpenAlgo. If US (AAPL, MSFT), skills use yfinance. Automatic, no configuration needed.
 
 ### Capabilities
 
@@ -78,11 +78,11 @@ The `npx skills add` command detects which agents you have installed and places 
 | Command                | What It Does                                                                                                                                               |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/indicator-setup`     | Detects OS, creates venv, installs all packages (openalgo, plotly, dash, streamlit, numba, yfinance, matplotlib, seaborn), configures `.env` with API keys |
-| `/indicator-chart`     | Charts any indicator on a symbol with Plotly dark theme — overlay or subplot, with signal markers and plain-language explanation                           |
-| `/custom-indicator`    | Creates a custom indicator using Numba JIT + NumPy — generates `indicator.py` + `chart.py` + `benchmark.py`                                                |
-| `/indicator-dashboard` | Builds a Plotly Dash or Streamlit web application — single-symbol, multi-symbol, multi-timeframe, or scanner dashboard                                     |
-| `/indicator-scanner`   | Scans multiple symbols (NIFTY 50, BANKNIFTY stocks) with indicator conditions — RSI, EMA crossover, Supertrend, volume spike                               |
-| `/live-feed`           | Real-time indicator computation on WebSocket streaming data — LTP, quote, or depth mode with rolling buffer                                                |
+| `/indicator-chart`     | Charts any indicator on a symbol with Plotly dark theme, overlay or subplot, with signal markers and plain-language explanation                           |
+| `/custom-indicator`    | Creates a custom indicator using Numba JIT + NumPy, generates `indicator.py` + `chart.py` + `benchmark.py`                                                |
+| `/indicator-dashboard` | Builds a Plotly Dash or Streamlit web application, single-symbol, multi-symbol, multi-timeframe, or scanner dashboard                                     |
+| `/indicator-scanner`   | Scans multiple symbols (NIFTY 50, BANKNIFTY stocks) with indicator conditions, RSI, EMA crossover, Supertrend, volume spike                               |
+| `/live-feed`           | Real-time indicator computation on WebSocket streaming data, LTP, quote, or depth mode with rolling buffer                                                |
 
 #### Pre-Built Chart Templates (13)
 
@@ -125,12 +125,12 @@ The `npx skills add` command detects which agents you have installed and places 
 
 Install any supported AI coding agent. For example:
 
-* [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — `npm install -g @anthropic-ai/claude-code`
-* [Cursor](https://cursor.com) — Desktop IDE with built-in AI
-* [Codex](https://github.com/openai/codex) — `npm install -g @openai/codex`
-* [OpenCode](https://github.com/opencode-ai/opencode) — `go install github.com/opencode-ai/opencode@latest`
-* [Cline](https://github.com/cline/cline) — VS Code extension
-* [Windsurf](https://windsurf.com) — Desktop IDE with AI
+* [Claude Code](https://docs.anthropic.com/en/docs/claude-code): `npm install -g @anthropic-ai/claude-code`
+* [Cursor](https://cursor.com): Desktop IDE with built-in AI
+* [Codex](https://github.com/openai/codex): `npm install -g @openai/codex`
+* [OpenCode](https://github.com/opencode-ai/opencode): `go install github.com/opencode-ai/opencode@latest`
+* [Cline](https://github.com/cline/cline): VS Code extension
+* [Windsurf](https://windsurf.com): Desktop IDE with AI
 * Or any of the [40+ supported agents](https://github.com/vercel-labs/skills)
 
 Then install the skills:
@@ -141,7 +141,7 @@ npx skills add marketcalls/openalgo-indicator-skills
 
 #### 2. Data Source Setup
 
-**Indian Markets** — requires [OpenAlgo](https://github.com/marketcalls/openalgo):
+**Indian Markets**, requires [OpenAlgo](https://github.com/marketcalls/openalgo):
 
 ```bash
 git clone https://github.com/marketcalls/openalgo.git
@@ -152,7 +152,7 @@ python app.py
 
 OpenAlgo runs locally at `http://127.0.0.1:5000`. You need a broker account connected via OpenAlgo and an API key from the dashboard. See [OpenAlgo documentation](https://docs.openalgo.in/).
 
-**US/Global Markets** — no setup needed. Uses yfinance (public Yahoo Finance data).
+**US/Global Markets**, no setup needed. Uses yfinance (public Yahoo Finance data).
 
 #### 3. Python Environment Setup
 
@@ -175,7 +175,7 @@ cp .env.sample .env
 
 ### Usage Examples
 
-#### `/indicator-setup` — Environment Setup
+#### `/indicator-setup`: Environment Setup
 
 Detects OS, creates venv, installs all dependencies, and collects API keys into `.env`.
 
@@ -184,7 +184,7 @@ Detects OS, creates venv, installs all dependencies, and collects API keys into 
 /indicator-setup python3.12
 ```
 
-#### `/indicator-chart` — Chart Any Indicator
+#### `/indicator-chart`: Chart Any Indicator
 
 Create a Plotly chart with indicator overlays or subplots. Auto-detects overlay vs subplot positioning.
 
@@ -201,7 +201,7 @@ Create a Plotly chart with indicator overlays or subplots. Auto-detects overlay 
 /indicator-chart rsi MSFT
 ```
 
-#### `/custom-indicator` — Build Custom Indicators
+#### `/custom-indicator`: Build Custom Indicators
 
 Create a Numba-optimized custom indicator with chart and benchmark.
 
@@ -211,7 +211,7 @@ Create a Numba-optimized custom indicator with chart and benchmark.
 /custom-indicator momentum-squeeze
 ```
 
-#### `/indicator-dashboard` — Web Dashboards
+#### `/indicator-dashboard`: Web Dashboards
 
 Build a Plotly Dash or Streamlit web application with live charts.
 
@@ -227,7 +227,7 @@ Build a Plotly Dash or Streamlit web application with live charts.
 /indicator-dashboard streamlit-scanner
 ```
 
-#### `/indicator-scanner` — Scan Stocks
+#### `/indicator-scanner`: Scan Stocks
 
 Screen multiple symbols with indicator conditions.
 
@@ -239,7 +239,7 @@ Screen multiple symbols with indicator conditions.
 /indicator-scanner volume-spike
 ```
 
-#### `/live-feed` — Real-Time WebSocket
+#### `/live-feed`: Real-Time WebSocket
 
 Stream live prices with indicator computation.
 
@@ -276,7 +276,7 @@ fig.update_layout(template="plotly_dark", xaxis_type="category")
 
 #### Custom Indicators with Numba
 
-Build your own indicators with Numba `@njit(cache=True, nogil=True)` — never `fastmath=True` (breaks NaN handling).
+Build your own indicators with Numba `@njit(cache=True, nogil=True)`, never `fastmath=True` (breaks NaN handling).
 
 ```python
 from numba import njit
@@ -292,7 +292,7 @@ def _my_indicator(data, period):
 
 #### Signal Cleaning with EXREM
 
-Always use `ta.exrem()` after generating raw buy/sell signals — removes excess signals until the opposite occurs.
+Always use `ta.exrem()` after generating raw buy/sell signals, removes excess signals until the opposite occurs.
 
 ```python
 from openalgo import ta
@@ -323,9 +323,9 @@ client.subscribe_ltp(
 Analyze the same symbol across 4 timeframes (5m, 15m, 1h, D) with trend alignment detection.
 
 ```
-STRONG BULLISH — All timeframes aligned
-STRONG BEARISH — All timeframes aligned
-MIXED — 2/4 bullish
+STRONG BULLISH, All timeframes aligned
+STRONG BEARISH, All timeframes aligned
+MIXED, 2/4 bullish
 ```
 
 #### OpenAlgo Data Methods

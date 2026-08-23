@@ -72,7 +72,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/analyzer/toggle \
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
-| mode | true to enable analyzer, false to disable | Mandatory | - |
+| mode | JSON boolean: `true` to enable analyzer, `false` to disable | Mandatory | - |
+
+`AnalyzerToggleSchema` declares only these two fields and both are required. Any other field returns HTTP 400. `mode` is a boolean field, so the strings `"analyze"` and `"live"` are not accepted as input even though they appear in the response.
 
 ## Response Fields
 

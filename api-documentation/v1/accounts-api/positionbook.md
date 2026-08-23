@@ -71,6 +71,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/positionbook \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 
+`PositionbookSchema` declares only `apikey`. Any other field returns HTTP 400.
+
 ## Response Fields
 
 | Field | Type | Description |

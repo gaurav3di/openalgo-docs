@@ -31,7 +31,11 @@ curl -X POST 'http://127.0.0.1:5000/api/v1/multioptiongreeks' \
 | `interest_rate` | No | Common annualized rate from 0 to 100 percent |
 | `expiry_time` | No | Common expiry time in `HH:MM` form |
 
-Each `symbols` item requires `symbol` and `exchange`. Valid exchanges are `NFO`, `BFO`, `CDS`, `MCX`, and `CRYPTO`. Optional `underlying_symbol` and `underlying_exchange` override underlying resolution for that item.
+These four fields are the complete top-level `MultiOptionGreeksSchema`. Any other top-level field returns HTTP 400. There is no per-item `interest_rate` and no per-item `expiry_time`: both are set once for the whole batch.
+
+Each `symbols` item requires `symbol` and `exchange`. Valid exchanges are the derivatives list: `NFO`, `BFO`, `MCX`, `CDS`, `NCO`, `BCD`, `NCDEX`, and `CRYPTO`. Optional `underlying_symbol` and `underlying_exchange` override underlying resolution for that item. Those four keys are the whole item schema; anything else returns HTTP 400 for the entire request.
+
+This endpoint uses the shared `API_RATE_LIMIT`, not the `GREEKS_RATE_LIMIT` that the single-symbol [Option Greeks](./optiongreeks.md) endpoint uses.
 
 ## Response
 

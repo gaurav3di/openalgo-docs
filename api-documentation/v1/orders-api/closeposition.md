@@ -53,7 +53,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/closeposition \
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
-| strategy | Strategy identifier | Optional | - |
+| strategy | Strategy identifier | Mandatory | - |
+
+`ClosePositionSchema` declares exactly these two fields and both are required. Omitting `strategy` returns HTTP 400. There is no per-symbol variant of this request: sending `symbol`, `exchange`, or `product` returns HTTP 400 because the schema does not declare them.
 
 ## Response Fields
 
@@ -83,6 +85,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/closeposition \
 | CDS | MIS, NRML |
 | BCD | MIS, NRML |
 | MCX | MIS, NRML |
+| NCDEX | MIS, NRML |
+| NCO | MIS, NRML |
+| CRYPTO | MIS, NRML |
 
 ## Notes
 
@@ -92,6 +97,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/closeposition \
 - Use with caution - there is no confirmation prompt
 - The operation affects **all positions** across all exchanges
 - For selective closing, use individual orders instead
+- **Rate limit**: `API_RATE_LIMIT`, not `ORDER_RATE_LIMIT`
 
 ## Use Cases
 

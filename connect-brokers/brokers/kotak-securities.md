@@ -68,7 +68,7 @@ Example:
 
 **If you don't remember it:**
 
-* NEO app → Profile → Settings → Change MPIN
+* NEO app > Profile > Settings > Change MPIN
 
 #### Retrieve API Credentials:
 
@@ -86,3 +86,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/kotak/callback'
 ```
 
 Integrating with the Kotak API opens up new possibilities for implementing automated and algorithmic trading strategies. It provides developers and traders with a robust platform to access market opportunities efficiently and effectively. To fully leverage the capabilities of the Kotak API, it is essential to follow best practices for API integration. This includes careful management of API rate limits, secure handling of API keys, and thorough error handling and logging. These practices help ensure a dependable and optimal trading experience using Kotak's advanced technological infrastructure.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/kotak/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

@@ -55,3 +55,10 @@ REDIRECT_URL = 'https://openalgo.local/hdfcsecurities/callback'
 ```
 
 By integrating HDFC Securities InvestRight with OpenAlgo you can automate order placement, monitor positions and stream live market data across all OpenAlgo surfaces. As a best practice, keep your API Key and API Secret out of version control, restrict them to your registered static IP, and rotate them from the developer portal if you suspect they have been exposed.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/hdfcsecurities/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

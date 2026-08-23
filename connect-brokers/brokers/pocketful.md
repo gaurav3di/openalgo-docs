@@ -18,17 +18,17 @@ The integration begins with creating an app via the Pocketful Developer Portal. 
 
 **Step-by-Step Guide to Registering Your App**
 
-**Step 1 – Visit the Developer Portal**\
+**Step 1: Visit the Developer Portal**\
 Go to [https://api.pocketful.in](https://api.pocketful.in/) and log in with your registered email ID or client ID.
 
 <figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
-**Step 2 – Navigate to 'Apps' and Create a New App**\
+**Step 2: Navigate to 'Apps' and Create a New App**\
 Click on “+ Create App”.
 
 <figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
-**Step 3 – Fill App Details**
+**Step 3: Fill App Details**
 
 * App Name: `OpenAlgo`
 * Redirect URL: `http://127.0.0.1:5000/pocketful/callback`
@@ -38,8 +38,8 @@ Click on “+ Create App”.
 
 Once created, the following credentials will be generated:
 
-* App ID → use as `API_KEY`
-* App Secret → use as `API_SECRET`
+* App ID: use as `API_KEY`
+* App Secret: use as `API_SECRET`
 
 <figure><img src="../../.gitbook/assets/image (107).png" alt=""><figcaption></figcaption></figure>
 
@@ -61,16 +61,19 @@ REDIRECT_URL = 'http://127.0.0.1:5000/pocketful/callback'
 
 #### Connecting Pocketful to OpenAlgo
 
-Once your `.env` file is populated with the credentials, OpenAlgo can initiate the login flow. This can be triggered locally:
+Once your `.env` file is populated with the credentials, restart OpenAlgo, open the broker page and click **Connect**. OpenAlgo builds the authorization URL from your credentials and sends you to `https://trade.pocketful.in/oauth2/auth`.
 
-```
-http://127.0.0.1:5000/pocketful/login
-```
-
-You will be redirected to Pocketful’s login screen. After successful login, the access token will be retrieved and stored locally, completing the authentication process.
+After you sign in, Pocketful redirects back to `http://127.0.0.1:5000/pocketful/callback` with an authorization code, which OpenAlgo exchanges for an access token and stores locally. That completes the authentication process.
 
 ***
 
 Integrating OpenAlgo with Pocketful's API allows traders and developers to leverage a powerful, cost-effective, and scalable infrastructure for building and deploying fully automated trading strategies. To ensure smooth performance, it is advisable to manage API limits, rotate tokens securely, and build retry/error-handling logic in production systems.
 
 ***
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/pocketful/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

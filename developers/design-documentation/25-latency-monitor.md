@@ -12,39 +12,39 @@ OpenAlgo tracks order execution latency at multiple stages to help identify perf
 └──────────────────────────────────────────────────────────────────────────────┘
 
                               Order Request
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Latency Tracking Points                             │
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           Latency Tracking Points                            │
 │                                                                              │
-│  T0: Request Received ───────────────────────────────────────────────────►  │
+│  T0: Request Received ───────────────────────────────────────────────────►   │
 │           │                                                                  │
 │           ▼                                                                  │
 │  ┌─────────────────┐                                                         │
-│  │  Validation     │  ← T1: validation_latency_ms                           │
+│  │  Validation     │  ← T1: validation_latency_ms                            │
 │  │  (API key,      │                                                         │
 │  │   schema)       │                                                         │
 │  └────────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │
 │  ┌─────────────────┐                                                         │
-│  │  Broker API     │  ← T2: rtt_ms (Round-Trip Time)                        │
+│  │  Broker API     │  ← T2: rtt_ms (Round-Trip Time)                         │
 │  │  Request/       │                                                         │
 │  │  Response       │                                                         │
 │  └────────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │
 │  ┌─────────────────┐                                                         │
-│  │  Response       │  ← T3: response_latency_ms                             │
+│  │  Response       │  ← T3: response_latency_ms                              │
 │  │  Processing     │                                                         │
 │  └────────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │
-│  T4: Response Sent ─────────────────────────────────────────────────────►   │
+│  T4: Response Sent ─────────────────────────────────────────────────────►    │
 │                                                                              │
-│  total_latency_ms = T4 - T0                                                 │
-│  overhead_ms = validation_ms + response_ms                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
+│  total_latency_ms = T4 - T0                                                  │
+│  overhead_ms = validation_ms + response_ms                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Metrics Tracked
@@ -62,28 +62,28 @@ OpenAlgo tracks order execution latency at multiple stages to help identify perf
 ### Database Schema
 
 ```
-┌────────────────────────────────────────────────────┐
-│              order_latency table                    │
-├──────────────────┬──────────────┬──────────────────┤
-│ Column           │ Type         │ Description      │
-├──────────────────┼──────────────┼──────────────────┤
-│ id               │ INTEGER PK   │ Auto-increment   │
-│ timestamp        │ DATETIME     │ Log time         │
-│ order_id         │ VARCHAR(100) │ Order ID         │
-│ user_id          │ INTEGER      │ User ID          │
-│ broker           │ VARCHAR(50)  │ Broker name      │
-│ symbol           │ VARCHAR(50)  │ Trading symbol   │
-│ order_type       │ VARCHAR(20)  │ MARKET/LIMIT/SL  │
-│ rtt_ms           │ FLOAT        │ Round-trip time  │
-│ validation_ms    │ FLOAT        │ Validation time  │
-│ response_ms      │ FLOAT        │ Response time    │
-│ overhead_ms      │ FLOAT        │ OpenAlgo overhead│
-│ total_latency_ms │ FLOAT        │ Total time       │
-│ request_body     │ JSON         │ Original request │
-│ response_body    │ JSON         │ Broker response  │
-│ status           │ VARCHAR(20)  │ SUCCESS/FAILED   │
-│ error            │ VARCHAR(500) │ Error message    │
-└──────────────────┴──────────────┴──────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                 order_latency table                 │
+├──────────────────┬──────────────┬───────────────────┤
+│ Column           │ Type         │ Description       │
+├──────────────────┼──────────────┼───────────────────┤
+│ id               │ INTEGER PK   │ Auto-increment    │
+│ timestamp        │ DATETIME     │ Log time          │
+│ order_id         │ VARCHAR(100) │ Order ID          │
+│ user_id          │ INTEGER      │ User ID           │
+│ broker           │ VARCHAR(50)  │ Broker name       │
+│ symbol           │ VARCHAR(50)  │ Trading symbol    │
+│ order_type       │ VARCHAR(20)  │ MARKET/LIMIT/SL   │
+│ rtt_ms           │ FLOAT        │ Round-trip time   │
+│ validation_ms    │ FLOAT        │ Validation time   │
+│ response_ms      │ FLOAT        │ Response time     │
+│ overhead_ms      │ FLOAT        │ OpenAlgo overhead │
+│ total_latency_ms │ FLOAT        │ Total time        │
+│ request_body     │ JSON         │ Original request  │
+│ response_body    │ JSON         │ Broker response   │
+│ status           │ VARCHAR(20)  │ SUCCESS/FAILED    │
+│ error            │ VARCHAR(500) │ Error message     │
+└──────────────────┴──────────────┴───────────────────┘
 ```
 
 ## Implementation
@@ -144,32 +144,32 @@ def place_order():
 ### Dashboard View
 
 ```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                         Latency Dashboard                                   │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Latency Dashboard                              │
 │                                                                             │
-│  Average Latency: 85ms     P95: 145ms     P99: 195ms     SLA: 98.5%       │
+│  Average Latency: 85ms     P95: 145ms     P99: 195ms     SLA: 98.5%         │
 │                                                                             │
-│ ┌─────────────────────────────────────────────────────────────────────────┐│
-│ │ Latency Distribution (Last 24h)                                          ││
-│ │                                                                          ││
-│ │  < 50ms  ████████████████████████████  45%                              ││
-│ │  50-100ms  ██████████████████  35%                                      ││
-│ │  100-150ms  ████████  15%                                               ││
-│ │  150-200ms  ██  4%                                                      ││
-│ │  > 200ms  █  1%                                                         ││
-│ └─────────────────────────────────────────────────────────────────────────┘│
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ Latency Distribution (Last 24h)                                         │ │
+│ │                                                                         │ │
+│ │  < 50ms  ████████████████████████████  45%                              │ │
+│ │  50-100ms  ██████████████████  35%                                      │ │
+│ │  100-150ms  ████████  15%                                               │ │
+│ │  150-200ms  ██  4%                                                      │ │
+│ │  > 200ms  █  1%                                                         │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
 │                                                                             │
-│ ┌─────────────────────────────────────────────────────────────────────────┐│
-│ │ Recent Orders                                                            ││
-│ │                                                                          ││
-│ │ Time      │ Symbol   │ Broker   │ RTT    │ Total  │ Status              ││
-│ ├───────────┼──────────┼──────────┼────────┼────────┼─────────────────────┤│
-│ │ 09:30:15  │ SBIN     │ zerodha  │ 65ms   │ 78ms   │ SUCCESS             ││
-│ │ 09:30:20  │ INFY     │ dhan     │ 45ms   │ 55ms   │ SUCCESS             ││
-│ │ 09:31:05  │ RELIANCE │ angel    │ 180ms  │ 195ms  │ SUCCESS             ││
-│ │ 09:32:10  │ TCS      │ zerodha  │ 350ms  │ 380ms  │ TIMEOUT             ││
-│ └─────────────────────────────────────────────────────────────────────────┘│
-└────────────────────────────────────────────────────────────────────────────┘
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ Recent Orders                                                           │ │
+│ │                                                                         │ │
+│ │ Time      │ Symbol   │ Broker   │ RTT    │ Total  │ Status              │ │
+│ ├───────────┼──────────┼──────────┼────────┼────────┼─────────────────────┤ │
+│ │ 09:30:15  │ SBIN     │ zerodha  │ 65ms   │ 78ms   │ SUCCESS             │ │
+│ │ 09:30:20  │ INFY     │ dhan     │ 45ms   │ 55ms   │ SUCCESS             │ │
+│ │ 09:31:05  │ RELIANCE │ angel    │ 180ms  │ 195ms  │ SUCCESS             │ │
+│ │ 09:32:10  │ TCS      │ zerodha  │ 350ms  │ 380ms  │ TIMEOUT             │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## SLA Targets
@@ -200,17 +200,17 @@ def calculate_sla_compliance():
 ### Per-Broker Stats
 
 ```
-┌────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┐
 │                    Broker Latency Comparison                    │
 │                                                                 │
-│  Broker      │ Avg RTT  │ P95 RTT  │ Success Rate             │
-│  ────────────┼──────────┼──────────┼───────────────────────── │
-│  zerodha     │ 65ms     │ 120ms    │ 99.8%                    │
-│  dhan        │ 45ms     │ 95ms     │ 99.9%                    │
-│  angel       │ 85ms     │ 160ms    │ 99.5%                    │
-│  shoonya     │ 75ms     │ 140ms    │ 99.7%                    │
-│  firstock    │ 55ms     │ 110ms    │ 99.6%                    │
-└────────────────────────────────────────────────────────────────┘
+│  Broker      │ Avg RTT  │ P95 RTT  │ Success Rate               │
+│  ────────────┼──────────┼──────────┼─────────────────────────   │
+│  zerodha     │ 65ms     │ 120ms    │ 99.8%                      │
+│  dhan        │ 45ms     │ 95ms     │ 99.9%                      │
+│  angel       │ 85ms     │ 160ms    │ 99.5%                      │
+│  shoonya     │ 75ms     │ 140ms    │ 99.7%                      │
+│  firstock    │ 55ms     │ 110ms    │ 99.6%                      │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Alerting

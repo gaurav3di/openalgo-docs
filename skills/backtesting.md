@@ -2,9 +2,9 @@
 
 ## VectorBT Backtesting Skills for Agentic Coding Tools
 
-A comprehensive collection of backtesting skills for trading strategies using VectorBT. Works with **40+ AI coding agents** via [skills.sh](https://github.com/vercel-labs/skills) — including Claude Code, Cursor, Codex, OpenCode, Cline, Windsurf, GitHub Copilot, Gemini CLI, Roo Code, and more.
+A comprehensive collection of backtesting skills for trading strategies using VectorBT. Works with **40+ AI coding agents** via [skills.sh](https://github.com/vercel-labs/skills), including Claude Code, Cursor, Codex, OpenCode, Cline, Windsurf, GitHub Copilot, Gemini CLI, Roo Code, and more.
 
-Supports **Indian markets**, **US markets**, and **Crypto markets** with realistic transaction cost modeling, TA-Lib indicators, market-specific benchmarking, QuantStats tearsheets, and robustness testing. Broker-neutral by design — fee models use industry-standard references that can be customized for any broker.
+Supports **Indian markets**, **US markets**, and **Crypto markets** with realistic transaction cost modeling, TA-Lib indicators, market-specific benchmarking, QuantStats tearsheets, and robustness testing. Broker-neutral by design: fee models use industry-standard references that can be customized for any broker.
 
 ### Quick Install
 
@@ -78,7 +78,7 @@ The `npx skills add` command detects which agents you have installed and places 
 | `/setup`            | Detects OS, creates venv, installs TA-Lib + all packages, creates `backtesting/` folders, configures `.env` with API keys                  |
 | `/backtest`         | Generates a complete backtest script with signals, market-specific fees, benchmark comparison, plain-language report, QuantStats tearsheet |
 | `/optimize`         | Parameter grid search with TA-Lib indicators, tqdm progress bars, Plotly heatmaps, best params vs benchmark                                |
-| `/quick-stats`      | Inline code block (no file) — fetch data, run EMA crossover, print compact stats + benchmark alpha                                         |
+| `/quick-stats`      | Inline code block (no file): fetch data, run EMA crossover, print compact stats + benchmark alpha                                         |
 | `/strategy-compare` | Side-by-side comparison of multiple strategies on same symbol, overlaid equity curves                                                      |
 
 #### Pre-Built Strategy Templates (12)
@@ -123,12 +123,12 @@ The `npx skills add` command detects which agents you have installed and places 
 
 Install any supported AI coding agent. For example:
 
-* [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — `npm install -g @anthropic-ai/claude-code`
-* [Cursor](https://cursor.com) — Desktop IDE with built-in AI
-* [Codex](https://github.com/openai/codex) — `npm install -g @openai/codex`
-* [OpenCode](https://github.com/opencode-ai/opencode) — `go install github.com/opencode-ai/opencode@latest`
-* [Cline](https://github.com/cline/cline) — VS Code extension
-* [Windsurf](https://windsurf.com) — Desktop IDE with AI
+* [Claude Code](https://docs.anthropic.com/en/docs/claude-code): `npm install -g @anthropic-ai/claude-code`
+* [Cursor](https://cursor.com): Desktop IDE with built-in AI
+* [Codex](https://github.com/openai/codex): `npm install -g @openai/codex`
+* [OpenCode](https://github.com/opencode-ai/opencode): `go install github.com/opencode-ai/opencode@latest`
+* [Cline](https://github.com/cline/cline): VS Code extension
+* [Windsurf](https://windsurf.com): Desktop IDE with AI
 * Or any of the [40+ supported agents](https://github.com/vercel-labs/skills)
 
 Then install the skills:
@@ -139,7 +139,7 @@ npx skills add marketcalls/vectorbt-backtesting-skills
 
 #### 2. Data Source Setup
 
-**Indian Markets** — requires [OpenAlgo](https://github.com/marketcalls/openalgo):
+**Indian Markets**: requires [OpenAlgo](https://github.com/marketcalls/openalgo):
 
 ```bash
 git clone https://github.com/marketcalls/openalgo.git
@@ -150,9 +150,9 @@ python app.py
 
 OpenAlgo runs locally at `http://127.0.0.1:5000`. You need a broker account connected via OpenAlgo and an API key from the dashboard. See [OpenAlgo documentation](https://docs.openalgo.in/).
 
-**US Markets** — no setup needed. Uses yfinance (public Yahoo Finance data).
+**US Markets**: no setup needed. Uses yfinance (public Yahoo Finance data).
 
-**Crypto Markets** — no setup needed for public data (yfinance or CCXT). Exchange API keys are optional (only for private endpoints).
+**Crypto Markets**: no setup needed for public data (yfinance or CCXT). Exchange API keys are optional (only for private endpoints).
 
 #### 3. Python Environment Setup
 
@@ -239,7 +239,7 @@ Compare multiple strategies side-by-side with benchmark.
 
 #### Multi-Market Transaction Costs
 
-Realistic fee models for each market, auto-selected based on the asset. All fee constants are configurable — adjust for your broker by changing the `fees` and `fixed_fees` values.
+Realistic fee models for each market, auto-selected based on the asset. All fee constants are configurable; adjust for your broker by changing the `fees` and `fixed_fees` values.
 
 **Indian Market Fees (Reference: Zerodha)**
 
@@ -283,7 +283,7 @@ ema_fast = pd.Series(tl.EMA(close.values, timeperiod=10), index=close.index)
 
 #### OpenAlgo TA for Specialty Indicators
 
-Supertrend, Donchian, Ichimoku, HMA, KAMA, ALMA, ZLEMA, VWMA — plus signal utilities (exrem, crossover, crossunder, flip).
+Supertrend, Donchian, Ichimoku, HMA, KAMA, ALMA, ZLEMA, VWMA, plus signal utilities (exrem, crossover, crossunder, flip).
 
 ```python
 from openalgo import ta
@@ -444,9 +444,9 @@ backtesting/
 | `parameter-optimization.md` | Broadcasting and loop-based optimization, heatmaps                             |
 | `performance-analysis.md`   | Stats, metrics, benchmark comparison, CAGR calculation                         |
 | `plotting.md`               | Candlestick (category x-axis), VectorBT plots, custom Plotly                   |
-| `indian-market-costs.md`    | Indian market fee model — delivery, intraday, F\&O (reference: Zerodha)        |
-| `us-market-costs.md`        | US market fee model — stocks, options, futures (reference: IBKR)               |
-| `crypto-market-costs.md`    | Crypto fee model — spot, perpetual futures, funding rates (reference: Binance) |
+| `indian-market-costs.md`    | Indian market fee model: delivery, intraday, F\&O (reference: Zerodha)        |
+| `us-market-costs.md`        | US market fee model: stocks, options, futures (reference: IBKR)               |
+| `crypto-market-costs.md`    | Crypto fee model: spot, perpetual futures, funding rates (reference: Binance) |
 | `futures-backtesting.md`    | SEBI revised lot sizes (Dec 2025), US contract specs, value sizing             |
 | `long-short-trading.md`     | Simultaneous long/short, direction comparison                                  |
 | `csv-data-resampling.md`    | Loading CSV data, resampling with Indian market alignment                      |

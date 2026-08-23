@@ -98,27 +98,70 @@ cd openalgo
 **7. Use docker-compose.yaml**
 
 * Edit/verify `docker-compose.yaml` inside `/openalgo`
-* If you have build the docker image in previous step, you can comment the build and its nested tags (using #) in `docker-compose.yaml` file.
+* If you have built the docker image in the previous step, you can comment the `build:` block and its nested keys (using #) in `docker-compose.yaml`.
 *   Launch services:
 
     ```
-    docker-compose up -d
+    docker compose up -d
     ```
+
+    Use the `docker compose` subcommand (Compose v2). The standalone `docker-compose` v1 binary is end of life and is not installed by the `get-docker.sh` script above.
 
 **8. Configure Nginx Reverse Proxy**
 
 * Reference: [Install Multi-Script Example](https://github.com/marketcalls/openalgo/blob/main/install/install-multi.sh)
-*   Typical location blocks for nginx:
+*   Typical location blocks for nginx. OpenAlgo publishes **two** ports, so you need both: the Flask app on `5000` and the WebSocket proxy on `8765`. Without the `/ws` block the dashboard loads but live prices never update.
 
     ```
+    location = /ws {
+        proxy_pass http://127.0.0.1:8765;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+        proxy_buffering off;
+    }
+
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8765/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+        proxy_buffering off;
+    }
+
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:5000/socket.io/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+
     location / {
-        proxy_pass http://localhost:<openalgo-port>;
+        proxy_pass http://127.0.0.1:5000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
     ```
+*   Do not add `Upgrade` / `Connection "upgrade"` headers to the `location / {` block. Doing so sends every ordinary request upstream with a bogus upgrade header, which breaks HTTP/1.1 keep-alive to Gunicorn and shows up as intermittent failures. Only the `/ws`, `/ws/` and `/socket.io/` blocks need them.
+*   Then set the matching values in `.env` so the browser is told the right address, and so OpenAlgo trusts the forwarded client IP:
+
+    ```dotenv
+    HOST_SERVER = 'https://yourdomain.com'
+    WEBSOCKET_URL='wss://yourdomain.com/ws'
+    WEBSOCKET_HOST='0.0.0.0'
+    TRUST_PROXY_HEADERS = 'TRUE'
+    ```
+
+    Leave `ZMQ_HOST` on `127.0.0.1`. It is the unauthenticated internal tick bus and must never be reachable off the host.
 * Adapt your domain/server settings accordingly.
 
 ### Persistent Storage (Recommended Practice)
@@ -139,14 +182,28 @@ I prefer to separate out the runtime files and folders from the github cloned fo
              strategies/
              db/
     ```
-*   Update `docker-compose.yaml` [example](https://github.com/marketcalls/openalgo/blob/main/docker-compose.yaml):
+*   Update `docker-compose.yaml` [example](https://github.com/marketcalls/openalgo/blob/main/docker-compose.yaml). The application lives at `/app` inside the container, so the container-side path of every bind mount must start with `/app`:
 
     ```
     volumes:
-      - /work/storage/openalgo/keys:/openalgo/keys
-      - /work/storage/openalgo/strategies:/openalgo/strategies
-      # Add other mounts as required
+      - /work/storage/openalgo/db:/app/db
+      - /work/storage/openalgo/log:/app/log
+      - /work/storage/openalgo/keys:/app/keys
+      - /work/storage/openalgo/strategies:/app/strategies
+      - /work/storage/openalgo/tmp:/app/tmp
+      - /work/storage/openalgo/.env:/app/.env
     ```
+
+    Mounting to `/openalgo/...` writes to a directory the application never reads, so nothing persists. The shipped `docker-compose.yaml` uses named volumes for these same five paths; replace them with bind mounts only if you want the files visible on the host filesystem.
+
+{% hint style="warning" %}
+The container runs as UID/GID 1000. Give the host directories and the `.env` file that ownership, or the first-run secret rotation cannot write and the worker restarts in a loop:
+
+```
+sudo chown -R 1000:1000 /work/storage/openalgo
+sudo chmod 600 /work/storage/openalgo/.env
+```
+{% endhint %}
 
 ### Securing your setup
 

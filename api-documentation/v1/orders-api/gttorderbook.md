@@ -93,6 +93,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/gttorderbook \
 |-----------|-------------|--------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 
+`GTTOrderBookSchema` declares only `apikey`. Any other field, including `strategy`, returns HTTP 400. This resource uses `API_RATE_LIMIT`, not `ORDER_RATE_LIMIT`.
+
 ## Response Fields
 
 | Field | Type | Description |

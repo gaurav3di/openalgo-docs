@@ -110,10 +110,16 @@ curl -X POST http://127.0.0.1:5000/api/v1/whatsapp/notify \
 | `document_path` | string | Server-local path to a document file (PDF, CSV, etc.). |
 | `caption` | string | Caption attached to the image. For documents, sent as a follow-up text. |
 | `filename` | string | Override the document's display name on the recipient's device. |
-| `wait_for_delivery` | boolean | Default `true`. Blocks until wars returns and includes a per-recipient delivery report. Set explicitly to `false` for fire-and-forget queuing. |
+| `wait_for_delivery` | boolean | Default `true`. Blocks until the WhatsApp bridge returns and includes a per-recipient delivery report. Set explicitly to `false` for fire-and-forget queuing. |
 
 Exactly one recipient form is required: `self`, `username`, `phone`, or
-`phones`. Combining is not supported.
+`phones`. Combining is not supported. The recipient fields are checked in the
+order `self`, `phones`, `phone`, `username`, and the first one present wins.
+
+This endpoint reads the JSON body directly rather than through a marshmallow
+schema, so unrecognized keys are ignored instead of returning HTTP 400. The
+API key may also be supplied as an `X-API-KEY` header or an `apikey` query
+parameter.
 
 ## Response Fields (`wait_for_delivery: false`)
 
@@ -125,13 +131,23 @@ Exactly one recipient form is required: `self`, `username`, `phone`, or
 
 ## Response Fields (default, synchronous)
 
-`data` contains the per-recipient report from `send_sync`:
+`data` contains the per-recipient delivery report:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `sent` | array | JIDs that wars confirmed accepted |
+| `sent` | array | JIDs the WhatsApp bridge confirmed it accepted |
 | `failed` | array | `[{ "to": "<jid>", "error": "<msg>" }, ...]` |
 | `skipped` | int | Recipients trimmed by the 5-recipient cap |
+
+## Errors
+
+| Status | Condition |
+|---:|---|
+| 400 | No recipient specified, `phones` is not a list, no valid phone in `phones`, an invalid `phone`, none of `message`/`image_path`/`document_path` supplied, `message` longer than 4096 characters, or an attachment path outside the allowlist |
+| 401 | Missing or invalid API key |
+| 404 | `username` is not found or is not linked to WhatsApp |
+| 409 | WhatsApp is not paired or not connected. Pair the device from the `/whatsapp` page first |
+| 429 | `WHATSAPP_RATE_LIMIT` exceeded, default 30 per minute |
 
 ## Notes
 

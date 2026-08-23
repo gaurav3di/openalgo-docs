@@ -72,7 +72,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/depth \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | symbol | Trading symbol | Mandatory | - |
-| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX | Mandatory | - |
+| exchange | Any value in the shared `VALID_EXCHANGES` list | Mandatory | - |
+
+These three fields are the complete `DepthSchema`. Any other field, including a depth-level count, returns HTTP 400. The number of levels returned is whatever the broker supplies.
 
 ## Response Fields
 

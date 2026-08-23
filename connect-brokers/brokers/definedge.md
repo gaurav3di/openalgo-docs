@@ -52,3 +52,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/definedge/callback'
 * The **REDIRECT\_URL** should match the one registered with your API application.
 
 Follow these steps to integrate Definedge with OpenAlgo successfully. If you encounter any issues, refer to the Definedge API documentation for further assistance.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/definedge/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

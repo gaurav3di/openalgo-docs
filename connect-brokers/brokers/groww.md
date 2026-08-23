@@ -41,3 +41,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/groww/callback'
 ```
 
 Integrating OpenAlgo with Groww's trading API allows retail traders to leverage India’s most popular stockbroking platform for building and deploying their own algorithmic trading strategies. It’s a powerful combination for automating trading decisions while using a broker trusted by millions. As with any integration, be sure to handle token management carefully, log errors effectively, and build retry mechanisms to handle token expiry and downtime.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/groww/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

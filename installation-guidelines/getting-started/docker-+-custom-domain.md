@@ -14,7 +14,7 @@ wget https://raw.githubusercontent.com/marketcalls/openalgo/refs/heads/main/inst
 
 #### Prerequisites
 
-* Fresh Ubuntu 20.04+ or Debian 11+ server
+* Fresh Ubuntu 22.04 LTS or later, or Debian 12 or later. `install-docker.sh` refuses to run on any other distribution: it checks the OS ID and exits unless it is `ubuntu` or `debian`.
 * Root access OR non-root user with sudo privileges
 * Domain name pointed to your server IP
 * Server with at least 1GB RAM (2GB recommended)
@@ -62,17 +62,17 @@ The script will ask you for:
 
 #### What the Script Does
 
-1. ✅ Updates system packages
-2. ✅ Installs Docker & Docker Compose
-3. ✅ Installs Nginx web server
-4. ✅ Installs Certbot for SSL
-5. ✅ Clones OpenAlgo repository to `/opt/openalgo`
-6. ✅ Configures environment variables
-7. ✅ Sets up firewall (UFW)
-8. ✅ Obtains SSL certificate from Let's Encrypt
-9. ✅ Configures Nginx with SSL and WebSocket support
-10. ✅ Builds and starts Docker container
-11. ✅ Creates management helper scripts
+1. Updates system packages
+2. Installs Docker and Docker Compose v2
+3. Installs Nginx web server
+4. Installs Certbot for SSL
+5. Clones OpenAlgo repository to `/opt/openalgo`
+6. Configures environment variables, generating a fresh `APP_KEY` and `API_KEY_PEPPER`, setting `HOST_SERVER` and `WEBSOCKET_URL` to your domain, and switching `WEBSOCKET_HOST` and `FLASK_HOST_IP` to `0.0.0.0` so the published container ports are reachable. `ZMQ_HOST` is deliberately left on `127.0.0.1`.
+7. Sets up firewall (UFW)
+8. Obtains SSL certificate from Let's Encrypt
+9. Configures Nginx with SSL and WebSocket support
+10. Builds and starts the Docker container
+11. Creates management helper scripts
 
 **Installation typically takes 5-10 minutes.**
 
@@ -127,16 +127,30 @@ sudo docker compose up -d
 
 #### File Locations
 
-| Item             | Location                                    |
-| ---------------- | ------------------------------------------- |
-| Installation     | `/opt/openalgo`                             |
-| Configuration    | `/opt/openalgo/.env`                        |
-| Database         | Docker volume `openalgo_db`                 |
-| Application Logs | `/opt/openalgo/log`                         |
-| Broker Logs      | `/opt/openalgo/logs`                        |
-| Nginx Config     | `/etc/nginx/sites-available/yourdomain.com` |
-| SSL Certificates | `/etc/letsencrypt/live/yourdomain.com/`     |
-| Backups          | `/opt/openalgo-backups/`                    |
+| Item             | Location                                        |
+| ---------------- | ----------------------------------------------- |
+| Installation     | `/opt/openalgo`                                 |
+| Configuration    | `/opt/openalgo/.env` (bind-mounted to `/app/.env`) |
+| Database         | Docker volume `openalgo_db`                     |
+| Application Logs | Docker volume `openalgo_log`                    |
+| Strategies       | Docker volume `openalgo_strategies`             |
+| Keys             | Docker volume `openalgo_keys`                   |
+| Nginx Config     | `/etc/nginx/sites-available/yourdomain.com`     |
+| SSL Certificates | `/etc/letsencrypt/live/yourdomain.com/`         |
+| Backups          | `/opt/openalgo-backups/`                        |
+
+Everything except `.env` is a Docker **named volume**, not a host directory, which is what keeps your data safe across `docker compose build --no-cache`. Docker Compose prefixes the real volume name with the project name (taken from the directory), so an install in `/opt/openalgo` produces `openalgo_openalgo_db`. Read the actual name rather than assuming it:
+
+```bash
+sudo docker volume ls --format '{{.Name}}' | grep openalgo
+```
+
+To reach the files themselves, copy them out of the running container:
+
+```bash
+cd /opt/openalgo
+sudo docker compose cp openalgo:/app/log ./log-snapshot
+```
 
 #### Updating OpenAlgo
 
@@ -175,14 +189,18 @@ sudo docker compose logs -f
 sudo docker inspect openalgo-web --format='{{.State.Health.Status}}'
 ```
 
-**Permission errors with logs:**
+**Permission errors on `.env`:**
+
+The container runs as UID/GID 1000. If the bind-mounted `.env` is owned by another user, the first-run secret rotation cannot write to it and the worker restarts in a loop:
 
 ```bash
-# Fix log directory permissions
 cd /opt/openalgo
-sudo chown -R 1000:1000 log logs
+sudo chown 1000:1000 .env
+sudo chmod 600 .env
 sudo docker compose restart
 ```
+
+The `log`, `db`, `strategies`, `keys` and `tmp` paths are Docker named volumes owned by the container, so they need no host-side permission fixing.
 
 **WebSocket connection issues:**
 
@@ -307,30 +325,53 @@ openalgo-backup
 
 Backups are stored in `/opt/openalgo-backups/` and include:
 
-* Database
-* Configuration (.env file)
-* Strategy files
-* Last 7 backups are kept automatically
+* `.env` (your configuration, stored as a plain file)
+* `db.tar.gz` (an archive of the database volume's contents)
+* `strategies.tar.gz` (an archive of the strategies volume, when present)
+* The last 7 backups are kept automatically
+
+The script stops the stack, resolves the **real** volume names by inspecting the running container, archives them, verifies the database archive is not empty, and restarts the stack whether or not it succeeded.
 
 **Restore from Backup:**
 
+The archive holds nested tarballs of volume contents, so extracting it into `/opt/openalgo` does not restore anything. Unpack the outer archive first, then write each inner archive back into its volume:
+
 ```bash
-# Stop container
 cd /opt/openalgo
 sudo docker compose stop
 
-# Extract backup (replace TIMESTAMP with actual value)
-sudo tar -xzf /opt/openalgo-backups/openalgo_backup_TIMESTAMP.tar.gz -C /opt/openalgo
+# 1. Unpack the outer archive to a scratch directory
+TMP=$(mktemp -d)
+sudo tar -xzf /opt/openalgo-backups/openalgo_backup_TIMESTAMP.tar.gz -C "$TMP"
+ls "$TMP"        # .env  db.tar.gz  [strategies.tar.gz]
 
-# Fix permissions
-sudo chown -R 1000:1000 log logs
+# 2. Find the real volume names (Compose prefixes them with the project name)
+DB_VOL=$(sudo docker inspect openalgo-web \
+  --format '{{range .Mounts}}{{if eq .Destination "/app/db"}}{{.Name}}{{end}}{{end}}')
+ST_VOL=$(sudo docker inspect openalgo-web \
+  --format '{{range .Mounts}}{{if eq .Destination "/app/strategies"}}{{.Name}}{{end}}{{end}}')
+echo "$DB_VOL $ST_VOL"
 
-# Start container
+# 3. Write the contents back into the volumes
+sudo docker run --rm -v "$DB_VOL":/data -v "$TMP":/backup alpine \
+  sh -c 'rm -rf /data/* && tar -xzf /backup/db.tar.gz -C /data'
+
+[ -f "$TMP/strategies.tar.gz" ] && sudo docker run --rm -v "$ST_VOL":/data -v "$TMP":/backup alpine \
+  sh -c 'rm -rf /data/* && tar -xzf /backup/strategies.tar.gz -C /data'
+
+# 4. Restore the configuration file and its ownership
+sudo cp "$TMP/.env" /opt/openalgo/.env
+sudo chown 1000:1000 /opt/openalgo/.env
+sudo chmod 600 /opt/openalgo/.env
+sudo rm -rf "$TMP"
+
 sudo docker compose start
-
-# Verify
 openalgo-status
 ```
+
+{% hint style="warning" %}
+Restoring `.env` restores `API_KEY_PEPPER` and `FERNET_SALT` along with it. Those two must match the database you are restoring: they derive the password hashes and the encryption key for broker tokens. Restoring a database without its matching `.env` leaves you unable to log in.
+{% endhint %}
 
 #### Complete Uninstallation
 
@@ -371,35 +412,50 @@ sudo rm -rf /var/lib/docker
 
 #### Supported Brokers
 
-| Broker         | Code           | XTS API |
-| -------------- | -------------- | ------- |
-| 5paisa         | `fivepaisa`    | No      |
-| 5paisa XTS     | `fivepaisaxts` | Yes     |
-| AliceBlue      | `aliceblue`    | No      |
-| Angel One      | `angel`        | No      |
-| Compositedge   | `compositedge` | Yes     |
-| Definedge      | `definedge`    | No      |
-| Dhan           | `dhan`         | No      |
-| Dhan Sandbox   | `dhan_sandbox` | No      |
-| Firstock       | `firstock`     | No      |
-| Flattrade      | `flattrade`    | No      |
-| Fyers          | `fyers`        | No      |
-| Groww          | `groww`        | No      |
-| IBulls         | `ibulls`       | Yes     |
-| IIFL           | `iifl`         | Yes     |
-| IndMoney       | `indmoney`     | No      |
-| Kotak          | `kotak`        | No      |
-| Motilal Oswal  | `motilal`      | No      |
-| Paytm Money    | `paytm`        | No      |
-| Pocketful      | `pocketful`    | No      |
-| Shoonya        | `shoonya`      | No      |
-| Tradejini      | `tradejini`    | No      |
-| Upstox         | `upstox`       | No      |
-| Wisdom Capital | `wisdom`       | Yes     |
-| Zebu           | `zebu`         | No      |
-| Zerodha        | `zerodha`      | No      |
+All 36 broker plugins in `VALID_BROKERS` are selectable during installation:
+
+| Broker          | Code             | XTS API |
+| --------------- | ---------------- | ------- |
+| 5paisa          | `fivepaisa`      | No      |
+| 5paisa XTS      | `fivepaisaxts`   | Yes     |
+| AliceBlue       | `aliceblue`      | No      |
+| Angel One       | `angel`          | No      |
+| Arrow           | `arrow`          | No      |
+| Compositedge    | `compositedge`   | Yes     |
+| Definedge       | `definedge`      | No      |
+| Delta Exchange  | `deltaexchange`  | No      |
+| Dhan            | `dhan`           | No      |
+| Dhan Sandbox    | `dhan_sandbox`   | No      |
+| Firstock        | `firstock`       | No      |
+| Flattrade       | `flattrade`      | No      |
+| Fyers           | `fyers`          | No      |
+| Groww           | `groww`          | No      |
+| HDFC Securities | `hdfcsecurities` | No      |
+| HDFC Sky        | `hdfcsky`        | No      |
+| IBulls          | `ibulls`         | Yes     |
+| IIFL            | `iifl`           | Yes     |
+| Iiflcapital     | `iiflcapital`    | No      |
+| IndMoney        | `indmoney`       | No      |
+| JainamXTS       | `jainamxts`      | Yes     |
+| Kotak Neo       | `kotak`          | No      |
+| Motilal Oswal   | `motilal`        | No      |
+| Mstock          | `mstock`         | No      |
+| Nubra           | `nubra`          | No      |
+| Paytm Money     | `paytm`          | No      |
+| Pocketful       | `pocketful`      | No      |
+| RMoney          | `rmoney`         | Yes     |
+| Samco           | `samco`          | No      |
+| Shoonya         | `shoonya`        | No      |
+| Tradejini       | `tradejini`      | No      |
+| TradeSmart      | `tradesmart`     | No      |
+| Upstox          | `upstox`         | No      |
+| Wisdom Capital  | `wisdom`         | Yes     |
+| Zebu            | `zebu`           | No      |
+| Zerodha         | `zerodha`        | No      |
 
 **Note:** XTS API brokers require additional market data API credentials during installation.
+
+**Note:** Delta Exchange is a 24/7 crypto venue. The installer detects it and sets `DISABLE_SESSION_EXPIRY = 'true'` so the daily 03:00 IST auto-logout does not apply.
 
 #### System Requirements
 
@@ -408,7 +464,7 @@ sudo rm -rf /var/lib/docker
 * 1 vCPU
 * 1GB RAM
 * 10GB disk space
-* Ubuntu 20.04+ or Debian 11+
+* Ubuntu 22.04 LTS or later, or Debian 12 or later
 * Internet connection
 
 **Recommended:**

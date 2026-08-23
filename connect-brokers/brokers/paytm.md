@@ -10,8 +10,8 @@
 2. Click on **Create New App**
 3.  Choose the following APIs:
 
-    * ✅ **Trading API**
-    * ✅ **Live Broadcast API** (optional, but recommended for real-time data)
+    * **Trading API**
+    * **Live Broadcast API** (optional, but recommended for real-time data)
 
     <figure><img src="../../.gitbook/assets/image (3) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 4. Click **Proceed**
@@ -70,3 +70,10 @@ Make sure your local server is running and accessible at the callback URL you de
 Integrating with the Paytm Money API opens the door to building high-performance, automated trading workflows within the OpenAlgo ecosystem. To ensure seamless integration and performance, it’s essential to follow recommended practices such as securely storing your API credentials, managing session states effectively, and implementing robust logging and error-handling routines. With the right setup, Paytm Money becomes a dependable backbone for executing your trading strategies with precision and confidence.
 
 ***
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/paytm/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

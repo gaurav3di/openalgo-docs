@@ -1,6 +1,6 @@
 # Futures to Options Module
 
-The "Futures to Options Execution Module" is a highly modular and extensible Pine Script™ template designed for advanced TradingView users, particularly those interested in automating options trading based on futures signals. Here’s a concise overview of the template and how traders can build on it:
+The "Futures to Options Execution Module" is a highly modular and extensible Pine Script template designed for advanced TradingView users, particularly those interested in automating options trading based on futures signals. Here’s a concise overview of the template and how traders can build on it:
 
 <figure><img src="../../.gitbook/assets/image (4) (1).png" alt=""><figcaption></figcaption></figure>
 
@@ -407,10 +407,42 @@ table.cell_set_text(tLog, row = 1, column = 1, text = exittext )
 
 <figure><img src="../../.gitbook/assets/image (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
-#### 💡 How Traders Can Use It
+### Creating the Alert
+
+Every block in this template builds its payload into an `alert_message` on the `strategy.entry`, `strategy.close` and `strategy.exit` calls. Nothing reaches OpenAlgo until you wire that through a TradingView alert.
+
+1. Add the strategy to the chart, open the alert dialog and choose the strategy (not an indicator condition) as the alert source.
+2. In the **Message** box put exactly:
+
+```
+{{strategy.order.alert_message}}
+```
+
+That placeholder is what pushes the JSON that Block 5 assembled. If you leave TradingView's default message in place, OpenAlgo receives text it cannot parse and no order is placed.
+
+3. Under **Notifications**, tick **Webhook URL** and enter your OpenAlgo placeorder endpoint:
+
+```
+https://your-openalgo-domain/api/v1/placeorder
+```
+
+The template always sends a plain order for a named option symbol, so `/api/v1/placeorder` is the correct endpoint. Do not point it at `/api/v1/placesmartorder`, which expects a `position_size` field the template never emits.
+
+4. Set the alert to expire as late as TradingView allows, and remember it fires on the strategy's own events, so the alert's trigger condition is driven by the script rather than by a chart condition you pick.
+
+**Things to check before going live**
+
+* Your OpenAlgo instance must be reachable from the internet. TradingView cannot post to `127.0.0.1`. Set `HOST_SERVER` in `.env` to your tunnel or custom domain.
+* `Expiry` is the OpenAlgo expiry in DDMMMYY form, for example `30JAN25`. Update it on every rollover, because the script concatenates it into the option symbol verbatim.
+* `Quantity(Lots)` is multiplied by `LotSize` before it is sent, so OpenAlgo receives the total number of units. That matches what the API expects. Keep `LotSize` in step with the exchange's current lot size.
+* `Strike Interval` must match the underlying, for example 50 for NIFTY and 100 for BANKNIFTY, otherwise the strike arithmetic in Block 1 produces a symbol that does not exist.
+* The spot price used for strike selection is taken from the previous bar (`SpotC = SpotC1[1]`), which keeps the symbol stable within the bar but means a fast gap can leave the strike one interval behind.
+* Test with the OpenAlgo API Analyzer switched on before sending real orders.
+
+#### How Traders Can Use It
 
 * **Plug-and-Play Strategy Development**: Insert your own logic into Block 3 to test strategies like Moving Average Crossovers, RSI signals, or ML-driven logic.
 * **Backtest Ready**: Instantly simulate performance with adjustable historical timeframes.
 * **Options Execution**: Automatically converts directional futures signals into options trades with customizable offsets.
 * **Risk Management**: Activate dynamic SL/TP configurations for robust risk control.
-* **API Alerts**: Sends alert messages structured for API consumption—ideal for auto-execution platforms.
+* **API Alerts**: Sends alert messages structured for API consumption, ready for auto-execution platforms.

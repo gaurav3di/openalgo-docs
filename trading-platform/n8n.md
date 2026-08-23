@@ -27,7 +27,7 @@ This section guides you through creating a workflow in n8n, a powerful open-sour
 * **OpenAlgo:** You must have OpenAlgo installed and running in http://127.0.0.1:5000/. Ensure your broker is properly configured within OpenAlgo.
 * Install NodeJS as n8n backend relies on **Node.js runtime** to execute workflows, handle API calls, and manage automation.
 * **n8n:** n8n should be installed and running.&#x20;
-* **Broker API Key:** You'll need your broker's API key and API Secret that you have configured in OpenAlgo.
+* **OpenAlgo API Key:** You'll need the OpenAlgo API key generated on the API Key page of the OpenAlgo dashboard. This is what the workflow sends in the `apikey` field. It is not your broker's API key or API secret.
 * **Basic Understanding of Cron Expressions:** [Cron expressions](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.scheduletrigger/#custom-cron-interval) are used to define schedules. We'll provide the specific expression you need, but it's helpful to have a basic understanding.
 
 #### **How to Start n8n on Windows**
@@ -90,7 +90,7 @@ This will start the n8n server. You should see logs like:
 #### **Access n8n in Browser**
 
 Open your browser and go to:\
-👉 **http://localhost:5678/**
+**http://localhost:5678/**
 
 Now you can start creating workflows.
 
@@ -135,7 +135,7 @@ Now you can start creating workflows.
 * Configure the node as follows:
   * **Method:** POST
   * **URL:** http://127.0.0.1:5000/api/v1/placeorder (This assumes OpenAlgo is running on your local machine. Adjust if you're using a different URL.)
-  * **Authentication:** None (assuming your OpenAlgo instance doesn't require authentication for local requests. If you have authentication enabled, configure it accordingly.)
+  * **Authentication:** None. OpenAlgo does not use HTTP authentication on `/api/v1/*`. It authenticates the request from the `apikey` field inside the JSON body, so leave n8n's own authentication set to None.
   * **Send Body:** Check this box.
   * **Body Content Type:** JSON
   * **Specify Body:** Choose Using JSON
@@ -164,7 +164,7 @@ Now you can start creating workflows.
   * action: "SELL" for the short straddle.
   * pricetype: "MARKET" for a market order.
   * product: "MIS" for intraday trading.
-  * quantity: Set to "50" (or your desired quantity, likely a multiple of the lot size).
+  * quantity: Total units, not lots. Set it to a whole multiple of the contract lot size. The example uses "75", one NIFTY lot at the time of writing. Confirm the current lot size before you go live.
 
 **4. Add the Second HTTP Request Node (SELL NIFTY Put Option)**
 

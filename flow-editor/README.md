@@ -2,18 +2,18 @@
 
 Flow is OpenAlgo's node-graph strategy builder at `/flow`. You wire market
 data into indicators, indicators into conditions, and conditions into order
-execution — no Python required.
+execution, no Python required.
 
 This section is the **technical reference**. It assumes you are building a
 real strategy and want to know exactly what each node does, what the
 execution model guarantees, and where the boundaries are.
 
-* [Concepts and Execution Model](concepts.md) — nodes, edges, variables, how a run actually proceeds
-* [Node Reference](node-reference.md) — all 61 nodes, their fields and their outputs
-* [Market Data and Timeframes](market-data.md) — quotes, history, lookback, bar limits
-* [Indicators](indicators.md) — all 116 indicators, lookback, nesting
-* [Tutorials](tutorials.md) — eight complete, tested strategies
-* [Limitations and Gotchas](limitations.md) — read this before going live
+* [Concepts and Execution Model](concepts.md): nodes, edges, variables, how a run actually proceeds
+* [Node Reference](node-reference.md): all 61 nodes, their fields and their outputs
+* [Market Data and Timeframes](market-data.md): quotes, history, lookback, bar limits
+* [Indicators](indicators.md): all 116 indicators, lookback, nesting
+* [Tutorials](tutorials.md): eight complete, tested strategies
+* [Limitations and Gotchas](limitations.md): read this before going live
 
 ---
 
@@ -38,7 +38,7 @@ execution model guarantees, and where the boundaries are.
 | Pause within a run | `delay`, `waitUntil` |
 | Arithmetic and state within a run | `mathExpression`, `variable` |
 
-61 node types in total — every one documented in the
+61 node types in total, every one documented in the
 [Node Reference](node-reference.md). Every order node calls the same service functions as
 `/api/v1/`, so Analyzer (sandbox) mode, Action Center approval, and Telegram
 or WhatsApp alerts all behave identically to an API-placed order.
@@ -57,16 +57,16 @@ covers each in detail with workarounds.
 | **No pandas objects** | Variables are JSON. You get arrays of records and single values, not a `pandas.Series`. |
 | **Max 200 bars per fetch** | Deep history (10 years of 1-minute data) is refused by design. See [Market Data](market-data.md). |
 | **Triggers cannot read upstream data** | A trigger is the entry point, so its fields cannot contain `{{variables}}`. |
-| **Indicators need one symbol** | `correlation`, `beta`, `crossover`, `crossunder` need two independent series and are not available as a single `indicator` node. Crossovers are built from two indicator nodes — see [Tutorial 3](tutorials.md#3-crossovers). |
+| **Indicators need one symbol** | `correlation`, `beta`, `crossover`, `crossunder` need two independent series and are not available as a single `indicator` node. Crossovers are built from two indicator nodes, see [Tutorial 3](tutorials.md#3-crossovers). |
 
 ## Live vs Analyzer mode
 
 Flow does not have its own paper-trading switch. It inherits the global
 **Analyzer** toggle:
 
-* **Analyzer on** — orders are simulated by the Sandbox engine. Order ids are
+* **Analyzer on**: orders are simulated by the Sandbox engine. Order ids are
   real-looking, `mode` is `analyze`, and nothing reaches your broker.
-* **Analyzer off** — orders go to the live broker.
+* **Analyzer off**: orders go to the live broker.
 
 Always build and validate a strategy with Analyzer on. Every example in this
 section was verified in Analyzer mode.

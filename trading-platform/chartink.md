@@ -58,15 +58,16 @@ OpenAlgo uses a dual-queue system to handle orders efficiently:
 
 
 
-1. Go to the Chartink section in OpenAlgo
+1. Open **Trading Platforms** from the OpenAlgo navigation menu (`/platforms`) and click the **Chartink** card, which takes you to `/chartink`
 2. Click "New Strategy" button
 3. Fill in the strategy details:
-   * Name: A unique name for your strategy (will be prefixed with 'chartink\_')
+   * Name: A unique name for your strategy (will be prefixed with 'chartink\_'). Only letters, numbers, spaces, hyphens and underscores are accepted.
    * Type: Choose between Intraday or Positional
    * For Intraday strategies:
      * Start Time: Trading start time (default: 09:15)
      * End Time: Trading end time (default: 15:00)
      * Square Off Time: Auto square-off time (default: 15:15)
+     * The three times are validated as start time < end time < square off time. A strategy that breaks that order is rejected.
 
 <figure><img src="../.gitbook/assets/Screenshot 2024-12-17 at 4.31.16 PM.png" alt=""><figcaption></figcaption></figure>
 
@@ -119,10 +120,10 @@ After creating a strategy, you need to configure the symbols to trade:
 1. Click "Configure Symbols" on your strategy
 2. Add symbols individually:
    * Search and select Symbol (with exchange badge)
-   * Select Exchange (NSE by default)
-   * Enter Quantity
-   * Select Product Type (MIS for Intraday, CNC for Positional)
-3.  Or bulk add symbols using CSV format:
+   * Select Exchange. Only NSE and BSE are accepted here.
+   * Enter Quantity, in units and not lots
+   * Select Product Type. Only MIS and CNC are accepted. NRML is not offered, because Chartink strategies are equity only.
+3.  Or bulk add symbols using CSV format, one row per symbol as `ChartinkSymbol,Exchange,Quantity,Product`:
 
     ```
     RELIANCE,NSE,10,MIS
@@ -200,7 +201,7 @@ For positional strategies:
 
 When a Chartink alert is received:
 
-*   For new positions:
+*   For entries (a BUY or SHORT keyword in the scan name), sent to `/api/v1/placeorder`:
 
     ```
     {
@@ -208,13 +209,15 @@ When a Chartink alert is received:
       "strategy": "Strategy Name",
       "symbol": "SYMBOL",
       "exchange": "NSE/BSE",
-      "action": "BUY/SELL/SHORT/COVER",
+      "action": "BUY or SELL",
       "product": "MIS/CNC",
       "pricetype": "MARKET",
       "quantity": "configured-quantity"
     }
     ```
-*   For square-off (intraday):
+
+    Note that `action` is always `BUY` or `SELL` on the wire. SHORT becomes `SELL` and COVER becomes `BUY`; the SHORT and COVER keywords exist only to tell OpenAlgo whether the alert is an entry or an exit.
+*   For exits and for the scheduled square-off, sent to `/api/v1/placesmartorder`:
 
     ```
     {
@@ -226,9 +229,14 @@ When a Chartink alert is received:
       "product": "MIS",
       "pricetype": "MARKET",
       "quantity": "0",
-      "position_size": "0"
+      "position_size": "0",
+      "price": "0",
+      "trigger_price": "0",
+      "disclosed_quantity": "0"
     }
     ```
+
+    With `position_size` set to `0`, OpenAlgo looks up the live open position and flattens it, working out the direction itself. The `action` field in this payload is therefore ignored, and if the position is already flat no order reaches the broker.
 
 ### Strategy Management
 
@@ -338,7 +346,7 @@ All errors are logged and can be viewed in the API analyzer.
 * API keys are required for order placement
 * Session validation for web interface
 * Secure storage of credentials
-* Rate limiting on endpoints
+* Rate limiting on the webhook endpoint, 100 requests per minute by default (`WEBHOOK_RATE_LIMIT`)
 * Confirmation dialogs for deletions
 
 ### Troubleshooting

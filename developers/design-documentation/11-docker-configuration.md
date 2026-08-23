@@ -7,78 +7,78 @@ OpenAlgo provides Docker support for containerized deployment with **3-stage bui
 ## Architecture Diagram
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                        Docker Architecture (3-Stage Build)                    │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                      Docker Architecture (3-Stage Build)                      │
+└───────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Stage 1: Python Builder                               │
-│                        (python:3.12-bullseye)                                │
-│                                                                              │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │  1. Install build dependencies (curl, build-essential)                │  │
-│  │  2. Copy pyproject.toml                                               │  │
-│  │  3. Create virtual environment with uv                                │  │
-│  │  4. Install dependencies: uv sync                                     │  │
-│  │  5. Add gunicorn + eventlet>=0.40.3                                   │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Stage 2: Frontend Builder                             │
-│                        (node:22-bullseye-slim)                               │
-│                                                                              │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │  1. Copy frontend/package*.json                                       │  │
-│  │  2. npm ci                                                            │  │
-│  │  3. Copy frontend source                                              │  │
-│  │  4. npm run build (React production build)                            │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Stage 3: Production                                   │
-│                        (python:3.12-slim-bullseye)                           │
-│                                                                              │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │  1. Set timezone to IST (Asia/Kolkata)                                │  │
-│  │  2. Install runtime dependencies (curl, libopenblas0, libgomp1,       │  │
-│  │     libgfortran5) for scipy/numba                                     │  │
-│  │  3. Create non-root user (appuser)                                    │  │
-│  │  4. Copy venv from python-builder                                     │  │
-│  │  5. Copy application source                                           │  │
-│  │  6. Copy frontend/dist from frontend-builder                          │  │
-│  │  7. Create directories (log, db, strategies, keys, tmp, numba_cache)  │  │
-│  │  8. Set permissions (keys: 700, others: 755)                          │  │
-│  │  9. Run as appuser                                                    │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Container Runtime (start.sh)                          │
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────┐    │
-│  │  1. Railway/Cloud Detection & .env Generation                       │    │
-│  │     - Detects HOST_SERVER environment variable                      │    │
-│  │     - Auto-generates .env with all required variables               │    │
-│  │     - Supports 40+ configuration options                            │    │
-│  │  2. Directory Setup                                                 │    │
-│  │  3. Database Migrations (if /app/upgrade/migrate_all.py exists)     │    │
-│  │  4. WebSocket Proxy (background, PID tracked)                       │    │
-│  │  5. Signal Handling (SIGTERM, SIGINT cleanup)                       │    │
-│  │  6. Gunicorn with Eventlet                                          │    │
-│  │     - Single worker (-w 1) for WebSocket compatibility              │    │
-│  │     - Timeout: 300s, Graceful timeout: 30s                          │    │
-│  │     - Worker temp dir: /tmp/gunicorn_workers                        │    │
-│  └────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  Exposed Ports:                                                             │
-│  - 5000: Flask application (or PORT env var for Railway)                    │
-│  - 8765: WebSocket proxy                                                    │
-│  - 5555: ZeroMQ message bus (internal)                                      │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                            Stage 1: Python Builder                            │
+│                            (python:3.12-bullseye)                             │
+│                                                                               │
+│  ┌───────────────────────────────────────────────────────────────────────┐    │
+│  │  1. Install build dependencies (curl, build-essential)                │    │
+│  │  2. Copy pyproject.toml                                               │    │
+│  │  3. Create virtual environment with uv                                │    │
+│  │  4. Install dependencies: uv sync                                     │    │
+│  │  5. Add gunicorn + eventlet>=0.40.3                                   │    │
+│  └───────────────────────────────────────────────────────────────────────┘    │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                           Stage 2: Frontend Builder                           │
+│                            (node:22-bullseye-slim)                            │
+│                                                                               │
+│  ┌───────────────────────────────────────────────────────────────────────┐    │
+│  │  1. Copy frontend/package*.json                                       │    │
+│  │  2. npm ci                                                            │    │
+│  │  3. Copy frontend source                                              │    │
+│  │  4. npm run build (React production build)                            │    │
+│  └───────────────────────────────────────────────────────────────────────┘    │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                              Stage 3: Production                              │
+│                          (python:3.12-slim-bullseye)                          │
+│                                                                               │
+│  ┌───────────────────────────────────────────────────────────────────────┐    │
+│  │  1. Set timezone to IST (Asia/Kolkata)                                │    │
+│  │  2. Install runtime dependencies (curl, libopenblas0, libgomp1,       │    │
+│  │     libgfortran5) for scipy/numba                                     │    │
+│  │  3. Create non-root user (appuser)                                    │    │
+│  │  4. Copy venv from python-builder                                     │    │
+│  │  5. Copy application source                                           │    │
+│  │  6. Copy frontend/dist from frontend-builder                          │    │
+│  │  7. Create directories (log, db, strategies, keys, tmp, numba_cache)  │    │
+│  │  8. Set permissions (keys: 700, others: 755)                          │    │
+│  │  9. Run as appuser                                                    │    │
+│  └───────────────────────────────────────────────────────────────────────┘    │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                         Container Runtime (start.sh)                          │
+│                                                                               │
+│  ┌────────────────────────────────────────────────────────────────────┐       │
+│  │  1. Railway/Cloud Detection & .env Generation                       │      │
+│  │     - Detects HOST_SERVER environment variable                      │      │
+│  │     - Auto-generates .env with all required variables               │      │
+│  │     - Supports 40+ configuration options                            │      │
+│  │  2. Directory Setup                                                 │      │
+│  │  3. Database Migrations (if /app/upgrade/migrate_all.py exists)     │      │
+│  │  4. WebSocket Proxy (background, PID tracked)                       │      │
+│  │  5. Signal Handling (SIGTERM, SIGINT cleanup)                       │      │
+│  │  6. Gunicorn with Eventlet                                          │      │
+│  │     - Single worker (-w 1) for WebSocket compatibility              │      │
+│  │     - Timeout: 300s, Graceful timeout: 30s                          │      │
+│  │     - Worker temp dir: /tmp/gunicorn_workers                        │      │
+│  └────────────────────────────────────────────────────────────────────┘       │
+│                                                                               │
+│  Exposed Ports:                                                               │
+│  - 5000: Flask application (or PORT env var for Railway)                      │
+│  - 8765: WebSocket proxy                                                      │
+│  - 5555: ZeroMQ message bus (internal)                                        │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Dockerfile

@@ -14,7 +14,7 @@ This section outlines the key responsibilities every user must understand before
 
 * **No hidden logic**: OpenAlgo is 100% transparent. All execution logic is visible and customizable.
 * **Comparison with paid platforms**: Many commercial algo platforms hide their execution rules or charge high fees for access, forcing users to trust them blindly.
-* **Freedom with risk**: In OpenAlgo, transparency means you control everything—but also bear responsibility for testing, and reliability.
+* **Freedom with risk**: In OpenAlgo, transparency means you control everything, but you also bear responsibility for testing and reliability.
 
 ***
 
@@ -32,8 +32,8 @@ This section outlines the key responsibilities every user must understand before
 * **Low-code, not no-code**: OpenAlgo simplifies complexity but still requires coding knowledge to design and test strategies.
 * **What OpenAlgo is not**:
   * Not a guaranteed profit system.
-  * Not a compliance shield—users must follow broker and regulatory rules.
-  * Not a broker replacement—orders still pass through your broker’s RMS.
+  * Not a compliance shield: users must follow broker and regulatory rules.
+  * Not a broker replacement: orders still pass through your broker’s RMS.
 
 ***
 
@@ -55,7 +55,7 @@ This section outlines the key responsibilities every user must understand before
 
 ### 6. Strategy Development and Operational Discipline
 
-* **Build your own strategies**: OpenAlgo does not provide trading systems—you must design them yourself.
+* **Build your own strategies**: OpenAlgo does not provide trading systems: you must design them yourself.
 * **Testing before deployment**: Thorough backtesting and paper trading are mandatory before going live.
 * **Real-time Monitoring**: Algorithms must be continuously monitored. Users must be prepared to intervene when necessary.
 * **Documentation**: Keep records of strategies, trades, and performance for both analysis and regulatory needs.
@@ -95,6 +95,6 @@ The **goal is simplicity**: reduce the complexity of algo infrastructure so trad
 
 OpenAlgo is a **toolbox, not a solution**. It is designed to empower you with automation while keeping everything transparent and customizable. In return, you must accept the responsibilities of operating, securing, and maintaining your system.
 
-Open source thrives when freedom meets accountability. OpenAlgo gives you both—**the transparency of control, and the responsibility of ownership**.
+Open source thrives when freedom meets accountability. OpenAlgo gives you both: **the transparency of control, and the responsibility of ownership**.
 
 ***

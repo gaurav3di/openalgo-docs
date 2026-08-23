@@ -31,19 +31,19 @@ Visit [**https://www.indstocks.com/app/api-trading**](https://www.indstocks.com/
 
 TOTP setup is a **one-time** step done on the INDstocks website. You need your phone with an authenticator app (Google Authenticator, Microsoft Authenticator, Authy, 2FAS or Ente Auth).
 
-Step 1 — Open the Access Tokens page
+Step 1: Open the Access Tokens page
 
 Find the **Setup TOTP** card at the bottom of the page and click **Setup Now**.
 
 <figure><img src="../../.gitbook/assets/indmoney_1.PNG" alt=""><figcaption></figcaption></figure>
 
-Step 2 — Start the setup
+Step 2: Start the setup
 
 A panel opens explaining the three steps. Click **Setup TOTP** at the bottom.
 
 <figure><img src="../../.gitbook/assets/indmoney_2.PNG" alt=""><figcaption></figcaption></figure>
 
-Step 3 — Scan the QR code
+Step 3: Scan the QR code
 
 Scan the QR code with your authenticator app, or copy the setup code beneath it and enter it manually.
 
@@ -53,7 +53,7 @@ Scan the QR code with your authenticator app, or copy the setup code beneath it 
 
 Click **Continue**
 
-Step 4 — Confirm with a code
+Step 4: Confirm with a code
 
 Enter the current 6-digit code from your authenticator app and click **Enable Login**
 
@@ -61,9 +61,9 @@ You have **5 minutes** to complete this step. If it expires, start again from St
 
 <figure><img src="../../.gitbook/assets/indmoney_4.PNG" alt=""><figcaption></figcaption></figure>
 
-Step 5 — Copy your Client ID
+Step 5: Copy your Client ID
 
-TOTP is now enabled. Copy the **Client ID** shown — this is what OpenAlgo needs
+TOTP is now enabled. Copy the **Client ID** shown. This is what OpenAlgo needs.
 
 <figure><img src="../../.gitbook/assets/indmoney_5.PNG" alt=""><figcaption></figcaption></figure>
 
@@ -81,3 +81,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/indmoney/callback'
 ```
 
 Integrating OpenAlgo with Indmoney's API opens up possibilities for automated trading strategies, providing a powerful tool for traders and developers to exploit market opportunities efficiently. It's essential to follow best practices for API integration, including handling rate limits, managing API keys securely, and ensuring robust error handling and logging mechanisms are in place.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/indmoney/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

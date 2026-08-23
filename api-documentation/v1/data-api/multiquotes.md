@@ -98,14 +98,18 @@ curl -X POST http://127.0.0.1:5000/api/v1/multiquotes \
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
-| symbols | Array of symbol objects | Mandatory | - |
+| symbols | Array of symbol objects, at least one | Mandatory | - |
+
+`MultiQuotesSchema` declares only `apikey` and `symbols`. Any other top-level field returns HTTP 400.
 
 ### Symbol Object Fields
 
 | Field | Description |
 |-------|-------------|
-| symbol | Trading symbol |
-| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX |
+| symbol | Trading symbol. Mandatory |
+| exchange | Any value in the shared `VALID_EXCHANGES` list. Mandatory |
+
+Each item accepts only these two keys; an extra key inside an item returns HTTP 400 for the whole request.
 
 ## Response Fields
 

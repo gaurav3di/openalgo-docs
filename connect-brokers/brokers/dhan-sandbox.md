@@ -94,6 +94,12 @@ BROKER_API_SECRET = 'your_dhan_sandbox_token_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/dhan_sandbox/callback'
 ```
 
+{% hint style="info" %}
+The broker code is `dhan_sandbox`, with an underscore. It is a separate plugin from [Dhan](dhan.md), so switching between live and sandbox means changing `REDIRECT_URL` as well as the credentials.
+
+`BROKER_API_KEY` accepts either a bare client ID, as shown above, or the composite `client_id:::api_key` form used by the live Dhan plugin. Clicking **Connect** does not open a Dhan login page: OpenAlgo authenticates with the access token in `BROKER_API_SECRET` directly.
+{% endhint %}
+
 **Summary: Why It Matters for OpenAlgo**
 
 Integrating Dhan SandBox with OpenAlgo means:
@@ -104,3 +110,10 @@ Integrating Dhan SandBox with OpenAlgo means:
 * Enables workshops, testing, and community support for algo development.
 
 By setting up your sandbox environment with Dhan and OpenAlgo, you accelerate your readiness for live algorithmic trading while ensuring a risk-free development experience.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/dhan_sandbox/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

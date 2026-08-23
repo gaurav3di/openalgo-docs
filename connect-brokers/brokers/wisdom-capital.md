@@ -66,4 +66,11 @@ Ensure `.env` is correctly configured and that both APIs (order and market data)
 
 ### Final Note
 
-Integrating OpenAlgo with Wisdom Capital's XTS API gives you access to real-time market data and order execution in a programmable environment. Follow best practices—keep your API keys secure, implement appropriate error handling, and regularly monitor your API usage to ensure a smooth trading experience.
+Integrating OpenAlgo with Wisdom Capital's XTS API gives you access to real-time market data and order execution in a programmable environment. Follow best practices: keep your API keys secure, implement appropriate error handling, and regularly monitor your API usage to ensure a smooth trading experience.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/wisdom/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

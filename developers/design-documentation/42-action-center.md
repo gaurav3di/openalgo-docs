@@ -13,64 +13,64 @@ The Action Center is a centralized order approval system for semi-automated trad
 
                            External Order Request
                            (TradingView, API, etc.)
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Order Router Service                                │
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                             Order Router Service                             │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  should_route_to_pending(api_key, api_type)                          │   │
-│  │                                                                      │   │
-│  │  Check 1: Is user in semi_auto mode?                                │   │
-│  │  Check 2: Is this a restricted operation?                           │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  should_route_to_pending(api_key, api_type)                          │    │
+│  │                                                                      │    │
+│  │  Check 1: Is user in semi_auto mode?                                │     │
+│  │  Check 2: Is this a restricted operation?                           │     │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                    │                                         │
-│              ┌─────────────────────┴─────────────────────┐                  │
+│              ┌─────────────────────┴─────────────────────┐                   │
 │              │                                           │                   │
-│         Auto Mode                                   Semi-Auto Mode           │
-│         or Restricted                               (Queue Order)            │
+│          Auto Mode                                   Semi-Auto Mode          │
+│          or Restricted                               (Queue Order)           │
 │              │                                           │                   │
 │              ▼                                           ▼                   │
 │      Execute Immediately                        Create Pending Order         │
 │      with Broker                                in Action Center             │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                                           │
-                                                           ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Action Center UI                                    │
-│                          /action-center                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                               Action Center UI                               │
+│                                /action-center                                │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  [Pending (3)]  [Approved]  [Rejected]  [All Orders]                │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  [Pending (3)]  [Approved]  [Rejected]  [All Orders]                │     │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Statistics                                                          │   │
-│  │  Pending: 3  │  Buy: 2  │  Sell: 1  │  Approved: 15  │  Rejected: 2 │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  Statistics                                                          │    │
+│  │  Pending: 3  │  Buy: 2  │  Sell: 1  │  Approved: 15  │  Rejected: 2 │     │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Strategy │ Symbol │ Exchange │ Action │ Qty │ Price │ Actions      │   │
-│  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │  MyStrat  │ SBIN   │ NSE      │ BUY    │ 100 │ MKT   │ ✓ Approve    │   │
-│  │           │        │          │        │     │       │ ✗ Reject     │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  Strategy │ Symbol │ Exchange │ Action │ Qty │ Price │ Actions      │     │
+│  ├─────────────────────────────────────────────────────────────────────┤     │
+│  │  MyStrat  │ SBIN   │ NSE      │ BUY    │ 100 │ MKT   │ ✓ Approve    │     │
+│  │           │        │          │        │     │       │ ✗ Reject     │     │
+│  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
-│                         [Approve All Pending]                               │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
+│                            [Approve All Pending]                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                       │
                           User clicks Approve
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Pending Order Execution Service                           │
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                       Pending Order Execution Service                        │
 │                                                                              │
-│  1. Mark order status = 'approved'                                          │
-│  2. Execute order with broker API                                           │
-│  3. Get broker order status                                                 │
-│  4. Update broker_order_id and broker_status                                │
-│  5. Emit SocketIO event                                                     │
-└─────────────────────────────────────────────────────────────────────────────┘
+│  1. Mark order status = 'approved'                                           │
+│  2. Execute order with broker API                                            │
+│  3. Get broker order status                                                  │
+│  4. Update broker_order_id and broker_status                                 │
+│  5. Emit SocketIO event                                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Order Mode Configuration
@@ -95,40 +95,40 @@ Content-Type: application/json
 ## Semi-Auto Workflow
 
 ```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                        Semi-Auto Order Flow                                 │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            Semi-Auto Order Flow                             │
 │                                                                             │
-│  1. Order Received ────────────────────────────────────────────────────►   │
+│  1. Order Received ────────────────────────────────────────────────────►    │
 │           │                                                                 │
 │           ▼                                                                 │
-│  2. Check Order Mode ──────────────────────────────────────────────────►   │
+│  2. Check Order Mode ──────────────────────────────────────────────────►    │
 │           │                                                                 │
-│           │ semi_auto = True                                               │
+│           │ semi_auto = True                                                │
 │           ▼                                                                 │
-│  3. Create Pending Order ──────────────────────────────────────────────►   │
+│  3. Create Pending Order ──────────────────────────────────────────────►    │
 │           │                                                                 │
-│           ├──► Store in pending_orders table                               │
+│           ├──► Store in pending_orders table                                │
 │           │                                                                 │
-│           ├──► Emit 'pending_order_created' SocketIO event                 │
+│           ├──► Emit 'pending_order_created' SocketIO event                  │
 │           │                                                                 │
-│           └──► Return pending_order_id to caller                           │
+│           └──► Return pending_order_id to caller                            │
 │                       │                                                     │
 │                       ▼                                                     │
-│  4. User Reviews in Action Center ─────────────────────────────────────►   │
+│  4. User Reviews in Action Center ─────────────────────────────────────►    │
 │           │                                                                 │
-│           ├──────────────────┬──────────────────┐                          │
+│           ├──────────────────┬──────────────────┐                           │
 │           │                  │                  │                           │
-│        Approve            Reject             Ignore                         │
+│                Approve            Reject             Ignore                 │
 │           │                  │                  │                           │
 │           ▼                  ▼                  ▼                           │
-│  5a. Execute Order    5b. Mark Rejected    5c. Stays Pending               │
+│  5a. Execute Order    5b. Mark Rejected    5c. Stays Pending                │
 │      with Broker          Store reason                                      │
 │           │                  │                                              │
 │           ▼                  ▼                                              │
 │  6. Update Broker      Emit SocketIO                                        │
 │     Status                Event                                             │
 │                                                                             │
-└────────────────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Database Schema
@@ -136,28 +136,28 @@ Content-Type: application/json
 ### pending_orders Table
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                    pending_orders table                         │
-├──────────────────┬──────────────┬──────────────────────────────┤
-│ Column           │ Type         │ Description                  │
-├──────────────────┼──────────────┼──────────────────────────────┤
-│ id               │ INTEGER PK   │ Unique order identifier      │
-│ user_id          │ VARCHAR(255) │ User who placed order        │
-│ api_type         │ VARCHAR(50)  │ Order type                   │
-│ order_data       │ TEXT         │ JSON order details           │
-│ created_at       │ DATETIME     │ Creation time (UTC)          │
-│ created_at_ist   │ VARCHAR(50)  │ Creation time (IST)          │
-│ status           │ VARCHAR(20)  │ pending/approved/rejected    │
-│ approved_at      │ DATETIME     │ Approval time (UTC)          │
-│ approved_at_ist  │ VARCHAR(50)  │ Approval time (IST)          │
-│ approved_by      │ VARCHAR(255) │ Approver username            │
-│ rejected_at      │ DATETIME     │ Rejection time (UTC)         │
-│ rejected_at_ist  │ VARCHAR(50)  │ Rejection time (IST)         │
-│ rejected_by      │ VARCHAR(255) │ Rejector username            │
-│ rejected_reason  │ TEXT         │ Reason for rejection         │
-│ broker_order_id  │ VARCHAR(255) │ Broker's order ID            │
-│ broker_status    │ VARCHAR(20)  │ complete/open/rejected       │
-└──────────────────┴──────────────┴──────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      pending_orders table                       │
+├─────────────────┬──────────────┬────────────────────────────────┤
+│ Column          │ Type         │ Description                    │
+├─────────────────┼──────────────┼────────────────────────────────┤
+│ id              │ INTEGER PK   │ Unique order identifier        │
+│ user_id         │ VARCHAR(255) │ User who placed order          │
+│ api_type        │ VARCHAR(50)  │ Order type                     │
+│ order_data      │ TEXT         │ JSON order details             │
+│ created_at      │ DATETIME     │ Creation time (UTC)            │
+│ created_at_ist  │ VARCHAR(50)  │ Creation time (IST)            │
+│ status          │ VARCHAR(20)  │ pending/approved/rejected      │
+│ approved_at     │ DATETIME     │ Approval time (UTC)            │
+│ approved_at_ist │ VARCHAR(50)  │ Approval time (IST)            │
+│ approved_by     │ VARCHAR(255) │ Approver username              │
+│ rejected_at     │ DATETIME     │ Rejection time (UTC)           │
+│ rejected_at_ist │ VARCHAR(50)  │ Rejection time (IST)           │
+│ rejected_by     │ VARCHAR(255) │ Rejector username              │
+│ rejected_reason │ TEXT         │ Reason for rejection           │
+│ broker_order_id │ VARCHAR(255) │ Broker's order ID              │
+│ broker_status   │ VARCHAR(20)  │ complete/open/rejected         │
+└─────────────────┴──────────────┴────────────────────────────────┘
 ```
 
 ### Indexes

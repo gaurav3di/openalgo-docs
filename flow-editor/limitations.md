@@ -8,14 +8,14 @@ workaround; a few are hard boundaries.
 ### No state between runs
 
 `variable` values live for one run only. A counter incremented on Monday is
-back to zero on Tuesday — and back to zero on the very next run, minutes
+back to zero on Tuesday, and back to zero on the very next run, minutes
 later.
 
 **Do not** use a variable to answer "have I already entered today?".
 
 **Instead**, ask the broker, which is the real source of truth:
 
-* `positionCheck` with `condition: "not_exists"` — no open position
+* `positionCheck` with `condition: "not_exists"`: no open position
 * `orderBook` and inspect `{{orders.data.orders[0]...}}`
 * `openPosition` for a specific symbol's quantity
 
@@ -43,7 +43,7 @@ backtesting libraries. Port the validated logic into Flow for execution.
 ### No pandas objects
 
 Flow variables are JSON. `history` returns an array of record objects and
-`indicator` returns single values plus a fixed-length array — never a
+`indicator` returns single values plus a fixed-length array, never a
 `pandas.Series`.
 
 You can read individual values (`{{h.data[0].close}}`) and feed an array into
@@ -66,7 +66,7 @@ The practical case: you cannot make an `orderUpdateTrigger` watch
 `crossover`, `crossunder`, `cross`, `correlation`, and `beta` need two
 independent series. The `indicator` node reads one symbol.
 
-**Workaround.** Build crossovers from two indicator nodes plus an `andGate` —
+**Workaround.** Build crossovers from two indicator nodes plus an `andGate`; see
 [Tutorial 3](tutorials.md#3-crossovers). For correlation between two symbols,
 use the Python Strategy Host.
 
@@ -97,7 +97,7 @@ on `placeOrder` is one share. This is the most common sizing error.
 ### Gate wiring determines whether the else-branch works
 
 Feeding a gate through `sourceHandle: "true"` edges means the gate is only
-reached when the condition is true — so its `false` branch can never fire.
+reached when the condition is true, so its `false` branch can never fire.
 
 Use pass-through wiring (`targetHandle` only, no `sourceHandle`) whenever you
 need a working else-branch. See
@@ -110,7 +110,7 @@ literal `{{name.field}}` string is substituted and the workflow keeps
 running. Read the execution log after the first run and look for `{{` in the
 output.
 
-`varCondition` is the exception — it refuses to evaluate a non-numeric
+`varCondition` is the exception, it refuses to evaluate a non-numeric
 operand and takes neither branch, so a typo cannot route a trade.
 
 ### Index symbols need index exchanges
@@ -120,7 +120,7 @@ SENSEX/BANKEX). Their options trade on `NFO`/`BFO`.
 
 ### Offsets count bars, not days
 
-`offsetBars: 5` on a daily chart is five *trading* bars — seven calendar days
+`offsetBars: 5` on a daily chart is five *trading* bars, seven calendar days
 if a weekend intervenes, more across a holiday. `offsetBars: 0` is the last
 *closed* bar; today's forming candle is excluded.
 
@@ -131,7 +131,7 @@ discover what your broker offers. If an interval is unsupported, the node now
 reports the broker's own message.
 
 For unsupported timeframes, download 1-minute data into Historify and set
-`source: "db"` — it resamples any minute/hour interval from 1m, and W/M/Q/Y
+`source: "db"`, it resamples any minute/hour interval from 1m, and W/M/Q/Y
 from D, independent of broker capability.
 
 ### History is capped at 200 bars
@@ -157,14 +157,14 @@ Prefer one indicator node per distinct symbol/interval and reuse its
 ### One run at a time
 
 A second trigger arriving while a workflow is still running returns
-`already_running` and is dropped — it is not queued. Keep the schedule
+`already_running` and is dropped, it is not queued. Keep the schedule
 interval comfortably longer than the run takes.
 
 ### Analyzer mode is global
 
 There is no per-workflow paper-trading switch. Flow inherits the global
-Analyzer toggle. Verify which mode you are in before activating a workflow —
-the badge is in the header, and order results carry `mode: "analyze"` or
+Analyzer toggle. Verify which mode you are in before activating a workflow.
+The badge is in the header, and order results carry `mode: "analyze"` or
 `mode: "live"`.
 
 ---
@@ -176,7 +176,7 @@ order events. That gives it a few boundaries worth knowing before you wire an
 exit trigger to it.
 
 * **Only tagged orders count.** The book is fed by orders placed through
-  OpenAlgo carrying a `strategy` tag — Flow nodes and `/api/v1/` calls. A
+  OpenAlgo carrying a `strategy` tag, Flow nodes and `/api/v1/` calls. A
   position opened by hand in the broker terminal is invisible to it.
 * **Unrealized needs a live price.** Open legs are marked against the position
   book. A leg with no matching price is excluded and counted in

@@ -12,7 +12,7 @@
 Available fields: `{{q.data.ltp}}`, `.open`, `.high`, `.low`, `.prev_close`,
 `.volume`, `.oi`, `.bid`, `.ask`.
 
-`.high` and `.low` are **today's running session high and low** — useful for
+`.high` and `.low` are **today's running session high and low**, useful for
 stateless "did price come back to this level today?" logic without needing
 cross-run memory. [Tutorial 5](tutorials.md#5-previous-day-breakout-with-a-gap-filter)
 uses exactly this.
@@ -30,7 +30,7 @@ Three nodes read history, each answering a different question.
 | `barOffset` | "What was the close N bars back?" |
 | `priorPeriodOhlc` | "What was the previous day/hour/week/month's OHLC?" |
 
-### barOffset — N bars back
+### barOffset: N bars back
 
 ```json
 { "id": "b5", "type": "barOffset", "position": { "x": 0, "y": 100 },
@@ -41,14 +41,14 @@ Three nodes read history, each answering a different question.
 Exposes `{{bar5.open}}`, `.high`, `.low`, `.close`, `.volume`, `.timestamp`.
 
 **Offsets count bars, not calendar days.** `offsetBars: 0` is the most recent
-*closed* bar — today's still-forming candle is excluded. On a Wednesday,
+*closed* bar, today's still-forming candle is excluded. On a Wednesday,
 `offsetBars: 5` on a daily chart lands on the previous Tuesday: five trading
 bars back, which spans seven calendar days across the weekend.
 
 Because it counts bars, the same node covers "5 hours back" (`interval: "1h"`)
 or "30 minutes back" (`interval: "1m", offsetBars: 30`).
 
-### priorPeriodOhlc — previous period levels
+### priorPeriodOhlc: previous period levels
 
 ```json
 { "id": "pd", "type": "priorPeriodOhlc", "position": { "x": 0, "y": 100 },
@@ -57,7 +57,7 @@ or "30 minutes back" (`interval: "1m", offsetBars: 30`).
 ```
 
 `period` accepts `previous_hour`, `previous_day`, `previous_week`,
-`previous_month`. Weekly and monthly are aggregated from daily bars — high is
+`previous_month`. Weekly and monthly are aggregated from daily bars, high is
 the max, low the min, open the first, close the last of the completed period.
 
 Convenience aliases are provided alongside the raw fields:
@@ -97,14 +97,14 @@ demand with SQL**:
 
 | From stored | You can request |
 | --- | --- |
-| `1m` | any minute or hour interval — `2m`, `3m`, `4m`, `25m`, `2h`, … |
+| `1m` | any minute or hour interval, `2m`, `3m`, `4m`, `25m`, `2h`, … |
 | `D` | `W`, `M`, `Q`, `Y` |
 
 This is the answer to "my broker does not support 3-minute candles". Download
 1-minute data once into Historify, then every node can request `3m`
 regardless of broker capability.
 
-The symbol must already be in Historify — download it from the Historify page
+The symbol must already be in Historify, download it from the Historify page
 first.
 
 ## The 200-bar ceiling
@@ -112,7 +112,7 @@ first.
 **Every history fetch is capped at the most recent 200 bars.**
 
 This is deliberate. Ten years of daily data is ~2,500 rows, but ten years of
-1-minute data is ~900,000 rows — a download that takes minutes, exhausts the
+1-minute data is ~900,000 rows, a download that takes minutes, exhausts the
 broker's rate budget, and then sits in workflow memory. No indicator here
 needs that depth; a 200-period moving average is the deepest common window.
 
@@ -130,7 +130,7 @@ response, so the oversized fetch never leaves OpenAlgo:
 | `M` / `Q` / `Y` | capped at ~11 years |
 
 A second ceiling bounds the calendar span, because 200 quarterly bars would
-otherwise span 54 years and 200 yearly bars 219 years — ranges no broker
+otherwise span 54 years and 200 yearly bars 219 years, ranges no broker
 serves sensibly.
 
 The `history` node's explicit `startDate`/`endDate` is narrowed the same way.

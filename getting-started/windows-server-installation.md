@@ -19,17 +19,39 @@ Step-by-Step Installation Process:
 2. Access via RDP: Log into your instance using the Remote Desktop Connection tool with the Administrator credentials provided by your cloud console.
 3. Install Google Chrome: Open the default browser (Edge) to download and install Google Chrome for a better browsing experience on the server.
 4. Install Visual C++ Redistributable: Download and install the latest VC++ Redistributable (both x86 and x64). This is essential for libraries like Numba, which OpenAlgo uses for high-performance calculations.
-5. Install Python: Download the latest stable version of Python from python.org. Important: During installation, ensure you check the box "Add python.exe to PATH".
+5. Install Python: Download Python 3.12 or newer from python.org. OpenAlgo requires `>=3.12` and will not start on an older interpreter. Important: During installation, ensure you check the box "Add python.exe to PATH".
 6. Install Git: Download and install Git for Windows from git-scm.com. This is required to clone and update the OpenAlgo source code.
-7. Install uv Package Manager: Open Windows PowerShell as Administrator and run the following command to install uv: pip install uv
-8. Download OpenAlgo: Navigate to your C: drive in PowerShell (cd C:) and clone the repository: git clone https://github.com/marketcalls/openalgo
-9. Configure .env File:
-   * Enter the folder: cd openalgo
-   * Create a copy of the sample config: copy .sample.env .env
-   * Open the .env file in Notepad and enter your Broker API Key and API Secret. Save and close.
+7.  Install uv Package Manager: Open Windows PowerShell as Administrator and install uv:
+
+    ```powershell
+    pip install uv
+    ```
+8.  Download OpenAlgo: Navigate to your C: drive and clone the repository:
+
+    ```powershell
+    cd C:\
+    git clone https://github.com/marketcalls/openalgo
+    ```
+9.  Configure the .env File:
+
+    ```powershell
+    cd openalgo
+    Copy-Item .sample.env .env
+    notepad .env
+    ```
+
+    Enter your `BROKER_API_KEY` and `BROKER_API_SECRET`, then save and close. Leave `APP_KEY`, `API_KEY_PEPPER` and `FERNET_SALT` at their `OPENALGO_PLACEHOLDER_...` values: OpenAlgo replaces them with fresh random secrets on first start.
 10. Set Server Timezone: For Indian markets, adjust your server time settings to (UTC +05:30) Chennai, Kolkata, Mumbai, New Delhi. Ensure you click "Sync now" to align with exchange timings.
 11. Update Static IP at Broker: Copy your server's Public IP address. Log in to your broker's API portal and whitelist this IP in your App settings. This is a critical security step required by most brokers.
-12. Initial Launch: Run OpenAlgo for the first time by typing: uv run app.py Note: The first launch will take a few minutes as uv builds the virtual environment and installs 175+ dependencies.
+12. Initial Launch:
+
+    ```powershell
+    uv run app.py
+    ```
+
+    The first launch takes a few minutes while uv builds the virtual environment and resolves the locked dependency set (208 packages). The startup banner then reports the web app on `http://127.0.0.1:5000` and the WebSocket proxy on `ws://127.0.0.1:8765`.
+
+Node.js is not required. The repository ships the pre-built React frontend in `frontend/dist`.
 
 Create a One-Click Launch Script
 
@@ -37,23 +59,26 @@ To simplify the startup process, you can create a PowerShell script on your desk
 
 1. Open Notepad and paste the following code:
 
-## Start OpenAlgo using uv on Windows Server 2022
+```powershell
+# Start OpenAlgo using uv on Windows Server 2022
 
 $OpenAlgoPath = "C:\openalgo"
 
-Write-Host "Starting OpenAlgo..." Write-Host "Folder: $OpenAlgoPath"
+Write-Host "Starting OpenAlgo..."
+Write-Host "Folder: $OpenAlgoPath"
 
-## Go to OpenAlgo folder
-
+# Go to OpenAlgo folder
 Set-Location $OpenAlgoPath
 
-## Check uv is available
+# Check uv is available
+if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+    Write-Host "ERROR: uv is not installed or not available in PATH." -ForegroundColor Red
+    exit 1
+}
 
-if (-not (Get-Command uv -ErrorAction SilentlyContinue)) { Write-Host "ERROR: uv is not installed or not available in PATH." -ForegroundColor Red exit 1 }
-
-## Run OpenAlgo
-
+# Run OpenAlgo
 uv run app.py
+```
 
 2. Save the file to your Desktop as StartOpenAlgo.ps1.
 3. To start OpenAlgo, Right-click the file and select "Run with PowerShell".

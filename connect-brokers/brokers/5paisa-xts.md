@@ -68,3 +68,10 @@ Once all environment variables are set and your apps are **Active**, you can now
 This completes the integration process for 5paisa (XTS API) with OpenAlgo.
 
 By following the steps outlined in this guide, you have successfully configured your 5Paisa (XTS API) account for use with OpenAlgo. You can now leverage the power of algorithmic trading to enhance your trading strategies and make data-driven decisions. Should you encounter any issues or need further assistance, please refer to the OpenAlgo community or support resources. Happy trading!
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/fivepaisaxts/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

@@ -77,7 +77,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/search \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | query | Search query string | Mandatory | - |
-| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX | Mandatory | - |
+| exchange | Any value in the shared `VALID_EXCHANGES` list. Omit it to search every exchange | Optional | All exchanges |
+
+These three fields are the complete `SearchSchema`. Any other field returns HTTP 400.
 
 ## Response Fields
 
@@ -117,9 +119,10 @@ curl -X POST http://127.0.0.1:5000/api/v1/search \
 ## Notes
 
 - Search is **case-insensitive**
-- Results are limited to avoid overwhelming response
+- Results are capped at 500 rows on the cached path, so a broad query returns a truncated list. Narrow the query or pass `exchange`.
 - Use more specific queries for better results
 - The search covers all available expiries for the exchange
+- When nothing matches, the response is still `status: "success"` with `"message": "No matching symbols found"` and an empty `data` array, not an error
 
 ---
 

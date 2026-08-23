@@ -60,3 +60,10 @@ REDIRECT_URL = 'http://127.0.0.1:5000/arrow/callback'
 ```
 
 Integrating OpenAlgo with Arrow's Trading API opens up possibilities for automated trading strategies, providing a powerful tool for traders and developers to act on market opportunities efficiently. It's essential to follow best practices for API integration, including handling rate limits, managing credentials securely, and ensuring robust error handling and logging mechanisms are in place.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/arrow/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

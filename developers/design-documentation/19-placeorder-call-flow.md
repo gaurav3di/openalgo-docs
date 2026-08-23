@@ -7,154 +7,154 @@ The PlaceOrder API is the core order execution endpoint in OpenAlgo. It handles 
 ## Complete Flow Diagram
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                        PlaceOrder Complete Flow                               │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                           PlaceOrder Complete Flow                            │
+└───────────────────────────────────────────────────────────────────────────────┘
 
   Client Request (JSON)
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Layer 1: REST API Endpoint                                                  │
-│  POST /api/v1/placeorder                                                     │
-│                                                                              │
-│  ┌─────────────────┐                                                         │
-│  │ Rate Limiting   │──> 10 per second (default)                             │
-│  └────────┬────────┘                                                         │
-│           │                                                                  │
-│           ▼                                                                  │
-│  ┌─────────────────┐                                                         │
-│  │ Extract apikey  │                                                         │
-│  │ from request    │                                                         │
-│  └────────┬────────┘                                                         │
-└───────────┼──────────────────────────────────────────────────────────────────┘
-            │
-            ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Layer 2: Service Layer (place_order_service.py)                             │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Step 1: Order Routing Check                                         │    │
-│  │                                                                      │    │
-│  │  should_route_to_pending(api_key, 'placeorder')                     │    │
-│  │         │                                                            │    │
-│  │    ┌────┴────┐                                                       │    │
-│  │    │         │                                                       │    │
-│  │  semi_auto  auto                                                     │    │
-│  │    │         │                                                       │    │
-│  │    ▼         ▼                                                       │    │
-│  │  Queue to  Continue                                                  │    │
-│  │  Action    with flow                                                 │    │
-│  │  Center                                                              │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Step 2: Order Validation                                            │    │
-│  │                                                                      │    │
-│  │  validate_order_data(data)                                          │    │
-│  │  - Check mandatory fields                                            │    │
-│  │  - Validate exchange (NSE, NFO, MCX, etc.)                          │    │
-│  │  - Validate action (BUY, SELL)                                      │    │
-│  │  - Validate pricetype (MARKET, LIMIT, SL, SL-M)                     │    │
-│  │  - Validate product (CNC, MIS, NRML)                                │    │
-│  │  - Schema validation (quantity > 0, price >= 0)                     │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Step 3: Analyzer Mode Check                                         │    │
-│  │                                                                      │    │
-│  │  if get_analyze_mode() == True:                                     │    │
-│  │      → Route to sandbox_place_order()                               │    │
-│  │      → Sandbox trading with ₹1 Crore capital                        │    │
-│  │  else:                                                              │    │
-│  │      → Continue to live broker                                      │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────────────────────────┘
-            │
-            ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  Layer 3: Authentication (auth_db.py)                                        │
-│                                                                              │
-│  get_auth_token_broker(api_key)                                              │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  1. Check invalid key cache (5-min TTL)                              │    │
-│  │     └─ Fast rejection of known bad keys                             │    │
-│  │                                                                      │    │
-│  │  2. Check verified key cache (10-hour TTL)                           │    │
-│  │     └─ Fast path for legitimate requests                            │    │
-│  │                                                                      │    │
-│  │  3. Database lookup with Argon2 verification                         │    │
-│  │     └─ api_key + API_KEY_PEPPER → hash compare                      │    │
-│  │                                                                      │    │
-│  │  4. Decrypt auth token (Fernet)                                      │    │
-│  │     └─ Get broker name, verify not revoked                          │    │
-│  │                                                                      │    │
-│  │  Returns: (auth_token, broker_name) or (None, None)                  │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────────────────────────┘
-            │
-            ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  Layer 4: Broker Module (Dynamic Import)                                     │
-│                                                                              │
-│  import_broker_module(broker_name)                                           │
-│  → broker.{name}.api.order_api                                               │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  broker_module.place_order_api(order_data, auth_token)               │    │
-│  │                                                                      │    │
-│  │  A. Transform Data                                                   │    │
-│  │     OpenAlgo Format → Broker Format                                  │    │
-│  │                                                                      │    │
-│  │     Input:                          Output:                          │    │
-│  │     {"symbol": "SBIN",              {"tradingsymbol": "SBIN-EQ",    │    │
-│  │      "exchange": "NSE",              "exchange": "NSE",              │    │
-│  │      "action": "BUY",                "transaction_type": "BUY",      │    │
-│  │      "quantity": 100,                "quantity": 100,                │    │
-│  │      "pricetype": "MARKET",          "order_type": "MARKET",         │    │
-│  │      "product": "MIS"}               "product": "MIS"}               │    │
-│  │                                                                      │    │
-│  │  B. Symbol Mapping                                                   │    │
-│  │     get_br_symbol(symbol, exchange)                                  │    │
-│  │     "SBIN" → "SBIN-EQ" (Zerodha)                                    │    │
-│  │     "NIFTY21JAN2521500CE" → broker-specific format                  │    │
-│  │                                                                      │    │
-│  │  C. HTTP Request to Broker API                                       │    │
-│  │     POST https://api.broker.com/orders                              │    │
-│  │     Headers: Authorization, API keys                                 │    │
-│  │                                                                      │    │
-│  │  D. Response Processing                                              │    │
-│  │     Parse response, extract order_id                                 │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────────────────────────┘
-            │
-            ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  Layer 5: Response Handling                                                  │
-│                                                                              │
-│  ┌────────────────────┐         ┌────────────────────┐                      │
-│  │   Status 200       │         │   Status != 200    │                      │
-│  │   (Success)        │         │   (Error)          │                      │
-│  └─────────┬──────────┘         └─────────┬──────────┘                      │
-│            │                              │                                  │
-│            ▼                              ▼                                  │
-│  ┌──────────────────┐          ┌──────────────────┐                         │
-│  │ Extract order_id │          │ Extract error    │                         │
-│  │ bus.publish(     │          │ message          │                         │
-│  │  OrderPlacedEvent│          │ bus.publish(     │                         │
-│  │ )                │          │  OrderFailedEvent│                         │
-│  │ → log+socketio+  │          │ )                │                         │
-│  │   telegram via   │          │ Return error     │                         │
-│  │   subscribers    │          │                  │                         │
-│  └──────────────────┘          └──────────────────┘                         │
-│                                                                              │
-│  Success Response:              Error Response:                              │
-│  {                              {                                            │
-│    "status": "success",           "status": "error",                         │
-│    "orderid": "123456789"         "message": "Insufficient margin"           │
-│  }                              }                                            │
-└──────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│  Layer 1: REST API Endpoint                                                   │
+│  POST /api/v1/placeorder                                                      │
+│                                                                               │
+│  ┌─────────────────┐                                                          │
+│  │ Rate Limiting   │──> 10 per second (default)                               │
+│  └────────┬────────┘                                                          │
+│           │                                                                   │
+│           ▼                                                                   │
+│  ┌─────────────────┐                                                          │
+│  │ Extract apikey  │                                                          │
+│  │ from request    │                                                          │
+│  └────────┬────────┘                                                          │
+└───────────┼───────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│  Layer 2: Service Layer (place_order_service.py)                              │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  Step 1: Order Routing Check                                         │     │
+│  │                                                                      │     │
+│  │  should_route_to_pending(api_key, 'placeorder')                     │      │
+│  │         │                                                            │     │
+│  │    ┌────┴────┐                                                       │     │
+│  │    │         │                                                       │     │
+│  │  semi_auto  auto                                                     │     │
+│  │    │         │                                                       │     │
+│  │    ▼         ▼                                                       │     │
+│  │  Queue to  Continue                                                  │     │
+│  │  Action    with flow                                                 │     │
+│  │  Center                                                              │     │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  Step 2: Order Validation                                            │     │
+│  │                                                                      │     │
+│  │  validate_order_data(data)                                          │      │
+│  │  - Check mandatory fields                                            │     │
+│  │  - Validate exchange (NSE, NFO, MCX, etc.)                          │      │
+│  │  - Validate action (BUY, SELL)                                      │      │
+│  │  - Validate pricetype (MARKET, LIMIT, SL, SL-M)                     │      │
+│  │  - Validate product (CNC, MIS, NRML)                                │      │
+│  │  - Schema validation (quantity > 0, price >= 0)                     │      │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  Step 3: Analyzer Mode Check                                         │     │
+│  │                                                                      │     │
+│  │  if get_analyze_mode() == True:                                     │      │
+│  │      → Route to sandbox_place_order()                               │      │
+│  │      → Sandbox trading with ₹1 Crore capital                        │      │
+│  │  else:                                                              │      │
+│  │      → Continue to live broker                                      │      │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│  Layer 3: Authentication (auth_db.py)                                         │
+│                                                                               │
+│  get_auth_token_broker(api_key)                                               │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  1. Check invalid key cache (5-min TTL)                              │     │
+│  │     └─ Fast rejection of known bad keys                             │      │
+│  │                                                                      │     │
+│  │  2. Check verified key cache (10-hour TTL)                           │     │
+│  │     └─ Fast path for legitimate requests                            │      │
+│  │                                                                      │     │
+│  │  3. Database lookup with Argon2 verification                         │     │
+│  │     └─ api_key + API_KEY_PEPPER → hash compare                      │      │
+│  │                                                                      │     │
+│  │  4. Decrypt auth token (Fernet)                                      │     │
+│  │     └─ Get broker name, verify not revoked                          │      │
+│  │                                                                      │     │
+│  │  Returns: (auth_token, broker_name) or (None, None)                  │     │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│  Layer 4: Broker Module (Dynamic Import)                                      │
+│                                                                               │
+│  import_broker_module(broker_name)                                            │
+│  → broker.{name}.api.order_api                                                │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐      │
+│  │  broker_module.place_order_api(order_data, auth_token)               │     │
+│  │                                                                      │     │
+│  │  A. Transform Data                                                   │     │
+│  │     OpenAlgo Format → Broker Format                                  │     │
+│  │                                                                      │     │
+│  │     Input:                          Output:                          │     │
+│  │     {"symbol": "SBIN",              {"tradingsymbol": "SBIN-EQ",    │      │
+│  │      "exchange": "NSE",              "exchange": "NSE",              │     │
+│  │      "action": "BUY",                "transaction_type": "BUY",      │     │
+│  │      "quantity": 100,                "quantity": 100,                │     │
+│  │      "pricetype": "MARKET",          "order_type": "MARKET",         │     │
+│  │      "product": "MIS"}               "product": "MIS"}               │     │
+│  │                                                                      │     │
+│  │  B. Symbol Mapping                                                   │     │
+│  │     get_br_symbol(symbol, exchange)                                  │     │
+│  │     "SBIN" → "SBIN-EQ" (Zerodha)                                    │      │
+│  │     "NIFTY21JAN2521500CE" → broker-specific format                  │      │
+│  │                                                                      │     │
+│  │  C. HTTP Request to Broker API                                       │     │
+│  │     POST https://api.broker.com/orders                              │      │
+│  │     Headers: Authorization, API keys                                 │     │
+│  │                                                                      │     │
+│  │  D. Response Processing                                              │     │
+│  │     Parse response, extract order_id                                 │     │
+│  └─────────────────────────────────────────────────────────────────────┘      │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│  Layer 5: Response Handling                                                   │
+│                                                                               │
+│  ┌────────────────────┐         ┌────────────────────┐                        │
+│  │   Status 200       │         │   Status != 200    │                        │
+│  │   (Success)        │         │   (Error)          │                        │
+│  └─────────┬──────────┘         └─────────┬──────────┘                        │
+│            │                              │                                   │
+│            ▼                              ▼                                   │
+│  ┌──────────────────┐          ┌──────────────────┐                           │
+│  │ Extract order_id │          │ Extract error    │                           │
+│  │ bus.publish(     │          │ message          │                           │
+│  │  OrderPlacedEvent│          │ bus.publish(     │                           │
+│  │ )                │          │  OrderFailedEvent│                           │
+│  │ → log+socketio+  │          │ )                │                           │
+│  │   telegram via   │          │ Return error     │                           │
+│  │   subscribers    │          │                  │                           │
+│  └──────────────────┘          └──────────────────┘                           │
+│                                                                               │
+│  Success Response:              Error Response:                               │
+│  {                              {                                             │
+│    "status": "success",           "status": "error",                          │
+│    "orderid": "123456789"         "message": "Insufficient margin"            │
+│  }                              }                                             │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Request Format
@@ -262,17 +262,17 @@ Orders require manual approval before execution.
 When `analyze_mode = True`:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Sandbox Execution                             │
+┌──────────────────────────────────────────────────────────────────┐
+│                        Sandbox Execution                         │
 │                                                                  │
-│  1. Initialize OrderManager(user_id)                            │
-│  2. Check sandbox funds (₹1 Crore default)                      │
+│  1. Initialize OrderManager(user_id)                             │
+│  2. Check sandbox funds (₹1 Crore default)                       │
 │  3. Calculate margin requirements                                │
 │  4. Simulate order execution                                     │
 │  5. Update sandbox positions                                     │
-│  6. Log to analyzer_db                                          │
+│  6. Log to analyzer_db                                           │
 │  7. Return same response format as live                          │
-└─────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ## Broker Integration

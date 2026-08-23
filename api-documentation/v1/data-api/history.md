@@ -45,28 +45,31 @@ curl -X POST http://127.0.0.1:5000/api/v1/history \
   "status": "success",
   "data": [
     {
-      "timestamp": "2025-04-01 09:15:00+05:30",
+      "timestamp": 1743480300,
       "open": 766.50,
       "high": 774.00,
       "low": 763.20,
       "close": 772.50,
-      "volume": 318625
+      "volume": 318625,
+      "oi": 0
     },
     {
-      "timestamp": "2025-04-01 09:20:00+05:30",
+      "timestamp": 1743480600,
       "open": 772.45,
       "high": 774.95,
       "low": 772.10,
       "close": 773.20,
-      "volume": 197189
+      "volume": 197189,
+      "oi": 0
     },
     {
-      "timestamp": "2025-04-01 09:25:00+05:30",
+      "timestamp": 1743480900,
       "open": 773.20,
       "high": 775.60,
       "low": 772.60,
       "close": 775.15,
-      "volume": 227544
+      "volume": 227544,
+      "oi": 0
     }
   ]
 }
@@ -78,23 +81,30 @@ curl -X POST http://127.0.0.1:5000/api/v1/history \
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | symbol | Trading symbol | Mandatory | - |
-| exchange | Exchange code: NSE, BSE, NFO, BFO, CDS, BCD, MCX | Mandatory | - |
+| exchange | Any value in the shared `VALID_EXCHANGES` list | Mandatory | - |
 | interval | Time interval (see below) | Mandatory | - |
 | start_date | Start date (YYYY-MM-DD) | Mandatory | - |
 | end_date | End date (YYYY-MM-DD) | Mandatory | - |
+| source | Data source: `api` (broker) or `db` (local Historify/DuckDB store) | Optional | `api` |
+
+These seven fields are the complete `HistorySchema`. Any other field returns HTTP 400.
+
+`source` accepts only the two literal strings `api` and `db`. `broker` is **not** a valid value and returns HTTP 400; use `api` for broker data. `source: "db"` reads candles previously downloaded by Historify and returns HTTP 404 with a "Download data first using Historify" message when the local store has nothing for that symbol, exchange, and interval.
+
+Open interest is always included for F&O symbols; there is no flag to request it.
 
 ## Supported Intervals
 
-| Interval | Description |
-|----------|-------------|
-| 1m | 1 minute |
-| 3m | 3 minutes |
-| 5m | 5 minutes |
-| 10m | 10 minutes |
-| 15m | 15 minutes |
-| 30m | 30 minutes |
-| 1h | 1 hour |
-| D | Daily |
+The schema validates `interval` against this exact list. A value outside it returns HTTP 400, and a value inside it can still be rejected by a broker that does not offer that interval.
+
+| Group | Values |
+|-------|--------|
+| Seconds | `1s`, `5s`, `10s`, `15s`, `30s`, `45s` |
+| Minutes | `1m`, `2m`, `3m`, `5m`, `10m`, `15m`, `20m`, `30m` |
+| Hours | `1h`, `2h`, `3h`, `4h` |
+| Daily and longer | `D` (daily), `W` (weekly), `M` (monthly), `Q` (quarterly), `Y` (yearly) |
+
+Call [Intervals](./intervals.md) to see which of these the connected broker actually supports.
 
 ## Response Fields
 
@@ -107,20 +117,35 @@ curl -X POST http://127.0.0.1:5000/api/v1/history \
 
 | Field | Type | Description |
 |-------|------|-------------|
-| timestamp | string | Candle timestamp (IST timezone) |
+| timestamp | number | Candle timestamp as a Unix epoch value in seconds |
 | open | number | Opening price |
 | high | number | Highest price |
 | low | number | Lowest price |
 | close | number | Closing price |
 | volume | number | Volume traded |
+| oi | number | Open interest. Always present; `0` when the instrument or broker has none |
 
 ## Notes
 
 - Historical data availability depends on broker
-- Response timestamps are Unix timestamps. Convert them to the timezone required by the client; do not treat the numeric value itself as an IST-local timestamp.
+- Response timestamps are Unix epoch seconds, not formatted date strings. Convert them to whatever timezone the client needs; do not treat the numeric value itself as an IST-local timestamp.
 - For intraday intervals, data is typically available for the last 30-90 days
 - For daily data, longer history may be available
 - Use [Intervals](./intervals.md) endpoint to check available intervals for your broker
+
+## Example: Reading From The Local Historify Store
+
+```json
+{
+  "apikey": "<your_app_apikey>",
+  "symbol": "SBIN",
+  "exchange": "NSE",
+  "interval": "5m",
+  "start_date": "2025-04-01",
+  "end_date": "2025-04-08",
+  "source": "db"
+}
+```
 
 ## Example: Daily Data
 

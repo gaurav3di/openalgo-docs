@@ -81,7 +81,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/market/holidays \
 | Parameter | Description | Mandatory/Optional | Default Value |
 |-----------|-------------|-------------------|---------------|
 | apikey | Your OpenAlgo API key | Mandatory | - |
-| year | Year to get holidays for (2020-2050) | Optional | Current year |
+| year | Year to get holidays for, integer between 2020 and 2050 | Optional | Current year |
+
+`MarketHolidaysSchema` declares only these two fields. Any other field, including an `exchange` filter, returns HTTP 400: this endpoint always returns every exchange's status for each holiday. Filter `closed_exchanges` and `open_exchanges` on the client.
 
 ## Response Fields
 
@@ -125,6 +127,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/market/holidays \
 - **open_exchanges** lists exchanges with special/partial sessions
 - Times are in **epoch milliseconds**
 - MCX often has evening sessions on NSE/BSE holidays
+- The calendar tracks nine exchanges: `NSE`, `BSE`, `NFO`, `BFO`, `MCX`, `BCD`, `CDS`, `NCO`, and `CRYPTO`. `CRYPTO` trades continuously, so it does not appear in `closed_exchanges` for ordinary trading holidays.
 
 ## Use Cases
 

@@ -11,51 +11,51 @@ Master contracts contain symbol mappings between OpenAlgo's standardized format 
 │                    Master Contract Download Architecture                     │
 └──────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Download Trigger                                     │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                               Download Trigger                               │
 │                                                                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
-│  │  On Broker      │  │   Manual        │  │   Daily         │             │
-│  │  Login          │  │   Trigger       │  │   Scheduled     │             │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘             │
-│           │                    │                    │                       │
-│           └────────────────────┼────────────────────┘                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐               │
+│  │  On Broker      │  │   Manual        │  │   Daily         │               │
+│  │  Login          │  │   Trigger       │  │   Scheduled     │               │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘               │
+│           │                    │                    │                        │
+│           └────────────────────┼────────────────────┘                        │
 │                                │                                             │
 │                                ▼                                             │
-│           ┌─────────────────────────────────────────────────────────┐       │
+│           ┌─────────────────────────────────────────────────────────┐        │
 │           │              Async Download Task                         │       │
 │           │              (Background Thread)                         │       │
-│           └─────────────────────────────────────────────────────────┘       │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Broker-Specific Download                                │
+│           └─────────────────────────────────────────────────────────┘        │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           Broker-Specific Download                           │
 │                                                                              │
-│  broker/{name}/database/master_contract_db.py                               │
+│  broker/{name}/database/master_contract_db.py                                │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  1. Fetch from broker API or static URL                              │   │
-│  │  2. Parse CSV/JSON format                                            │   │
-│  │  3. Transform to OpenAlgo format                                     │   │
-│  │  4. Store in symtoken table                                          │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Symbol Database                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │  1. Fetch from broker API or static URL                              │    │
+│  │  2. Parse CSV/JSON format                                            │    │
+│  │  3. Transform to OpenAlgo format                                     │    │
+│  │  4. Store in symtoken table                                          │    │
+│  └─────────────────────────────────────────────────────────────────────┘     │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                               Symbol Database                                │
 │                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                     symtoken table                                   │   │
-│  │                                                                      │   │
-│  │  symbol     │ exchange │ token    │ lotsize │ tick_size │ ...       │   │
-│  │  ──────────────────────────────────────────────────────────────────  │   │
-│  │  SBIN       │ NSE      │ 779      │ 1       │ 0.05      │           │   │
-│  │  NIFTY      │ NFO      │ 256265   │ 65      │ 0.05      │           │   │
-│  │  BANKNIFTY  │ NFO      │ 260105   │ 30      │ 0.05      │           │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+│  ┌─────────────────────────────────────────────────────────────────────┐     │
+│  │                     symtoken table                                   │    │
+│  │                                                                      │    │
+│  │  symbol     │ exchange │ token    │ lotsize │ tick_size │ ...       │     │
+│  │  ──────────────────────────────────────────────────────────────────  │    │
+│  │  SBIN       │ NSE      │ 779      │ 1       │ 0.05      │           │     │
+│  │  NIFTY      │ NFO      │ 256265   │ 65      │ 0.05      │           │     │
+│  │  BANKNIFTY  │ NFO      │ 260105   │ 30      │ 0.05      │           │     │
+│  └─────────────────────────────────────────────────────────────────────┘     │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Download Process
@@ -109,23 +109,23 @@ def download_master_contract():
 ### symtoken Table
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                      symtoken table                             │
-├──────────────┬──────────────┬──────────────────────────────────┤
-│ Column       │ Type         │ Description                      │
-├──────────────┼──────────────┼──────────────────────────────────┤
-│ id           │ INTEGER PK   │ Auto-increment                   │
-│ symbol       │ VARCHAR      │ OpenAlgo symbol format           │
-│ brsymbol     │ VARCHAR      │ Broker-specific symbol           │
-│ exchange     │ VARCHAR      │ Exchange code                    │
-│ token        │ VARCHAR      │ Broker instrument token          │
-│ lotsize      │ INTEGER      │ Lot size                         │
-│ tick_size    │ DECIMAL      │ Minimum price tick               │
-│ segment      │ VARCHAR      │ Trading segment                  │
-│ expiry       │ DATE         │ Expiry date (F&O)                │
-│ strike       │ DECIMAL      │ Strike price (options)           │
-│ option_type  │ VARCHAR      │ CE/PE                            │
-└──────────────┴──────────────┴──────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         symtoken table                          │
+├─────────────┬────────────┬──────────────────────────────────────┤
+│ Column      │ Type       │ Description                          │
+├─────────────┼────────────┼──────────────────────────────────────┤
+│ id          │ INTEGER PK │ Auto-increment                       │
+│ symbol      │ VARCHAR    │ OpenAlgo symbol format               │
+│ brsymbol    │ VARCHAR    │ Broker-specific symbol               │
+│ exchange    │ VARCHAR    │ Exchange code                        │
+│ token       │ VARCHAR    │ Broker instrument token              │
+│ lotsize     │ INTEGER    │ Lot size                             │
+│ tick_size   │ DECIMAL    │ Minimum price tick                   │
+│ segment     │ VARCHAR    │ Trading segment                      │
+│ expiry      │ DATE       │ Expiry date (F&O)                    │
+│ strike      │ DECIMAL    │ Strike price (options)               │
+│ option_type │ VARCHAR    │ CE/PE                                │
+└─────────────┴────────────┴──────────────────────────────────────┘
 ```
 
 ## Symbol Mapping
@@ -234,18 +234,18 @@ CREATE INDEX idx_token ON symtoken(token);
 ### master_contract_status Table
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│               master_contract_status table                      │
-├──────────────────┬──────────────┬──────────────────────────────┤
-│ Column           │ Type         │ Description                  │
-├──────────────────┼──────────────┼──────────────────────────────┤
-│ id               │ INTEGER PK   │ Auto-increment               │
-│ broker           │ VARCHAR      │ Broker name (unique)         │
-│ status           │ VARCHAR      │ pending/success/failed       │
-│ last_sync_at     │ DATETIME     │ Last successful sync         │
-│ record_count     │ INTEGER      │ Total symbols                │
-│ error_message    │ TEXT         │ Error details if failed      │
-└──────────────────┴──────────────┴──────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                  master_contract_status table                   │
+├───────────────┬────────────┬────────────────────────────────────┤
+│ Column        │ Type       │ Description                        │
+├───────────────┼────────────┼────────────────────────────────────┤
+│ id            │ INTEGER PK │ Auto-increment                     │
+│ broker        │ VARCHAR    │ Broker name (unique)               │
+│ status        │ VARCHAR    │ pending/success/failed             │
+│ last_sync_at  │ DATETIME   │ Last successful sync               │
+│ record_count  │ INTEGER    │ Total symbols                      │
+│ error_message │ TEXT       │ Error details if failed            │
+└───────────────┴────────────┴────────────────────────────────────┘
 ```
 
 ## Stuck Download Detection

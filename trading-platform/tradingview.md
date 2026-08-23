@@ -1,6 +1,6 @@
 # Tradingview
 
-TradingView is a popular charting and analysis platform used by traders for market analysis, and it also offers features that support automated trading through the use of webhooks. Automated trading works.
+TradingView is a popular charting and analysis platform used by traders for market analysis, and it also offers features that support automated trading through the use of webhooks.
 
 #### What is a Webhook?
 
@@ -20,13 +20,59 @@ A webhook is a method for an app to provide other applications with real-time in
 
 
 
-> Ensure that if you are a windows user ngrok host url  is setup and configured in the .env file. If you are linux user ensure that host name (domain name/ip address) is configured in the .env file
+> TradingView cannot reach `127.0.0.1` or `localhost`. Your OpenAlgo instance has to be reachable from the internet. Expose it with ngrok, Cloudflare Tunnel, a VS Code Dev Tunnel or a custom domain, then set `HOST_SERVER` in the `.env` file to that external URL and restart OpenAlgo. The TradingView page shows a red warning banner for as long as `HOST_SERVER` still points at localhost.
 
-Login to the OpenAlgo Application and go to the tab **Tradingview**. The page comes with **Tradingview JSON Generator.**
-
-Enter the valid trading **symbol**, select the **product** type, and press the **Generate JSON** Button
+Login to the OpenAlgo Application, open **Trading Platforms** from the navigation menu (`/platforms`) and click the **TradingView** card. That opens the **TradingView Configuration** page at `/tradingview`, which contains the JSON generator.
 
 <figure><img src="../.gitbook/assets/image (27).png" alt=""><figcaption></figcaption></figure>
+
+**Alert modes**
+
+The generator has two tabs, and the tab you pick decides both the webhook URL and the payload it produces.
+
+* **Strategy Alert**: for Pine Script `strategy()` scripts. Posts to `/api/v1/placesmartorder` and fills the payload with TradingView placeholders so the same alert handles entries, exits and reversals. OpenAlgo reconciles the incoming `position_size` against your actual open position, so a repeated alert does not stack duplicate orders.
+* **Line Alert**: for a plain price line, indicator condition or drawing alert with no strategy behind it. Posts to `/api/v1/placeorder` with a fixed **Action** (BUY or SELL) and a fixed **Quantity** that you choose in the form.
+
+**Filling the form**
+
+Type at least two characters in the **Symbol** box and pick a match from the autocomplete list. Selecting a result fills in the exchange for you. Then choose the **Exchange** and the **Product Type** (MIS for intraday, NRML for carry forward, CNC for delivery). The product selector is hidden for crypto brokers such as Delta Exchange because they ignore it. In **Line Alert** mode you also choose **Action** and **Quantity**.
+
+The JSON regenerates as you type, and the **Generate JSON** button forces a refresh. Your API key is pulled in automatically and embedded in the payload, so treat the generated JSON as a secret.
+
+**Strategy Alert payload**
+
+Webhook URL: `https://your-openalgo-domain/api/v1/placesmartorder`
+
+```json
+{
+  "apikey": "your_api_key_here",
+  "strategy": "TradingView Strategy",
+  "symbol": "NHPC",
+  "exchange": "NSE",
+  "action": "{{strategy.order.action}}",
+  "product": "MIS",
+  "pricetype": "MARKET",
+  "quantity": "{{strategy.order.contracts}}",
+  "position_size": "{{strategy.position_size}}"
+}
+```
+
+**Line Alert payload**
+
+Webhook URL: `https://your-openalgo-domain/api/v1/placeorder`
+
+```json
+{
+  "apikey": "your_api_key_here",
+  "strategy": "TradingView Line Alert",
+  "symbol": "NHPC",
+  "exchange": "NSE",
+  "action": "BUY",
+  "product": "MIS",
+  "pricetype": "MARKET",
+  "quantity": "1"
+}
+```
 
 Copy the Webhook URL and the Alert Message for a Tradingview Strategy and configure the same in your tradingview strategy
 
@@ -35,3 +81,10 @@ Copy the Webhook URL and the Alert Message for a Tradingview Strategy and config
 Enter the Webhook URL
 
 <figure><img src="../.gitbook/assets/image (29).png" alt=""><figcaption></figcaption></figure>
+
+**Notes and limits**
+
+* Both endpoints accept `MARKET`, `LIMIT`, `SL` and `SL-M` in `pricetype`, but the generator always emits `MARKET`. Edit the JSON by hand if you need a limit order, and add `price` (and `trigger_price` for SL and SL-M).
+* Both endpoints are rate limited to 10 requests per second by default, from `ORDER_RATE_LIMIT` and `SMART_ORDER_RATE_LIMIT` in `.env`.
+* Quantity is the total number of units, not the number of lots. For futures and options send the full contract quantity.
+* For a non-crypto exchange the quantity must be a whole number. Fractional quantities are rejected.

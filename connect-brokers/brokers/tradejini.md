@@ -34,10 +34,9 @@ After logging in:
 
 #### 3. Retrieve API Credentials
 
-After generating the API Key:
+After generating the API Key, copy the alphanumeric **API Key** shown for the app. This single value is what OpenAlgo needs.
 
-* **Client Code** will be your `api_key`.
-* **API Key** from the app will serve as your `api_secret`.
+The individual-access login authenticates with the API key alone: every call sends `Bearer <api_key>:<access_token>`, and the login endpoint sends `Bearer <api_key>` on its own. The **api secret** is only used by the third-party OAuth code exchange, which OpenAlgo does not use, so you can leave it out.
 
 <figure><img src="../../.gitbook/assets/tradejini3.PNG" alt=""><figcaption></figcaption></figure>
 
@@ -46,12 +45,25 @@ After generating the API Key:
 Here is how you would typically set up your environment variables in a `.env` file for TradeJini:
 
 ```bash
-BROKER_API_KEY = 'your_tradejini_clientcode_here'
-BROKER_API_SECRET = 'your_tradejini_apikey_here'
+BROKER_API_KEY = 'your_tradejini_apikey_here'
+BROKER_API_SECRET = ''
 REDIRECT_URL = 'http://127.0.0.1:5000/tradejini/callback'
 ```
 
+{% hint style="warning" %}
+`BROKER_API_KEY` must hold the app **API Key**, not your client code. Older OpenAlgo builds read the key from `BROKER_API_SECRET`, so that variable is still accepted as a fallback, but new installs should use `BROKER_API_KEY`. The two values look identical at rest (both are 32-character alphanumeric strings), so a mix-up shows up only as a bare `401 Unauthorized` from the login endpoint.
+{% endhint %}
+
 These credentials will be used by OpenAlgo to authenticate, fetch session tokens, and access market feeds or place orders.
+
+### Logging in
+
+Clicking Connect opens the TradeJini login form, which asks for a password and a 2FA code:
+
+* **Password** is your CubePlus login **PIN**, not your account password
+* **2FA** accepts either `totp` (authenticator app) or `otp` (SMS or email)
+
+A non-whitelisted source IP, a wrong API key, a wrong password and a stale 2FA code all fail with the same bare `401 Unauthorized`. Individual apps only accept requests from the static IP whitelisted against the app in the developer portal, so check that first.
 
 ### Integration Benefits
 
@@ -68,3 +80,10 @@ To ensure a reliable experience with TradeJini’s API:
 * Implement robust error handling, retry mechanisms, and logging.
 
 By following best practices, developers and traders can leverage the TradeJini infrastructure to build high-frequency, data-driven strategies with confidence.
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/tradejini/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

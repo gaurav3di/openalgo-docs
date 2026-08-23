@@ -1,300 +1,216 @@
 # Docker Development
 
-This guide focuses on setting up a development environment for OpenAlgo  using Docker.
+This guide covers running OpenAlgo in Docker on your own machine. OpenAlgo ships its own `Dockerfile`, `docker-compose.yaml` and `.dockerignore` in the repository root, so you do not write any of them yourself.
 
 {% embed url="https://www.youtube.com/watch?v=ixIJypG9oeg" %}
 
 ### Prerequisites
 
-
-
 * Docker Engine
-* Docker Compose
+* Docker Compose v2 (the `docker compose` subcommand, not the standalone `docker-compose` binary)
 * Git
 
-## Essential .env Changes for Docker Setup&#x20;
+### Two ways to run it
 
-### 1. Flask Host Configuration
+| Approach | Command | When to use |
+| --- | --- | --- |
+| Pre-built image | `install/docker-run.sh` (or `install\docker-run.bat` on Windows) | You just want OpenAlgo running. Pulls `marketcalls/openalgo:latest`, no build step. |
+| Build from source | `docker compose up -d --build` | You are changing the code and want your changes in the image. |
+
+The rest of this page covers the build-from-source path.
+
+## Essential .env Changes for Docker
+
+Start from the template, then change only what Docker needs:
 
 ```bash
-# Change from 127.0.0.1 to 0.0.0.0 to allow external connections
-FLASK_HOST_IP='0.0.0.0'  # Required for Docker
+cp .sample.env .env
+```
+
+### 1. WebSocket host
+
+```dotenv
+# The WebSocket proxy must bind all interfaces inside the container
+# so the published port can reach it from the host
+WEBSOCKET_HOST='0.0.0.0'
+WEBSOCKET_PORT='8765'
+WEBSOCKET_URL='ws://127.0.0.1:8765'
+```
+
+`WEBSOCKET_URL` is the address the **browser** uses, so it stays on the host's loopback address, not the container's.
+
+### 2. Flask host
+
+```dotenv
+FLASK_HOST_IP='0.0.0.0'
 FLASK_PORT='5000'
 ```
 
-### 2. WebSocket Configuration
+The container entrypoint binds Gunicorn to `0.0.0.0:5000` regardless, but `install-docker.sh` sets `FLASK_HOST_IP` too so the value in `.env` matches what is actually happening.
 
-```bash
-# WebSocket server must bind to 0.0.0.0 inside Docker
-WEBSOCKET_HOST='0.0.0.0'  # Required for Docker
-WEBSOCKET_PORT='8765'
-WEBSOCKET_URL='ws://localhost:8765'  # URL for clients connecting from host
-```
+### 3. Leave ZeroMQ on loopback
 
-### 3. ZeroMQ Configuration
-
-```bash
-# ZMQ must also bind to 0.0.0.0 for internal communication
-ZMQ_HOST='0.0.0.0'  # Required for Docker
+```dotenv
+ZMQ_HOST='127.0.0.1'
 ZMQ_PORT='5555'
 ```
 
-### Summary of Changes
+{% hint style="danger" %}
+**Do not set `ZMQ_HOST` to `0.0.0.0`.** ZeroMQ is the internal, unauthenticated bus between the broker WebSocket adapters and the WebSocket proxy. Both run inside the same container, so loopback is sufficient. Binding it to all interfaces publishes the raw tick feed to anything that can reach the port. The official `install-docker.sh` deliberately rewrites `WEBSOCKET_HOST` and `FLASK_HOST_IP` and deliberately leaves `ZMQ_HOST` alone.
+{% endhint %}
 
-#### From (Local Development):
+### Summary of changes
 
-```bash
-FLASK_HOST_IP='127.0.0.1'
-WEBSOCKET_HOST='127.0.0.1'
-ZMQ_HOST='127.0.0.1'
-```
+| Key | Local development | Docker |
+| --- | --- | --- |
+| `FLASK_HOST_IP` | `127.0.0.1` | `0.0.0.0` |
+| `WEBSOCKET_HOST` | `127.0.0.1` | `0.0.0.0` |
+| `ZMQ_HOST` | `127.0.0.1` | `127.0.0.1` (unchanged) |
 
-#### To (Docker):
+Everything else, including broker credentials and database URLs, stays as it is.
 
-```bash
-FLASK_HOST_IP='0.0.0.0'
-WEBSOCKET_HOST='0.0.0.0'
-ZMQ_HOST='0.0.0.0'
-```
+### What the shipped Dockerfile does
 
-### Why These Changes?
+You do not need to create it, but it helps to know what is in the image:
 
-1. **0.0.0.0 vs 127.0.0.1**:
-   * `127.0.0.1` only allows connections from within the container
-   * `0.0.0.0` allows connections from outside the container (host machine)
-2. **WEBSOCKET\_URL**:
-   * Remains as `ws://localhost:8765` because this is the URL clients use from the host machine
-   * Docker maps the container's port to the host's localhost
-3. **No other changes needed**:
-   * All other settings (API keys, database URLs, etc.) remain the same
-   * The docker-compose.yaml already maps the ports correctly
+* **Python builder** stage on `python:3.12-bullseye`: creates `/app/.venv` with `uv sync` from `pyproject.toml`, then adds `gunicorn>=25.0,<26` and `eventlet`.
+* **Frontend builder** stage on `node:22-bullseye-slim`: runs `npm ci` and `npm run build` in `frontend/`.
+* **Production** stage on `python:3.12-slim-bullseye`: copies the virtual environment and the built `frontend/dist`, installs Chromium (needed by Kaleido for Telegram chart rendering), creates the `appuser` account pinned to UID/GID 1000, and runs `/app/start.sh`.
 
-###
-
-### Files Required
-
-
-
-**1. Dockerfile**
-
-```bash
-FROM python:3.11-slim
-
-WORKDIR /app
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc python3-dev libpq-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
-COPY requirements-nginx.txt .
-RUN pip install --no-cache-dir -r requirements-nginx.txt
-RUN pip install gunicorn eventlet>=0.24.1
-
-
-# Copy project files
-COPY . .
-
-# Create directories and set permissions
-RUN mkdir -p db logs && \
-    chmod -R 777 db logs
-
-# Command to run the application
-CMD ["gunicorn", \
-     "--bind", "0.0.0.0:5000", \
-     "--worker-class", "eventlet", \
-     "--workers", "1", \
-     "--reload", \
-     "--log-level", "debug", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "app:app"]
-```
-
-**2. docker-compose.yml**
-
-```yaml
-version: '3.8'
-
-services:
-  web:
-    build: .
-    ports:
-      - "5000:5000"
-    volumes:
-      - .:/app
-      - ./db:/app/db
-    env_file:
-      - .env
-    environment:
-      - FLASK_DEBUG=True
-      - FLASK_ENV=development
-      - DATABASE_URL=sqlite:///db/openalgo.db
-    restart: unless-stopped
-```
-
-**3. .dockerignore**
-
-```
-**/__pycache__
-**/*.pyc
-**/*.pyo
-**/*.pyd
-.Python
-env/
-venv/
-.env*
-!.env.example
-*.sqlite
-.git
-.gitignore
-.docker
-Dockerfile
-README.md
-*.sock
-```
+`start.sh` runs the database migrations, starts the WebSocket proxy on port 8765, then execs Gunicorn with the eventlet worker on port 5000.
 
 ### Quick Start
 
+```bash
+# 1. Configure
+cp .sample.env .env
+# edit .env: broker credentials, plus the Docker host changes above
 
+# 2. Build and start
+docker compose up -d --build
 
-1.  **Create Environment File:**
+# 3. Watch startup logs
+docker compose logs -f
+```
 
-    Copy `.sample.env` to `.env`:
+OpenAlgo is then reachable at [http://127.0.0.1:5000](http://127.0.0.1:5000). Create your account at [http://127.0.0.1:5000/setup](http://127.0.0.1:5000/setup).
 
-    ```bash
-    cp .sample.env .env
-    ```
-2.  **Build and Start:**
+### What the compose file gives you
 
-    ```bash
-    docker-compose up --build
-    ```
-3.  **View Logs:**
+`docker-compose.yaml` defines a single service named `openalgo` (container name `openalgo-web`):
 
-    ```bash
-    docker-compose logs -f
-    ```
-
-### Development Features
-
-
-
-* Hot reload enabled (code changes reflect immediately)
-* Debug mode active
-* Console logging
-* Port 5000 exposed
-* Volume mounting for live code updates
+* Publishes `${FLASK_PORT:-5000}:5000` and `${WEBSOCKET_PORT:-8765}:8765`
+* Named volumes for `db`, `log`, `strategies`, `keys` and `tmp`, so data survives a rebuild
+* Bind-mounts your host `./.env` to `/app/.env`
+* Sets `TZ=Asia/Kolkata` and caps the BLAS/OpenMP thread counts at 2 to avoid `RLIMIT_NPROC` exhaustion
+* A healthcheck against `http://127.0.0.1:5000/auth/check-setup`
+* `restart: unless-stopped`
 
 ### Common Commands
 
-
-
 ```bash
-# Start development server
-docker-compose up
+# Start (detached)
+docker compose up -d
 
-# Start in detached mode
-docker-compose up -d
+# Start and rebuild after a code change
+docker compose up -d --build
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop containers
-docker-compose down
+docker compose down
 
-# Rebuild after dependency changes
-docker-compose up --build
+# Rebuild ignoring the layer cache (after a dependency change)
+docker compose build --no-cache && docker compose up -d
 
-# Enter container shell
-docker-compose exec web bash
+# Shell inside the container
+docker compose exec openalgo bash
 
-# Check container status
-docker-compose ps
+# Container status and health
+docker compose ps
+docker inspect openalgo-web --format='{{.State.Health.Status}}'
 ```
+
+{% hint style="info" %}
+`docker compose down` removes the containers but **not** the named volumes, so your database survives. `docker compose down -v` deletes the volumes and everything in them.
+{% endhint %}
+
+### Adjusting resources
+
+Three settings in `.env` are read by `docker-compose.yaml` and matter on small containers:
+
+```dotenv
+STRATEGY_MEMORY_LIMIT_MB = '1024'   # per Python strategy subprocess
+SHM_SIZE = '512m'                   # /dev/shm, roughly 25% of container RAM
+OPENBLAS_NUM_THREADS = '2'          # also OMP / MKL / NUMEXPR / NUMBA
+```
+
+They are commented out in `.sample.env`; uncomment them to override the defaults. For a 2 GB container use `256`, `256m` and `1`.
 
 ### Directory Structure
 
-
-
 ```
 openalgo/
-├── Dockerfile
-├── docker-compose.yml
+├── Dockerfile               # multi-stage: python builder, node builder, production
+├── docker-compose.yaml
 ├── .dockerignore
-├── .env
+├── start.sh                 # container entrypoint
+├── .env                     # yours, bind-mounted into the container
 ├── app.py
-├── requirements-nginx.txt
-└── db/
-    └── openalgo.db
+├── pyproject.toml
+├── frontend/
+│   └── dist/                # pre-built React bundle, also rebuilt in the image
+└── db/                      # named volume in Docker
 ```
 
 ### Development Tips
 
-
-
-1. **Live Reload:**
-   * Code changes will automatically reload
-   * Check logs for errors after changes
-2. **Database Access:**
-   * SQLite database persists in ./db directory
-   * Can be accessed from both host and container
-3. **Debugging:**
-   * Logs are printed to console
-   * Debug mode enables detailed error pages
-4. **Dependencies:**
-   * Add new packages to requirements-nginx.txt
-   *   Rebuild container after adding dependencies:
-
-       ```bash
-       docker-compose up --build
-       ```
+1. **Code changes need a rebuild.** The production image copies the source in rather than mounting it, so run `docker compose up -d --build` after editing Python code. For a tight edit-reload loop, run OpenAlgo directly with `uv run app.py` instead of in Docker.
+2. **Database access.** The SQLite databases live in the `openalgo_db` named volume. Copy them out with `docker compose cp openalgo:/app/db ./db-backup`.
+3. **Debugging.** Logs go to the console and to the `openalgo_log` volume. `log/errors.jsonl` carries structured errors with full tracebacks.
+4. **Dependencies.** Add packages to `pyproject.toml`, then rebuild with `docker compose build --no-cache`.
 
 ### Troubleshooting
 
-
-
-1.  **Port Already In Use:**
+1.  **Port already in use**
 
     ```bash
-    # Check what's using port 5000
+    # See what is holding port 5000 or 8765
     sudo lsof -i :5000
+    sudo lsof -i :8765
 
-    # Stop the container and restart
-    docker-compose down
-    docker-compose up
+    docker compose down
+    docker compose up -d
     ```
-2.  **Database Issues:**
+
+    You can also move the published ports by setting `FLASK_PORT` and `WEBSOCKET_PORT` in `.env`.
+2.  **Permission errors on the mounted `.env`**
+
+    The container runs as UID 1000. If the file is owned by another user the first-run secret rotation cannot write to it and the worker restarts in a loop:
 
     ```bash
-    # Fix permissions if needed
-    chmod -R 777 db/
+    sudo chown 1000:1000 .env
+    sudo chmod 600 .env
+    docker compose up -d
     ```
-3.  **Container Won't Start:**
+3.  **Container will not start**
 
     ```bash
-    # Check logs
-    docker-compose logs
-
-    # Remove container and try again
-    docker-compose down
-    docker-compose up --build
+    docker compose logs --tail=100
+    docker compose down
+    docker compose up -d --build
     ```
-4.  **Package Installation Issues:**
+4.  **Package installation issues**
 
     ```bash
-    # Rebuild without cache
-    docker-compose build --no-cache
-    docker-compose up
+    docker compose build --no-cache
+    docker compose up -d
     ```
+5.  **`docker-compose: command not found`**
+
+    Compose v1 is end of life. Use the `docker compose` subcommand that ships with Docker Engine.
 
 ### Note
 
-
-
-This configuration is optimized for development. For production deployment, additional security measures and optimizations would be necessary.
+The shipped configuration is production-oriented: Gunicorn, a healthcheck and `restart: unless-stopped`. For a public deployment with a custom domain and SSL, use `install/install-docker.sh` instead, which adds nginx and a Let's Encrypt certificate in front of this container.

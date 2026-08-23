@@ -20,7 +20,7 @@ Enter your Flattrade login credentials.
 
 <figure><img src="../../.gitbook/assets/flat4.PNG" alt=""><figcaption></figcaption></figure>
 
-4.Enter your IP Configuration (Primary IP is required, Secondary is optional) → Click Next
+4.Enter your IP Configuration (Primary IP is required, Secondary is optional), then click Next
 
 <figure><img src="../../.gitbook/assets/flat2.PNG" alt=""><figcaption></figcaption></figure>
 
@@ -30,13 +30,13 @@ Enter your Flattrade login credentials.
 
 6.Review the Configuration Summary, tick the box to accept Terms & Conditions, and Submit
 
-7.Your request will show as Pending — once approved, your API key is ready!
+7.Your request will show as Pending. Once approved,, your API key is ready!
 
 8.Your API key is now generated
 
 <figure><img src="../../.gitbook/assets/flat5.PNG" alt=""><figcaption></figcaption></figure>
 
-9.Click the eye icon to reveal your Secret Key — Copy both API and Secret Key and start building!
+9.Click the eye icon to reveal your Secret Key, then copy both API and Secret Key and start building!
 
 10\. Configure OpenAlgo:
 
@@ -47,3 +47,10 @@ BROKER_API_KEY = 'client_id:::api_key'
 BROKER_API_SECRET = 'api_secret'
 REDIRECT_URL = 'http://127.0.0.1:5000/flattrade/callback'
 ```
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/flattrade/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`, `BSE_INDEX`

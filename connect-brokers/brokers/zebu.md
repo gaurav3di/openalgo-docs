@@ -31,10 +31,12 @@ click the OAuth Key button and fill in the details and Update.
 Once generated, the client Id and Secret Code will be provided for the app. These keys are essential for authenticating API requests. Here’s how your .env file might look:
 
 ```
-BROKER_API_KEY = 'your_userid_here':::'your_ClientId_here'
+BROKER_API_KEY = 'your_userid_here:::your_ClientId_here'
 BROKER_API_SECRET = 'your_Secretcode_here'
 REDIRECT_URL = 'http://127.0.0.1:5000/zebu/callback'
 ```
+
+`BROKER_API_KEY` is a single quoted value holding your Zebu user id and the OAuth client id joined by `:::` (for example `Z56004:::Z56004_U`). Quote the whole string once, as shown. Quoting the two halves separately breaks the value and the login fails.
 
 Make sure to store your API credentials securely and handle them with care to prevent unauthorized access.
 
@@ -45,3 +47,10 @@ Integrating OpenAlgo with Zebu’s MYNT API opens opportunities for algorithmic 
 <br>
 
 For further assistance or troubleshooting, refer to [Zebu API Documentation](https://zebumyntapi.web.app).
+
+### Supported Exchanges
+
+OpenAlgo reads this plugin's exchange list from `broker/zebu/plugin.json` and serves it to the app, so symbol search, the Strategy Builder and the tools pages only offer what the plugin actually handles.
+
+* **Tradable:** `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `MCX`
+* **Index feeds:** `NSE_INDEX`
