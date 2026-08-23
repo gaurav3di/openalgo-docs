@@ -14,12 +14,13 @@ The supported tools are grouped below. The live MCP `tools/list` response is aut
 
 * **Default strategy tag**: `python mcp`. Every MCP-triggered order is tagged so you can filter MCP activity in OpenAlgo logs and the Analyzer. Override by saying _"use strategy 'my scalper'"_ in the prompt.
 * **Product type defaults**: `MIS` for equity. Use `NRML` for F\&O carry; `CNC` for delivery.
-* **Exchange codes**: `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX` + `NSE_INDEX` / `BSE_INDEX` for index values.
+* **Exchange codes**: `NSE`, `BSE`, `NFO`, `BFO`, `CDS`, `BCD`, `MCX`, `NCDEX` + `NSE_INDEX` / `BSE_INDEX` for index values.
+* **Toolsets**: every tool belongs to exactly one of `orders`, `account`, `marketdata`, `research`, or `utility`. Those five names are the only values `OPENALGO_MCP_TOOLSETS` accepts. The section headings below group tools by task, which does not always match the toolset: `close_all_positions` and `analyzer_toggle` are in `orders`, `calculate_margin` and `analyzer_status` are in `account`, and the calendar and instrument tools are in `marketdata`.
 * **Lot size**: never hardcoded. The model will call `get_option_symbol` / `get_option_chain` / `get_symbol_info` to read the live `lotsize` from the broker master contract, then compute `quantity = lots × lotsize` for you.
 
 ***
 
-### 📦 Order Management
+### Order Management
 
 #### `place_order`
 
@@ -73,6 +74,11 @@ Fire multiple orders in one call. Each basket entry carries its own `symbol`, `e
 
 Break a large order into equal chunks (helpful for low-liquidity names or to avoid freeze limits).
 
+| Param                                                        | Required | Notes                                   |
+| ------------------------------------------------------------ | -------- | --------------------------------------- |
+| `symbol`, `exchange`, `action`, `quantity`, `split_size`     | Yes      | `split_size` is the size of each slice  |
+| `price_type`, `product`, `price`, `trigger_price`, `strategy`| No       | Same as `place_order`                   |
+
 **Prompts:**
 
 * _"Sell 500 YESBANK in slices of 50, market orders"_
@@ -88,7 +94,7 @@ Single-leg option order using offset-based strike selection (ATM / ITM1-ITM50 / 
 | ----------------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
 | `underlying`, `exchange`, `offset`, `option_type`, `action`, `quantity` | Yes      | none |
 | `expiry_date`                                                           | No       | Optional if underlying includes expiry (e.g., `NIFTY28OCT25FUT`) |
-| `price_type`, `product`, `price`, `trigger_price`                       | No       | Same as `place_order`                                            |
+| `price_type`, `product`, `price`, `trigger_price`, `disclosed_quantity`, `strategy` | No       | Same as `place_order`                                            |
 
 > **Lot size note**: if you don't know it, just ask: the assistant will pull `lotsize` from `get_option_symbol` first, then size the quantity correctly.
 
@@ -118,7 +124,7 @@ Change price / quantity / type / trigger on a working order.
 | Param                                                                      | Required | Notes                                                                   |
 | -------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
 | `order_id`, `symbol`, `action`, `exchange`, `product`, `quantity`, `price` | Yes      | `price` is mandatory per the REST spec, use current price if unchanged |
-| `price_type`, `trigger_price`, `disclosed_quantity`                        | No       | Sensible defaults                                                       |
+| `price_type`, `trigger_price`, `disclosed_quantity`                        | No       | `price_type` defaults to **`LIMIT`**, unlike every other order tool, which defaults to `MARKET`. Modifying a working `SL-M` order without passing `price_type` converts it to `LIMIT`. `trigger_price` and `disclosed_quantity` default to 0 |
 
 **Prompts:**
 
@@ -142,7 +148,7 @@ Change price / quantity / type / trigger on a working order.
 
 ***
 
-### 📊 Positions & Holdings
+### Positions & Holdings
 
 #### `close_all_positions`
 
@@ -190,7 +196,7 @@ Cash, collateral, realized/unrealized M2M, utilized margin.
 
 ***
 
-### 📋 Order Tracking
+### Order Tracking
 
 #### `get_order_status`
 
@@ -217,7 +223,7 @@ Only executed fills.
 
 ***
 
-### 📈 Market Data
+### Market Data
 
 #### `get_quote`
 
@@ -253,6 +259,8 @@ OHLCV history. Two sources:
 * `source="api"` (default) → live fetch from broker API
 * `source="db"` → local Historify DuckDB store (1m and D stored physically; other intervals, including custom ones like 2m/3m/W/M/Q/Y, computed on-the-fly via SQL)
 
+> **`bars` defaults to 20.** However wide a date range you ask for, the tool returns only the last 20 rows and sets `truncated: true`. Say how many bars you want ("the last 200 daily bars") or the model will silently work from 20. The same default applies to `calculate_indicator`.
+
 **Prompts:**
 
 * _"Get 5-minute SBIN candles from 1 Apr to 8 Apr 2025"_
@@ -263,7 +271,7 @@ OHLCV history. Two sources:
 
 #### `get_option_chain`
 
-Real-time chain with CE/PE data per strike, LTP, bid/ask, OHLC, volume, OI, `lotsize`, moneyness labels. Use `strike_count=N` to limit to N strikes around ATM.
+Real-time chain with CE/PE data per strike, LTP, bid/ask, OHLC, volume, OI, `lotsize`, moneyness labels. `strike_count=N` returns N strikes **above and** N below ATM, so roughly 2N+1 rows. Valid range is 1 to 100.
 
 **Prompts:**
 
@@ -272,7 +280,7 @@ Real-time chain with CE/PE data per strike, LTP, bid/ask, OHLC, volume, OI, `lot
 
 ***
 
-### 🔍 Instrument Search & Symbols
+### Instrument Search & Symbols
 
 #### `search_instruments`
 
@@ -309,7 +317,7 @@ Resolve ATM/ITM/OTM offset to the exact option symbol plus `lotsize`, `tick_size
 
 #### `get_option_greeks`
 
-Delta, Gamma, Theta, Vega, Rho + Implied Volatility using Black-76. Underlying is auto-detected, override with `underlying_symbol` / `underlying_exchange`, supply `forward_price` for custom / illiquid underlyings, and `expiry_time` for non-standard MCX contracts.
+Delta, Gamma, Theta, Vega, Rho + Implied Volatility using Black-76. Underlying is auto-detected, override with `underlying_symbol` / `underlying_exchange`, supply `forward_price` for custom / illiquid underlyings, and `expiry_time` for non-standard MCX contracts. `interest_rate` is the annualized risk-free rate in percent and **defaults to 0**, which materially shifts rho and theta: pass it when those matter.
 
 **Prompts:**
 
@@ -364,7 +372,7 @@ Returns the full standardized OpenAlgo index symbol list (57 NSE + 40 BSE), roll
 
 ***
 
-### 💰 Margin
+### Margin
 
 #### `calculate_margin`
 
@@ -377,7 +385,7 @@ SPAN + exposure margin for a hypothetical position set. Accepts an array of legs
 
 ***
 
-### 🧪 Analyzer
+### Analyzer
 
 #### `analyzer_status`
 
@@ -389,7 +397,7 @@ Am I in simulated (analyzer) or live mode?
 
 #### `analyzer_toggle`
 
-Flip between simulated and live trading. Analyzer mode returns `SB-xxx` pseudo-orderids without touching the broker, perfect for testing strategies end-to-end.
+Flip between simulated and live trading. Analyzer mode returns sandbox order IDs in the same `YYMMDD` + sequence shape as a real one, and the response carries `mode: "analyze"`, without touching the broker. Read the `mode` field, not the order ID, to tell simulated from live.
 
 **Prompts:**
 
@@ -398,7 +406,7 @@ Flip between simulated and live trading. Analyzer mode returns `SB-xxx` pseudo-o
 
 ***
 
-### 📅 Market Calendar
+### Market Calendar
 
 #### `get_holidays`
 
@@ -425,7 +433,7 @@ This tool is registered and appears in MCP clients, but it is currently **unavai
 
 ***
 
-### 🛠️ Utilities
+### Utilities
 
 #### `get_openalgo_version`
 
@@ -443,7 +451,15 @@ Quick cheat-sheet of valid exchanges, product types, price types, actions, and i
 
 #### `send_telegram_alert`
 
-Push a Telegram notification via the OpenAlgo Telegram bot (must be configured in OpenAlgo settings first). Supports `priority` 1-10.
+Push a Telegram notification via the OpenAlgo Telegram bot (must be configured in OpenAlgo settings first).
+
+| Param      | Required | Notes                                    |
+| ---------- | -------- | ---------------------------------------- |
+| `username` | Yes      | Your OpenAlgo login ID. There is no default, so name it in the prompt |
+| `message`  | Yes      | Body text                                |
+| `priority` | No       | 1 to 10, defaults to 5                   |
+
+This is the one tool annotated as a write that is gated on `read:account`, so a read-only remote session can still send Telegram messages.
 
 **Prompts:**
 
@@ -454,7 +470,7 @@ Push a Telegram notification via the OpenAlgo Telegram bot (must be configured i
 
 ### Technical Research
 
-Research tools fetch broker or Historify history and calculate compact results on the OpenAlgo server. Common optional controls are `interval`, `start_date`, `end_date`, `lookback_bars`, `lookback_days`, and `source` (`api` or `db`).
+Research tools fetch broker or Historify history and calculate compact results on the OpenAlgo server. Common optional controls are `interval`, `start_date`, `end_date`, `lookback_bars`, `lookback_days`, and `source` (`api` or `db`). `multi_timeframe_analysis` is the exception: it takes a list called `intervals`, not a single `interval`.
 
 #### `calculate_indicator`
 
@@ -488,13 +504,13 @@ Calculate pivot points, Donchian levels, and rolling highest-high and lowest-low
 
 #### `detect_signals`
 
-Find recent bullish and bearish events for `ema_cross`, `sma_cross`, `macd_cross`, `supertrend_flip`, or `rsi_threshold`. Use `limit` to bound returned events.
+Find recent bullish and bearish events. `signal_type` selects the rule and defaults to `ema_cross`; valid values are `ema_cross`, `sma_cross`, `macd_cross`, `supertrend_flip`, and `rsi_threshold`. `fast` (20) and `slow` (50) set the crossover lengths, `period` (14) the RSI length, `upper` (70) and `lower` (30) the RSI thresholds, and `limit` (20) bounds the returned events.
 
 **Prompt:** _"Find the latest EMA 20/50 cross signals for TCS"_
 
 #### `screen_instruments`
 
-Evaluate a modest list of `{symbol, exchange}` pairs against RSI, price-versus-SMA, or Supertrend conditions. History is fetched per symbol, so keep broker-backed lists small.
+Evaluate a modest list of `{symbol, exchange}` pairs. `condition` defaults to `rsi_below`; valid values are `rsi_below`, `rsi_above`, `price_above_sma`, `price_below_sma`, `supertrend_bullish`, and `supertrend_bearish`. `value` (30.0) is the threshold and `period` (14) the indicator length. History is fetched per symbol, so keep broker-backed lists small.
 
 **Prompt:** _"Screen RELIANCE, INFY, TCS, and SBIN for RSI below 35"_
 
@@ -512,7 +528,7 @@ Align two symbols on common timestamps and return rolling correlation, rolling b
 
 ***
 
-### 🧠 Worked Multi-Tool Workflows
+### Worked Multi-Tool Workflows
 
 Real strength shows when the assistant chains tools on its own. Example prompts:
 

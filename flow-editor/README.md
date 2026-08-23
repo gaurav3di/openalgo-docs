@@ -51,7 +51,7 @@ covers each in detail with workarounds.
 | Limitation | Practical effect |
 | --- | --- |
 | **No state across runs** | `variable` values reset every run. "Have I already entered today?" must be answered from the broker (`positionCheck`, `orderBook`), not a counter. Period boundaries are the exception: `calendar` answers "is a new week/month/quarter" from the exchange calendar, no memory needed. |
-| **`delay` and `waitUntil` block the run** | They hold the execution slot for their full duration. Waiting out a session means a second workflow on its own schedule, not a six-hour `waitUntil`. |
+| **`delay` and `waitUntil` block the run** | They hold the execution slot for their full duration. `delay` is silently capped at 300 seconds and then continues, so a workflow written as "wait 30 minutes" exits after five. `waitUntil` is uncapped. Waiting out a session means a second workflow on its own schedule, not a six-hour `waitUntil`. |
 | **No loops** | You cannot iterate a symbol list. One workflow handles one symbol; clone it per symbol. |
 | **No backtesting** | Flow runs forward only. Use the Python Strategy Host or the `openalgo` SDK to backtest. |
 | **No pandas objects** | Variables are JSON. You get arrays of records and single values, not a `pandas.Series`. |

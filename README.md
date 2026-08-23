@@ -1,6 +1,6 @@
 # What is OpenAlgo?
 
-OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 36 broker plugins: 34 securities brokers, Delta Exchange for crypto derivatives, and a Dhan sandbox plugin for paper trading. It supports automation from Amibroker, TradingView, GoCharting, N8N, Python, Java, Go, .NET, Node.js, ChartInk, MetaTrader, Excel, and Google Sheets.
+OpenAlgo is a free, open source, self hosted algorithmic trading platform that bridges trading ideas with execution. Built with Python Flask and a modern React frontend, it provides a unified API layer across 36 broker plugins: 34 securities brokers, Delta Exchange for crypto derivatives, and a Dhan sandbox plugin for paper trading. It supports automation from Amibroker, TradingView, GoCharting, N8N, ChartInk, MetaTrader 5, Excel, Google Sheets, and a Chrome extension, with six official SDKs: Python, Node.js, Java, .NET, Go, and Rust.
 
 ### Overview
 
@@ -71,10 +71,10 @@ Broker plugins follow the common API structure for the operations they support.
 
 OpenAlgo supports different strategy workflows:
 
-* **Hosted Python strategies** running directly inside OpenAlgo
-* **Visual Flow strategies** built using a no-code, drag-and-drop interface
-* **External signals** from TradingView, Amibroker, ChartInk, Excel, or Google Sheets
-* **AI agents** connected through the MCP server
+* **Hosted Python strategies** running directly inside OpenAlgo as separate processes, on an exchange-aware schedule
+* **Visual Flow strategies** built from 61 node types on a no-code canvas, with schedule, price-alert, webhook, and order-update triggers
+* **External signals** from TradingView, Amibroker, ChartInk, GoCharting, MetaTrader 5, N8N, Excel, or Google Sheets
+* **AI agents** connected through the built-in MCP server over local stdio or an OAuth-protected remote HTTP transport
 
 This flexibility allows users to choose the approach that best fits their experience level.
 
@@ -96,6 +96,30 @@ Neither workflow places or modifies orders. See [Portfolio Backtester and Analyz
 The `/trading` terminal provides seven persisted layouts, from a single chart to an eight-chart `4×2` grid. Each pane supports its own symbol, interval, chart type, indicators, drawings, history backfill, market depth, and order entry while sharing one drawing toolbar and the application's real-time market-data connection.
 
 See [Chart Trading Terminal](new-features/trading-terminal.md).
+
+***
+
+#### Scalping Terminal
+
+The `/scalping` workspace is keyboard driven. Arrow keys fire call and put orders, F6 flattens every scalping position, and F7 cancels every pending scalping order. A server-side risk monitor evaluates stops, targets, and trailing steps on live ticks, so protection survives closing the browser.
+
+See [Scalping Terminal](new-features/fast-scalper.md).
+
+***
+
+#### Options and Analytics Tools
+
+The `/tools` page collects 18 analytical surfaces:
+
+* strategy builder and strategy portfolio;
+* portfolio backtester, portfolio analyzer, and SIP backtester;
+* option chain, option Greeks, and option symbol resolution;
+* OI tracker, OI range, OI profile, and max pain;
+* straddle chart and straddle PnL;
+* volatility surface, IV smile, GEX dashboard, and gamma density;
+* a futures arbitrage scanner.
+
+Coverage of a given underlying still depends on the active broker's option-chain and history entitlement.
 
 ***
 
@@ -131,8 +155,8 @@ Security and data ownership are core principles of OpenAlgo:
 
 * Broker session tokens are encrypted; `.env` credentials must be protected by the operator
 * Passwords are securely hashed
-* Two-factor authentication is supported
-* API access is rate-limited
+* TOTP two-factor authentication can be enforced independently for dashboard sign-in, remote MCP authorization, and password reset
+* API access is rate-limited, and traffic and latency are logged locally
 * No user data is collected or shared
 
 All data remains on infrastructure controlled by the user.
@@ -179,13 +203,15 @@ Let's be clear about what OpenAlgo doesn't do:
 | --------------------- | ------------------------------------------------ |
 | **Cost**              | Free (Open Source, AGPL License)                 |
 | **Brokers**           | 36 plugins: 34 securities brokers, Delta Exchange (crypto), Dhan Sandbox |
-| **Exchanges**         | NSE, NFO, BSE, BFO, MCX, CDS, BCD                |
-| **Signal Sources**    | TradingView, Amibroker, ChartInk, Python, AI     |
-| **Strategy Building** | Flow (Visual), Python Hosting, External Webhooks |
+| **Exchanges**         | NSE, NFO, BSE, BFO, MCX, CDS, BCD, NCDEX, NCO, plus index and crypto segments |
+| **SDKs**              | Python, Node.js, Java, .NET, Go, Rust            |
+| **Signal Sources**    | TradingView, Amibroker, ChartInk, GoCharting, MetaTrader 5, N8N, Excel, Google Sheets, Python, AI agents |
+| **Strategy Building** | Flow (61 visual node types), Python Hosting, External Webhooks |
 | **Sandbox Trading**   | Analyzer Mode with ₹1 Crore sandbox capital      |
 | **Historical Data**   | Historify with DuckDB storage                    |
-| **Real-Time Data**    | WebSocket streaming for quotes and orders        |
-| **Notifications**     | Telegram bot, WebSocket updates                  |
+| **Real-Time Data**    | WebSocket streaming for quotes, depth, and order updates |
+| **Options Analytics** | 18 tools at `/tools`                             |
+| **Notifications**     | Telegram bot, WhatsApp bot, WebSocket updates    |
 | **Data Privacy**      | 100% - self-hosted on your infrastructure        |
 | **Skill Required**    | Basic trading knowledge                          |
 

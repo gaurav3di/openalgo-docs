@@ -1,19 +1,66 @@
 # Chartink Integration
 
-OpenAlgo now supports seamless Chartink integration for automated trading based on scanner alerts. Key features include:
+OpenAlgo turns a Chartink scanner alert into orders. Configure the strategy at `/chartink`, point the Chartink alert at the strategy's webhook URL, and every scan that fires places orders for the symbols it returns.
 
-• Automated Order Placement: Place orders automatically based on BUY, SELL, SHORT, or COVER alerts.
+## How a Scan Becomes an Order
 
-**• Dual Queue System:**
+The action is read from the **scan name**, not from the payload. The name must contain one of four keywords:
 
-**• Entry Orders**: Fast processing for BUY/SHORT (up to 10 orders per second).
+| Keyword in scan name | Action sent | Order type | Treated as |
+| --- | --- | --- | --- |
+| `BUY` | BUY | `placeorder` | Entry |
+| `SHORT` | SELL | `placeorder` | Entry |
+| `SELL` | SELL | `placesmartorder` with `position_size: 0` | Exit |
+| `COVER` | BUY | `placesmartorder` with `position_size: 0` | Exit |
 
-• **Exit Orders**: Priority handling for SELL/COVER (1-second delay per order).
+A scan name containing none of these is rejected with HTTP 400.
 
-• **Custom Strategy Setup**: Configure symbols, quantities, and product types (Intraday/Positional).
+Exits use a smart order with a zero target position, so the broker's own net position decides the exit quantity. You do not have to track how much is open.
 
-**• Auto Square-off:** Automatically close intraday positions sequentially.
+## Dual Queue and Rate Limiting
 
-<br>
+Orders do not go to the broker straight from the webhook. They are queued and drained by a background worker:
 
-Simply connect your Chartink webhook, configure strategies in OpenAlgo, and automate your trading flow.
+* Entry orders (`BUY`, `SHORT`) go to the regular queue and are released at up to 10 per second.
+* Exit orders (`SELL`, `COVER`) go to the smart-order queue, which is drained first and paced at one per second.
+
+Exits therefore take priority over entries when both arrive in the same scan.
+
+The webhook route itself is rate-limited by `WEBHOOK_RATE_LIMIT`, which defaults to 100 requests per minute.
+
+## Strategy Configuration
+
+Each strategy holds its own symbol list. Per symbol you configure the exchange, quantity, and product type. Chartink strategies are **cash-market only**: the valid exchanges are `NSE` and `BSE`, and the product type is `MIS` for intraday or `CNC` for delivery.
+
+Symbols can be added one at a time or pasted in bulk as `SYMBOL,EXCHANGE,QUANTITY,PRODUCT` lines.
+
+A symbol returned by the scan but absent from the strategy's mapping is skipped.
+
+## Trading Hours and Auto Square-off
+
+An intraday strategy has three times, all IST:
+
+| Setting | Effect |
+| --- | --- |
+| Start time | Nothing is placed before this, entries or exits |
+| End time | Entry orders (`BUY`, `SHORT`) are refused after this |
+| Square-off time | Nothing is placed after this, and a scheduled job flattens every mapped symbol |
+
+The square-off job issues a smart order with `quantity: 0` and `position_size: 0` for each mapped symbol, queued like any other order so the pacing still applies.
+
+Positional strategies skip all three checks.
+
+## Setting Up the Alert
+
+1. Create the strategy at `/chartink` and add its symbols.
+2. Copy the generated webhook URL.
+3. In Chartink, create the scan and name it so the name contains `BUY`, `SELL`, `SHORT`, or `COVER`.
+4. Set the alert's webhook to the copied URL.
+5. Activate the strategy in OpenAlgo. An inactive strategy accepts the webhook and does nothing.
+
+Test in Analyzer mode first. Chartink orders use the same service layer as the REST API, so Analyzer mode and Action Center approval apply to them exactly as they do to an API order.
+
+## Related
+
+* [Strategy Management](../strategy-management.md) for the separate `/strategy` webhook used by TradingView, which accepts only `BUY` and `SELL` and reads the action from the JSON payload rather than the scan name.
+* [ChartInk](../trading-platform/chartink.md) for the platform-side setup.

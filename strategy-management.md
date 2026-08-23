@@ -26,9 +26,13 @@ The Strategy Module allows traders to:
 The strategy blueprint handles all HTTP routes and business logic for strategy management:
 
 * **Route Management**: Handles all `/strategy/*` endpoints
-* **Order Processing**: Manages order queues with rate limiting
-* **Time Management**: Handles trading hours and square-off scheduling
+* **Order Processing**: Two background queues, one for `placeorder` and one for `placesmartorder`, drained by a single worker thread
+* **Time Management**: Handles trading hours and square-off scheduling through an IST-timezone APScheduler instance
 * **Webhook Processing**: Processes incoming trading signals
+
+Both webhook and management routes are also rate-limited at the HTTP layer:
+`WEBHOOK_RATE_LIMIT` defaults to 100 per minute and `STRATEGY_RATE_LIMIT` to
+200 per minute.
 
 #### 2. Database Models (`strategy_db.py`)
 
@@ -44,7 +48,7 @@ Two main database models manage strategy data:
 * `name`: Strategy name
 * `webhook_id`: Unique UUID for webhook identification
 * `user_id`: Associated user
-* `platform`: Trading platform (e.g., tradingview)
+* `platform`: Trading platform, chosen when the strategy is created. It is prefixed to the strategy name, so a TradingView strategy called `momentum` is stored as `tradingview_momentum` and that is the tag that appears on its orders
 * `is_active`: Strategy activation status
 * `is_intraday`: Intraday/Positional mode
 * `trading_mode`: LONG/SHORT/BOTH
@@ -80,8 +84,8 @@ Two main database models manage strategy data:
 
 * Add/remove symbols to strategies
 * Configure quantity per symbol
-* Set product type (MIS/CNC/NRML)
-* Choose exchange
+* Set the product type valid for that exchange: `MIS` or `CNC` on NSE and BSE, `MIS` or `NRML` on NFO, BFO, CDS, BCD, MCX, and NCDEX
+* Choose an exchange from NSE, BSE, NFO, CDS, BFO, BCD, MCX, NCDEX
 
 #### 3. Trading Controls
 
@@ -102,12 +106,18 @@ The module processes webhook signals from trading platforms with the following f
 [BASE_URL]/strategy/webhook/[WEBHOOK_ID]
 ```
 
-Signal Keywords:
+The only two accepted `action` values are `BUY` and `SELL`. What each one
+means depends on the strategy's trading mode:
 
-* `BUY`: Long entry
-* `SELL`: Long exit
-* `SHORT`: Short entry
-* `COVER`: Short cover
+| Trading mode | `BUY` means | `SELL` means |
+| --- | --- | --- |
+| `LONG` | Enter long | Exit long |
+| `SHORT` | Exit short | Enter short |
+| `BOTH` | Long side, sized by `position_size` | Short side, sized by `position_size` |
+
+`SHORT` and `COVER` are **ChartInk** keywords, derived from the scan name by
+the separate `/chartink` webhook. The `/strategy` webhook rejects them. See
+[Chartink Integration](new-features/chartink-integration.md).
 
 ### Rate Limiting
 
@@ -305,7 +315,7 @@ Here are examples of how to send webhook requests using Python:
 
 
 
-```json
+```python
 import requests
 
 # Inputs: host URL and webhook ID
@@ -334,7 +344,7 @@ except requests.exceptions.RequestException as e:
 
 
 
-```json
+```python
 import requests
 
 def send_strategy_signal(host_url, webhook_id, symbol, action, position_size=None):
@@ -390,7 +400,7 @@ send_strategy_signal(host, webhook_id, "NIFTY", "BUY", 0)     # Close short
 
 
 
-```json
+```python
 import requests
 import json
 from typing import Dict, Optional
@@ -498,10 +508,13 @@ except Exception as e:
    * Smart orders: 1/second
    * Queue management for order bursts
 4. **Position Management**:
-   * Tracks open positions per symbol
-   * Handles partial fills
-   * Manages stop-loss and target orders
-   * Implements square-off rules
+   * Exit signals are routed to `placesmartorder` with `position_size: 0`, so the broker's own net position decides the exit quantity
+   * Intraday strategies gate entries to the window between `start_time` and `end_time`, and exits to the window between `start_time` and `squareoff_time`
+   * A scheduled square-off job flattens intraday positions at `squareoff_time`
+
+This module does **not** place stop-loss or target orders, and it does not
+track partial fills. For bracket-style protection, use the Scalping Terminal's
+server-side stop monitor, a hosted Python strategy, or a Flow workflow.
 
 #### Best Practices for Webhook Usage
 
@@ -534,3 +547,11 @@ Planned improvements include:
 * Performance analytics
 * Risk management features
 * Multi-account support
+
+For capabilities this module does not have today, OpenAlgo already ships
+alternatives: [Flow](new-features/flow-visual-strategy-builder.md) for
+conditional logic and multi-step workflows,
+[Python Strategy Hosting](new-features/python-strategy-hosting.md) for
+arbitrary code on a schedule, and
+[Action Center](new-features/action-center.md) for manual approval of every
+order a strategy generates.

@@ -2,207 +2,106 @@
 
 ### Overview
 
-The PnL Tracker is a real-time profit and loss monitoring feature in OpenAlgo that provides visual insights into intraday trading performance. It displays MTM (Mark-to-Market) PnL curves and drawdown analysis using interactive charts powered by TradingView Lightweight Charts.
+The PnL Tracker is a real-time intraday profit and loss view. It reconstructs a mark-to-market curve for the session from your tradebook and open positions, and plots it alongside a drawdown curve.
 
 <figure><img src="../.gitbook/assets/PNL.jpeg" alt=""><figcaption></figcaption></figure>
 
-## PnL Tracker Documentation
+Open it at `/pnl-tracker`, or from the profile menu in the navigation bar.
 
-### Overview
+### Metrics
 
-The PnL Tracker is a real-time profit and loss monitoring feature in OpenAlgo that provides visual insights into intraday trading performance. It displays MTM (Mark-to-Market) PnL curves and drawdown analysis using interactive charts powered by TradingView Lightweight Charts.
+Four figures are shown above the chart:
 
-### Features
+* **Current MTM**: mark-to-market profit or loss right now.
+* **Max MTM**: the highest point reached during the session, with its timestamp.
+* **Min MTM**: the lowest point reached during the session, with its timestamp.
+* **Max Drawdown**: the largest peak-to-trough decline in the curve.
 
-#### Key Metrics
+Currency formatting follows the connected broker, so a crypto account is not forced into rupee formatting.
 
-* **Current MTM**: Real-time mark-to-market profit/loss
-* **Max MTM**: Peak profit achieved during the trading day with timestamp
-* **Min MTM**: Maximum loss during the trading day with timestamp
-* **Max Drawdown**: Largest peak-to-trough decline in portfolio value
+### The Chart
 
-#### Visualization
+Two Baseline series are drawn in **separate panes**, split three to one in favour of the PnL curve. Drawdown is always at or below zero and usually an order of magnitude smaller than MTM, so overlaying the two on one price scale flattened both.
 
-* Interactive intraday PnL curve from 9:00 AM IST to current time
-* Drawdown visualization showing portfolio decline from peaks
-* IST timezone support with accurate time display
-* Theme-aware charts (Light/Dark/Garden themes)
+| Series | Pane | Colour |
+| --- | --- | --- |
+| MTM PnL, above break-even | Upper (3 parts) | Green |
+| MTM PnL, below break-even | Upper (3 parts) | Red |
+| Drawdown from peak | Lower (1 part) | Amber |
 
-### Technical Architecture
+The chart is built on TradingView Lightweight Charts v5 and follows the application theme, so it redraws when you switch between light and dark.
 
-#### Components
+A camera control captures the metrics and the chart together as a single image for sharing or journalling.
 
-**1. Blueprint Route (`/blueprints/pnltracker.py`)**
-
-* **Endpoint**: `/pnltracker` - Main page
-* **API Endpoint**: `/pnltracker/api/pnl` - Data API (POST)
-* **Session Management**: Uses `check_session_validity` decorator
-* **Authentication**: API key based authentication via `get_api_key_for_tradingview()`
-
-**2. Frontend (`/templates/pnltracker.html`)**
-
-* TradingView Lightweight Charts v5.0.8 for visualization
-* DaisyUI components for UI
-* Manual refresh control (no auto-refresh)
-* Responsive design with mobile support
-
-#### Data Flow
+### How the Curve Is Built
 
 ```
-1. User clicks PnL Tracker in navbar
-   ↓
-2. Frontend loads and requests PnL data
-   ↓
-3. Backend fetches:
-   - Tradebook (executed trades) 
-   - Current positions
-   - Historical 1-minute data
-   ↓
-4. Calculate MTM PnL:
-   - For trades: (current_price - executed_price) × quantity
-   - For positions: (current_price - average_price) × quantity
-   ↓
-5. Generate time series data from 9 AM IST
-   ↓
-6. Return formatted data to frontend
-   ↓
-7. Display interactive charts
+1. Fetch the tradebook and the position book through the service layer
+   (so Analyzer mode returns sandbox state, not broker state)
+   |
+2. Fetch 1-minute historical candles for every symbol involved
+   |
+3. Mark each trade and each open position to the candle close, minute by minute
+   |
+4. Sum the per-symbol series into one portfolio series from 09:00 IST
+   |
+5. Derive the drawdown series from the running peak of that curve
 ```
 
-### PnL Calculation Logic
-
-#### For Executed Trades
+For an executed trade:
 
 ```python
-# For each trade in tradebook:
 if action == 'BUY':
-    pnl = (current_price - executed_price) × quantity
+    pnl = (current_price - executed_price) * quantity
 else:  # SELL
-    pnl = (executed_price - current_price) × quantity
+    pnl = (executed_price - current_price) * quantity
 ```
 
-#### For Open Positions (No Trades)
+When the tradebook is empty but positions exist, the position's average price is used instead:
 
 ```python
-# When tradebook is empty but positions exist:
-if quantity > 0:  # Long position
-    pnl = (current_price - average_price) × quantity
-else:  # Short position
-    pnl = (average_price - current_price) × abs(quantity)
+if quantity > 0:      # long
+    pnl = (current_price - average_price) * quantity
+else:                 # short
+    pnl = (average_price - current_price) * abs(quantity)
 ```
 
-#### Portfolio MTM
+Per-symbol series are time-aligned with a pandas join and forward-filled so a symbol with no tick in a given minute does not punch a hole in the portfolio curve.
 
-* Individual symbol PnLs are combined into portfolio PnL
-* Time-synchronized data using pandas DataFrame joins
-* Forward-fill missing data points for continuity
+### Time Handling
 
-### Timestamp Handling
+* The window runs from **09:00 IST** to the current time, at 1-minute resolution.
+* Broker timestamps arrive in several shapes: epoch seconds, epoch milliseconds, and ISO strings. All three are detected and converted to `Asia/Kolkata`.
+* Historical fetches are paced by an internal rate limiter, because reconstructing a session for many symbols means one history call per symbol.
 
-The system robustly handles different timestamp formats from various brokers:
+### Refresh Behaviour
 
-1. **Unix timestamp (seconds)**: Most common format
-2. **Unix timestamp (milliseconds)**: Alternative format
-3. **String datetime**: ISO format strings
-4. **Timezone handling**: Automatic conversion to IST
+There is **no auto-refresh**. Reconstructing the curve costs one tradebook call, one position-book call, and one history call per symbol, so refreshing on a timer would burn the broker's rate budget for little benefit. Use the Refresh control when you want an updated picture.
 
+### Analyzer Mode
 
-
-### Error Handling
-
-#### Graceful Degradation
-
-* **Missing historical data**: Shows flat PnL line at current value
-* **Invalid timestamps**: Falls back to default time range
-* **String numeric values**: Automatically converts to float
-* **Empty tradebook**: Uses position data if available
-* **No data**: Returns zero PnL metrics
-
-#### Logging
-
-* Comprehensive logging at INFO, WARNING, and ERROR levels
-* Detailed error messages for debugging
-* Performance metrics logging
-
-
-
-### Time Filtering
-
-* **Start Time**: 9:00 AM IST (market open)
-* **End Time**: Current time
-* **Frequency**: 1-minute intervals
-* **Timezone**: Asia/Kolkata (IST)
-
-
-
-### Performance Optimization
-
-#### Manual Refresh Only
-
-* No automatic refresh to reduce server load
-* User-initiated refresh via button click
-* Prevents unnecessary API calls
-
-#### Data Batching
-
-* Single API call fetches all required data
-* Parallel processing of multiple symbols
-* Efficient pandas operations for calculations
-
-#### Caching Strategy
-
-* Session-based authentication caching
-* Reuses auth tokens within session
-* Minimizes database queries
+The tracker reads through the same tradebook and position-book services as the rest of OpenAlgo, so in Analyzer mode it plots sandbox trades and sandbox positions. There is a separate sandbox P&L view at `/sandbox/mypnl` for sandbox-specific reporting.
 
 ### Broker Compatibility
 
-#### Supported Features by Broker
+The tracker needs two things from the active broker: a tradebook API and 1-minute historical data. Where either is missing or incomplete, the curve degrades rather than failing:
 
-* All brokers supporting tradebook API
-* All brokers supporting 1-minute historical data
-* Position tracking across all integrated brokers
+| Situation | Behaviour |
+| --- | --- |
+| No trades today | Positions alone are used, if any exist |
+| No trades and no positions | Zero metrics, flat chart |
+| Missing historical data for a symbol | Flat line at the current value for that symbol |
+| Unparseable timestamp | Falls back to the default time range |
+| Numeric field arrives as a string | Converted to float |
 
-#### Special Cases
-
-* **MCX/Commodities**: Special quantity calculation when trade\_value equals average\_price (1 lot)
-* **Different timestamp formats**: Automatic detection and conversion
-* **Missing data fields**: Graceful fallback to defaults
-
-### Usage
-
-#### Accessing PnL Tracker
-
-1. Login to OpenAlgo
-2. Click profile menu in navbar
-3. Select "PnL Tracker" (below "Logs")
-4. View real-time PnL metrics and charts
-5. Click "Refresh" button to update data
-
-#### Understanding the Display
-
-* **Green values**: Profit positions
-* **Red values**: Loss positions
-* **Purple line**: MTM PnL curve
-* **Pink area**: Drawdown from peak
+MCX and other lot-based commodity contracts get a special quantity path where the broker reports trade value equal to average price, which means one lot.
 
 ### Troubleshooting
 
-#### Common Issues
-
-1. **"No data in TradeBook"**
-   * Normal when no trades executed
-   * Position PnL will still be displayed if positions exist
-2. **Timestamps showing wrong time**
-   * Automatic IST conversion handles this
-   * Check broker's timestamp format if persistent
-3. **Zero values displayed**
-   * Verify API key is configured
-   * Check if market is open (after 9 AM IST)
-   * Ensure positions or trades exist
-4. **Chart not loading**
-   * Verify lightweight-charts.js is loaded
-   * Check browser console for errors
-   * Try different theme or refresh page
-
-####
+| Symptom | Check |
+| --- | --- |
+| "No data in TradeBook" | Normal before your first fill. Position P&L still plots if you hold something. |
+| All zeros | Confirm an API key is configured at `/apikey`, that the market has been open since 09:00 IST, and that trades or positions exist. |
+| Chart empty but metrics populated | The broker returned no 1-minute history for those symbols. Check the history API for one of them directly. |
+| Wrong times on the axis | Conversion to IST is automatic; if it persists, the broker's timestamp format is the thing to report. |
+| Screenshot fails | The capture runs in the browser. Check the browser console. |

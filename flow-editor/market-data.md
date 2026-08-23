@@ -30,6 +30,24 @@ Three nodes read history, each answering a different question.
 | `barOffset` | "What was the close N bars back?" |
 | `priorPeriodOhlc` | "What was the previous day/hour/week/month's OHLC?" |
 
+### history: the raw OHLCV array
+
+```json
+{ "id": "h", "type": "history", "position": { "x": 0, "y": 100 },
+  "data": { "symbol": "RELIANCE", "exchange": "NSE",
+            "interval": "5m", "days": 30, "outputVariable": "h" } }
+```
+
+`{{h.data}}` is an array of OHLCV records. The primary range control is
+`days` (default 30, editor maximum 365). `startDate` and `endDate` are also
+accepted and take precedence when both are set.
+
+Unlike the other three history-reading nodes, `history` picks its interval
+from a fixed dropdown, not a free-text box: `1m`, `5m`, `15m`, `1h`, `1d`.
+It also has **no `source` field**, so it always calls the active broker. When
+you need a broker-independent or resampled interval, read it through
+`indicator`, `barOffset`, or `priorPeriodOhlc`, which do accept `source`.
+
 ### barOffset: N bars back
 
 ```json
@@ -74,8 +92,10 @@ today's partial bar.
 
 ## Timeframes
 
-`interval` is a **free-text field, not a dropdown**, because broker support
-varies. Common values: `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `D`.
+On `indicator`, `barOffset`, and `priorPeriodOhlc`, `interval` is a
+**free-text field, not a dropdown**, because broker support varies. Common
+values: `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `D`. The `history` node is the
+exception and offers only the five fixed choices listed above.
 
 Use the `intervals` node to list what your connected broker actually
 supports:
@@ -85,15 +105,18 @@ supports:
   "data": { "outputVariable": "ivs" } }
 ```
 
-If you request an interval the broker does not offer, the node now reports
-the broker's own message and points you at the alternative rather than
-failing with a misleading "no data".
+If you request an interval the broker does not offer, `indicator`,
+`barOffset`, and `priorPeriodOhlc` report the broker's own message and point
+you at the alternative rather than failing with a misleading "no data". The
+`history` node still returns the raw broker payload, so read its output when
+a `history` fetch comes back empty.
 
 ### Resampling with the Historify DB
 
-Set `source: "db"` to read from OpenAlgo's local Historify store instead of
-the broker. Historify stores `1m` and `D` and **computes everything else on
-demand with SQL**:
+Set `source: "db"` on an `indicator`, `barOffset`, or `priorPeriodOhlc` node
+to read from OpenAlgo's local Historify store instead of the broker.
+Historify stores `1m` and `D` and **computes everything else on demand with
+SQL**:
 
 | From stored | You can request |
 | --- | --- |
@@ -134,10 +157,13 @@ otherwise span 54 years and 200 yearly bars 219 years, ranges no broker
 serves sensibly.
 
 The `history` node's explicit `startDate`/`endDate` is narrowed the same way.
-Requesting `2016-01-01` to `2026-07-29` on a daily chart silently becomes
-roughly the last 200 daily bars, and the execution log records it.
+Requesting `2016-01-01` to `2026-07-29` on a daily chart becomes roughly the
+last 200 daily bars. The narrowing is written to the OpenAlgo server log, not
+to the per-node execution log shown in the editor, so check `log/` if a run
+returned fewer bars than you asked for.
 
-Both limits are tunable if a strategy genuinely needs more depth:
+Both limits are tunable if a strategy genuinely needs more depth. Neither
+appears in `.sample.env`, so add them to `.env` yourself:
 
 ```
 FLOW_MAX_HISTORY_BARS=200
@@ -163,12 +189,16 @@ history-reading nodes share a short-TTL cache keyed by the exact request
 (symbol, exchange, interval, dates, source). Four nodes wanting the same
 series produce **one** broker call.
 
+Concurrent misses for the same key are collapsed into a single in-flight
+request, so a burst of workflows starting together still makes one call.
 Errors and empty responses are never cached, so a transient failure stays
-retryable. Tune with:
+retryable. Tune with these `.env` keys, which are also absent from
+`.sample.env`:
 
 ```
 FLOW_HISTORY_CACHE_TTL=30        # seconds; 0 disables
 FLOW_HISTORY_CACHE_MAXSIZE=256
+FLOW_HISTORY_FLIGHT_TIMEOUT=60   # seconds a collapsed request may wait
 ```
 
 Practical guidance: prefer one `indicator` node per distinct

@@ -120,6 +120,8 @@ For each pending order:
 3. **Rejected** - Orders you declined
 4. **All Orders** - Complete history
 
+An **Approve All** control clears the whole pending queue in one action, and a pending row can also be deleted outright rather than approved or rejected. A count endpoint drives the badge in the navigation bar.
+
 ### Special Features
 
 #### Auto-Refresh
@@ -160,15 +162,17 @@ Every action is logged:
 
 #### Q: Which order types can the approval executor dispatch?
 
-**A:** The current executor supports:
+**A:** The approval executor dispatches seven order types:
 
 * Regular orders (`placeorder`)
 * Smart orders (`placesmartorder`)
 * Basket orders (`basketorder`)
 * Split orders (`splitorder`)
 * Options orders (`optionsorder`)
+* Multi-leg options orders (`optionsmultiorder`)
+* GTT orders (`placegttorder`)
 
-`optionsmultiorder` and `placegttorder` services can currently create pending rows, but the approval executor has no dispatch branch for them. Approval reports `Unknown order type` and marks broker execution rejected. Close, cancel, cancel-all, modify, modify-GTT, and cancel-GTT operations are blocked by their services in semi-auto live mode rather than queued.
+Everything else bypasses the queue. Order status, order book, trade book, positions, holdings, funds, open position, and the GTT order book always execute immediately because they only read. Close-position, close-all-positions, cancel, cancel-all, modify, modify-GTT, and cancel-GTT are refused with HTTP 403 in semi-auto live mode: switch back to Auto mode to use them. Cancelling or modifying a GTT is deliberately excluded from the queue because a queued action against a GTT that has already triggered is unsafe.
 
 #### Q: Can I see which orders my strategy generated vs which I approved?
 
@@ -215,9 +219,9 @@ Every action is logged:
    * Your bot generates BUY signal for RELIANCE
    * Order appears in Action Center "Pending" tab
 3. **9:31 AM** - You review
-   * Symbol: RELIANCE ✅ (Correct)
-   * Quantity: 10 ✅ (Looks good)
-   * Price: ₹2,500 ✅ (Reasonable)
+   * Symbol: RELIANCE (correct)
+   * Quantity: 10 (looks right)
+   * Price: ₹2,500 (reasonable)
    * Click "Approve"
 4. **9:31 AM** - Order executes
    * Sent to broker

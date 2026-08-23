@@ -31,7 +31,7 @@ Flow does not provide loops, foreach/switch nodes, cross-run variables, automati
 
 | Trigger | Behavior | Important configuration |
 |---|---|---|
-| Schedule (`start`) | Once, daily, weekly, or interval execution | IST time/day values and optional weekday market-hours gate |
+| Schedule (`start`) | Once, daily, weekly, or interval execution | IST time/day values and an optional market-hours gate driven by the exchange calendar, with optional exchange and `HH:MM` overrides |
 | Price Alert (`priceAlert`) | Watches LTP for a level, cross, channel, or percentage move | Symbol/exchange, thresholds, once/every-time, expiration |
 | Webhook (`webhookTrigger`) | Executes from a tokenized public POST | Optional symbol filter and payload or URL-secret authentication |
 | Order Update (`orderUpdateTrigger`) | Executes on normalized live/sandbox order state | Order ID or symbol filter, optional exchange/status, once/every-time |
@@ -88,4 +88,4 @@ See [Flow Editor](../flow-editor/README.md) for the execution model, complete no
 * Schedule jobs use `coalesce=true`, `max_instances=1`, and a 60-second misfire grace.
 * Active price and order-update watches are removed on deactivation/deletion and restored after restart when persisted configuration permits it.
 * Order nodes use the same service layer and Analyzer/semi-auto routing rules as the REST API.
-* Delay nodes and external broker/HTTP calls keep execution synchronous; avoid long waits across many active workflows.
+* Delay nodes and external broker/HTTP calls keep execution synchronous; avoid long waits across many active workflows. A `delay` node is capped at 300 seconds, while `waitUntil` is uncapped and holds the workflow lock for its full duration.

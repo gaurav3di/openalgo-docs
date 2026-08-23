@@ -34,7 +34,8 @@ Always verify the current mode before an automated run. Turning Analyzer Mode of
 * MARKET orders can complete from current prices; LIMIT, SL, and SL-M orders can remain pending until their conditions are met.
 * The execution engine uses WebSocket prices when available and can fall back to polling.
 * Position book, holdings, funds, order book, trade book, status, modify, cancel, close, and P&L services use sandbox state where their analyzer branches exist.
-* Analyzer GTT place, modify, cancel, and order-book services currently return HTTP 501.
+* GTT is fully simulated. Place, modify, cancel, and the GTT order book all route to a sandbox GTT engine that holds single-leg and two-leg OCO triggers, blocks margin at placement, and fires a real sandbox order when a leg's trigger price is crossed. HTTP 501 now only appears in live mode, when the active broker ships no GTT module.
+* Expired F&O contracts are settled inside the sandbox. `expiry_settlement_timing` chooses between exchange close on expiry day and midnight after expiry, and `option_expiry_settlement` chooses between settling at last traded price (keeping ITM value) and expiring every option worthless.
 
 Broker-specific RMS checks, queue priority, slippage, partial fills, outages, and exchange microstructure can differ from Analyzer results.
 
@@ -58,6 +59,10 @@ Open `/sandbox` to inspect and update settings. Fresh sandbox databases use:
 | Futures leverage | 10x |
 | Option buy leverage | 1x |
 | Option sell leverage | 1x |
+| Expiry settlement timing | `expiry_day_close` |
+| Option expiry settlement price | `ltp` |
+| OCO GTT margin mode | `max` (block only the larger leg) |
+| GTT claim timeout | 60 seconds |
 
 These values configure the local simulator and can be changed. They are not promises about the active broker's live margin or square-off policy.
 

@@ -1,53 +1,60 @@
 # Community Support
 
-Welcome to the OpenAlgo Community on Discord! This is your hub for connecting with fellow developers and algo traders, sharing insights, getting support, and collaborating on projects.
+OpenAlgo is community supported. There is no vendor helpdesk and no paid support tier: help comes from other traders and developers running the same software, and from the maintainers when they have time.
 
-### How to Join
+### Where to Get Help
 
-To become a part of our growing community, please use the invitation link below: [Join the OpenAlgo Discord Community](https://discord.gg/UPh7QPsNhP) and you can raise your issues and feature request in [openalgo github section ](https://github.com/marketcalls/openalgo/issues)
+| Channel | Use it for | Link |
+| --- | --- | --- |
+| Discord | Questions, setup problems, strategy discussion, release news | [https://www.openalgo.in/discord](https://www.openalgo.in/discord) |
+| GitHub Issues | Reproducible bugs and feature requests | [github.com/marketcalls/openalgo/issues](https://github.com/marketcalls/openalgo/issues) |
+| GitHub Discussions | Open-ended questions that are not bugs | [github.com/marketcalls/openalgo/discussions](https://github.com/marketcalls/openalgo/discussions) |
+| YouTube | Walkthroughs and feature demonstrations | [youtube.com/@openalgo](https://www.youtube.com/@openalgo) |
+| X (Twitter) | Announcements | [@openalgoHQ](https://twitter.com/openalgoHQ) |
+
+**Security issues are the exception.** Do not report a vulnerability in a public channel. Email `rajandran@openalgo.in` instead, as described in the repository's `SECURITY.md`.
 
 ### Community Guidelines
 
 * **Respect:** Treat every member with respect. No harassment or discrimination is tolerated.
 * **Collaboration:** Feel free to ask for help and offer support. Share your knowledge and learn from others.
 * **No Spam:** Keep discussions on-topic. Avoid spamming channels with promotions or irrelevant content.
+* **No paid signal selling:** OpenAlgo is execution infrastructure, not a marketplace. Do not use the community to sell strategies or tips.
 * **Intellectual Property:** Respect copyright laws and do not share illegal downloads or copyrighted content.
-* **Privacy:** Do not share personal information of yourself or others.
+* **Privacy:** Do not share personal information of yourself or others. Never paste an API key, a broker credential, or the contents of your `.env` file into a public channel or a GitHub issue.
 
-### Channels and Their Purposes
+### Asking a Question That Gets Answered
 
-* **#general:** General discussions related to algo trading and development.
-* **#developers:** Technical discussions about OpenAlgo's API, SDKs, and development.
-* **#algotraders:** Strategies, tips, and discussion for algo traders.
-* **#announcements:** Stay updated with the latest news and events.
-* **#trading-platforms:** Discuss various platforms and tools for trading.
+OpenAlgo runs on your own machine against your own broker, so nobody else can see what went wrong. Include:
 
-### [OpenAlgo Virtual Meet](https://learn.marketcalls.in/courses/-OpenAlgo-Developer-Meet---Mar-22-2024-65fd4c74a2a47848adb27c40)
+* your OpenAlgo version, from the dashboard footer or `pyproject.toml`;
+* your operating system and Python version;
+* the broker plugin you are connected to;
+* what you expected and what actually happened;
+* the relevant lines from `log/`, with API keys and order IDs redacted.
 
-* **Event Time:** 02nd April 2024 (7.30 p.m IST)
-* **Agenda Highlights:** Discover features of OpenAlgo v1.0, integration techniques, plugin systems, and the roadmap for v2.0.
+"It does not work" cannot be answered. A log excerpt usually can.
 
-### Support and FAQ
+### Before You Ask
 
-#### How can I get help with an issue?
+Most questions are already answered:
 
-Post your question in the relevant channel. For technical issues, use #developers, and for trading-related inquiries, use #algotraders.
+* [What is OpenAlgo?](README.md) for scope and boundaries
+* [Getting Started](getting-started/README.md) for installation
+* [API Documentation](api-documentation/v1/README.md) for the REST and WebSocket contract
+* [Symbol Format](symbol-format.md) for how symbols are constructed
+* [Responsibilities](responsibilities.md) for what you are expected to own
+* [Contributors](contributors.md) for the development setup
 
-#### Are there any regular events or meetups?
+Search the existing GitHub issues too. A bug you hit today has often been reported, and sometimes fixed, already.
 
-Yes, we host the OpenAlgo Virtual Meet annually. You can find the details in the #announcements channel.
+### Contributing Back
 
-#### How do I report inappropriate behavior?
+The community works because people give as well as take. Useful contributions include reporting a reproducible bug, improving a documentation page, adding a broker plugin, and answering someone else's question on Discord. See [Contributors](contributors.md) for the development setup and pull-request conventions.
 
-Contact a moderator via direct message or use the `@moderator` tag in the #general channel.
+### What Support Does Not Cover
 
-### Resources
-
-* \[OpenAlgo API Documentation]
-* \[Tutorials and Guides]
-* \[Trading Strategies and Tips]
-* \[Code Repositories]
-
-### Contact Us
-
-For direct support or inquiries, please contact the community moderators or reach out through the following email: support@openalgo.com.
+* Guaranteed response times, including during market hours.
+* Debugging your trading strategy or its profitability.
+* Broker-side problems. Contact your broker for API entitlement, rate limits, static IP registration, and account issues.
+* Recovering money lost to a strategy, a misconfiguration, or an outage. See [Responsibilities](responsibilities.md).

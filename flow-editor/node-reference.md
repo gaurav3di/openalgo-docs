@@ -14,37 +14,74 @@ a trigger is the entry point, so nothing has been computed yet.
 
 ## Triggers
 
-A workflow must have exactly **one** trigger. If you add a second, the
-executor takes the first one it finds and everything downstream of the other
-never runs, silently. See [Concepts](concepts.md#triggers).
+A workflow must have exactly **one** trigger, and there are exactly four:
+`start`, `priceAlert`, `webhookTrigger`, and `orderUpdateTrigger`. A second
+trigger is rejected by strict validation with a `multiple_triggers` error, so
+**Run Now**, activation, and import all refuse the graph. See
+[Concepts](concepts.md#triggers).
 
 ### `start`: Schedule
 
 | Field | Values | Notes |
 | --- | --- | --- |
-| `scheduleType` | `once`, `daily`, `weekly`, `interval` | Required. |
-| `time` | `"HH:MM"` | For `once` / `daily` / `weekly`. IST. |
-| `days` | `[1,2,3,4,5]` | For `weekly`. 1 = Monday. |
-| `executeAt` | ISO datetime | For `once`. |
+| `scheduleType` | `once`, `daily`, `weekly`, `interval`, `manual` | Required. `manual` registers no job at all. |
+| `time` | `"HH:MM"` | For `daily` and `weekly` only. IST. |
+| `days` | `[0,1,2,3,4]` | For `weekly`. **0 = Monday**, 6 = Sunday. |
+| `executeAt` | date | For `once`. The editor writes a bare `YYYY-MM-DD`, so a `once` schedule fires at midnight and the panel's Time box does not apply to it. |
 | `intervalValue` + `intervalUnit` | number + `seconds`/`minutes`/`hours` | For `interval`. |
-| `intervalMinutes` | number | Older form of the above; still honoured. |
-| `marketHoursOnly` | boolean | Skips runs outside market hours. |
+| `marketHoursOnly` | boolean | Gates runs to the exchange trading session. |
+| `marketHoursExchange` | exchange code | Which calendar to consult. Default NSE. |
+| `marketHoursStart` / `marketHoursEnd` | `"HH:MM"` | IST overrides that narrow or extend the session clock. They never reopen a holiday. |
 
-The scheduler is IST-based and survives restarts (jobs persist in
-`flow_apscheduler_jobs`). Overlapping runs of the same workflow are suppressed
-(`max_instances: 1`), so a slow run delays the next tick rather than stacking.
+`intervalMinutes` appears in older exports and is read by nothing. A workflow
+relying on it schedules at the default of one minute.
+
+Jobs persist in the `flow_apscheduler_jobs` table and survive restarts. The
+scheduler uses the server process local timezone for cron and date triggers;
+only the market-hours gate is explicitly IST, so run OpenAlgo with the host
+clock set to IST.
+
+Overlapping runs are **dropped, not deferred**. The job defaults are
+`coalesce: true`, `max_instances: 1`, and a 60-second misfire grace, and
+`execute_workflow` takes the per-workflow lock without blocking and returns
+`already_running`. A tick that arrives during a slow run is lost.
 
 ### `priceAlert`: Price Alert
 
 | Field | Values | Notes |
 | --- | --- | --- |
 | `symbol`, `exchange` | | Required. |
-| `condition` | `above`, `below`, `crosses_above`, `crosses_below` | |
-| `price` | number | The level to watch. |
-| `enabled` | boolean | |
+| `condition` | see below | 13 canonical values. |
+| `price` | number | The level to watch. Required for the level and crossing conditions. |
+| `priceLower` + `priceUpper` | number | Required for the four channel conditions. `priceLower` must be below `priceUpper`. |
+| `percentage` | number | Required for `moving_up_percent` / `moving_down_percent`. |
+| `trigger` | `once`, `every_time` | Default `once`. |
+| `expiration` | `none`, `1h`, `4h`, `1d`, `1w` | Retires the alert after this window. |
 
-`crosses_above` / `crosses_below` are edge-triggered and need a previous tick,
-so the first evaluation after activation cannot fire them.
+The 13 conditions the monitor evaluates:
+
+| Group | Values | Needs |
+| --- | --- | --- |
+| Level | `greater_than`, `less_than` | `price` |
+| Crossing | `crossing`, `crossing_up`, `crossing_down` | `price` |
+| Channel | `entering_channel`, `inside_channel`, `exiting_channel`, `outside_channel` | `priceLower`, `priceUpper` |
+| Movement | `moving_up`, `moving_down` | nothing extra |
+| Percentage move | `moving_up_percent`, `moving_down_percent` | `percentage` |
+
+`above`, `below`, `crosses_above`, and `crosses_below` are accepted as aliases
+of `greater_than`, `less_than`, `crossing_up`, and `crossing_down`.
+
+**A crossing condition can fire on its very first evaluation.** With no
+previous tick recorded, `crossing_up` falls back to a plain level test
+(`current > target`) rather than returning false. An alert armed while price
+is already above its level therefore fires on the next poll, not on the next
+genuine crossing.
+
+A `once` alert does not merely remove its own watch when it fires: it
+**deactivates the whole workflow**. Reactivate it from the editor to arm it
+again.
+
+The `enabled` field exists in older exports and is read by nothing.
 
 ### `webhookTrigger`: Webhook
 
@@ -53,9 +90,12 @@ Fires when its URL is POSTed. The payload is readable as
 `{{webhook.action}}`. This is how TradingView, ChartInk, Amibroker and Excel
 drive a Flow workflow.
 
-The node has no configuration beyond the generated `webhookId` / `webhookUrl`,
-which the editor fills in. Anything in the JSON body is available; nothing is
-validated for you, so guard on the fields you rely on.
+The URL is not stored on the node. It is derived from the workflow's own
+`webhook_token`, which the editor fetches from
+`GET /api/workflows/<id>/webhook`, so the node itself has no `webhookId` or
+`webhookUrl` field. Its declared fields are `label`, `symbol`, and `exchange`,
+none of which the executor reads. Anything in the JSON body is available;
+nothing is validated for you, so guard on the fields you rely on.
 
 ### `orderUpdateTrigger`: Order Update
 
@@ -64,10 +104,17 @@ account WebSocket feed, no polling.
 
 | Field | Values | Notes |
 | --- | --- | --- |
-| `orderId` | string | Watch one order. Empty = any. |
-| `symbol`, `exchange` | | Optional filters. |
-| `status` | `any`, `open`, `trigger pending`, `complete`, `rejected`, `cancelled` | |
-| `trigger` | `once`, `every_time` | `once` removes the watch after it fires. |
+| `orderId` | string | Watch one order. Must be a literal: `{{...}}` is rejected outright. |
+| `symbol`, `exchange` | | Filters. |
+| `status` | `any`, `open`, `trigger pending`, `complete`, `rejected`, `cancelled` | Default `complete`. |
+| `trigger` | `once`, `every_time` | Default `once`. |
+
+**At least one of `orderId` or `symbol` is mandatory.** Activating with both
+blank fails with "orderUpdateTrigger needs an Order ID or a Symbol to watch";
+there is no "watch every order" mode.
+
+A `once` trigger deactivates the whole workflow when it fires, not just the
+watch.
 
 The payload is exposed as `{{webhook.orderid}}`, `{{webhook.order_status}}`,
 `{{webhook.filled_quantity}}`, `{{webhook.average_price}}`,
@@ -75,8 +122,13 @@ The payload is exposed as `{{webhook.orderid}}`, `{{webhook.order_status}}`,
 
 ### `httpRequest`: HTTP Request
 
-Can act as a trigger or as an action mid-graph. Calls an external URL and
-stores the response.
+`httpRequest` is **not a trigger**, despite sitting beside them in the node
+list. It is a utility node that calls an external URL mid-graph and stores the
+response. A workflow whose only entry point is an `httpRequest` fails
+validation with `no_trigger`.
+
+Its `timeout` field is in **milliseconds**: the default is 30000 and values
+are capped at 60000.
 
 ---
 
@@ -92,19 +144,31 @@ exactly as they do for an API order.
 | --- | --- | --- |
 | `symbol`, `exchange` | | Required. |
 | `action` | `BUY`, `SELL` | Required. |
-| `quantity` | number | **Lots** for F&O, shares for equity. |
+| `quantity` | number | **Contract units, never lots.** For an NFO order this is lots multiplied by lot size, which you compute yourself. |
 | `priceType` | `MARKET`, `LIMIT`, `SL`, `SL-M` | Default `MARKET`. |
-| `product` | `CNC`, `NRML`, `MIS` | |
-| `price`, `triggerPrice`, `disclosedQuantity` | number | `price` required for `LIMIT`; `triggerPrice` for `SL`/`SL-M`. |
+| `product` | `CNC`, `NRML`, `MIS` | Default `MIS`. |
+| `price`, `triggerPrice` | number | `price` required for `LIMIT`; `triggerPrice` for `SL`/`SL-M`. |
 
 Output: `{status, orderid}`
 
+`optionsOrder` and `optionsMultiOrder` are the only nodes that take lots and
+multiply by the contract lot size for you. `placeOrder`, `smartOrder`,
+`splitOrder`, and `basketOrder` all pass `quantity` through untouched.
+
+`disclosedQuantity` appears in the node type definition but the executor never
+sends it, so it is always 0.
+
 ### `smartOrder`: Smart Order
 
-Same fields as `placeOrder` plus `positionSize`: the **target** net position.
-The node computes the delta and places only the difference. `positionSize: 0`
-flattens. This is the safe way to "get to" a position without tracking what
-you already hold.
+Takes `symbol`, `exchange`, `action`, `quantity`, `product`, `priceType`, and
+`positionSize`: the **target** net position. The node computes the delta and
+places only the difference. `positionSize: 0` flattens. This is the safe way
+to reach a position without tracking what you already hold.
+
+**The executor does not forward `price` or `triggerPrice` on this node.** A
+`LIMIT` or `SL` smart order therefore reaches the broker with `price: 0`, and
+no guard catches it. Use `smartOrder` for MARKET sizing and `placeOrder` when
+you need a price.
 
 Output: `{status, orderid}`
 
@@ -115,14 +179,28 @@ Resolves the contract for you, then places it.
 | Field | Values | Notes |
 | --- | --- | --- |
 | `underlying` | e.g. `NIFTY` | Required. |
-| `exchange` | `NFO`, `BFO` | The F&O exchange, not `NSE_INDEX`. |
-| `expiryDate` | `"04-AUG-26"` or blank | Blank = current weekly. |
-| `offset` | integer | Strikes from ATM. `0` = ATM, `+2` = two strikes OTM for a call. |
+| `expiryType` | `current_week`, `next_week`, `current_month`, `next_month` | Default `current_week`. Any other value errors. |
+| `offset` | `ATM`, `ITM1`-`ITM50`, `OTM1`-`OTM50` | A **string**, not a number. `0` and `2` resolve nothing. |
 | `optionType` | `CE`, `PE` | |
-| `action`, `quantity`, `priceType`, `product`, `price` | | As `placeOrder`. |
+| `action` | `BUY`, `SELL` | |
+| `quantity` | number | **Lots.** The node reads the contract lot size and multiplies for you. |
+| `priceType`, `product`, `price`, `triggerPrice` | | `product` defaults to `NRML`. |
 | `splitSize` | number | Splits into child orders of this size for freeze limits. |
 
-Output: `{status, orderid, symbol, exchange, underlying, underlying_ltp, offset, option_type, mode}`
+There is no usable `exchange` field and no `expiryDate` field. The node
+derives both exchanges from the underlying: `SENSEX`, `BANKEX`, and
+`SENSEX50` resolve to `BSE_INDEX` and `BFO`, everything else to `NSE_INDEX`
+and `NFO`. A workflow that sets `"expiryDate": "04-AUG-26"` silently gets the
+current-week expiry.
+
+Output when `splitSize` is 0 (the default):
+`{status, orderid, symbol, exchange, underlying, underlying_ltp, offset, option_type, mode}`
+
+Output when `splitSize` is greater than 0:
+`{status, symbol, exchange, underlying, underlying_ltp, offset, option_type, total_quantity, split_size, results: [...]}`
+
+**The split shape has no `orderid`**, so `{{o.orderid}}` is undefined exactly
+when you use the split feature. Read `{{o.results}}` instead.
 
 ### `optionsMultiOrder`: Options Multi-Order
 
@@ -130,13 +208,19 @@ Places several option legs in one call, spreads, straddles, iron condors.
 
 | Field | Notes |
 | --- | --- |
-| `strategy` | The **structure** name (`custom`, `straddle`, …). This is *not* the strategy tag. |
-| `underlying`, `exchange`, `expiryDate` | Shared by all legs. |
-| `legs` | Array of `{offset, optionType, action, quantity, priceType, product}`. |
+| `strategy` | The **structure** name, one of `straddle`, `strangle`, `iron_condor`, `bull_call_spread`, `bear_put_spread`, `custom`. This is *not* the strategy tag. |
+| `underlying` | Shared by all legs. The exchange is derived from it, as in `optionsOrder`. |
+| `expiryType` | `current_week`, `next_week`, `current_month`, `next_month`. There is no `expiryDate` field. |
+| `action` | Default `SELL`. Applied to generated legs. |
+| `quantity` | Lots per leg. |
+| `product`, `priceType`, `price` | Node-level defaults for generated legs. |
+| `strangleWidth` | Default `OTM2`. Used by the `strangle` structure. |
+| `legs` | For `custom`: array of `{offset, optionType, action, quantity, priceType, product, price, triggerPrice, splitSize}`. |
 
-Output: `{status, results: [{...}]}`
+BUY legs are placed before SELL legs for margin efficiency. A generated
+(non-`custom`) structure **rejects `SL` and `SL-M`** outright.
 
-Legs are placed together and reported in one completion event.
+Output: `{status, underlying, underlying_ltp, results: [{...}]}`
 
 ### `basketOrder`: Basket Order
 
@@ -144,14 +228,25 @@ Several unrelated symbols in one submission.
 
 | Field | Notes |
 | --- | --- |
-| `orders` | Array of `{symbol, exchange, action, quantity, priceType, product, price}`. |
+| `orders` | A newline-delimited **string**, one order per line, `SYMBOL,EXCHANGE,ACTION,QTY`. |
+| `priceType`, `product` | Node-level, applied to every row. They are not per order. |
+| `basketName` | Default `flow_basket`. This becomes the strategy tag. |
+
+A per-row `price` is not parsed: every row uses the node-level `priceType`. An
+array of objects is accepted as a legacy fallback but bypasses interpolation
+and validation, so prefer the string form.
 
 Output: `{status, results: [{symbol, exchange, product, status, orderid}]}`
 
 ### `splitOrder`: Split Order
 
-One large order broken into child orders of `splitSize`, `delayMs` apart, to
-stay under exchange freeze quantity.
+One large order broken into child orders of `splitSize`, to stay under the
+exchange freeze quantity. Fields: `symbol`, `exchange`, `action`, `quantity`,
+`splitSize`, `priceType`, `product`.
+
+Spacing between child orders comes from the global `ORDER_RATE_LIMIT` setting
+(100 ms by default), not from the node. `delayMs` appears in older exports and
+is read by nothing.
 
 Output: `{status, results: [{order_num, quantity, status, orderid}]}`
 
@@ -162,12 +257,22 @@ Output: `{status, results: [{order_num, quantity, status, orderid}]}`
 
 ### `cancelOrder` / `cancelAllOrders` / `closePositions`
 
-`cancelOrder` takes an `orderId`. `cancelAllOrders` takes nothing and cancels
-every open order. `closePositions` flattens everything, optionally narrowed by
-`exchange` and `product`.
+`cancelOrder` takes an `orderId`. It is the one order node that does **not**
+store its result, so an `outputVariable` on it stays undefined.
 
-These are account-wide, **not** strategy-scoped. `cancelAllOrders` in one
-workflow cancels orders another workflow placed.
+`cancelAllOrders` takes nothing and cancels every open order.
+
+`closePositions` behaves in two distinct ways:
+
+* With `symbol` set, it closes that one position, honouring `exchange` and
+  `product` and carrying the strategy tag.
+* With `symbol` blank, it closes **everything**, in every exchange and
+  product, including overnight NRML and CNC holdings. `exchange` and `product`
+  filter nothing on their own.
+
+`cancelAllOrders` and a symbol-less `closePositions` are account-wide, **not**
+strategy-scoped: run in one workflow they affect orders and positions another
+workflow placed.
 
 ---
 
@@ -185,9 +290,14 @@ by accident.
 | Field | Values |
 | --- | --- |
 | `symbol`, `exchange` | |
-| `field` | `ltp`, `open`, `high`, `low`, `close`, `prev_close`, `volume` |
+| `field` | `ltp`, `open`, `high`, `low`, `prev_close`, `change_percent` |
 | `operator` | `>`, `<`, `>=`, `<=`, `==`, `!=` |
 | `value` | number, or `{{variable}}` |
+
+Those six are the whole vocabulary. `close` and `volume` are **not** valid
+here and make the node error on every run, taking neither branch. For a
+close-based comparison, read it from a `history` or `barOffset` node into a
+`varCondition`.
 
 ### `varCondition`: Variable Condition
 
@@ -205,24 +315,43 @@ which is what you want, but it means a silently missing value looks like
 
 ### `timeWindow`: Time Window
 
-`startTime`, `endTime` (`"HH:MM"`, IST), optional `days`, and
-`invertCondition` to mean "outside this window".
+`startTime`, `endTime` (`"HH:MM"`, IST), and `invertCondition` to mean
+"outside this window".
+
+`days` appears in older exports and is read by nothing, so a "weekdays only"
+window built from it runs every day. Gate the weekday with `{{weekday_num}}`
+in a `varCondition`, or with `marketHoursOnly` on the `start` trigger.
 
 ### `timeCondition`: Time Condition
 
-`conditionType`, `targetTime`, `operator`, for "is it past 14:00" style
-checks against a single time rather than a range.
+For "is it past 14:00" style checks against a single time rather than a range.
+
+| Field | Values |
+| --- | --- |
+| `conditionType` | `entry`, `exit`, `custom`. Purely a label: it never changes the comparison, only the log line. |
+| `targetTime` | `"HH:MM"`, IST |
+| `operator` | `>=`, `<=`, `>`, `<`, `==`. `==` compares at minute precision. |
+
+An unrecognised operator errors and takes neither branch. This node uses
+`yes`/`no` source handles rather than `true`/`false`.
 
 ### `positionCheck`: Position Check
 
 | Field | Values |
 | --- | --- |
 | `symbol`, `exchange`, `product` | |
-| `condition` | `has_position`, `no_position`, `quantity_above`, `quantity_below`, `pnl_above`, `pnl_below` |
-| `threshold` | number |
+| `condition` | `exists`, `not_exists`, `quantity_above`, `quantity_below`, `pnl_above`, `pnl_below` |
+| `threshold` | number, default 0 |
+
+`exists` and `not_exists` are the stored values; the editor labels them "Has
+Position" and "No Position". Writing `has_position` or `no_position` into the
+JSON makes the node error every run.
+
+The node also **errors when `symbol` is blank** rather than evaluating, so it
+takes neither branch.
 
 This asks the **broker**, so it is the correct way to answer "am I already in
-this trade", Flow keeps no memory between runs.
+this trade": Flow keeps no memory between runs.
 
 ### `fundCheck`: Fund Check
 
@@ -233,8 +362,12 @@ this trade", Flow keeps no memory between runs.
 Combine conditions. A gate waits until **every** connected input has been
 evaluated before it fires, and fires exactly once per run.
 
-Connect condition outputs into the gate, and the gate's output onward. Gates
-have no configuration.
+Connect condition outputs into the gate, and the gate's output onward.
+
+`andGate` and `orGate` take an `inputCount` (2 to 5, default 2). An edge whose
+`targetHandle` is `input-N` for N at or beyond the count is a hard validation
+error, so raise `inputCount` before wiring a third input. Only `notGate` is
+configuration-free.
 
 ---
 
@@ -252,7 +385,10 @@ makes stateless "has price already touched this level today" tests possible.
 
 ### `multiQuotes`: Multi Quotes
 
-Several symbols in one call → `{status, results: [{symbol, exchange, data: {...}}]}`
+Takes a single comma-separated `symbols` string and one node-level `exchange`
+applied to all of them, so every symbol in one node must share an exchange.
+
+→ `{status, results: [{symbol, exchange, data: {...}}]}`
 
 Prefer this over several `getQuote` nodes: quotes are **not** cached and some
 brokers allow only ~1 quote request per second.
@@ -266,12 +402,18 @@ brokers allow only ~1 quote request per second.
 | Field | Notes |
 | --- | --- |
 | `symbol`, `exchange` | |
-| `interval` | `1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `D`, `W`, `M`, broker-dependent, check with `intervals`. |
-| `days` | Calendar days back. Capped so the result never exceeds **200 bars**. |
+| `interval` | A fixed dropdown on this node: `1m`, `5m`, `15m`, `1h`, `1d`. Editor default `1d`. |
+| `days` | Calendar days back. Default 30, editor maximum 365. |
+| `startDate`, `endDate` | An explicit range. When both are set they **take precedence over `days`**. |
 
 → `{status, data: [{timestamp, open, high, low, close, volume, oi}]}`
 
 Timestamps are **epoch seconds**, not ISO strings.
+
+The result is capped at 200 bars by `FLOW_MAX_HISTORY_BARS`, which is an
+environment default rather than a fixed ceiling. This node has **no `source`
+field**, so it always calls the broker; use `indicator`, `barOffset`, or
+`priorPeriodOhlc` when you need `source: "db"`.
 
 ### `priorPeriodOhlc`: Prior Period OHLC
 
@@ -281,8 +423,8 @@ without off-by-one errors from today's partial candle.
 | Field | Values |
 | --- | --- |
 | `symbol`, `exchange` | |
-| `period` | `day`, `week`, `month` |
-| `source` | `broker` or `db` (Historify) |
+| `period` | `previous_hour`, `previous_day`, `previous_week`, `previous_month`. Default `previous_day`. |
+| `source` | `api` (default) or `db` (Historify) |
 
 → `{status, symbol, exchange, period, date, open, high, low, close, volume, pdh, pdl, pdc}`
 
@@ -291,7 +433,15 @@ without off-by-one errors from today's partial candle.
 One specific bar counted back from the latest, "the close 20 hours ago", "the
 high 3 bars ago".
 
-`offsetBars: 0` is the most recent bar; `1` is the one before it.
+| Field | Values |
+| --- | --- |
+| `symbol`, `exchange` | |
+| `interval` | Free text. Default `D`. |
+| `offsetBars` | 0 is the most recent **closed** bar; 1 is the one before it. |
+| `source` | `api` (default) or `db` (Historify) |
+
+Because it counts bars rather than calendar time, the same node answers "20
+hours ago" with `interval: "1h", offsetBars: 20`.
 
 → `{status, symbol, exchange, offsetBars, timestamp, open, high, low, close, volume}`
 
@@ -302,13 +452,15 @@ All 116 single-symbol indicators. Fully covered in
 
 | Field | Notes |
 | --- | --- |
-| `indicatorName` | e.g. `ema`, `rsi`, `macd`, `supertrend`. |
-| `params` | Object of the indicator's own parameters, e.g. `{"period": 20}`. |
-| `interval` | Any interval the broker supports. |
-| `lookbackBars` / `tailBars` | How much history to compute over. |
+| `symbol`, `exchange` | Required, alongside `indicatorName`. |
+| `indicatorName` | e.g. `ema`, `rsi`, `macd`, `supertrend`. Not validated until the run. |
+| `params` | The indicator's own parameters **as a JSON string**, e.g. `"{\"period\": 20}"`. A real JSON object here is rejected at import. |
+| `interval` | Free text. Default `D`. |
+| `source` | `api` (default) or `db` (Historify) |
+| `lookbackBars` / `tailBars` | How much history to compute over, and how long the returned `series` is. |
 | `offsetBars` | Which past value `at_offset` refers to. |
-| `sourceField` | `close` (default), `open`, `high`, `low`, `volume`. |
-| `sourceSeries` | Feed another indicator's output in, this is how nesting works. |
+| `sourceSeries` | Feed another indicator's output in. This is how nesting works. |
+| `sourceField` | **Only used when `sourceSeries` is set**, to pick a key out of each upstream row. Blank means the first of `value`, `out0`, `close`. It has no effect on an ordinary indicator node. |
 
 → `{status, indicator, nested, inputs, params, outputs, latest, previous, at_offset, series, offset_bars, bars_used}`
 
@@ -339,8 +491,9 @@ be read. A P&L of zero always means "flat", never "could not tell".
 
 ### `openPosition`: Open Position
 
-`symbol`, `exchange`, `product` → `{status, quantity}`. Signed: negative is
-short.
+`symbol`, `exchange`, `product` → `{status, quantity, pnl}`. `quantity` is
+signed: negative is short. `pnl` is what `positionCheck`'s `pnl_above` and
+`pnl_below` read.
 
 ### `calendar`: Calendar
 
@@ -351,7 +504,10 @@ week, month, quarter or year started"**.
 | --- | --- |
 | `date` | `YYYY-MM-DD`. Blank uses the current trading session date. |
 
-→ `{status, date, is_trading_day, is_trading_holiday, is_weekend, weekday, weekday_num, day, month, quarter, year, week_of_year, day_of_year, is_new_day, is_new_week, is_new_month, is_new_quarter, is_new_year, is_last_day_of_week, is_last_day_of_month, is_last_day_of_quarter, is_last_day_of_year, prev_trading_day, next_trading_day, first_trading_day_of_week, first_trading_day_of_month, first_trading_day_of_quarter, last_trading_day_of_week, last_trading_day_of_month, last_trading_day_of_quarter}`
+→ `{status, date, is_trading_day, is_trading_holiday, is_weekend, is_special_session, weekday, weekday_num, day, month, quarter, year, week_of_year, day_of_year, is_new_day, is_new_week, is_new_month, is_new_quarter, is_new_year, is_last_day_of_week, is_last_day_of_month, is_last_day_of_quarter, is_last_day_of_year, prev_trading_day, next_trading_day, first_trading_day_of_week, first_trading_day_of_month, first_trading_day_of_quarter, last_trading_day_of_week, last_trading_day_of_month, last_trading_day_of_quarter}`
+
+`is_special_session` distinguishes a Muhurat or other special session from an
+ordinary trading day.
 
 Flow keeps no state between runs, so a workflow cannot remember the last run's
 date. It does not need to: "a new month started" is the same statement as
@@ -433,7 +589,10 @@ a position closes.
 
 ### `positionBook`: Position Book
 
-→ `{status, data: [{symbol, quantity, average_price, ltp, pnl, ...}], total_pnl}`
+→ `{status, data: [{symbol, exchange, product, quantity, average_price, ltp, pnl}]}`
+
+There is **no `total_pnl` key**: `{{pb.total_pnl}}` resolves to its own
+literal text. Sum `data[].pnl` yourself, or use `strategyPnl`.
 
 Account-wide and netted per `(symbol, exchange, product)`, it cannot tell you
 which strategy opened a position. Use `strategyPnl` for that.
@@ -450,20 +609,25 @@ Pre-trade margin for a proposed order or basket.
 
 | Field | Notes |
 | --- | --- |
-| `positions` | Array for a multi-leg estimate. |
-| `symbol`, `exchange`, `action`, `quantity`, `product`, `priceType` | For a single order. |
+| `positionsJson` | A JSON **string** describing the legs. This is the only field the editor exposes, and it is required: a blank value after interpolation is a hard error, not a fallback. |
+
+The single-order fields (`symbol`, `exchange`, `action`, `quantity`,
+`product`, `priceType`, `price`) are read by the executor if present in the
+JSON, but the panel offers no controls for them, so write them into
+`positionsJson`. The legacy field name `positions` is still accepted as a
+fallback.
 
 ### `getOrderStatus`: Order Status
 
 | Field | Notes |
 | --- | --- |
 | `orderId` | Required. |
-| `waitForCompletion` | Blocks the run until the order reaches a terminal state. |
 
 → `{status, data: {order_status, average_price, quantity, ...}}`
 
-`waitForCompletion` blocks the whole run. For anything but a fast market
-order, prefer `orderUpdateTrigger` in a separate workflow.
+The node calls the broker once and returns immediately. `waitForCompletion`
+appears in older exports and is read by nothing: there is no polling and no
+wait. To react to a fill, use `orderUpdateTrigger` in a separate workflow.
 
 ### `holidays` / `timings`
 
@@ -479,12 +643,19 @@ These maintain a WebSocket subscription and pass the latest tick to their
 output variable. If WebSocket is unavailable they fall back to a single REST
 call, identical from the workflow's point of view.
 
-| Node | Output |
-| --- | --- |
-| `subscribeLtp` | The float LTP directly (not wrapped in an object). |
-| `subscribeQuote` | `{ltp, open, high, low, close, volume, ...}` |
-| `subscribeDepth` | `{bids: [...], asks: [...], totalbuyqty, totalsellqty, ltp}` |
-| `unsubscribe` | `streamType`: `ltp` / `quote` / `depth` / `all`. Empty `symbol` = all symbols. |
+All three write a wrapped envelope to their output variable, not the bare
+value. Read through the envelope.
+
+| Node | Output variable holds | Read the price as |
+| --- | --- | --- |
+| `subscribeLtp` | `{status, type: "ltp", symbol, exchange, ltp, source}` | `{{lt.ltp}}` |
+| `subscribeQuote` | `{status, type, symbol, exchange, data: {ltp, open, high, low, close, volume, ...}, source}` | `{{q.data.ltp}}` |
+| `subscribeDepth` | `{status, type, symbol, exchange, data: {bids, asks, totalbuyqty, totalsellqty, ltp}, source}` | `{{d.data.bids[0].price}}` |
+| `unsubscribe` | `streamType`: `ltp` / `quote` / `depth` / `all`. Empty `symbol` = all symbols. | |
+
+`{{lt}}` used as a number and `{{q.ltp}}` are the two mistakes this shape
+causes. Neither raises: the unresolved path is passed through as literal
+text.
 
 ---
 
@@ -495,9 +666,16 @@ call, identical from the workflow's point of view.
 | Field | Values |
 | --- | --- |
 | `variableName` | |
-| `operation` | `set`, `increment`, `decrement`, `extract` |
-| `value` | Literal or `{{path}}`. |
-| `sourceVariable` + `jsonPath` | For `extract`. |
+| `operation` | `set`, `add`, `increment`, `decrement` |
+| `value` | Literal or `{{path}}`. For `set`, a string starting `{` or `[` is parsed as JSON. |
+
+**Only those four operations are implemented.** The editor's dropdown also
+offers `get`, `subtract`, `multiply`, `divide`, `parse_json`, `stringify`, and
+`append`, and so do the `sourceVariable` and `jsonPath` fields that accompany
+them. None of the seven has an executor branch: the node returns
+`status: "success"` and writes nothing. There is no `extract` operation at
+all. Use `mathExpression` for arithmetic beyond `add` / `increment` /
+`decrement`, and read nested values with a `{{path}}` directly.
 
 **Variables do not survive the run.** An `increment` counts within one
 execution only; it is reset on the next tick. Anything that must persist has
@@ -508,18 +686,27 @@ to come from the broker.
 `expression`, arithmetic over interpolated values, e.g.
 `"{{q.data.ltp}} * 1.02"`. Result goes to `outputVariable`.
 
-Arithmetic and comparison only: no string manipulation, no date arithmetic, no
-function calls.
+**Arithmetic only.** The supported operators are `+`, `-`, `*`, `/`, `%`, and
+`**`, plus unary minus and plus. A comparison such as `{{a}} > {{b}}` raises
+"Unsupported expression type: Compare"; use `varCondition` for comparisons.
+There is no string manipulation, no date arithmetic, and no function calls.
+Exponents are capped at 100.
 
 ### `log`: Log
 
-`message` (interpolated) and `level` (`info`, `warning`, `error`). Written to
-the workflow's execution log, the primary way to debug a run.
+`message` (interpolated) and `level` (`info`, `warn`, `error`). The value is
+`warn`, not `warning`: anything else is stored verbatim and rendered at info
+severity. Written to the workflow's execution log, the primary way to debug a
+run.
 
 ### `telegramAlert`: Telegram Alert
 
-`message` (interpolated) and `username`. Requires the Telegram bot to be
-configured and that username linked.
+`message` (interpolated). Requires the Telegram bot to be configured and the
+workflow owner's account linked to it.
+
+The panel still shows an "OpenAlgo Username" box, but the executor never reads
+it. The recipient is resolved from the workflow's own API key, so the alert
+always reaches the workflow owner regardless of what is typed there.
 
 ### `whatsappAlert`: WhatsApp Alert
 
@@ -529,17 +716,22 @@ configured and that username linked.
 
 `delayValue` + `delayUnit` (`seconds` / `minutes` / `hours`), or `delayMs`.
 
-**Blocking, and uncapped.** The run sleeps and holds its execution slot the
-whole time. Do not use it to wait out a trading session, use a second
-workflow on its own schedule.
+**Blocking, and silently capped at 300 seconds.** A longer value logs a
+warning and waits 300 seconds instead, then continues: the run does not fail,
+it just proceeds early. A node configured as "2 hours" waits five minutes.
+
+The run sleeps and holds its execution slot for whatever it does wait. Do not
+use it to pace a trading session; use a second workflow on its own schedule.
 
 ### `waitUntil`: Wait Until
 
 `targetTime` (`"HH:MM"`). Returns immediately with `{status, waited: false}`
 if the time has already passed today.
 
-Same warning, more so: `waitUntil` set to `15:20` from a 09:20 run blocks that
-run for six hours. Prefer a scheduled trigger.
+`waitUntil` is genuinely uncapped, unlike `delay`. Set to `15:20` from a
+09:20 run it blocks that run for six hours, holding the workflow lock the
+whole time so no other tick of the same workflow can start. Prefer a
+scheduled trigger.
 
 ### `group`: Group
 
@@ -551,15 +743,19 @@ Visual grouping only. No execution behaviour.
 
 | Category | Count | Nodes |
 | --- | --- | --- |
-| Triggers | 5 | `start`, `priceAlert`, `webhookTrigger`, `orderUpdateTrigger`, `httpRequest` |
+| Triggers | 4 | `start`, `priceAlert`, `webhookTrigger`, `orderUpdateTrigger` |
 | Order placement | 10 | `placeOrder`, `smartOrder`, `optionsOrder`, `optionsMultiOrder`, `basketOrder`, `splitOrder`, `modifyOrder`, `cancelOrder`, `cancelAllOrders`, `closePositions` |
 | Conditions and logic | 9 | `priceCondition`, `varCondition`, `timeWindow`, `timeCondition`, `positionCheck`, `fundCheck`, `andGate`, `orGate`, `notGate` |
 | Market data | 11 | `getQuote`, `multiQuotes`, `getDepth`, `history`, `priorPeriodOhlc`, `barOffset`, `indicator`, `strategyPnl`, `openPosition`, `intervals`, `calendar` |
 | Symbols and options | 5 | `symbol`, `expiry`, `optionSymbol`, `optionChain`, `syntheticFuture` |
 | Account and orders | 9 | `funds`, `orderBook`, `tradeBook`, `positionBook`, `holdings`, `margin`, `getOrderStatus`, `holidays`, `timings` |
 | Streaming | 4 | `subscribeLtp`, `subscribeQuote`, `subscribeDepth`, `unsubscribe` |
-| Utilities | 8 | `variable`, `mathExpression`, `log`, `telegramAlert`, `whatsappAlert`, `delay`, `waitUntil`, `group` |
+| Utilities | 9 | `variable`, `mathExpression`, `log`, `telegramAlert`, `whatsappAlert`, `delay`, `waitUntil`, `httpRequest`, `group` |
 | **Total** | **61** | |
+
+The sections above group nodes by task. The editor's palette groups them
+slightly differently: `calendar`, `holidays`, and `timings` sit under
+Utilities there, and `holdings`, `funds`, and `margin` under Risk Management.
 
 For the exact JSON schema of every field, the format an AI needs to generate
 an importable workflow, see

@@ -63,8 +63,9 @@ The practical case: you cannot make an `orderUpdateTrigger` watch
 
 ### Two-series indicators are unavailable
 
-`crossover`, `crossunder`, `cross`, `correlation`, and `beta` need two
-independent series. The `indicator` node reads one symbol.
+`crossover`, `crossunder`, `cross`, `correlation`, `beta`, `exrem`,
+`flip`, and `valuewhen` need two independent series. The `indicator` node
+reads one symbol.
 
 **Workaround.** Build crossovers from two indicator nodes plus an `andGate`; see
 [Tutorial 3](tutorials.md#3-crossovers). For correlation between two symbols,
@@ -91,8 +92,10 @@ fine.
 | `optionsOrder`, `optionsMultiOrder` | **lots** |
 | `placeOrder`, `smartOrder`, `splitOrder`, `basketOrder` | **shares** |
 
-`quantity: 1` on an options node is one lot (75 NIFTY units). The same value
-on `placeOrder` is one share. This is the most common sizing error.
+`quantity: 1` on an options node is one lot. The same value on `placeOrder`
+is one share. This is the most common sizing error. The lot size itself is
+resolved from the contract master at run time, so do not hard-code a number
+you remember: check the current `lotsize` for the contract you are trading.
 
 ### Gate wiring determines whether the else-branch works
 
@@ -126,19 +129,27 @@ if a weekend intervenes, more across a holiday. `offsetBars: 0` is the last
 
 ### Not every broker supports every interval
 
-`interval` is free text because support varies. Use the `intervals` node to
-discover what your broker offers. If an interval is unsupported, the node now
-reports the broker's own message.
+`interval` is free text on `indicator`, `barOffset`, and `priorPeriodOhlc`
+because support varies. Use the `intervals` node to discover what your broker
+offers. If an interval is unsupported, those three nodes report the broker's
+own message. The `history` node is different: it has a fixed five-value
+dropdown (`1m`, `5m`, `15m`, `1h`, `1d`) and still surfaces the raw broker
+payload.
 
 For unsupported timeframes, download 1-minute data into Historify and set
-`source: "db"`, it resamples any minute/hour interval from 1m, and W/M/Q/Y
-from D, independent of broker capability.
+`source: "db"` on an `indicator`, `barOffset`, or `priorPeriodOhlc` node. It
+resamples any minute/hour interval from 1m, and W/M/Q/Y from D, independent
+of broker capability. The `history` node has no `source` field and always
+calls the broker.
 
 ### History is capped at 200 bars
 
 A 10-year 1-minute request is refused by design (~900,000 rows). The cap
 applies to the request window, not just the response, so the download never
-happens. Raise `FLOW_MAX_HISTORY_BARS` if you genuinely need more.
+happens. Raise `FLOW_MAX_HISTORY_BARS` if you genuinely need more, and note
+that a second ceiling, `FLOW_MAX_HISTORY_CALENDAR_DAYS` (4000, about 11
+years), independently truncates W/M/Q/Y windows. Neither key ships in
+`.sample.env`; add them to `.env` yourself.
 
 ### Broker rate limits are tight
 
@@ -167,6 +178,38 @@ Analyzer toggle. Verify which mode you are in before activating a workflow.
 The badge is in the header, and order results carry `mode: "analyze"` or
 `mode: "live"`.
 
+### `delay` is silently capped at 300 seconds
+
+A `delay` node configured for longer than 300 seconds logs a warning and
+waits 300 seconds instead. It does not fail. A workflow written as "wait 30
+minutes, then exit" therefore exits after five minutes, which is the kind of
+mistake that only shows up in a live position.
+
+`waitUntil` has **no such cap**. It can hold the workflow lock until its
+target clock time, potentially for hours, and nothing else runs for that
+workflow meanwhile. Prefer a second workflow on its own schedule over a long
+wait inside one run.
+
+### Graph and traversal limits
+
+| Limit | Value | What happens on breach |
+| --- | --- | --- |
+| Nodes per workflow | 500 | Rejected at save/import |
+| Edges per workflow | 1000 | Rejected at save/import |
+| Node depth per run | 100 | Run aborts with an error |
+| Node visits per run | 500 | Run aborts with an error |
+| `httpRequest` timeout | default 30000 ms, capped at 60000 ms | Value is clamped |
+
+The `httpRequest` timeout field is in **milliseconds**, not seconds. Entering
+`30` means 30 milliseconds, not 30 seconds.
+
+### Indicator names are not validated until the run
+
+The validator only checks that `indicatorName` is present. It never compares
+it against the supported list, so a typo, or one of the 11 excluded names,
+saves and imports cleanly and fails mid-run. Test every new indicator node
+with **Run Now** in Analyzer mode before activating.
+
 ---
 
 ## Strategy P&L: what the book does and does not see
@@ -186,9 +229,10 @@ exit trigger to it.
   `total: 0` that an exit trigger would act on.
 * **`realized` accumulates across sessions**; `today_realized` resets at the
   03:00 IST session rollover, matching the broker token cycle.
-* **`closePositions` is account-wide.** Reading P&L per strategy does not make
-  closing per strategy. To flatten one strategy's leg specifically, use
-  `smartOrder` with `positionSize: 0` on that symbol.
+* **`closePositions` is account-wide only when you leave `symbol` blank.**
+  With a symbol set it honours the node's symbol/exchange/product filter and
+  carries the strategy tag. With no symbol it closes everything, in every
+  exchange and product, including overnight NRML and CNC holdings.
 
 ## Pre-flight checklist
 

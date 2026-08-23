@@ -149,12 +149,12 @@ A workflow must contain exactly one trigger, and it must be one of:
 | `priceAlert` | A polled LTP condition is met (one-shot by default) |
 | `orderUpdateTrigger` | A matching order changes status (fill, reject, cancel) |
 
-A second trigger does not raise an error, it is **silently ignored**. The
-executor walks the graph from the first trigger it finds, so the second
-trigger and everything downstream of it simply never runs. Verified: a
-workflow with two `start` nodes feeding two separate log branches produced
-output from one branch only. If part of your graph mysteriously never
-executes, count the triggers first.
+**Strict validation rejects a second trigger** with a `multiple_triggers`
+error, so **Run Now**, activation, and import all refuse the graph. A
+partially edited workflow can still be saved with two triggers, and if one
+ever reached the executor it would walk from the first trigger it found and
+silently skip the second and everything downstream of it. If part of your
+graph mysteriously never executes, count the triggers first.
 
 Because one trigger drives the whole graph, every branch shares the data nodes
 above it. That is also the cheapest layout: one `getQuote` feeding six
@@ -163,12 +163,28 @@ and the order book are not cached, so the split layout is what trips a rate
 limit first.
 
 Triggers are entry points, so **their configuration cannot reference
-`{{variables}}`**, there is no upstream node to resolve against. The
+`{{variables}}`**: there is no upstream node to resolve against. The
 `orderUpdateTrigger` rejects an interpolated Order ID with a clear 400 rather
 than storing a placeholder that could never match.
 
-`marketHoursOnly: true` on a `start` node pauses the schedule outside
-09:15-15:30 IST on weekdays.
+`marketHoursOnly: true` on a `start` node pauses the schedule outside the
+trading session. No time is hardcoded: the window comes from OpenAlgo's own
+exchange calendar, so weekends, trading holidays, muhurat and other special
+sessions, and per-exchange hours are all inherited. MCX running to 23:55 and
+CRYPTO never closing are handled correctly.
+
+Three optional fields on the same node narrow or move that window:
+
+| Field | Effect |
+| --- | --- |
+| `marketHoursExchange` | Which calendar to consult (default NSE) |
+| `marketHoursStart` | `HH:MM` IST override for the session start |
+| `marketHoursEnd` | `HH:MM` IST override for the session end |
+
+An override changes the clock, never the calendar: a day the exchange is shut
+stays shut. These fields are re-read from the graph on every run, so editing
+them takes effect immediately without a deactivate/reactivate cycle. The
+trigger's own schedule still needs a reactivation when it changes.
 
 ## Execution limits
 

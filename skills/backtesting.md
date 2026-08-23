@@ -414,7 +414,7 @@ backtesting/
 │                   ├── rsi_accumulation/backtest.py
 │                   ├── walk_forward/template.py
 │                   └── realistic_costs/template.py
-├── .env.sample                      # Environment template (copy to .env)
+├── .env.sample                       # Environment template (copy to .env)
 ├── backtesting/                      # Generated backtest scripts (per strategy)
 │   ├── ema_crossover/
 │   ├── rsi/

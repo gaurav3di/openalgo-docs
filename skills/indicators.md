@@ -141,7 +141,7 @@ npx skills add marketcalls/openalgo-indicator-skills
 
 #### 2. Data Source Setup
 
-**Indian Markets**, requires [OpenAlgo](https://github.com/marketcalls/openalgo):
+**Indian Markets**: requires [OpenAlgo](https://github.com/marketcalls/openalgo):
 
 ```bash
 git clone https://github.com/marketcalls/openalgo.git
@@ -152,7 +152,7 @@ python app.py
 
 OpenAlgo runs locally at `http://127.0.0.1:5000`. You need a broker account connected via OpenAlgo and an API key from the dashboard. See [OpenAlgo documentation](https://docs.openalgo.in/).
 
-**US/Global Markets**, no setup needed. Uses yfinance (public Yahoo Finance data).
+**US/Global Markets**: no setup needed. Uses yfinance (public Yahoo Finance data).
 
 #### 3. Python Environment Setup
 

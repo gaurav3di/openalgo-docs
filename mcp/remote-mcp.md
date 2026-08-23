@@ -250,9 +250,9 @@ OAuth doesn't let an existing token widen its scope, re-consent is required. By 
 | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **Pending approvals**   | New clients land here. Approve only ones you recognise, the name is set by the hosted client itself        |
 | **Approved clients**    | Currently authorised. Each row shows last-used time                                                         |
-| **Revoked clients**     | Historical: cannot re-authorize without admin re-approval                                                  |
+| **Revoked clients**     | Permanent. There is no un-revoke. The client must register again through DCR for a new `client_id`         |
 | **MCP tool call audit** | Every tool call: timestamp, client, tool, scope, outcome, latency. Filter by tool or outcome                |
-| **Kill switch**         | Revokes every refresh token across approved clients. Existing access JWTs remain valid until their short expiry |
+| **Kill switch**         | Revokes every live refresh token in the system, not only those of approved clients. Existing access JWTs remain valid until their short expiry |
 
 #### Audit log
 
@@ -289,14 +289,19 @@ All keys live in `.env` (native) or the bind-mounted `.env` (Docker). Native ins
 | `MCP_OAUTH_REQUIRE_APPROVAL`    | `False`                                 | New clients require admin approval when enabled  |
 | `MCP_OAUTH_WRITE_SCOPE_ENABLED` | `True`                                  | Whether `write:orders` is grantable at all       |
 | `MCP_HTTP_CORS_ORIGINS`         | `https://claude.ai,https://chatgpt.com` | Browser allowlist                                |
-| `MCP_HTTP_IP_ALLOWLIST`         | empty                                   | Optional IP / CIDR allowlist on `/mcp`           |
+| `MCP_HTTP_IP_ALLOWLIST`         | empty                                   | Present in `.sample.env` but **not implemented**. Setting it has no effect; use the reverse proxy or firewall for IP filtering |
 | `MCP_OAUTH_ACCESS_TTL`          | `900`                                   | Access-token TTL in seconds (max 3600)           |
-| `MCP_OAUTH_REFRESH_TTL`         | `2592000`                               | Refresh-token TTL in seconds (30 days)           |
+| `MCP_OAUTH_REFRESH_TTL`         | `2592000`                               | Refresh-token TTL in seconds (30 days; min 3600, max 31 days) |
 | `MCP_OAUTH_CODE_TTL`            | `60`                                    | Authorization-code TTL (max 300)                 |
 | `MCP_RATE_LIMIT_READ`           | `60 per minute`                         | Per-token cap for read scopes                    |
 | `MCP_RATE_LIMIT_WRITE`          | `50 per minute`                         | Per-token cap for `write:orders`                 |
 | `MCP_LOOPBACK_URL`              | inherits `HOST_SERVER`                  | Override only for unusual topologies             |
 | `MCP_OAUTH_KEYS_DIR`            | `keys`                                  | Directory for RS256 signing keys                 |
+| `OPENALGO_MCP_READ_ONLY`        | off                                     | Drops all 11 order tools from the registry, leaving 37. Survives an already-granted `write:orders` scope |
+| `OPENALGO_MCP_TOOLSETS`         | all                                     | Comma-separated subset of `orders`, `account`, `marketdata`, `research`, `utility` |
+| `OPENALGO_MCP_TRUST_ENVELOPE`   | `1`                                     | Set to `0` to return bare payloads instead of the trust envelope |
+
+The last three apply to both the stdio and HTTP transports.
 
 ***
 
@@ -311,6 +316,9 @@ The defenses, in plain order:
 5. **PKCE + JWT**: S256-only PKCE, exact redirect\_uri matching, signed access JWTs, and rotating refresh tokens
 6. **Refresh-token family protection**: reuse of an already-rotated refresh token revokes its entire token family
 7. **Kill switch**: one click revokes all refresh tokens; already-issued access JWTs remain valid until expiry
+8. **Read-only mode**: `OPENALGO_MCP_READ_ONLY` removes every order tool from the registry, so even a client already holding `write:orders` cannot place an order
+
+`send_telegram_alert` is the one exception to "read scopes cannot cause an effect outside OpenAlgo". It is annotated as a write tool but gated on `read:account`, so a read-only hosted session can still send outbound Telegram messages.
 
 > **The blast radius is real.** A stolen access token can place orders the broker accepts; they originate from your registered server IP. The 15-minute default TTL limits the window, but the kill switch does not immediately invalidate an access JWT. Never combine `MCP_OAUTH_WRITE_SCOPE_ENABLED=True` with `MCP_OAUTH_REQUIRE_APPROVAL=False` on a public deployment: that lets any internet client register, auto-approve, and request order scope.
 
@@ -331,7 +339,7 @@ For the implementation boundaries behind these controls, see [MCP Architecture](
 | Sudden 401 on every call                          | Refresh token expired or kill switch fired             | **Reconnect** on the connector                                                    |
 | `place_order` blocked on ChatGPT                  | OpenAI's safety policy                                 | Use Claude.ai for order placement                                                 |
 | _"Failed to connect to the server"_ on tool calls | Loopback misconfigured                                 | Confirm `HOST_SERVER` in `.env` matches your dashboard URL; restart               |
-| Tokens issued but `/mcp` returns 401              | `MCP_PUBLIC_URL` doesn't match the URL the client uses | Make them exactly equal: `https://example.com` ≠ `https://www.example.com`       |
+| Tokens issued but `/mcp` returns 401              | `MCP_PUBLIC_URL` changed after the tokens were minted, or the tokens came from a different instance | Tokens carry `iss`/`aud` derived from `MCP_PUBLIC_URL` at issue time and are checked against the server's current value. Keep the value stable, or reconnect the client after changing it |
 | Form submit blocked by CSP                        | Old build                                              | Update to 2.0.1.0+                                                                |
 | Container won't restart after enabler             | Bad `.env` change                                      | Run the rollback one-liner the enabler printed; restart; check `log/errors.jsonl` |
 

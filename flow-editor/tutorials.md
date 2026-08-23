@@ -386,7 +386,7 @@ Options order result: {'status': 'success', 'orderid': '26072924089946',
   most common sizing mistake.
 * `expiryType` accepts `current_week`, `next_week`, `current_month`,
   `next_month`.
-* `offset` accepts `ATM`, `ITM1`-`ITM5`, `OTM1`-`OTM10`.
+* `offset` accepts `ATM`, `ITM1`-`ITM50`, `OTM1`-`OTM50`.
 
 ---
 
