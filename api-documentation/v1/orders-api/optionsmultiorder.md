@@ -199,7 +199,7 @@ A leg carries no `symbol` and no `strike`: the contract is resolved from `offset
 | symbol | string | Resolved option symbol |
 | orderid | string | Order ID from broker |
 | status | string | "success" or "error" |
-| mode | string | "live" or "analyze" |
+| mode | string | `"analyze"` in analyzer mode. The key is **absent** in live mode; there is no `"mode": "live"` |
 
 ## Supported Strategies
 

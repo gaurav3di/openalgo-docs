@@ -63,7 +63,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/closeposition \
 |-------|------|-------------|
 | status | string | "success" or "error" |
 | message | string | Result message |
-| mode | string | "live" or "analyze" |
+| mode | string | `"analyze"` in analyzer mode. The key is **absent** in live mode; there is no `"mode": "live"` |
 
 ## How It Works
 

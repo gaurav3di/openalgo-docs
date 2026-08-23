@@ -92,22 +92,30 @@ curl -X POST http://127.0.0.1:5000/api/v1/basketorder \
   "results": [
     {
       "symbol": "BHEL",
+      "exchange": "NSE",
+      "product": "MIS",
       "status": "success",
       "orderid": "250408000999544"
     },
     {
       "symbol": "ZOMATO",
+      "exchange": "NSE",
+      "product": "MIS",
       "status": "success",
       "orderid": "250408000997545"
     },
     {
       "symbol": "RELIANCE",
+      "exchange": "NSE",
+      "product": "MIS",
       "status": "success",
       "orderid": "250408000997546"
     }
   ]
 }
 ```
+
+Failed legs carry only `symbol`, `status`, and `message`; `exchange`, `product`, and `orderid` are omitted. In analyzer mode the top level also carries `"mode": "analyze"`.
 
 ## Request Body
 
@@ -144,10 +152,12 @@ The top-level body accepts only `apikey`, `strategy`, and `orders`; each item in
 
 | Field | Type | Description |
 |-------|------|-------------|
-| symbol | string | Trading symbol |
-| status | string | "success" or "error" |
-| orderid | string | Order ID from broker (on success) |
-| message | string | Error message (on failure) |
+| symbol | string | Trading symbol. Always present |
+| status | string | "success" or "error". Always present |
+| exchange | string | Exchange for the leg. Success entries only |
+| product | string | Product for the leg. Success entries only |
+| orderid | string | Order ID from broker. Success entries only |
+| message | string | Error message. Failure entries only |
 
 ## Notes
 

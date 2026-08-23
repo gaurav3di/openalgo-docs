@@ -70,11 +70,13 @@ curl -X POST http://127.0.0.1:5000/api/v1/placesmartorder \
 | action | Action (BUY/SELL) | Mandatory | - |
 | product | Product type | Optional | MIS |
 | pricetype | Price type | Optional | MARKET |
-| quantity | Quantity | Mandatory | - |
-| position_size | Position Size | Mandatory | - |
+| quantity | Signal quantity. Unlike PlaceOrder, `0` is accepted here: it means "only reconcile to `position_size`" | Mandatory | - |
+| position_size | Target net position, signed. Positive is long, negative is short, `0` is flat | Mandatory | - |
 | price | Price | Optional | 0 |
 | trigger_price | Trigger price | Optional | 0 |
 | disclosed_quantity | Disclosed quantity | Optional | 0 |
+
+These twelve fields are the complete `SmartOrderSchema`. Any other field returns HTTP 400.
 
 ## How PlaceSmartOrder API Works?
 
@@ -100,7 +102,7 @@ PlaceSmartOrder API function allows traders to build intelligent trading systems
 | status | string | "success" or "error" |
 | orderid | string | Unique order ID from broker (on success) |
 | message | string | Error message or "No action needed" if position already at target |
-| mode | string | "live" or "analyze" |
+| mode | string | `"analyze"` in analyzer mode. The key is **absent** in live mode; there is no `"mode": "live"` |
 
 ## Notes
 

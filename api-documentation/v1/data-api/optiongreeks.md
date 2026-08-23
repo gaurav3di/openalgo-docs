@@ -71,11 +71,13 @@ curl -X POST http://127.0.0.1:5000/api/v1/optiongreeks \
 | apikey | Your OpenAlgo API key | Mandatory | - |
 | symbol | Option symbol | Mandatory | - |
 | exchange | Derivatives exchange: NFO, BFO, MCX, CDS, NCO, BCD, NCDEX, CRYPTO | Mandatory | - |
-| interest_rate | Risk-free interest rate as an annualized percentage, 0 to 100 | Optional | Exchange default |
+| interest_rate | Risk-free interest rate as an annualized percentage, 0 to 100 | Optional | `0` |
 | forward_price | Custom forward or synthetic futures price, non-negative. When supplied, the underlying price fetch is skipped | Optional | Resolved automatically |
 | underlying_symbol | Underlying symbol for the reference price (e.g., `NIFTY` or `NIFTY28NOV24FUT`) | Optional | Derived from the option symbol |
 | underlying_exchange | Underlying exchange (e.g., `NSE_INDEX`, `NFO`). Not enum-validated | Optional | Derived from the option symbol |
-| expiry_time | Custom expiry time in `HH:MM` format (e.g., `15:30`, `19:00`) | Optional | Exchange default |
+| expiry_time | Custom expiry time in `HH:MM` format (e.g., `15:30`, `19:00`) | Optional | Exchange default cut-off |
+
+The per-exchange default interest rate is currently `0` for every exchange: the platform deliberately does not assume a rate. Supply `interest_rate` explicitly if you want rho and the rate-sensitive part of the model to be meaningful.
 
 These eight fields are the complete `OptionGreeksSchema`. Any other field returns HTTP 400. `exchange` is validated against the derivatives list, so cash and index exchanges are rejected here.
 

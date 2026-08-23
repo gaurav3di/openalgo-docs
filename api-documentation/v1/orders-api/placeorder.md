@@ -106,10 +106,12 @@ curl -X POST http://127.0.0.1:5000/api/v1/placeorder \
 | exchange | Exchange code accepted by the shared validation constants | Mandatory | - |
 | pricetype | Price type: MARKET, LIMIT, SL, SL-M | Optional | MARKET |
 | product | Product type: MIS, CNC, NRML | Optional | MIS |
-| quantity | Positive numeric order quantity | Mandatory | - |
+| quantity | Order quantity. Must be greater than 0 | Mandatory | - |
 | price | Order price (required for LIMIT and SL orders) | Optional | 0 |
 | trigger_price | Trigger price (required for SL and SL-M orders) | Optional | 0 |
 | disclosed_quantity | Disclosed quantity for iceberg orders | Optional | 0 |
+
+These eleven fields are the complete public `OrderSchema`. Any other field returns HTTP 400. The schema also declares `underlying_ltp`, which the options-order path populates internally as an execution reference; external callers should not send it.
 
 ## Response Fields
 
@@ -118,7 +120,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/placeorder \
 | status | string | "success" or "error" |
 | orderid | string | Unique order ID from broker (on success) |
 | message | string | Error message (on error) |
-| mode | string | "live" or "analyze" (when analyzer mode is enabled) |
+| mode | string | `"analyze"` in analyzer mode. The key is **absent** in live mode; there is no `"mode": "live"` |
 
 ## Notes
 

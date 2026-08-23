@@ -1,19 +1,19 @@
 # PlaceGTTOrder
 
-Place a new GTT (Good Till Triggered) order — a price-trigger that sits with the broker until LTP crosses your level, then automatically places the underlying order. Useful for setting buy/sell levels without watching the screen.
+Place a new GTT (Good Till Triggered) order: a price-trigger that sits with the broker until LTP crosses your level, then automatically places the underlying order. Useful for setting buy/sell levels without watching the screen.
 
-## SINGLE vs OCO — Pick One
+## SINGLE vs OCO: Pick One
 
 | Type | Use when… | Triggers | Orders fired |
 |------|-----------|----------|--------------|
 | **SINGLE** | You want **one** entry or exit at a level. Example: *"Buy IDEA if it dips to 9.55"* or *"Sell RELIANCE if it crosses 1450"*. | 1 | 1 |
 | **OCO** (One-Cancels-Other) | You're already in a position and want **both a stoploss and a target**, whichever hits first. Example: *"I'm short INFY @ 1550. Stop me out at 1480, take profit at 1620."* | 2 | 1 of 2 (the other is auto-cancelled) |
 
-> **In SINGLE there is no second leg and no automatic cancel** — once your one trigger fires and the order is placed, the GTT is finished.
+> **In SINGLE there is no second leg and no automatic cancel**: once your one trigger fires and the order is placed, the GTT is finished.
 
 ## How to Choose `triggerprice_sl` vs `triggerprice_tg` (SINGLE only)
 
-For SINGLE, exactly **one** of these two fields is your trigger price; set the other to `0`. Pick based on **where your trigger sits relative to LTP** — this also matches the leg name the broker assigns internally:
+For SINGLE, exactly **one** of these two fields is your trigger price; set the other to `0`. Pick based on **where your trigger sits relative to LTP**. This also matches the leg name the broker assigns internally:
 
 | Field | Trigger sits… | Typical intent |
 |-------|---------------|----------------|
@@ -22,7 +22,7 @@ For SINGLE, exactly **one** of these two fields is your trigger price; set the o
 
 For OCO, you always send **both**: `triggerprice_sl` (the lower trigger, your stoploss) **and** `triggerprice_tg` (the higher trigger, your target).
 
-> **Note on naming.** In **SINGLE**, `triggerprice_sl` / `triggerprice_tg` are just *the trigger price* — the generic "price at which the order is triggered". The `_sl` / `_tg` suffix is only a directional hint (sits below / above LTP); SINGLE has no stoploss leg.
+> **Note on naming.** In **SINGLE**, `triggerprice_sl` / `triggerprice_tg` are just *the trigger price*, the generic "price at which the order is triggered". The `_sl` / `_tg` suffix is only a directional hint (sits below / above LTP); SINGLE has no stoploss leg.
 > In **OCO**, the suffix becomes a real role: `triggerprice_sl` is the **stoploss-leg trigger** and `triggerprice_tg` is the **target-leg trigger**.
 
 ## Endpoint URL
@@ -33,7 +33,7 @@ Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/placegtto
 Custom Domain:  POST https://<your-custom-domain>/api/v1/placegttorder
 ```
 
-## Sample API Request — SINGLE: "Buy IDEA if it dips to 9.55, place a LIMIT order at 9.50"
+## Sample API Request (SINGLE): "Buy IDEA if it dips to 9.55, place a LIMIT order at 9.50"
 
 ```json
 {
@@ -88,7 +88,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/placegttorder \
 }
 ```
 
-## Sample API Request — SINGLE: "Buy RELIANCE at MARKET if it breaks above 1450"
+## Sample API Request (SINGLE): "Buy RELIANCE at MARKET if it breaks above 1450"
 
 ```json
 {
@@ -111,7 +111,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/placegttorder \
 
 LTP is currently below 1450 → trigger sits **above** LTP → use `triggerprice_tg`. `price=0` because pricetype is MARKET.
 
-## Sample API Request — OCO: "Bracket my INFY short — stop at 1480 / take profit at 1620"
+## Sample API Request (OCO): "Bracket my INFY short, stop at 1480, take profit at 1620"
 
 ```json
 {
@@ -153,14 +153,14 @@ LTP is currently below 1450 → trigger sits **above** LTP → use `triggerprice
 | exchange | Any value in the shared `VALID_EXCHANGES` list (string) | Mandatory | - |
 | symbol | Trading symbol in OpenAlgo format (string) | Mandatory | - |
 | action | `BUY` or `SELL` (string). For OCO, applies to both legs. | Mandatory | - |
-| product | `CNC` (equity delivery) or `NRML` (F&O overnight). MIS is **not** supported — GTTs can sit for days. (string) | Mandatory | - |
+| product | `CNC` (equity delivery) or `NRML` (F&O overnight). MIS is **not** supported because GTTs can sit for days. (string) | Mandatory | - |
 | quantity | Order quantity. Integer for equity/F&O; fractional float allowed for crypto (number). | Mandatory | - |
 | pricetype | `LIMIT` or `MARKET` (string) | Optional | `LIMIT` |
-| price | **SINGLE only** — limit price of the child order. Send `0` when `pricetype=MARKET`. Ignored for OCO. (float) | Mandatory | - |
+| price | **SINGLE only**. Limit price of the child order. Send `0` when `pricetype=MARKET`. Ignored for OCO. (float) | Mandatory | - |
 | triggerprice_sl | Trigger price below LTP. **SINGLE**: use this OR `triggerprice_tg`. **OCO**: required (the stoploss-leg trigger). (float) | Conditional | `0` |
 | triggerprice_tg | Trigger price above LTP. **SINGLE**: use this OR `triggerprice_sl`. **OCO**: required (the target-leg trigger). (float) | Conditional | `0` |
-| stoploss | **OCO only** — limit price for the stoploss leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
-| target | **OCO only** — limit price for the target leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
+| stoploss | **OCO only**. Limit price for the stoploss leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
+| target | **OCO only**. Limit price for the target leg's child order. Ignored for SINGLE. (float, `null`, or `""`) | Conditional | `null` |
 | expires_at | Requested expiry for the trigger, passed through to brokers that support one. Brokers without an explicit expiry ignore it. (string or `null`) | Optional | `null` |
 
 Unlike most OpenAlgo request schemas, `PlaceGTTOrderSchema` sets `unknown = EXCLUDE`, so an unrecognized field is dropped rather than rejected with HTTP 400. Do not rely on that to smuggle broker-specific parameters through: dropped fields never reach the broker. `last_price` in particular is fetched server-side and is discarded if you send it.
@@ -177,7 +177,7 @@ Unlike most OpenAlgo request schemas, `PlaceGTTOrderSchema` sets `unknown = EXCL
 | Field | Type | Description |
 |-------|------|-------------|
 | status | string | `"success"` or `"error"` |
-| trigger_id | string | Unique trigger ID from broker (on success) — save this to modify or cancel later. |
+| trigger_id | string | Unique trigger ID from broker (on success). Save this to modify or cancel later. |
 | message | string | Error message (on error) |
 
 ## Notes

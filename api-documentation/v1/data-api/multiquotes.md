@@ -124,8 +124,12 @@ Each item accepts only these two keys; an extra key inside an item returns HTTP 
 |-------|------|-------------|
 | symbol | string | Trading symbol |
 | exchange | string | Exchange code |
-| data | object | Quote data (same as Quotes endpoint) |
-| error | string | Error message if symbol lookup failed |
+| data | object | Quote data (same as Quotes endpoint). Present only on success |
+| error | string | Error message. Present only when that symbol failed |
+
+An entry has either `data` or `error`, never both. The top-level `status` stays `"success"` when some symbols fail, so check each entry rather than the wrapper.
+
+If **every** symbol is invalid the whole request fails with HTTP 400 and a different shape: `status: "error"`, a `message`, and an `invalid_symbols` array of `{symbol, exchange, error}` objects. There is no `results` key in that response.
 
 ### Data Object Fields
 
@@ -144,8 +148,8 @@ Each item accepts only these two keys; an extra key inside an item returns HTTP 
 ## Notes
 
 - More efficient than making multiple [Quotes](./quotes.md) calls
-- Invalid symbols are returned with an error field
-- Maximum symbols per request depends on broker limits
+- Invalid symbols are returned with an `error` field, and they appear first in `results`, before the valid ones. Do not assume `results` is in request order.
+- The schema imposes no upper bound on the number of symbols; broker limits apply
 - If broker doesn't support multiquotes natively, the API fetches quotes individually
 - For F&O symbols, **oi** (open interest) field is populated
 

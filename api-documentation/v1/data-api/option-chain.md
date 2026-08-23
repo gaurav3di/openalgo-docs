@@ -169,7 +169,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/optionchain \
 | expiry_date | Expiry date in DDMMMYY format | Mandatory | - |
 | strike_count | Number of strikes above and below ATM, 1 to 100, or `null` | Optional | All strikes |
 | with_greeks | When `true`, attaches `implied_volatility`, `delta`, `gamma`, `theta`, and `vega` to every CE and PE leg, computed from the quotes already fetched | Optional | `false` |
-| interest_rate | Annualized risk-free rate as a percentage, 0 to 100. Used only when `with_greeks` is `true` | Optional | Exchange default |
+| interest_rate | Annualized risk-free rate as a percentage, 0 to 100. Used only when `with_greeks` is `true` | Optional | `0` |
 
 These seven fields are the complete `OptionChainSchema`. Any other field returns HTTP 400.
 

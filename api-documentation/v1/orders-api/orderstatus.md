@@ -101,8 +101,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/orderstatus \
 ## Notes
 
 - Use this endpoint to track order execution status
-- The **average_price** field shows the actual execution price
-- For partial fills, check both quantity and filled quantity
+- The response's `data` object is the matching entry from the order book, with `average_price` added. Any additional field a broker's order-book mapper emits therefore appears here too.
+- `average_price` is filled in from the trade book **only** when `order_status` is `complete`. For open, pending, rejected, and cancelled orders it is `0.0`, including partially filled orders.
+- If no order matches the given `orderid`, the response is an error, not a success with an empty `data`
 - Timestamps are in IST (Indian Standard Time)
 
 ---

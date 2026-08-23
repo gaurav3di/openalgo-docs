@@ -54,25 +54,32 @@ Reads available index symbols from the downloaded instrument master. The list th
 
 ### Request fields
 
-| Field | Required | Contract |
-|---|---|---|
-| `apikey` | Yes | Valid OpenAlgo API key |
-| `holdings` | Yes | 1-50 unique holdings |
-| `holdings[].symbol` | Yes | 1-64 characters, normalized uppercase |
-| `holdings[].exchange` | No | `NSE` or `BSE`; default `NSE` |
-| `holdings[].weight` | Yes | Non-negative number; weights are normalized by ratio |
-| `start_date`, `end_date` | Yes | Date strings accepted by the history layer |
-| `benchmark` | No | Index symbol or `null` |
-| `benchmark_exchange` | No | `NSE_INDEX`, `BSE_INDEX`, or `GLOBAL_INDEX` |
-| `rebalance` | No | `never`, `monthly`, `quarterly`, or `yearly` |
-| `drift_band` | No | Fraction from `0` through `0.99` |
-| `cost_model` | No | `indian_equity` or `flat_bps` |
-| `cost_exchange` | No | `NSE` or `BSE` |
-| `cost_bps` | No | Flat cost from 0 through 1000 basis points |
-| `slippage` | No | Fraction from `0` through `0.1` |
-| `initial_capital` | No | Positive number; default `100000` |
-| `risk_free_rate` | No | Fraction from `0` through `0.5` |
-| `source` | No | `db` or `api`; default `db` |
+| Field | Required | Contract | Default |
+|---|---|---|---|
+| `apikey` | Yes | Valid OpenAlgo API key | - |
+| `holdings` | Yes | 1-50 unique holdings | - |
+| `holdings[].symbol` | Yes | 1-64 characters, normalized uppercase | - |
+| `holdings[].exchange` | No | `NSE` or `BSE` | `NSE` |
+| `holdings[].weight` | Yes | Non-negative number; weights are normalized by ratio | - |
+| `start_date`, `end_date` | Yes | Date strings accepted by the history layer | - |
+| `benchmark` | No | Index symbol or `null` | `null` |
+| `benchmark_exchange` | No | `NSE_INDEX`, `BSE_INDEX`, or `GLOBAL_INDEX` | `NSE_INDEX` |
+| `rebalance` | No | `never`, `monthly`, `quarterly`, or `yearly` | `never` |
+| `drift_band` | No | Fraction from `0` through `0.99` | `0` |
+| `cost_model` | No | `indian_equity` or `flat_bps` | `indian_equity` |
+| `brokerage_pct` | No | Brokerage as a fraction from `0` through `0.05` | `0` |
+| `cost_exchange` | No | `NSE` or `BSE`; which exchange's transaction charge applies | `NSE` |
+| `charges` | No | Nested object of per-charge overrides, `{"<group>": {"<charge>": <rate or null>}}`. Rates must be non-negative | `{}` |
+| `gst_rate` | No | GST as a fraction from `0` through `1`, or `null` to use the built-in rate | `null` |
+| `cost_bps` | No | Flat cost from 0 through 1000 basis points | `0` |
+| `slippage` | No | Fraction from `0` through `0.1` | `0` |
+| `initial_capital` | No | Positive number | `100000` |
+| `risk_free_rate` | No | Fraction from `0` through `0.5` | `0` |
+| `source` | No | `db` or `api` | `db` |
+
+`PortfolioBacktestSchema` does not allow unknown fields: any key outside this list returns HTTP 400.
+
+`charges` and `gst_rate` exist because statutory rates change with the budget and differ by market. Leave them out to use the built-in Indian delivery-equity schedule.
 
 `source=db` reads local Historify data and still requires a valid OpenAlgo API key. `source=api` also requires an active broker session and calls broker history sequentially.
 
@@ -100,7 +107,18 @@ Content-Disposition: attachment; filename="portfolio-tearsheet.html"
 }
 ```
 
-`lookback_days` must be between 60 and 3650. This endpoint always needs an active broker session to read current holdings. Historical prices then come from the selected `db` or `api` source.
+`/holdings` uses its own schema, which accepts only these six fields; anything else returns HTTP 400.
+
+| Field | Required | Contract | Default |
+|---|---|---|---|
+| `apikey` | Yes | Valid OpenAlgo API key | - |
+| `lookback_days` | No | Integer from 60 through 3650 | `365` |
+| `benchmark` | No | Index symbol or `null` | `NIFTY` |
+| `benchmark_exchange` | No | `NSE_INDEX`, `BSE_INDEX`, or `GLOBAL_INDEX` | `NSE_INDEX` |
+| `risk_free_rate` | No | Fraction from `0` through `0.5` | `0` |
+| `source` | No | `db` or `api` | `db` |
+
+Unlike `/backtest`, `benchmark` here defaults to `NIFTY` rather than `null`. There is no `holdings` array: the positions come from the broker. This endpoint always needs an active broker session to read current holdings. Historical prices then come from the selected `db` or `api` source.
 
 The result is a historical scenario for today's market-value allocation, not the account's actual performance. The holdings response does not contain purchase dates or cash flows, so the service cannot reconstruct realized returns.
 

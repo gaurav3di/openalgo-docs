@@ -76,6 +76,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/modifyorder \
 | trigger_price | New trigger price; send `0` when unused | Mandatory | - |
 | disclosed_quantity | New disclosed quantity; send `0` when unused | Mandatory | - |
 
+All twelve fields are required by `ModifyOrderSchema`, with no defaults, and any other field returns HTTP 400. There is no partial modify: build the full body from the order's current values and change only what you need.
+
 ## Response Fields
 
 | Field | Type | Description |
@@ -83,7 +85,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/modifyorder \
 | status | string | "success" or "error" |
 | orderid | string | Modified order ID |
 | message | string | Error message (on failure) |
-| mode | string | "live" or "analyze" |
+| mode | string | `"analyze"` in analyzer mode. The key is **absent** in live mode; there is no `"mode": "live"` |
 
 ## What Can Be Modified?
 

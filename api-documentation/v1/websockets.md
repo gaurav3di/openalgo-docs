@@ -131,9 +131,9 @@ Remove every subscription owned by the connection with:
 
 ## Order Updates
 
-Real-time order status changes — fills, partial fills, rejections, and
-cancellations pushed by the broker after an order is placed (or by the sandbox
-engine in analyze mode). This is an **account-level** stream: no symbols or
+Real-time order status changes: fills, partial fills, rejections, and
+cancellations pushed by the broker after an order is placed, or by the sandbox
+engine in analyze mode. This is an **account-level** stream: no symbols or
 modes are involved.
 
 Subscribe after authenticating:
@@ -158,7 +158,7 @@ The acknowledgement:
 
 Each order event then arrives as an `order_update` message using OpenAlgo's
 common order vocabulary (see Order Constants): `symbol` is in OpenAlgo symbol
-format (mapped from the broker's own symbology — e.g. `NHPC-EQ` becomes
+format (mapped from the broker's own symbology, so `NHPC-EQ` becomes
 `NHPC`, and NFO futures appear as `NIFTY28JUL26FUT`), `action` is
 `BUY`/`SELL`, `pricetype` is `MARKET`/`LIMIT`/`SL`/`SL-M`, `product` is
 `CNC`/`NRML`/`MIS`, and `order_status` is lowercase `open` / `trigger pending` / `complete` /
@@ -204,7 +204,7 @@ natively; brokers without a push mechanism (e.g. Groww) fall back to
 server-side orderbook polling. HTTPS postbacks registered with the broker at
 `/postback/<broker>` feed the same stream on production deployments. If both
 a broker WebSocket and a postback are configured, the same transition may be
-delivered twice — deduplicate on `orderid` + `order_status` +
+delivered twice, so deduplicate on `orderid` + `order_status` +
 `filled_quantity`.
 
 ## Other Actions

@@ -62,7 +62,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelgttorder \
 ## Notes
 
 - Only **active** GTTs can be cancelled. Already-triggered, expired, or previously cancelled GTTs cannot be cancelled again.
-- Cancelling an **OCO** removes both legs (stoploss + target) atomically — there is no per-leg cancel.
+- Cancelling an **OCO** removes both legs (stoploss + target) atomically. There is no per-leg cancel.
 - Cancellation is broker-side; once acknowledged, the trigger is removed and won't appear in subsequent `GTTOrderBook` calls (the orderbook is filtered to active-only).
 - **Idempotency**: cancelling an already-cancelled trigger returns the broker's native response, which may be either `success` or an error like "Trigger not found" depending on the broker.
 
@@ -74,13 +74,13 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelgttorder \
 | `Invalid openalgo apikey` (403) | Bad / unrecognised API key |
 | `GTT orders are not supported for broker 'X' yet` (501) | Broker doesn't ship a `gtt_api` module |
 | `Sandbox GTT support not yet implemented` (501) | Analyzer mode is enabled |
-| `Failed to cancel GTT` (4xx/5xx) | Broker rejected — usually because the trigger is no longer active |
+| `Failed to cancel GTT` (4xx/5xx) | Broker rejected, usually because the trigger is no longer active |
 
 ## Related Endpoints
 
-- [PlaceGTTOrder](./placegttorder.md) — Place a new GTT trigger
-- [ModifyGTTOrder](./modifygttorder.md) — Modify an active GTT
-- [GTTOrderBook](./gttorderbook.md) — List active GTT triggers
+- [PlaceGTTOrder](./placegttorder.md): Place a new GTT trigger
+- [ModifyGTTOrder](./modifygttorder.md): Modify an active GTT
+- [GTTOrderBook](./gttorderbook.md): List active GTT triggers
 
 ---
 

@@ -1,6 +1,6 @@
 # WhatsApp Notify
 
-Send a WhatsApp message — text, image, document, or any combination — to
+Send a WhatsApp message (text, image, document, or any combination) to
 yourself, a single recipient, or a small group (up to 5). This is the single
 trader-facing send endpoint; everything you might do with `wa.send()` in a
 script is exposed here.
@@ -102,7 +102,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/whatsapp/notify \
 |-----------|------|-------------|
 | `apikey` | string | OpenAlgo API key. **Mandatory.** |
 | `self` | boolean | If `true`, send to the paired device's own number. |
-| `username` | string | OpenAlgo username — resolves through the linked-users table. |
+| `username` | string | OpenAlgo username. Resolves through the linked-users table. |
 | `phone` | string | Single E.164 digit string (e.g. `919876543210`). |
 | `phones` | array of strings | Up to 5 E.164 digit strings (small broadcast). Anything beyond 5 is dropped. |
 | `message` | string | Text body. Optional if `image_path` or `document_path` is set. Max 4096 chars. |
@@ -167,6 +167,6 @@ parameter.
   system trees (`/etc`, `/proc`, `/sys`, `/root`, `/var/log`, `C:\Windows`,
   `C:\Users\Default`), and symlinks that resolve outside the allowlist are
   always rejected.
-- The 5-recipient cap is a ToS-safety guardrail — bulk-messaging patterns
+- The 5-recipient cap is a ToS-safety guardrail: bulk-messaging patterns
   can get the paired device unlinked by Meta. Use the official WhatsApp
   Business API for genuine mass-messaging use cases.

@@ -59,15 +59,28 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelallorder \
     "250408001042642"
   ],
   "failed_cancellations": [
-    {
-      "orderid": "250408001043015",
-      "reason": "Order in transit"
-    },
-    {
-      "orderid": "250408001043386",
-      "reason": "Order already executed"
-    }
+    "250408001043015",
+    "250408001043386"
   ]
+}
+```
+
+## Sample API Response (Analyzer Mode, Partial Success)
+
+Analyzer mode returns richer failure entries and adds `mode`:
+
+```json
+{
+  "status": "success",
+  "message": "Canceled 1 orders. Failed to cancel 1 orders.",
+  "canceled_orders": ["SB-250408001042620"],
+  "failed_cancellations": [
+    {
+      "orderid": "SB-250408001043015",
+      "message": "Failed to cancel"
+    }
+  ],
+  "mode": "analyze"
 }
 ```
 
@@ -86,16 +99,20 @@ curl -X POST http://127.0.0.1:5000/api/v1/cancelallorder \
 |-------|------|-------------|
 | status | string | "success" or "error" |
 | message | string | Summary of cancellation results |
-| canceled_orders | array | List of successfully cancelled order IDs |
-| failed_cancellations | array | List of orders that failed to cancel |
-| mode | string | "live" or "analyze" |
+| canceled_orders | array of strings | Successfully cancelled order IDs |
+| failed_cancellations | array | Orders that failed to cancel. See the note below on its element type |
+| mode | string | `"analyze"` in analyzer mode; absent in live mode |
 
-### Failed Cancellations Array Fields
+### Failed Cancellations Element Type
 
-| Field | Type | Description |
-|-------|------|-------------|
-| orderid | string | Order ID that failed to cancel |
-| reason | string | Reason for failure |
+The element type differs by execution path, so handle both:
+
+| Path | Element |
+|------|---------|
+| Live broker | A plain order-ID **string** |
+| Analyzer/sandbox | An object with `orderid` and `message` |
+
+There is no `reason` key on either shape. The live broker mappers only record which order IDs failed; they do not surface a per-order failure reason.
 
 ## Notes
 

@@ -47,9 +47,11 @@ curl -X POST http://127.0.0.1:5000/api/v1/openposition \
 
 ## Sample API Response (No Position)
 
+When no matching position exists the handler substitutes the integer `0`, not the string `"0"`:
+
 ```json
 {
-  "quantity": "0",
+  "quantity": 0,
   "status": "success"
 }
 ```
@@ -73,7 +75,10 @@ Unlike the order schemas, `exchange` here is a plain string with no enum validat
 | Field | Type | Description |
 |-------|------|-------------|
 | status | string | "success" or "error" |
-| quantity | string | Net position quantity |
+| quantity | string or number | Net position quantity, passed through unchanged from the position book. Most brokers normalize it to a string, but the "no matching position" fallback is the integer `0`. Coerce it on the client rather than comparing types |
+| mode | string | `"analyze"` in analyzer mode. The key is **absent** in live mode |
+
+The value is returned at the top level; there is no `data` wrapper on this endpoint.
 
 ## Understanding Position Quantity
 

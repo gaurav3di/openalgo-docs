@@ -109,15 +109,15 @@ These three fields are the complete `DepthSchema`. Any other field, including a 
 
 ## Understanding Market Depth
 
-```
-        BIDS (Buyers)                 ASKS (Sellers)
-        --------------               ----------------
-Qty     Price                        Price     Qty
-886     769.40 ←── Best Bid    Best Ask ──→ 769.60    767
-212     769.35                              769.65    115
-351     769.30                              769.70    162
-343     769.25                              769.75    1121
-399     769.20                              769.80    430
+```text
+     BIDS (Buyers)             ASKS (Sellers)
+-----------------------   ------------------------
+Qty  Price                              Price  Qty
+886 769.40 <-- Best Bid   Best Ask --> 769.60  767
+212 769.35                             769.65  115
+351 769.30                             769.70  162
+343 769.25                             769.75 1121
+399 769.20                             769.80  430
 ```
 
 ## Notes

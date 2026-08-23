@@ -1,6 +1,6 @@
 # GTTOrderBook
 
-List **active** GTT triggers for the authenticated user. Triggered, cancelled, expired, and rejected GTTs are filtered out at the broker layer — this endpoint only returns triggers that can still fire.
+List **active** GTT triggers for the authenticated user. Triggered, cancelled, expired, and rejected GTTs are filtered out at the broker layer, so this endpoint only returns triggers that can still fire.
 
 ## Endpoint URL
 
@@ -135,7 +135,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/gttorderbook \
 - **Field semantics by trigger type**:
   - SINGLE → `trigger_prices` has one element; `legs` has one entry.
   - OCO → `trigger_prices` has two elements (sl first, tg second); `legs` has two entries in matching order.
-- Some fields (`last_price`, `created_at`, `updated_at`, `expires_at`) depend on what the broker exposes — they may be `0` or empty for brokers that don't return them.
+- Some fields (`last_price`, `created_at`, `updated_at`, `expires_at`) depend on what the broker exposes, so they may be `0` or empty for brokers that do not return them.
 
 ## Error Scenarios
 
@@ -147,9 +147,9 @@ curl -X POST http://127.0.0.1:5000/api/v1/gttorderbook \
 
 ## Related Endpoints
 
-- [PlaceGTTOrder](./placegttorder.md) — Place a new GTT trigger
-- [ModifyGTTOrder](./modifygttorder.md) — Modify an active GTT
-- [CancelGTTOrder](./cancelgttorder.md) — Cancel an active GTT
+- [PlaceGTTOrder](./placegttorder.md): Place a new GTT trigger
+- [ModifyGTTOrder](./modifygttorder.md): Modify an active GTT
+- [CancelGTTOrder](./cancelgttorder.md): Cancel an active GTT
 
 ---
 

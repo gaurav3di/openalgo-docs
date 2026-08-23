@@ -47,6 +47,14 @@ This endpoint uses the shared `API_RATE_LIMIT`, not the `GREEKS_RATE_LIMIT` that
       "status": "success",
       "symbol": "NIFTY30JUL2625000CE",
       "exchange": "NFO",
+      "underlying": "NIFTY",
+      "strike": 25000.0,
+      "option_type": "CE",
+      "expiry_date": "30-Jul-2026",
+      "days_to_expiry": 28.5071,
+      "spot_price": 25966.05,
+      "option_price": 435,
+      "interest_rate": 7.0,
       "implied_volatility": 15.25,
       "greeks": {
         "delta": 0.52,
@@ -55,12 +63,47 @@ This endpoint uses the shared `API_RATE_LIMIT`, not the `GREEKS_RATE_LIMIT` that
         "vega": 30.76,
         "rho": 0.001
       }
+    },
+    {
+      "status": "success",
+      "symbol": "NIFTY30JUL2625000PE",
+      "exchange": "NFO",
+      "underlying": "NIFTY",
+      "strike": 25000.0,
+      "option_type": "PE",
+      "expiry_date": "30-Jul-2026",
+      "days_to_expiry": 28.5071,
+      "spot_price": 25966.05,
+      "option_price": 128.4,
+      "interest_rate": 7.0,
+      "implied_volatility": 14.9,
+      "greeks": {
+        "delta": -0.48,
+        "gamma": 0.0001,
+        "theta": -4.12,
+        "vega": 30.41,
+        "rho": -0.001
+      }
     }
   ],
-  "summary": {"total": 2, "success": 1, "failed": 1}
+  "summary": {"total": 2, "success": 2, "failed": 0}
 }
 ```
 
-Individual items can fail while the batch response remains successful; inspect every item and the summary. Expired options are normalized to an expired-option Greeks response instead of failing the entire request.
+Each successful item carries the same field set as the single-symbol [Option Greeks](./optiongreeks.md) response. Failed items carry only `status`, `symbol`, `exchange`, and `message`. Items are returned in the order they were requested.
+
+### Top-Level Status Is Three-Valued
+
+| `status` | Meaning |
+|---|---|
+| `success` | Every symbol succeeded |
+| `partial` | At least one succeeded and at least one failed |
+| `error` | Every symbol failed |
+
+Do not test for `status == "success"` alone. When any item fails, the response also gains a `message` string summarizing up to three distinct failure reasons. Always read `summary` and inspect the per-item `status`.
+
+All three cases return HTTP 200, including `status: "error"` where every symbol failed. The HTTP status code is not a usable signal for per-symbol outcomes.
+
+Expired options are normalized to an expired-option Greeks response and counted as successes, rather than failing the request.
 
 **Back to**: [API documentation](../README.md)
