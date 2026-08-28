@@ -19,6 +19,10 @@ Edges connect a `source` node to a `target` node:
 { "id": "e1", "source": "n1", "target": "n2" }
 ```
 
+The complete contract for that JSON, every required key, what is validated
+and when, and copy-pasteable workflows, is in the
+[Workflow JSON Format](json-format.md).
+
 Condition nodes have **two output handles**. An edge leaving one carries a
 `sourceHandle`:
 
@@ -32,10 +36,12 @@ it is followed no matter which way the condition went. This is how you attach
 logging or alerting that should see every evaluation.
 
 > Handle vocabulary differs by node: `positionCheck`, `fundCheck`,
-> `priceCondition`, `timeWindow`, and `varCondition` use `"true"`/`"false"`,
-> while `timeCondition` and `notGate` use `"yes"`/`"no"`. The executor treats
-> them as synonyms, but match the node's own vocabulary so saved graphs read
-> cleanly.
+> `priceCondition`, `timeWindow`, `varCondition`, `andGate`, `orGate` and
+> `priceAlert` use `"true"`/`"false"`, while `timeCondition` and `notGate` use
+> `"yes"`/`"no"`. The executor treats them as synonyms, but match the node's
+> own vocabulary so saved graphs read cleanly. A `sourceHandle` on any other
+> node type is rejected: those nodes emit a single unnamed output, so a named
+> handle points at a socket that does not exist.
 
 ## Variables and interpolation
 
@@ -78,9 +84,18 @@ for weekends and exchange holidays, which a `{{day}} == 1` test does not.
 **If a path does not resolve, the literal `{{...}}` text is passed through.**
 The workflow does not stop. This is deliberate, it makes typos visible in
 the execution log rather than crashing a live strategy, but it means you
-should read your logs after the first run. A `varCondition` given an
-unresolved operand is the one exception: it refuses to evaluate rather than
-treating the text as zero.
+should read your logs after the first run.
+
+Two places refuse that leniency, because a wrong value there routes a branch
+or places a trade:
+
+- A `varCondition` whose operand does not resolve to a number refuses to
+  evaluate rather than treating the text as zero, and takes neither branch.
+- An **order node** fails outright when one of its order-defining fields still
+  holds an unresolved reference, rather than falling back to a field default.
+  A missing `{{webhook.qty}}` used to become quantity `1`, and an unresolved
+  `priceType` used to fall through to `MARKET`. The full list of protected
+  fields is in [Workflow JSON Format](json-format.md).
 
 ## Execution order
 
@@ -88,7 +103,7 @@ A run starts at the single trigger node and walks the graph **depth-first**,
 following each outgoing edge in order. There is no parallelism and no
 scheduler, one node finishes completely before the next begins.
 
-Two consequences matter:
+Three consequences matter:
 
 **1. Order of nodes is the order you wire them.** If a `varCondition` reads
 `{{rsi.latest.value}}`, the `indicator` node producing `rsi` must be an
@@ -109,34 +124,71 @@ with a full set, and the gate evaluates exactly once:
 AND Gate: [True, True] -> True
 ```
 
+**3. A condition also evaluates once per run.** A condition node is
+combinational in exactly the same way a gate is, so it is evaluated the first
+time the walk reaches it and its result is reused afterwards. Reachable by two
+paths, a condition used to run twice and follow its branch each time, so a
+diamond placed two orders from a single trigger. The second traversal now
+returns immediately, which skips nothing: the branch was already followed.
+
 ## Wiring gates correctly
 
-This is the single most common mistake. There are two ways to feed a gate,
-and they behave differently.
-
-**Pass-through wiring (recommended).** Edges carry only `targetHandle`:
+**A wire into a gate carries a value, not control flow.** The gate reads each
+input's stored boolean, so a `False` condition reaches it exactly as a `True`
+one does and the gate's own `false` branch works. Pass-through wiring is the
+clearest way to say that:
 
 ```json
 { "id": "e3", "source": "c1", "target": "gate", "targetHandle": "input-0" }
 { "id": "e4", "source": "c2", "target": "gate", "targetHandle": "input-1" }
 ```
 
-Both conditions always reach the gate, so the gate sees `[True, False]` and
-can evaluate to false, meaning **its `false` branch works**.
+An edge that also carries `sourceHandle: "true"` behaves the same way when its
+target is a gate, so an older graph wired that way is not broken. Prefer the
+pass-through form anyway: it reads as what the executor does, and it makes the
+difference from a real branch edge obvious.
 
-**True-handle wiring.** Edges carry `sourceHandle: "true"`:
+Always pin gate inputs with `targetHandle: "input-0"`, `"input-1"`, and so on
+up to `inputCount - 1`. A slot number the gate does not have is rejected at
+import, because the gate would wait for an input that can never arrive.
 
-```json
-{ "id": "e3", "source": "c1", "sourceHandle": "true", "target": "gate", "targetHandle": "input-0" }
-```
+Two things stop a gate answering on a partial picture:
 
-A false condition never follows its true edge, so the gate is never reached
-at all. The gate can only ever produce `true`, and **its `false` branch is
-unreachable**. That is fine when you only care about the entry path, but do
-not attach an else-branch to it.
+**`inputCount` is enforced.** A gate configured for three inputs and wired for
+two errors rather than evaluating on part of the condition. Deleting one edge
+of a three-input AND used to silently downgrade it to a two-input AND, with
+the canvas still showing three slots.
 
-Always pin gate inputs with `targetHandle: "input-0"`, `"input-1"`, … up to
-`inputCount - 1`.
+**An errored input leaves the gate pending.** A condition that could not be
+evaluated has no trustworthy result, so nothing is recorded for it and the
+gate never fires. It is not read as `False`. Previously an AND gate saw that
+placeholder `False`, computed a result, and drove its FALSE branch into a real
+order before the run was marked failed.
+
+## A node that cannot get an answer does not invent one
+
+`priceCondition`, `positionCheck` and `fundCheck` never checked whether the
+broker read succeeded, so a failed lookup gave `ltp = 0.0` or a zero-quantity
+position and the node still reported success. "If LTP < 100 then BUY" fired on
+an expired session, and a `positionCheck` with no symbol answered `not_exists`
+unconditionally, opening the gate it was there to guard.
+
+They now **error and take neither branch** when the read fails, and a
+condition node whose `field`, `operator` or `condition` is not one it
+recognises does the same. `false` is a real answer that routes the graph down
+the false path, which is not what "the check never ran" means.
+
+| Situation | What happens |
+| --- | --- |
+| A condition's broker read fails | The node errors and takes neither branch. Pass-through edges still run, so the failure is visible. |
+| A condition cannot be evaluated | Neither branch, and any gate wired to it stays pending. |
+| A gate has fewer edges wired than `inputCount` | It errors instead of evaluating. |
+| An order field holds an unresolved `{{reference}}` | The node fails before the broker call. |
+| Any node returns an error | Its branch stops, and the run is recorded as `failed`. |
+
+The message is the broker's or the service's own text, insufficient funds, RMS
+blocked, symbol not found, in the run record and in the webhook reply. Every
+broker rejection used to surface as the literal string `node failed`.
 
 ## Triggers
 
@@ -186,6 +238,44 @@ stays shut. These fields are re-read from the graph on every run, so editing
 them takes effect immediately without a deactivate/reactivate cycle. The
 trigger's own schedule still needs a reactivation when it changes.
 
+## Interval schedules are anchored to the clock
+
+An `interval` schedule fires on the next clock boundary the interval divides
+into, not on a phase set by whenever you switched the workflow on. A 5-minute
+job lands on :00, :05, :10, and stays there across restarts. It used to count
+from activation time, so "every minute" ran at 11:34:41, 11:35:41, and the
+phase changed every time the process came back.
+
+That phase decides real outcomes for anything reading bars: whether the candle
+a strategy wants to compare has closed yet is a whole-candle difference.
+
+Runs land a small offset past the boundary, `FLOW_INTERVAL_ALIGN_OFFSET`,
+2 seconds by default. Not zero: firing exactly on the boundary races the bar
+that is closing, and whether the feed has opened the next one changes the
+answer. Sub-minute intervals are left unaligned, there is no meaningful
+boundary to align a 10-second job to.
+
+The indicator and history nodes reuse a fetch for `FLOW_HISTORY_CACHE_TTL`
+seconds, 30 by default. That is under a 5-minute candle but half of a
+1-minute one, so lower it for a 1-minute strategy or the run can act on the
+previous bar.
+
+## Streaming subscriptions end with the workflow
+
+A `subscribeLtp` / `subscribeQuote` / `subscribeDepth` node opens a
+broker-side subscription against a process-wide WebSocket client, so one left
+behind is held for the life of the worker and counts against the per-broker
+symbol ceiling that `/trading` and the Sandbox engine share.
+
+**Deactivating or deleting a workflow gives back everything it opened.** You
+do not need an `unsubscribe` node for cleanup, only to drop a stream part way
+through a run.
+
+`unsubscribe` requires a `symbol` unless `streamType` is `all`. A specific
+mode with no symbol is refused, because the underlying call would clear every
+subscription on the instance, including the ones the Sandbox engine uses to
+trigger pending SL and LIMIT orders.
+
 ## Execution limits
 
 | Limit | Value |
@@ -199,7 +289,9 @@ trigger's own schedule still needs a reactivation when it changes.
 ## Editing a workflow as JSON
 
 The editor exports and re-imports JSON, which is how a strategy can be authored
-or reviewed as a file, or generated by an AI from the import spec.
+or reviewed as a file, or generated by an AI from the import spec. The full
+contract, the envelope, the node and edge shapes, the interpolation grammar and
+worked examples, is in [Workflow JSON Format](json-format.md).
 
 **Import always creates a new workflow.** That is deliberate for sharing, but it
 means iterating on your own strategy would leave copies behind and change the
@@ -224,3 +316,9 @@ editor tells you to deactivate and reactivate.
 For scripted use there is also
 `scripts/update_flow_workflow.py --id <id> --file strategy.json`, with
 `--dry-run` to preview.
+
+A workflow can be checked before it is imported. Flow ignores a `data` key
+nothing reads, so `strikeOffset` where the field is `offset` imports cleanly,
+runs successfully, and silently uses the default. The repository ships a
+checker that catches that and a few related near-certain mistakes, see
+[Workflow JSON Format](json-format.md).
