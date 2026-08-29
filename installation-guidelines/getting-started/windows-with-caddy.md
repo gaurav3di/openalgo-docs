@@ -179,7 +179,7 @@ uv run app.py
 You should see:
 
 ```
-╭─── OpenAlgo v2.0.2.1 ──────────────────────────────╮
+╭─── OpenAlgo v2.0.2.2 ──────────────────────────────╮
 │                                                    │
 │        Your Personal Algo Trading Platform         │
 │                                                    │
