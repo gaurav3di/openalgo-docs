@@ -50,7 +50,12 @@ curl -X POST http://127.0.0.1:5000/api/v1/strategy/list \
       "live_enabled": false,
       "status": "running",
       "current_run_id": 42,
-      "created_at": "2026-08-30T03:50:11.402118+00:00"
+      "created_at": "2026-08-30T03:50:11.402118+00:00",
+      "last_finalized_run": {
+        "id": 41,
+        "pnl_realized": 1250.0,
+        "stopped_at": "2026-08-29T09:40:11.482913+00:00"
+      }
     }
   ]
 }
@@ -91,6 +96,7 @@ Send `null` or omit `status` and `q` for no filter. An unsupported status or an 
 | `status` | string | `stopped`, `running`, `paused`, or `errored` |
 | `current_run_id` | integer or null | Current run id, when one exists |
 | `created_at`, `updated_at` | string | ISO 8601 UTC timestamps |
+| `last_finalized_run` | object or null | Most recently finalised run: `{id, pnl_realized, stopped_at}`. For a stopped strategy, this is the durable final P&L; unrealised P&L is zero and must not be read from an earlier checkpoint |
 
 ## Notes
 
@@ -98,6 +104,7 @@ Send `null` or omit `status` and `q` for no filter. An unsupported status or an 
 - The product is an intent. The engine translates it for the venue; [Order History](orders.md) reports the product actually sent.
 - The response never contains a webhook token. Only its digest is stored.
 - Only strategies owned by the API key are returned.
+- A checkpoint is a live mark only. Once a run stops, use `last_finalized_run.pnl_realized` as the final total rather than a pre-close checkpoint.
 
 ---
 
