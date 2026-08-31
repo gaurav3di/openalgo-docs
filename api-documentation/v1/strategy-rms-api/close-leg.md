@@ -1,11 +1,16 @@
 # Close One Leg
 
-Submit a MARKET exit for one filled owner in the current run. Other legs remain running.
+Submit a MARKET exit for one filled owner in the current run. All other legs continue running.
+
+## Endpoint URL
 
 ```http
-POST /api/v1/strategy/close_leg
-Content-Type: application/json
+Local Host   :  POST http://127.0.0.1:5000/api/v1/strategy/close_leg
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/strategy/close_leg
+Custom Domain:  POST https://<your-custom-domain>/api/v1/strategy/close_leg
 ```
+
+## Sample API Request
 
 ```json
 {
@@ -15,15 +20,19 @@ Content-Type: application/json
 }
 ```
 
-## Request body
+## Sample cURL Request
 
-| Field | Required | Rules |
-|---|---|---|
-| `apikey` | Yes | OpenAlgo API key |
-| `strategy_id` | Yes | Positive strategy id |
-| `leg_id` | Yes | Positive leg id from `data.legs[].id` on [Strategy Status](status.md) |
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/strategy/close_leg \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy_id": 7,
+  "leg_id": 2
+}'
+```
 
-## Response
+## Sample API Response
 
 ```json
 {
@@ -43,10 +52,31 @@ Content-Type: application/json
 }
 ```
 
-`leg_id` is a configuration leg id, not an order id or a run id. `run_stopped: true` appears only if this call already observed the last owner fill and terminal finalisation completed; a normal asynchronous broker acknowledgement returns `false`.
+## Request Body
 
-An exit refusal is an HTTP 409 and `exits[].ok: false`, not a completed close. It remains retryable. A non-open leg, current-run absence, and an accepted-but-unfilled entry are also safe 409 states; none causes an opposing configured-size order to be sent.
+| Parameter | Description | Mandatory/Optional | Default Value |
+|---|---|---|---|
+| `apikey` | Your OpenAlgo API key | Mandatory | - |
+| `strategy_id` | Positive Strategy RMS id | Mandatory | - |
+| `leg_id` | Positive configured leg id | Mandatory | - |
+
+## Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `success` or `error` |
+| `run_id` | integer | Current run containing the leg |
+| `leg_id` | integer | Leg requested by the caller |
+| `run_stopped` | boolean | True only when this call already proved the last owner flat |
+| `exits` | array | Exit result for the leg |
+
+## Notes
+
+- `leg_id` is the configuration id in `data.legs[].id` from [Strategy Status](status.md), not an order or run id.
+- A normal broker acknowledgement is asynchronous, so `run_stopped` is usually `false` even for the last leg. A later fill can finalise the run.
+- A refused exit, an unfilled entry, a non-open leg, or a missing current run returns HTTP 409 and does not open an opposing configured-size position.
+- Manual leg closure does not invoke trail-to-entry for the remaining legs.
 
 ---
 
-**Related**: [Stop Run](stop.md) | [Strategy Status](status.md) | **Back to**: [Strategy RMS API](README.md)
+**Back to**: [Strategy RMS API](README.md)

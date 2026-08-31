@@ -1,11 +1,16 @@
 # Order History
 
-Read the strategy engine's durable order records across all owned runs, or for one run.
+Read the durable orders placed by Strategy RMS across an owned strategy's runs, optionally narrowed to one run.
+
+## Endpoint URL
 
 ```http
-POST /api/v1/strategy/orders
-Content-Type: application/json
+Local Host   :  POST http://127.0.0.1:5000/api/v1/strategy/orders
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/strategy/orders
+Custom Domain:  POST https://<your-custom-domain>/api/v1/strategy/orders
 ```
+
+## Sample API Request
 
 ```json
 {
@@ -15,9 +20,19 @@ Content-Type: application/json
 }
 ```
 
-`run_id` is optional and must be a positive integer. A run that belongs to another strategy returns an empty list rather than leaking orders. There is no limit parameter; narrow by run when appropriate.
+## Sample cURL Request
 
-## Response
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/strategy/orders \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy_id": 7,
+  "run_id": 42
+}'
+```
+
+## Sample API Response
 
 ```json
 {
@@ -36,6 +51,8 @@ Content-Type: application/json
       "qty": 75,
       "product": "NRML",
       "pricetype": "MARKET",
+      "price": 0.0,
+      "trigger_price": 0.0,
       "status": "complete",
       "placed_at": "2026-08-30T03:50:11.610224+00:00",
       "filled_at": "2026-08-30T03:50:12.004881+00:00",
@@ -47,14 +64,46 @@ Content-Type: application/json
 }
 ```
 
-Rows are oldest first by `placed_at`, so an entry precedes its exit. The row is intentionally created before broker dispatch; `pending` with a null `broker_order_id` can therefore be a real, recoverable intent rather than an absent order.
+## Request Body
 
-`kind` is one of `entry`, `exit_sl`, `exit_target`, `exit_trail`, `exit_overall_sl`, `exit_overall_target`, `exit_lock_profit`, `exit_eod`, `exit_expiry`, `exit_daily_loss_limit`, `exit_close_all`, `exit_leg_manual`, `exit_recovery`, or `exit_signal`.
+| Parameter | Description | Mandatory/Optional | Default Value |
+|---|---|---|---|
+| `apikey` | Your OpenAlgo API key | Mandatory | - |
+| `strategy_id` | Positive Strategy RMS id | Mandatory | - |
+| `run_id` | Positive run id to filter the result | Optional | `null` |
 
-`product` is the value actually sent to the venue. It can differ from the strategy's configured product intent: for example, a carry configuration is sent as `NRML` for a derivatives leg and `CNC` for cash. It can be `null` for records created before that column existed.
+## Response Fields
 
-A positive `filled_qty` proves exposure even if status is `open`, `cancelled`, or `rejected`, because working orders can partially fill. Missing `avg_fill_price` means valuation is unavailable, not zero. These records state what the strategy asked for; the broker orderbook is the authority for the broker's present order state.
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `success` or `error` |
+| `data` | array | Strategy orders, oldest first by placement time |
+
+### Order Object Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Strategy order record id |
+| `run_id`, `leg_id` | integer | Owning run and configured leg |
+| `kind` | string | Reason for the order, such as `entry`, `exit_sl`, or `exit_overall_target` |
+| `position_ref` | string or null | Exact durable position owner |
+| `broker_order_id` | string or null | Broker/sandbox order reference |
+| `symbol`, `exchange`, `action`, `qty` | string/integer | Order sent by the engine |
+| `product` | string or null | Product actually sent to the venue |
+| `pricetype` | string | `MARKET` |
+| `price`, `trigger_price` | number | `0` for Strategy RMS MARKET orders |
+| `status` | string | `pending`, `open`, `complete`, `cancelled`, or `rejected` |
+| `placed_at`, `filled_at` | string or null | ISO 8601 UTC timestamps |
+| `avg_fill_price`, `filled_qty` | number or null | Broker fill facts |
+| `reject_reason` | string or null | Engine or broker rejection context |
+
+## Notes
+
+- The intent row is written before the broker answers. A `pending` row with no broker id can therefore be a real, recoverable order.
+- A positive `filled_qty` means exposure exists even if a working order later becomes `cancelled` or `rejected`; partial fills are real fills.
+- A missing `avg_fill_price` means valuation is unavailable, not zero.
+- A run id owned by another strategy returns no rows and leaks no data. There is no limit parameter; filter by `run_id` when needed.
 
 ---
 
-**Related**: [Run History](runs.md) | [Risk Event Audit Trail](events.md) | **Back to**: [Strategy RMS API](README.md)
+**Back to**: [Strategy RMS API](README.md)

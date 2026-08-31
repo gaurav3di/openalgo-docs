@@ -1,11 +1,16 @@
 # Start Run
 
-Start a `batch` strategy and place its configured entry legs. Signal strategies do not use this endpoint: their first accepted webhook signal starts the session run.
+Start a batch Strategy RMS run and place its configured entry legs. Signal strategies start from their first accepted public webhook signal instead.
+
+## Endpoint URL
 
 ```http
-POST /api/v1/strategy/start
-Content-Type: application/json
+Local Host   :  POST http://127.0.0.1:5000/api/v1/strategy/start
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/strategy/start
+Custom Domain:  POST https://<your-custom-domain>/api/v1/strategy/start
 ```
+
+## Sample API Request
 
 ```json
 {
@@ -15,15 +20,19 @@ Content-Type: application/json
 }
 ```
 
-## Request body
+## Sample cURL Request
 
-| Field | Required | Rules |
-|---|---|---|
-| `apikey` | Yes | OpenAlgo API key |
-| `strategy_id` | Yes | Positive strategy id |
-| `mode` | Yes | Exact, case-sensitive `sandbox` or `live`; no default |
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/strategy/start \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy_id": 7,
+  "mode": "sandbox"
+}'
+```
 
-## Response
+## Sample API Response
 
 ```json
 {
@@ -43,12 +52,42 @@ Content-Type: application/json
 }
 ```
 
-`ok` says whether the broker accepted that entry. A partial start is still HTTP 200, so check every leg outcome. `acknowledged: false` with `ok: true` is not a broker rejection: the order was accepted but its acknowledgement could not be persisted after retry, and a critical reconciliation event remains.
+## Request Body
 
-Live mode is refused with 409 until the operator enables live trading on the browser strategy page. Omitting `mode`, or sending values such as `LIVE` or `paper`, returns 400 and reaches no broker. A second start of a current run returns 409 rather than silently placing another set of entries.
+| Parameter | Description | Mandatory/Optional | Default Value |
+|---|---|---|---|
+| `apikey` | Your OpenAlgo API key | Mandatory | - |
+| `strategy_id` | Positive Strategy RMS id | Mandatory | - |
+| `mode` | Exact `sandbox` or `live` | Mandatory | **No default** |
 
-If every entry is rejected, the engine closes the empty run and returns 400. Long legs are placed before short legs to avoid a spread's short margin being evaluated before its protective long.
+## Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `success` or `error` |
+| `run_id` | integer | Newly opened run id |
+| `mode` | string | Accepted mode, echoed in the response |
+| `legs` | array | Per-leg entry outcomes |
+
+### Leg Outcome Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `leg_id` | integer | Configured leg id |
+| `ok` | boolean | Whether the entry was accepted |
+| `acknowledged` | boolean, optional | Whether the broker acknowledgement was persisted |
+| `symbol` | string | Resolved OpenAlgo contract symbol |
+| `broker_order_id` | string or null | Live broker or sandbox order reference |
+| `error` | string or null | Rejection context when `ok` is false |
+
+## Notes
+
+- `mode` is required and case-sensitive. Omission, `LIVE`, or `paper` returns HTTP 400 and places no order.
+- `live` returns HTTP 409 until live trading has been explicitly enabled on this strategy in the browser.
+- A partial entry success is HTTP 200. Inspect every `legs[].ok` result.
+- `ok: true` with `acknowledged: false` is a broker-accepted order whose acknowledgement needs reconciliation; it is not a rejection or a reason to place a duplicate order.
+- A second start while the strategy is running returns HTTP 409.
 
 ---
 
-**Next**: [Stop Run](stop.md) | **Back to**: [Strategy RMS API](README.md)
+**Back to**: [Strategy RMS API](README.md)

@@ -1,31 +1,38 @@
 # Run History
 
-Read every activation of an owned strategy, newest first.
+Read every activation of an owned Strategy RMS strategy, newest first.
+
+## Endpoint URL
 
 ```http
-POST /api/v1/strategy/runs
-Content-Type: application/json
+Local Host   :  POST http://127.0.0.1:5000/api/v1/strategy/runs
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/strategy/runs
+Custom Domain:  POST https://<your-custom-domain>/api/v1/strategy/runs
 ```
+
+## Sample API Request
 
 ```json
 {
   "apikey": "<your_app_apikey>",
   "strategy_id": 7,
-  "limit": 100
+  "limit": 10
 }
 ```
 
-## Request body
+## Sample cURL Request
 
-| Field | Required | Rules |
-|---|---|---|
-| `apikey` | Yes | OpenAlgo API key |
-| `strategy_id` | Yes | Positive strategy id |
-| `limit` | No | Integer from 1 through 500; default 100 |
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/strategy/runs \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy_id": 7,
+  "limit": 10
+}'
+```
 
-The limit is rejected outside its range rather than silently clamped.
-
-## Response
+## Sample API Response
 
 ```json
 {
@@ -51,11 +58,46 @@ The limit is rejected outside its range rather than silently clamped.
 }
 ```
 
-`stopped_at: null` identifies an open run. A non-null `stop_requested_at` and `stop_requested_reason` identify a durable pending stop: new signal entries are gated and recovery resumes the stop until the owner is confirmed flat.
+## Request Body
 
-`pnl_realized` is written at confirmed-flat finalisation, then reconciled from fill evidence where necessary. `pnl_peak` and `pnl_trough` are authoritative only after a run stops. A run ending with `stop_reason: "overall_target"` can have a lower realised P&L because risk is evaluated from rolling latest-known marks and MARKET exits can fill later at different prices.
+| Parameter | Description | Mandatory/Optional | Default Value |
+|---|---|---|---|
+| `apikey` | Your OpenAlgo API key | Mandatory | - |
+| `strategy_id` | Positive Strategy RMS id | Mandatory | - |
+| `limit` | Number of runs, from 1 to 500 | Optional | `100` |
 
-Use `id` as the optional `run_id` filter for [Order History](orders.md) and [Risk Event Audit Trail](events.md).
+The limit is rejected outside its range instead of silently clamped.
+
+## Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `success` or `error` |
+| `data` | array | Runs ordered newest first by start time |
+
+### Run Object Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Run id; use it to filter [Order History](orders.md) or [Risk Event Audit Trail](events.md) |
+| `strategy_id` | integer | Owning strategy |
+| `mode` | string | `live` or `sandbox` |
+| `broker` | string | Broker captured at start |
+| `started_at`, `stopped_at` | string or null | ISO 8601 UTC timestamps |
+| `stop_reason` | string or null | Terminal stop reason |
+| `stop_requested_at`, `stop_requested_reason` | string or null | Durable pending-stop state |
+| `pnl_realized` | number | Final realised P&L from durable owner/fill evidence |
+| `pnl_peak`, `pnl_trough` | number | Highest and lowest P&L for the run |
+| `trigger_source` | string | `manual`, `webhook`, or `scheduler` |
+| `webhook_event_id` | integer or null | Inbound webhook event that opened the run |
+| `resolved_expiries` | object or null | Resolved expiry by string leg id |
+
+## Notes
+
+- `stopped_at: null` marks an open run. Pair it with [Strategy Status](status.md) when checking the current run.
+- A populated pending-stop field means recovery will resume the stop; it is not an ordinary closed run.
+- Overall thresholds trigger MARKET exits from rolling latest-known marks. A run can end with `overall_target` or `overall_sl` and a different final realised P&L.
+- Peak and trough are authoritative only after the run stops. Final P&L is reconciled from exact fill evidence rather than a stale checkpoint.
 
 ---
 

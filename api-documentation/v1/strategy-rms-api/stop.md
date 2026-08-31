@@ -1,11 +1,16 @@
 # Stop Run
 
-Persist a stop request and submit MARKET exits for every exact owner in the strategy's current run. The run finalises only after fills prove it is flat.
+Persist a stop request and submit MARKET exits for every owned position in the strategy's current run. The run finalises only after fill evidence confirms it is flat.
+
+## Endpoint URL
 
 ```http
-POST /api/v1/strategy/stop
-Content-Type: application/json
+Local Host   :  POST http://127.0.0.1:5000/api/v1/strategy/stop
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/strategy/stop
+Custom Domain:  POST https://<your-custom-domain>/api/v1/strategy/stop
 ```
+
+## Sample API Request
 
 ```json
 {
@@ -14,7 +19,18 @@ Content-Type: application/json
 }
 ```
 
-## Response
+## Sample cURL Request
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/strategy/stop \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy_id": 7
+}'
+```
+
+## Sample API Response
 
 ```json
 {
@@ -33,16 +49,41 @@ Content-Type: application/json
 }
 ```
 
-## Rules that callers must observe
+## Request Body
 
-- The request names a strategy, not a run. The engine always resolves its current run.
-- `stop_pending: true` means exit fills, retries, or reconciliation are still outstanding. The run remains open, subscribed, and managed.
-- `ok: false` means an exit was refused. The position remains held and retryable; a success envelope or non-empty `exits` array is not proof of closure.
-- An entry accepted but not yet filled is not exited at the configured quantity. The stop reports its refusal and remains managed so a future fill cannot become a naked position.
-- An already-working exit is not dispatched twice.
+| Parameter | Description | Mandatory/Optional | Default Value |
+|---|---|---|---|
+| `apikey` | Your OpenAlgo API key | Mandatory | - |
+| `strategy_id` | Positive Strategy RMS id | Mandatory | - |
 
-HTTP 200 means the durable stop request was accepted. HTTP 409 means no run is current, or the engine could not carry out a safe stop; inspect the error and then [Strategy Status](status.md) and [Risk Event Audit Trail](events.md). A terminal `run_stopped` event is the confirmed-flat proof.
+## Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `success` or `error` |
+| `run_id` | integer | Current run receiving the stop |
+| `stop_pending` | boolean | Whether exposure still needs a fill, retry, or reconciliation |
+| `exits` | array | Per-owner exit outcomes |
+
+### Exit Outcome Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `leg_id` | integer | Configured leg id |
+| `ok` | boolean | Whether the exit was accepted |
+| `position_ref` | string or null | Exact durable owner the exit targets |
+| `exit_owner` | string | `live` or `superseded` for an outgoing signal-flip owner |
+| `broker_order_id` | string or null | Broker reference when one is available |
+| `error` | string or null | Refusal context when `ok` is false |
+
+## Notes
+
+- `stop_pending: true` means the run remains open, subscribed, and managed. An accepted exit is not proof that the broker is flat.
+- A refused exit is reported with `ok: false` and keeps the run open and retryable. HTTP 409 can therefore still describe held exposure.
+- An entry that was accepted but is not yet filled is not exited at configured quantity, because that could create a naked position if the entry later cancels.
+- The caller never supplies a run id; the engine resolves the strategy's current run.
+- Use `run_stopped` in [Risk Event Audit Trail](events.md) or a finalised [Run History](runs.md) row as confirmed-flat evidence.
 
 ---
 
-**Related**: [Close All Legs](close-all.md) | [Run History](runs.md) | **Back to**: [Strategy RMS API](README.md)
+**Back to**: [Strategy RMS API](README.md)

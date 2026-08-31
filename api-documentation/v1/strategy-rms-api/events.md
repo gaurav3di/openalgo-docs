@@ -1,11 +1,16 @@
 # Risk Event Audit Trail
 
-Read the append-only risk and lifecycle events for an owned strategy, newest first.
+Read append-only Strategy RMS lifecycle and risk events for an owned strategy, newest first.
+
+## Endpoint URL
 
 ```http
-POST /api/v1/strategy/events
-Content-Type: application/json
+Local Host   :  POST http://127.0.0.1:5000/api/v1/strategy/events
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/strategy/events
+Custom Domain:  POST https://<your-custom-domain>/api/v1/strategy/events
 ```
+
+## Sample API Request
 
 ```json
 {
@@ -17,20 +22,21 @@ Content-Type: application/json
 }
 ```
 
-## Request body
+## Sample cURL Request
 
-| Field | Required | Rules |
-|---|---|---|
-| `apikey` | Yes | OpenAlgo API key |
-| `strategy_id` | Yes | Positive strategy id |
-| `run_id` | No | Positive id; must belong to this strategy to match rows |
-| `kind` | No | A documented strategy event kind |
-| `severity` | No | `info`, `warn`, or `critical` |
-| `limit` | No | Integer 1 through 1000; default 500 |
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/strategy/events \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy_id": 7,
+  "run_id": 42,
+  "severity": "critical",
+  "limit": 100
+}'
+```
 
-An out-of-vocabulary event kind or severity, or an out-of-range limit, returns 400 rather than an empty or truncated response.
-
-## Response
+## Sample API Response
 
 ```json
 {
@@ -41,31 +47,55 @@ An out-of-vocabulary event kind or severity, or an out-of-range limit, returns 4
       "run_id": 42,
       "strategy_id": 7,
       "ts": "2026-08-30T06:21:40.104112+00:00",
-      "kind": "overall_target_hit",
-      "severity": "info",
+      "kind": "run_stop_failed",
+      "severity": "critical",
       "leg_id": null,
-      "message": "overall target reached",
+      "message": "Stop requested but an owned position remains managed",
       "payload": null
     }
   ]
 }
 ```
 
-`payload` is free-form JSON and its shape differs by `kind`; do not make a client depend on one universal payload structure. Configuration events can have `run_id: null`, so a run filter excludes them.
+## Request Body
 
-## Events that need attention
+| Parameter | Description | Mandatory/Optional | Default Value |
+|---|---|---|---|
+| `apikey` | Your OpenAlgo API key | Mandatory | - |
+| `strategy_id` | Positive Strategy RMS id | Mandatory | - |
+| `run_id` | Positive run id filter | Optional | `null` |
+| `kind` | Exact Strategy RMS event kind | Optional | `null` |
+| `severity` | `info`, `warn`, or `critical` | Optional | `null` |
+| `limit` | Number of events, from 1 to 1000 | Optional | `500` |
 
-| Event | Severity | Meaning |
+## Response Fields
+
+| Field | Type | Description |
 |---|---|---|
-| `run_stop_requested` | info | Stop intent is durable and new signal entries are gated; it is not proof of flatness. |
-| `run_stopped` | info | Confirmed-flat terminal transition. |
-| `run_stop_failed` | critical | An unfilled entry, refused exit, or terminal exit failure left the run open and managed for retry. |
-| `order_ack_unrecorded` | critical | The broker accepted an order but acknowledgement persistence failed after retry; structured repair data is retained. |
-| `leg_expiry_fallback` | warn | A nearer expiry was used because the configured expiry rank was unavailable. |
-| `flip_outgoing_exit_rejected` | critical | The outgoing side of a signal flip remains held under its exact owner. |
-| `close_all_manual` | info | An operator requested close-all; not evidence of a completed close. |
+| `status` | string | `success` or `error` |
+| `data` | array | Events, newest first by timestamp |
 
-The event log is evidence of what the engine saw and decided at the time. For P&L, use finalised [Run History](runs.md) and durable order/fill evidence rather than treating a live risk event as a settlement record.
+### Event Object Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Event record id |
+| `run_id` | integer or null | Run involved; configuration events have `null` |
+| `strategy_id` | integer | Owning strategy |
+| `ts` | string | ISO 8601 UTC timestamp |
+| `kind` | string | Lifecycle or risk transition |
+| `severity` | string | `info`, `warn`, or `critical` |
+| `leg_id` | integer or null | Related leg when applicable |
+| `message` | string | Human-readable event summary |
+| `payload` | object or null | Kind-specific structured detail |
+
+## Notes
+
+- `run_stop_requested` records durable stop intent; `run_stopped` is the later confirmed-flat transition.
+- `run_stop_failed`, `order_ack_unrecorded`, and `flip_outgoing_exit_rejected` are critical operator-action events.
+- `leg_expiry_fallback` is a warning that a nearer expiry was used because the requested expiry rank was unavailable.
+- Event payloads have no universal shape. A run filter excludes configuration events with `run_id: null`.
+- Unsupported `kind`/`severity` values or an out-of-range limit return HTTP 400.
 
 ---
 

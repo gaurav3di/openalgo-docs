@@ -1,11 +1,16 @@
 # Close All Legs
 
-Record an operator close-all intent, persist a whole-run stop, and submit MARKET exits for every owned position in the current run.
+Record an operator close-all request, persist a whole-run stop, and submit MARKET exits for every owned position in the current run.
+
+## Endpoint URL
 
 ```http
-POST /api/v1/strategy/close_all
-Content-Type: application/json
+Local Host   :  POST http://127.0.0.1:5000/api/v1/strategy/close_all
+Ngrok Domain :  POST https://<your-ngrok-domain>.ngrok-free.app/api/v1/strategy/close_all
+Custom Domain:  POST https://<your-custom-domain>/api/v1/strategy/close_all
 ```
+
+## Sample API Request
 
 ```json
 {
@@ -14,7 +19,18 @@ Content-Type: application/json
 }
 ```
 
-## Response
+## Sample cURL Request
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/strategy/close_all \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "apikey": "<your_app_apikey>",
+  "strategy_id": 7
+}'
+```
+
+## Sample API Response
 
 ```json
 {
@@ -33,10 +49,29 @@ Content-Type: application/json
 }
 ```
 
-The mechanics and state guarantees are the same as [Stop Run](stop.md). The difference is audit intent: this route writes `close_all_manual`, with the message `Operator requested closure of all held legs`, before broker exits settle. That event proves an operator requested a close; it does not prove that the broker is flat.
+## Request Body
 
-Read `stop_pending` and each `exits[].ok` value. A refused exit leaves the run open and managed, and returns 409 rather than falsely closing exposure. Use the later `run_stopped` event or a finalised [Run History](runs.md) row as confirmed-flat evidence.
+| Parameter | Description | Mandatory/Optional | Default Value |
+|---|---|---|---|
+| `apikey` | Your OpenAlgo API key | Mandatory | - |
+| `strategy_id` | Positive Strategy RMS id | Mandatory | - |
+
+## Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | `success` or `error` |
+| `run_id` | integer | Current run receiving the close-all request |
+| `stop_pending` | boolean | Whether owned exposure still needs fill, retry, or reconciliation |
+| `exits` | array | Per-owner exit outcomes; see [Stop Run](stop.md) for their fields |
+
+## Notes
+
+- The stop mechanics are the same as [Stop Run](stop.md), including pending-stop recovery and exact-owner exits.
+- This endpoint is separate so the audit trail records `close_all_manual`: `Operator requested closure of all held legs`.
+- That event records operator intent, not completion. Read `stop_pending`, each `exits[].ok`, and the later `run_stopped` event before treating the run as flat.
+- A run that is not current, or an exit the engine cannot safely place, returns HTTP 409.
 
 ---
 
-**Related**: [Stop Run](stop.md) | [Risk Event Audit Trail](events.md) | **Back to**: [Strategy RMS API](README.md)
+**Back to**: [Strategy RMS API](README.md)
