@@ -43,7 +43,7 @@ Each pragma is wrapped in its own `try`/`except sqlite3.OperationalError` so one
 | `symbol.py`, `token_db.py`, `token_db_enhanced.py` | `symtoken` master contract plus the in-process broker symbol cache |
 | `apilog_db.py`, `analyzer_db.py` | `order_logs` and `analyzer_logs` written by `subscribers/log_subscriber.py` |
 | `settings_db.py`, `leverage_db.py` | `settings` (analyzer mode, SMTP, security thresholds), `leverage_config` |
-| `strategy_db.py`, `chartink_db.py`, `flow_db.py` | Automation definitions and executions |
+| `strategy_module_db.py`, `chartink_db.py`, `flow_db.py` | Strategy RMS, Chartink, and Flow definitions and executions |
 | `strategy_book_db.py` | `strategy_order_tags`, `strategy_pending_fills`, `strategy_positions` |
 | `action_center_db.py` | `pending_orders` for semi-auto requests and approval outcome |
 | `market_calendar_db.py`, `qty_freeze_db.py` | `market_holidays`, `market_holiday_exchanges`, `market_timings`, `qty_freeze` |
@@ -105,7 +105,7 @@ The history REST service reads it only when `source="db"`; default history remai
 
 Most modules use idempotent `create_all` plus targeted startup migrations for compatible column/index additions. There is no general Alembic migration layer. A schema change must therefore be safe on an existing file, safe after partial initialization, and tested against both a fresh and pre-existing database.
 
-`upgrade/migrate_all.py` runs the individual migration scripts in a fixed order, each as its own `subprocess.run` with the project root as the working directory. A non-zero exit is logged as "completed with warnings" and does not stop the run. `upgrade/rotate_pepper.py` and `upgrade/reset_admin_password.py` are deliberately excluded from that list because they are destructive and must be run by an operator.
+`upgrade/migrate_all.py` runs the individual migration scripts in a fixed order, each as its own `subprocess.run` with the project root as the working directory. Legacy migrations retain best-effort "completed with warnings" behavior, but a required migration returns a failure to the runner and makes its final exit non-zero. `migrate_strategy_module.py` is required: it creates the six `sm_` tables and applies compatible missing Strategy RMS columns/indexes on an existing database. `upgrade/rotate_pepper.py` and `upgrade/reset_admin_password.py` are deliberately excluded from that list because they are destructive and must be run by an operator.
 
 `upgrade/init_db.py` is a diagnostic and repair entry point rather than part of automatic startup. It reports the resolved absolute path of every configured store, flags a relative `DATABASE_URL` resolved against the wrong working directory, initializes the same table set serially, and decrypts each stored TOTP secret to confirm that `API_KEY_PEPPER` and `FERNET_SALT` still match the values the account was created with.
 

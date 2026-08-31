@@ -392,11 +392,20 @@ uv sync
 
 #### 4. Run the migration script
 
-Migrations are idempotent, safe to run on every upgrade:
+Migrations are idempotent, safe to run on every upgrade. From the project root:
 
 ```bash
 uv run upgrade/migrate_all.py
 ```
+
+Or use the equivalent command from the upgrade directory:
+
+```bash
+cd upgrade
+uv run migrate_all.py
+```
+
+The Strategy RMS migration is required on releases that include it. It creates the `sm_` strategy tables on an older installation and adds compatible nullable columns/indexes to an earlier Strategy RMS schema. Existing rows are retained; unknown historical values are not invented. If this required migration fails, the runner exits non-zero: do not start the updated application until the failure is resolved.
 
 #### 5. Start OpenAlgo
 

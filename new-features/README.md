@@ -17,6 +17,7 @@ The platform's current feature guides cover:
 * [PnL Tracker](pnl-tracker.md) for the intraday MTM and drawdown curve.
 * [Chartink Integration](chartink-integration.md) for turning scanner alerts into orders.
 * [Traffic and Latency Monitor](traffic-latency-monitor.md) for locally stored request metadata and timing records.
+* [Strategy RMS Engine](strategy-rms-engine.md) for durable multi-leg and signal-driven strategy execution with run-level risk controls.
 
 Two feature areas are documented outside this section:
 

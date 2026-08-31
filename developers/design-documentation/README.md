@@ -55,7 +55,7 @@ The current inventory is 36 broker plugins: 34 securities brokers, Delta Exchang
 | [32 Master Contract](32-master-contract-download.md) | Broker instrument downloads and cache policy |
 | [33 Broker Folder](33-broker-folder-explanations.md) | Plugin module convention |
 | [38 Python Strategies](38-python-strategies-hosting.md) | Hosted-process model and logs |
-| [39 Strategy Module](39-strategy-module.md) | Webhook strategy management |
+| [39 Strategy RMS Engine](39-strategy-module.md) | Durable multi-leg and signal lifecycle, RMS, recovery, RESTX, and webhooks |
 | [42 Action Center](42-action-center.md) | Semi-auto order approval |
 | [54 Scalping Terminal](54-scalping-terminal.md) | Keyboard trading, charts, persisted stops, risk monitor |
 | [55 Portfolio Analytics](55-portfolio-analytics.md) | Read-only backtesting and current-holdings scenario analysis |

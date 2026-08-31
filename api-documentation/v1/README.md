@@ -1,6 +1,6 @@
 # OpenAlgo API Documentation
 
-This directory documents the registered OpenAlgo v1 REST API and the separate WebSocket protocol. The source of truth for REST registration is `restx_api/__init__.py`; request validation is defined in `restx_api/schemas.py`, `restx_api/data_schemas.py`, and `restx_api/account_schema.py`.
+This directory documents the registered OpenAlgo v1 REST API and the separate WebSocket protocol. The source of truth for REST registration is `restx_api/__init__.py`; request validation is defined in `restx_api/schemas.py`, `restx_api/data_schemas.py`, `restx_api/account_schema.py`, and `restx_api/strategy_schema.py`.
 
 ## Base URLs
 
@@ -31,7 +31,7 @@ GET resources (`/instruments`, `/ticker/<symbol>`, `/chart`, `/telegram/*`) read
 
 ## Registered REST Inventory
 
-The current v1 surface contains **63 method/path pairs**. A resource with both GET and POST counts as two endpoints.
+The current v1 surface contains **71 method/path pairs**. A resource with both GET and POST counts as two endpoints.
 
 ### Order Management
 
@@ -115,6 +115,29 @@ There is no public `/api/v1/checkholiday` endpoint. Use `/market/timings` for a 
 | POST | `/portfolio/holdings` | [Portfolio API](./portfolio.md) |
 
 Portfolio endpoints are authenticated and read-only. The holdings resource reads the active broker account, but none of these resources places, modifies, or cancels an order.
+
+### Strategy RMS Engine
+
+The Strategy RMS Engine lifecycle and audit surface is under `/strategy`. It
+contains nine authenticated RESTX routes; strategy creation, editing, live
+enablement, token rotation, and deletion remain browser/session operations.
+
+| Method | Path | Documentation |
+|---|---|---|
+| POST | `/strategy/list` | [List strategies](./strategy-rms-api/list.md) |
+| POST | `/strategy/status` | [Strategy status](./strategy-rms-api/status.md) |
+| POST | `/strategy/start` | [Start run](./strategy-rms-api/start.md) |
+| POST | `/strategy/stop` | [Stop run](./strategy-rms-api/stop.md) |
+| POST | `/strategy/close_all` | [Close all legs](./strategy-rms-api/close-all.md) |
+| POST | `/strategy/close_leg` | [Close one leg](./strategy-rms-api/close-leg.md) |
+| POST | `/strategy/runs` | [Run history](./strategy-rms-api/runs.md) |
+| POST | `/strategy/orders` | [Order history](./strategy-rms-api/orders.md) |
+| POST | `/strategy/events` | [Risk event audit trail](./strategy-rms-api/events.md) |
+
+The public alert endpoint is `POST /strategy/webhook/<token>`. It is deliberately
+outside `/api/v1`, uses the URL token rather than `apikey`, and is documented
+separately in [Public Strategy Webhook](./strategy-rms-api/webhook.md). It is
+not included in the 71 RESTX route count above.
 
 ### SIP Analytics
 

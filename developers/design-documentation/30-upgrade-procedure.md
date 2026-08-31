@@ -60,13 +60,13 @@ Then restart the application service.
 
 ## Migration Runner
 
-Run the migration set directly only when diagnosing or completing an interrupted update:
+Run the migration set directly only when diagnosing or completing an interrupted update. The equivalent documented invocation from the `upgrade` directory is `cd upgrade && uv run migrate_all.py`:
 
 ```bash
 uv run upgrade/migrate_all.py
 ```
 
-The runner continues past scripts that report warnings and summarizes failures. Inspect its complete output rather than treating the final line alone as proof that every migration applied.
+The runner preserves warnings for legacy best-effort migrations, but required migrations make its final process exit non-zero. `migrate_strategy_module.py` is required when this version ships Strategy RMS schema changes; it creates the six `sm_` tables and adds compatible missing columns/indexes without overwriting historical rows. Require a zero exit code before starting the upgraded application.
 
 `upgrade/rotate_pepper.py` is deliberately excluded from automatic migration because rotating `API_KEY_PEPPER` has authentication and ciphertext consequences. It is an explicit operator action.
 

@@ -19,6 +19,7 @@
   * [Traffic/Latency Monitor](new-features/traffic-latency-monitor.md)
   * [Chartink Integration](new-features/chartink-integration.md)
   * [Action Center](new-features/action-center.md)
+  * [Strategy RMS Engine](new-features/strategy-rms-engine.md)
 * [Responsibilities](responsibilities.md)
 * [Compliance](compliance.md)
 * [Contributors](contributors.md)
@@ -166,6 +167,17 @@
     * [WhatsApp](api-documentation/v1/utilities-api/whatsapp.md)
     * [SIP Backtest](api-documentation/v1/utilities-api/sip-backtest.md)
   * [Portfolio API](api-documentation/v1/portfolio.md)
+  * [Strategy RMS API](api-documentation/v1/strategy-rms-api/README.md)
+    * [List Strategies](api-documentation/v1/strategy-rms-api/list.md)
+    * [Strategy Status](api-documentation/v1/strategy-rms-api/status.md)
+    * [Start Run](api-documentation/v1/strategy-rms-api/start.md)
+    * [Stop Run](api-documentation/v1/strategy-rms-api/stop.md)
+    * [Close All Legs](api-documentation/v1/strategy-rms-api/close-all.md)
+    * [Close One Leg](api-documentation/v1/strategy-rms-api/close-leg.md)
+    * [Run History](api-documentation/v1/strategy-rms-api/runs.md)
+    * [Order History](api-documentation/v1/strategy-rms-api/orders.md)
+    * [Risk Event Audit Trail](api-documentation/v1/strategy-rms-api/events.md)
+    * [Public Strategy Webhook (outside V1)](api-documentation/v1/strategy-rms-api/webhook.md)
   * [Websockets](api-documentation/v1/websockets.md)
   * [Order Constants](api-documentation/v1/order-constants.md)
   * [HTTP Status Codes](api-documentation/v1/http-status-codes.md)
@@ -235,7 +247,7 @@
     * [Correlation Heatmap](trading-platform/python/visualization/correlation-heatmap.md)
     * [NIFTY Open Interest](trading-platform/python/visualization/nifty-open-interest.md)
     * [Nifty OI Profile](trading-platform/python/visualization/nifty-oi-profile.md)
-  * [Strategy Management](trading-platform/python/strategy-management.md)
+  * [Strategy RMS Alerts](trading-platform/python/strategy-management.md)
   * [EMA Crossover Strategy](trading-platform/python/ema-crossover-strategy.md)
   * [EMA Crossover Strategy with Stoploss and Target](trading-platform/python/ema-crossover-strategy-with-stoploss-and-target.md)
   * [Supertrend Strategy](trading-platform/python/supertrend-strategy.md)
@@ -263,7 +275,7 @@
 
 ***
 
-* [Strategy Management](strategy-management.md)
+* [Strategy RMS Engine](strategy-management.md)
 
 ## Developers
 
@@ -307,7 +319,7 @@
   * [36 - Rate Limiting Guide](developers/design-documentation/36-rate-limiting-guide.md)
   * [37 - API Key & Playground](developers/design-documentation/37-api-key-and-playground.md)
   * [38 - Python Strategies Hosting](developers/design-documentation/38-python-strategies-hosting.md)
-  * [39 - Strategy Module](developers/design-documentation/39-strategy-module.md)
+  * [39 - Strategy RMS Engine](developers/design-documentation/39-strategy-module.md)
   * [40 - Logout & Session Expiry](developers/design-documentation/40-logout-and-session-expiry.md)
   * [41 - MCP Architecture](developers/design-documentation/41-mcp-architecture.md)
   * [42 - Action Center](developers/design-documentation/42-action-center.md)

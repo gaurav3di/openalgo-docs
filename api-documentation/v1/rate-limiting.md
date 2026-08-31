@@ -81,24 +81,25 @@ Note that the in-code fallback for `API_RATE_LIMIT` itself is `10 per second`, l
 | Per Minute | 100 per minute | External webhook endpoints from trading platforms |
 
 **Applies to:**
-- `/strategy/webhook/<webhook_id>` - Strategy webhook from external platforms
+- `/strategy/webhook/<token>` - Strategy RMS webhook from external platforms
 - `/chartink/webhook/<webhook_id>` - ChartInk webhook from external platforms
 
 These limits protect against external DoS attacks and webhook flooding.
 
-### Strategy Management APIs
+### Strategy RMS Browser APIs
 
 | Scope | Limit | Description |
 |-------|-------|-------------|
-| Per Minute | 200 per minute | Strategy creation, modification, and deletion |
+| Per Minute | 200 per minute | Session-authenticated Strategy RMS configuration, operator, and detail calls |
 
 **Applies to:**
-- `/strategy/new` - Create new strategies
-- `/strategy/<id>/delete` - Delete strategies
-- `/strategy/<id>/configure` - Configure strategy symbols
-- `/chartink/new` - Create new ChartInk strategies
-- `/chartink/<id>/delete` - Delete ChartInk strategies
-- `/chartink/<id>/configure` - Configure ChartInk strategy symbols
+- `/strategy/api/strategies` - List and create strategies
+- `/strategy/api/strategies/<id>` - Read, update, or delete a strategy
+- `/strategy/api/strategies/<id>/start` and `/stop` - Browser lifecycle controls
+- `/strategy/api/strategies/<id>/orderbook`, `/tradebook`, and `/positions` - Broker-backed detail data
+
+These are browser/session endpoints, not the public RESTX API. The nine API-key
+routes at `/api/v1/strategy/*` use `API_RATE_LIMIT`; see the [Strategy RMS API](strategy-rms-api/README.md).
 
 ## Configuration via .env
 

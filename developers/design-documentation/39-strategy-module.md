@@ -1,399 +1,71 @@
-# 39 - Strategy Module
-
-## Overview
-
-The Strategy Module provides a webhook-based system for receiving trading signals from external platforms and executing orders through OpenAlgo. It features time-based controls, symbol mappings, automatic square-off, and rate-limited order queuing.
-
-A platform must be chosen when a strategy is created, and the stored strategy name is `<platform>_<name>`. The platform values offered by the UI (`frontend/src/types/strategy.ts`) are `tradingview`, `amibroker`, `python`, `metatrader`, `excel` and `others`. Chartink has its own separate module, documented in [13 - Chartink Architecture](13-chartink-architecture.md).
-
-## Architecture Diagram
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                        Strategy Module Architecture                          │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│   TradingView   │  │   Amibroker     │  │  Custom client  │
-│   Webhook       │  │   Webhook       │  │  or script      │
-└────────┬────────┘  └────────┬────────┘  └────────┬────────┘
-         │                    │                    │
-         └────────────────────┼────────────────────┘
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                          Strategy Webhook Endpoint                           │
-│                     POST /strategy/webhook/<webhook_id>                      │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐     │
-│  │  1. Rate Limiting (100/min for webhooks)                             │    │
-│  │  2. Validate webhook_id → Get strategy                               │    │
-│  │  3. Check strategy enabled & time window                             │    │
-│  │  4. Parse signal (action, symbol, quantity)                          │    │
-│  │  5. Apply symbol mapping overrides                                   │    │
-│  │  6. Queue order for execution                                        │    │
-│  └─────────────────────────────────────────────────────────────────────┘     │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                       │
-                                       ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                            Order Queueing System                             │
-│                                                                              │
-│  ┌──────────────────────┐        ┌──────────────────────┐                    │
-│  │   Regular Queue      │        │   Smart Order Queue  │                    │
-│  │   (placeorder)       │        │   (placesmartorder)  │                    │
-│  │                      │        │                      │                    │
-│  │   Rate: 10/sec       │        │   Rate: 1/sec        │                    │
-│  │   (hard-coded)       │        │   (hard-coded)       │                    │
-│  └──────────┬───────────┘        └──────────┬───────────┘                    │
-│             │                               │                                │
-│             └───────────────┬───────────────┘                                │
-│                             │                                                │
-│                             ▼                                                │
-│                    ┌─────────────────┐                                       │
-│                    │ Order Processor │                                       │
-│                    │ (background)    │                                       │
-│                    └────────┬────────┘                                       │
-│                             │                                                │
-└─────────────────────────────┼────────────────────────────────────────────────┘
-                              │
-                              ▼
-                     ┌─────────────────┐
-                     │ REST API        │
-                     │ /api/v1/...     │
-                     └─────────────────┘
-```
-
-## Strategy Configuration
-
-### Database Schema
-
-**Location:** `database/strategy_db.py`
-
-```python
-class Strategy(Base):
-    __tablename__ = 'strategies'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
-    webhook_id = Column(String(36), unique=True, nullable=False)   # UUID
-    user_id = Column(String(255), nullable=False)                  # Owner
-    platform = Column(String(50), nullable=False,
-                      default='tradingview')                       # tradingview, chartink, etc
-    is_active = Column(Boolean, default=True)                      # Active/inactive
-    is_intraday = Column(Boolean, default=True)                    # Intraday or positional
-    trading_mode = Column(String(10), nullable=False,
-                          default='LONG')                          # LONG, SHORT, BOTH
-    start_time = Column(String(5))                                 # HH:MM (09:15)
-    end_time = Column(String(5))                                   # HH:MM (15:15)
-    squareoff_time = Column(String(5))                             # HH:MM (15:25)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
-class StrategySymbolMapping(Base):
-    __tablename__ = 'strategy_symbol_mappings'
-
-    id = Column(Integer, primary_key=True)
-    strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=False)
-    symbol = Column(String(50), nullable=False)        # OpenAlgo symbol to trade
-    exchange = Column(String(10), nullable=False)      # NSE, NFO, etc.
-    quantity = Column(Integer, nullable=False)         # Order quantity
-    product_type = Column(String(10), nullable=False)  # MIS/CNC/NRML
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-```
-
-> **Note**: There is no `signal_symbol` column. The webhook's `symbol` value is matched directly against `StrategySymbolMapping.symbol`, so a signal must already use the OpenAlgo symbol name.
-
-Webhook and user-strategy lookups are cached in `database/strategy_db.py` with two `TTLCache` instances: `_strategy_webhook_cache` (maxsize 5000, TTL 300 seconds) and `_user_strategies_cache` (maxsize 1000, TTL 600 seconds).
-
-### Valid Exchanges and Products
-
-`blueprints/strategy.py` restricts symbol mappings to these combinations, with `DEFAULT_EXCHANGE = "NSE"` and `DEFAULT_PRODUCT = "MIS"`:
-
-| Exchange | Allowed Products |
-|----------|------------------|
-| NSE | MIS, CNC |
-| BSE | MIS, CNC |
-| NFO | MIS, NRML |
-| CDS | MIS, NRML |
-| BFO | MIS, NRML |
-| BCD | MIS, NRML |
-| MCX | MIS, NRML |
-| NCDEX | MIS, NRML |
-
-### Time Validation
-
-```python
-def validate_strategy_times(start_time, end_time, squareoff_time):
-    """Validate strategy time settings"""
-
-    # Market hours (9:15 AM to 3:30 PM)
-    market_open = time(9, 15)
-    market_close = time(15, 30)
-
-    # Validations:
-    # 1. All three fields are required
-    # 2. Start time >= market_open (09:15)
-    # 3. End time <= market_close (15:30)
-    # 4. Square off time <= market_close (15:30)
-    # 5. Start time < End time
-    # 6. Square off time >= Start time and >= End time
-```
-
-Strategy names are validated separately by `validate_strategy_name()`: 3 to 50 characters, matching `^[A-Za-z0-9\s\-_]+$`. Unlike the Chartink module, no prefix is added to the name.
-
-## Webhook Signal Format
-
-The handler reads only `symbol`, `action` and `position_size` from the body. Required fields are `symbol` and `action`, plus `position_size` when the strategy's `trading_mode` is `BOTH`. Exchange, product and quantity are never taken from the signal: they come from the symbol mapping.
-
-### LONG or SHORT mode
-
-```json
-{
-    "symbol": "SBIN",
-    "action": "BUY"
-}
-```
-
-### BOTH mode
-
-```json
-{
-    "symbol": "SBIN",
-    "action": "BUY",
-    "position_size": 100
-}
-```
-
-### TradingView Format
-
-```json
-{
-    "symbol": "{{ticker}}",
-    "action": "{{strategy.order.action}}",
-    "position_size": "{{strategy.position_size}}"
-}
-```
-
-### Supported Actions
-
-| Action | Description |
-|--------|-------------|
-| `BUY` | Long entry / Short exit |
-| `SELL` | Long exit / Short entry |
-
-Any action other than `BUY` or `SELL` is rejected with HTTP 400.
-
-## Symbol Mapping
-
-The mapping is looked up by exact match of the signal's `symbol` against `StrategySymbolMapping.symbol`. It supplies the exchange, product type and quantity. A signal for a symbol with no mapping is rejected with HTTP 400.
-
-```
-External Signal: "SBIN"
-       │
-       ▼
-┌──────────────────────────────────────┐
-│  Symbol Mapping Lookup               │
-│  Exact match on symbol               │
-│                                      │
-│  "SBIN" → {                          │
-│    symbol: "SBIN",                   │
-│    exchange: "NSE",                  │
-│    product_type: "MIS",              │
-│    quantity: 50                      │
-│  }                                   │
-└──────────────────────────────────────┘
-       │
-       ▼
-Place Order: NSE:SBIN, Qty: 50, Product: MIS
-```
-
-## Order Queuing System
-
-### Dual Queue Architecture
-
-```python
-# Separate queues for different order types
-regular_order_queue = queue.Queue()  # For placeorder (up to 10/sec)
-smart_order_queue = queue.Queue()    # For placesmartorder (1/sec)
-
-def process_orders():
-    """Background task to process orders from both queues with rate limiting"""
-    while True:
-        # 1. Process smart orders first (1 per second)
-        try:
-            smart_order = smart_order_queue.get_nowait()
-            if smart_order is None:  # Poison pill
-                break
-            get_httpx_client().post(
-                f'{BASE_URL}/api/v1/placesmartorder', json=smart_order['payload']
-            )
-            time_module.sleep(1)  # Always wait 1 second after a smart order
-            continue
-        except queue.Empty:
-            pass
-
-        # 2. Process regular orders (up to 10 per second)
-        now = time()
-        while last_regular_orders and now - last_regular_orders[0] > 1:
-            last_regular_orders.popleft()
-
-        if len(last_regular_orders) < 10:
-            try:
-                regular_order = regular_order_queue.get_nowait()
-                if regular_order is None:  # Poison pill
-                    break
-                response = get_httpx_client().post(
-                    f'{BASE_URL}/api/v1/placeorder', json=regular_order['payload']
-                )
-                if response.is_success:
-                    last_regular_orders.append(now)
-            except queue.Empty:
-                pass
-
-        time_module.sleep(0.1)  # Prevent CPU spinning
-```
-
-Orders are posted with the shared httpx client (`utils/httpx_client.get_httpx_client()`), not `requests`. The processor thread is started lazily by `ensure_order_processor()` on the first `queue_order()` call, and an `atexit` handler drains any pending orders (30 second join timeout) by pushing a poison pill onto the regular queue.
-
-### Rate Limiting
-
-| Order Type | Rate Limit | Queue |
-|------------|------------|-------|
-| Regular Order | 10/second, enforced by a `deque(maxlen=10)` of timestamps | `regular_order_queue` |
-| Smart Order | 1/second, enforced by a fixed 1 second sleep | `smart_order_queue` |
-
-These are hard-coded in `blueprints/strategy.py`. They are not read from `ORDER_RATE_LIMIT` or `SMART_ORDER_RATE_LIMIT`.
-
-## Automatic Square-Off
-
-### APScheduler Integration
-
-```python
-scheduler = BackgroundScheduler(
-    timezone=pytz.timezone('Asia/Kolkata'),
-    job_defaults={
-        'coalesce': True,
-        'misfire_grace_time': 300,
-        'max_instances': 1
-    }
-)
-
-def schedule_squareoff(strategy_id):
-    """Schedule squareoff for intraday strategy"""
-    strategy = get_strategy(strategy_id)
-    hours, minutes = map(int, strategy.squareoff_time.split(':'))
-
-    scheduler.add_job(
-        squareoff_positions,
-        'cron',
-        hour=hours,
-        minute=minutes,
-        args=[strategy_id],
-        id=f'squareoff_{strategy_id}',
-        timezone=pytz.timezone('Asia/Kolkata')
-    )
-```
-
-### Square-Off Logic
-
-```python
-def squareoff_positions(strategy_id):
-    """Square off all positions for intraday strategy"""
-    strategy = get_strategy(strategy_id)
-    mappings = get_symbol_mappings(strategy_id)
-
-    for mapping in mappings:
-        payload = {
-            'apikey': api_key,
-            'symbol': mapping.symbol,
-            'exchange': mapping.exchange,
-            'product': mapping.product_type,
-            'strategy': strategy.name,
-            'action': 'SELL',   # Direction does not matter for closing
-            'pricetype': 'MARKET',
-            'quantity': '0',
-            'position_size': '0',  # Closes position
-            'price': '0',
-            'trigger_price': '0',
-            'disclosed_quantity': '0',
-        }
-        queue_order('placesmartorder', payload)
-```
-
-## API Endpoints
-
-Blueprint: `strategy_bp`, `url_prefix="/strategy"`.
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/strategy/` | GET | List all strategies |
-| `/strategy/new` | GET/POST | Create new strategy |
-| `/strategy/<strategy_id>` | GET | View strategy details |
-| `/strategy/toggle/<strategy_id>` | POST | Enable/disable strategy |
-| `/strategy/<strategy_id>/delete` | POST | Delete strategy |
-| `/strategy/<strategy_id>/configure` | GET/POST | Manage symbol mappings |
-| `/strategy/<strategy_id>/symbol/<mapping_id>/delete` | POST | Delete one symbol mapping |
-| `/strategy/search` | GET | Symbol search helper |
-| `/strategy/api/strategies` | GET | List strategies as JSON |
-| `/strategy/api/strategy/<strategy_id>` | GET | Strategy details as JSON |
-| `/strategy/api/strategy` | POST | Create strategy as JSON |
-| `/strategy/api/strategy/<strategy_id>/toggle` | POST | Toggle strategy as JSON |
-| `/strategy/webhook/<webhook_id>` | POST | Receive trading signal |
-
-There is no edit route. Rate limits actually applied: `WEBHOOK_RATE_LIMIT` on `/webhook/<webhook_id>`, and `STRATEGY_RATE_LIMIT` on `/new`, `/<strategy_id>/delete`, `/<strategy_id>/configure`, `/<strategy_id>/symbol/<mapping_id>/delete` and `/api/strategy`. The other routes carry no `@limiter.limit` decorator.
-
-## Trading Modes
-
-| Mode | Entry Action | Exit Action | Order Endpoint |
-|------|--------------|-------------|----------------|
-| `LONG` | BUY | SELL | BUY goes to `placeorder`, SELL goes to `placesmartorder` with `position_size=0` |
-| `SHORT` | SELL | BUY | SELL goes to `placeorder`, BUY goes to `placesmartorder` with `position_size=0` |
-| `BOTH` | BUY or SELL with `position_size` | Either action with `position_size=0` | Always `placesmartorder`, passing the signal's `position_size` through |
-
-In `BOTH` mode a `BUY` requires `position_size >= 0` and a `SELL` requires `position_size <= 0`. In `LONG` and `SHORT` mode, an entry order uses `abs(position_size)` as the quantity when a non-zero `position_size` is supplied, otherwise the mapping's quantity.
-
-### Time Window Enforcement
-
-Time checks apply only when `is_intraday` is true. Entry orders are rejected before `start_time` and after `end_time`. Exit orders are rejected before `start_time` and after `squareoff_time`.
-
-## Strategy Time Window
-
-```
-Market Hours: 09:15 ─────────────────────────────────────── 15:30
-                    │                                      │
-Strategy Window:    │  start_time ─────── end_time        │
-                    │      │                  │            │
-                    │      └──────────────────┘            │
-                    │             ▲                        │
-                    │     Signals accepted                 │
-                    │                                      │
-Square-off:         │                              squareoff_time
-                    │                                      │
-                    │                                    ──┼──
-                    │                              Close all MIS
-```
-
-## Configuration
-
-### Environment Variables
-
-Defaults as written in `blueprints/strategy.py`:
-
-```bash
-WEBHOOK_RATE_LIMIT="100 per minute"
-STRATEGY_RATE_LIMIT="200 per minute"
-HOST_SERVER="http://127.0.0.1:5000"  # Base URL for internal API calls
-```
-
-## Key Files Reference
-
-| File | Purpose |
-|------|---------|
-| `blueprints/strategy.py` | Strategy blueprint and webhook handler |
-| `database/strategy_db.py` | Strategy database models |
-| `frontend/src/pages/strategy/StrategyIndex.tsx` | Strategy list |
-| `frontend/src/pages/strategy/NewStrategy.tsx` | Strategy creation |
-| `frontend/src/pages/strategy/ViewStrategy.tsx` | Strategy details |
-| `frontend/src/pages/strategy/ConfigureSymbols.tsx` | Symbol mappings |
+# 39 - Strategy RMS Engine
+
+## Purpose
+
+The Strategy RMS Engine is OpenAlgo's durable strategy execution subsystem. It owns multi-leg batch strategies and signal-driven strategies, their broker orders, risk state, recovery data, and operator audit trail. It is separate from Chartink, Flow, Python-hosted strategies, and ordinary REST order placement, even though all eventually use the broker integration layer.
+
+## Entry Surfaces
+
+| Surface | Authentication | Responsibility |
+|---|---|---|
+| Browser `/strategy` | User session and CSRF controls | Create/edit configuration, enable live, rotate a webhook token, operator controls, detail views |
+| RESTX `/api/v1/strategy/*` | OpenAlgo API key | Lifecycle actions and read-only strategy/run/order/event access |
+| Public `POST /strategy/webhook/<token>` | High-entropy URL token | External batch and signal alerts |
+
+RESTX cannot create a strategy, enable live mode, rotate a token, or delete a strategy. The webhook takes no API key. Its token is stored only as a SHA-256 digest and shown to the operator only at creation or rotation.
+
+## Model And Lifecycle
+
+Strategies have a `batch` or `signal` kind. A batch run resolves all configured legs and enters them together, then responds to `start`/`stop`. A signal run accepts exactly one leg transition at a time: `long_entry`, `long_exit`, `short_entry`, or `short_exit`.
+
+The engine keeps durable strategy, leg, run, order, checkpoint, and event records. A position owner is identified by an exact `position_ref`; a signal flip may additionally retain one outgoing `superseded` owner until it is confirmed flat. The engine never treats a leg id or broker symbol alone as enough identity to close exposure.
+
+### Order invariant
+
+1. Write a pending strategy-order intent before broker dispatch.
+2. Dispatch the order.
+3. Persist the acknowledgement against that exact pending row.
+4. Apply broker updates and terminal fills idempotently to that owner.
+
+If a broker fills synchronously before the acknowledgement is recorded, the engine holds an unmatched update briefly and replays it as soon as the durable row is linked. If acknowledgement persistence remains unavailable, the intent row and a critical `order_ack_unrecorded` event remain for reconciliation; the engine does not place a duplicate order to repair it.
+
+### Exit invariant
+
+An accepted broker exit is not terminal. The engine records a pending stop, submits MARKET exits for exact filled owners, and retains the run's subscription and risk management until fills prove every owner flat. An unfilled entry is not exited at configured quantity because the opposite order could create naked exposure if the entry later cancels. A rejected or cancelled exit becomes retryable; it must not strand a claim or finalise a run.
+
+Confirmed-flat finalisation atomically writes the run stop fields, releases the strategy's current run, and calculates final realised P&L from durable fill and ownership evidence. An overall target/stop is the trigger reason; the eventual realised P&L can differ because exits fill at market.
+
+## Risk And Price Inputs
+
+The run state evaluates per-leg SL, target, trailing, overall MTM SL/target, lock profit, trail-to-entry, scheduler square-off, expiry, and daily-loss limits. It consumes one latest-known LTP mark per symbol. WebSocket marks are preferred while current; polling is used as a fallback when the WebSocket input is stale. A stale mark never silently wins over a live recovered source.
+
+RMS work uses run-scoped state locks for in-memory transitions only. Database and broker I/O happen outside those locks so an eventlet worker cannot block other strategy state transitions on a slow broker or SQLite operation.
+
+## Recovery And Reconciliation
+
+On startup the recovery path rebuilds open-run owners from durable strategy orders, then validates checkpoints only when their owner shape and quantities match the rebuild. Order/fill evidence has authority over a stale checkpoint. Ambiguous or unpriced exposure stays open and reserved for manual reconciliation rather than being guessed flat or valued as zero.
+
+The browser detail page uses broker orderbook, tradebook, and positions when available, narrowed to the contracts this strategy traded. It labels local records as a fallback when broker data cannot be obtained. A broker position row can be shared with a manual order or another source, so its quantity and unrealised P&L must not be attributed exclusively to this strategy.
+
+## Webhook Security
+
+The public webhook performs route rate limiting and declared-size rejection before the validation pipeline. Admitted requests are checked in this order: token, kill switch, client IP allowlist, JSON body, strategy-kind action, batch mode/live gates, dedupe/cooling-off where applicable, then engine dispatch. Each admitted terminal result is audited; rate-limit and pre-body 413 refusals are not.
+
+The real client IP is extracted through the deployment proxy rules before it is compared to a configured CIDR allowlist. Rate-limit token keys use the token digest, not the raw credential. Tokens and token-shaped URL fragments are redacted from application logs, traffic records, and shipped proxy access-log configuration. External senders and custom proxies still need their own credential protection.
+
+## Key Modules
+
+| Module | Responsibility |
+|---|---|
+| `blueprints/strategy_module.py` | Session-authenticated strategy configuration and browser data endpoints |
+| `restx_api/strategy.py` | API-key lifecycle and audit namespace |
+| `restx_api/strategy_schema.py` | Strict RESTX request schemas and page limits |
+| `services/strategy_module/engine.py` | Run lifecycle, entry/exit orchestration, RMS decisions |
+| `services/strategy_module/state.py` | In-memory run state, ownership claims, and checkpoints |
+| `services/strategy_module/webhook.py` | Public webhook validation, dedupe, audit, and dispatch |
+| `services/strategy_module/recovery.py` | Restart recovery and durable evidence reconciliation |
+| `database/strategy_module_db.py` | Strategy RMS persistence and scoped queries |
+
+## API Contract
+
+The external contract and field examples live in the [Strategy RMS RESTX API](../../api-documentation/v1/strategy-rms-api/README.md). The public alert format lives in [Public Strategy Webhook](../../api-documentation/v1/strategy-rms-api/webhook.md). Those pages are the user-facing source; this document records the architecture and invariants that implementation changes must preserve.

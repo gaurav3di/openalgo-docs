@@ -62,5 +62,5 @@ Test in Analyzer mode first. Chartink orders use the same service layer as the R
 
 ## Related
 
-* [Strategy Management](../strategy-management.md) for the separate `/strategy` webhook used by TradingView, which accepts only `BUY` and `SELL` and reads the action from the JSON payload rather than the scan name.
+* [Strategy RMS Engine](strategy-rms-engine.md) for the separate `/strategy` webhook used by alert senders. Batch strategies accept `start` and `stop`; signal strategies accept `long_entry`, `long_exit`, `short_entry`, and `short_exit` from the JSON payload. Chartink remains a separate integration that derives its action from the scan name.
 * [ChartInk](../trading-platform/chartink.md) for the platform-side setup.

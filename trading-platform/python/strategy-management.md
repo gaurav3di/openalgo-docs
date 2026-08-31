@@ -1,60 +1,66 @@
-# Strategy Management
+# Strategy RMS Alerts From Python
 
-OpenAlgo's Strategy Management Module allows you to automate your trading strategies using webhooks. This enables seamless integration with any platform or custom system that can send HTTP requests. The Strategy class provides a simple interface to send signals that trigger orders based on your strategy configuration in OpenAlgo.
+Use a normal HTTP client to send alerts to a Strategy RMS public webhook. Create the strategy and copy its webhook token from the `/strategy` page first. The URL token is a credential: store it in a secret manager or environment variable, never in source control or logs.
 
+This is the current Strategy RMS contract. The retired `Strategy(...)` helper, `BUY`/`SELL` modes, `position_size`, and per-symbol mapping protocol do not apply to the rewritten engine.
 
+## Batch strategy example
 
-> Note: When creating a trading strategy in the _Strategy Management_ section, ensure you select the platform as Python to access the webhook ID displayed in the _View Strategy_ section.<br>
->
-> Keep the webhook ID private, as it is sensitive information similar to API keys. Do not share it with anyone.<br>
-
-`Strategy(host_url, webhook_id)` posts to `{host_url}/strategy/webhook/{webhook_id}`. The webhook accepts JSON with `symbol` and `action`; `position_size` is required as well when the strategy is configured in BOTH mode. The strategy sends orders only for symbols you have mapped in the _View Strategy_ screen, and each mapping carries its own exchange, product type and quantity, so the Python side never sends those.
-
-Trading modes are configured in OpenAlgo, not in the Python code:
-
-* **LONG**: BUY opens, SELL closes.
-* **SHORT**: SELL opens, BUY closes.
-* **BOTH**: `position_size` is the target position after the order. A non-zero size opens or reverses, `0` squares off. The sign must agree with the action: a BUY needs `position_size >= 0` and a SELL needs `position_size <= 0`, so a short entry of 10 is sent as `-10`. The server rejects a mismatched sign.
-
-Requests to the webhook are rate limited by `WEBHOOK_RATE_LIMIT` (100 per minute by default). Inactive strategies are rejected, and for intraday strategies entries are refused outside the configured start and end time while exits are refused after the square off time.
+A batch strategy accepts `start` and `stop`. `mode` is required for `start`; use `sandbox` until the strategy has been explicitly enabled for live trading in the browser.
 
 ```python
+import os
 
-from openalgo import Strategy
+import requests
 
-# Initialize strategy client
-client = Strategy(
-    host_url="http://127.0.0.1:5000",  # Your OpenAlgo server URL
-    webhook_id="your-webhook-id"        # Get this from OpenAlgo strategy section
+base_url = os.environ["OPENALGO_URL"].rstrip("/")
+token = os.environ["OPENALGO_STRATEGY_WEBHOOK_TOKEN"]
+webhook_url = f"{base_url}/strategy/webhook/{token}"
+
+response = requests.post(
+    webhook_url,
+    json={"action": "start", "mode": "sandbox"},
+    timeout=10,
 )
-
-
-# Example 1: LONG or SHORT only mode (configured in OpenAlgo)
-# No position_size is sent; the mapped quantity is used
-client.strategyorder("RELIANCE", "BUY")
-client.strategyorder("RELIANCE", "SELL")
-
-
-# Example 2: BOTH mode (configured in OpenAlgo)
-# position_size is the TARGET position after the order
-
-#Trading Mode - BOTH - Long Entry
-client.strategyorder("RELIANCE", "BUY", 10)
-
-#Trading Mode - BOTH - Long Exit
-client.strategyorder("RELIANCE", "SELL", 0)
-
-#Trading Mode - BOTH - Short Entry (negative target position)
-client.strategyorder("RELIANCE", "SELL", -10)
-
-#Trading Mode - BOTH - Short Exit
-client.strategyorder("RELIANCE", "BUY", 0)
-
+response.raise_for_status()
+print(response.json())
 ```
 
-The client keeps a pooled HTTP connection open, so close it when your script exits, or use it as a context manager:
+To request a stop:
 
 ```python
-with Strategy(host_url="http://127.0.0.1:5000", webhook_id="your-webhook-id") as client:
-    client.strategyorder("RELIANCE", "BUY")
+response = requests.post(webhook_url, json={"action": "stop"}, timeout=10)
+response.raise_for_status()
+result = response.json()
+
+if result.get("stop_pending"):
+    print("Exit is accepted but not yet confirmed flat; monitor strategy status/events.")
 ```
+
+A successful stop response does not prove that exits filled. `stop_pending: true` means the run remains managed while the broker fills, retries, or reconciles the exits.
+
+## Signal strategy example
+
+Signal strategies accept `long_entry`, `long_exit`, `short_entry`, and `short_exit`. Address the leg by its configured `leg_id`, or by symbol and exchange.
+
+```python
+response = requests.post(
+    webhook_url,
+    json={"action": "long_entry", "leg_id": 1},
+    timeout=10,
+)
+response.raise_for_status()
+print(response.json())
+```
+
+The first accepted signal in the platform session opens the run. Repeating an entry that is already held is an accepted no-op, which makes sender retries safe. An action that does not match the strategy kind, its configured direction, or a configured leg is rejected for correction.
+
+## Security And Operations
+
+- The webhook accepts no `apikey`; the URL token is the credential.
+- Do not include the token in alert JSON, exception text, request logs, or screenshots.
+- Configure a webhook IP allowlist when your sender publishes stable address ranges.
+- HTTP 429 is a rate-limit response. Retry only with bounded backoff and avoid sending duplicate business alerts.
+- If a token may have leaked, rotate it in the strategy page. The old token stops working immediately.
+
+See [Public Strategy Webhook](../../api-documentation/v1/strategy-rms-api/webhook.md) for every result code and [Strategy RMS RESTX API](../../api-documentation/v1/strategy-rms-api/README.md) for authenticated lifecycle and audit calls.
