@@ -83,6 +83,24 @@ curl -X POST http://127.0.0.1:5000/api/v1/strategy/status \
 | `data` | object | Strategy configuration, including its saved leg definitions |
 | `run` | object or null | Current run, or `null` when no run is current |
 
+### Leg Fields
+
+`data.legs` is the saved configuration, and the two kinds do not share a shape. A batch leg is resolved against the strategy's underlying; a signal leg names its own instrument.
+
+| Field | Kind | Description |
+|---|---|---|
+| `id` | both | Leg id, unique within the strategy |
+| `segment` | both | `options`, `futures`, or `cash`. A batch leg's segment must be one its `universe_tab` offers, and **cash is offered on `stocks_fno` only**: an index has no cash instrument and an MCX commodity has no spot. A signal leg takes `cash` or `futures` only |
+| `position` | batch | `B` or `S`. A short cash leg is refused unless the product is `MIS`, because cash cannot be carried short |
+| `lots` | batch | The configured count, multiplied by the contract's lot size on every segment. A cash row's lot size is 1, so the count reads as a share count |
+| `expiry` | batch | Expiry rank; refused outright on a cash leg |
+| `option_type`, `strike_mode`, `atm_offset`, `strike` | batch | Options legs only |
+| `symbol`, `exchange` | signal | The exact instrument, checked against the master contract on every venue. The segment and the exchange must agree: cash cannot sit on a derivative venue |
+| `side` | signal | `long`, `short`, or `both`. Which signals the leg accepts, not the side it is held |
+| `qty`, `qty_mode` | signal | `lots` multiplies by the contract's lot size; `units` is the number outright. A derivative venue defaults to `lots` and a cash venue to `units`, and `lots` is refused on cash because there is no lot size to multiply by |
+| `sl_pts`, `target_pts`, `trail` | both | Per-leg risk |
+| `risk_unit` | both | `points` (the default) or `percent`, governing `sl_pts`, `target_pts` and `trail` together. A percentage is measured against the leg's own entry price, so 2 on a short filled at 2500 is a stop at 2550 |
+
 ### Run Object Fields
 
 | Field | Type | Description |

@@ -87,6 +87,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/strategy/start \
 - A partial entry success is HTTP 200. Inspect every `legs[].ok` result.
 - `ok: true` with `acknowledged: false` is a broker-accepted order whose acknowledgement needs reconciliation; it is not a rejection or a reason to place a duplicate order.
 - A second start while the strategy is running returns HTTP 409.
+- This endpoint is for batch strategies and enforces it. A start against a signal strategy returns HTTP 400 with `A signal strategy has no start. Its run opens on the first long_entry or short_entry signal after the session boundary.`, and nothing is claimed or resolved.
+- A run whose entries were **all** rejected is closed immediately and returns HTTP 400. The message carries the venue's own reason, for example `Every entry order was rejected: MIS orders cannot be placed after square-off time (15:15 IST). Trading resumes at 09:00 AM IST.` When legs were refused for different reasons, each is listed against the leg it belongs to.
 
 ---
 

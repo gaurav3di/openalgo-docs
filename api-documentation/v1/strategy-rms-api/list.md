@@ -86,6 +86,7 @@ Send `null` or omit `status` and `q` for no filter. An unsupported status or an 
 | `name` | string | Strategy name, unique for the owning user |
 | `strategy_kind` | string | `batch` or `signal` |
 | `direction` | string | `both`, `long_only`, or `short_only`; used by signal strategies |
+| `universe_tab` | string | `weekly_monthly`, `monthly_only`, `stocks_fno`, or `mcx`. The instrument universe the strategy was built from; it decides which segments its legs may use, and cash is offered on `stocks_fno` only |
 | `strategy_type` | string | `intraday` or `positional` |
 | `product` | string | Configured product intent: `CNC`, `NRML`, or `MIS` |
 | `pricetype` | string | `MARKET` |
