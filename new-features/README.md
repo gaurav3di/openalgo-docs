@@ -6,6 +6,7 @@ Open Algo is constantly evolving to meet the needs of modern traders by introduc
 
 The platform's current feature guides cover:
 
+* [Agent](agent/README.md) for the in-platform AI assistant: market data, charts, indicators, options analytics and approval-gated orders, on `/agent` and docked beside the chart on `/trading`.
 * [Portfolio Backtester and Analyzer](portfolio-analytics.md) for authenticated, read-only portfolio simulation and current-holdings scenarios.
 * [Chart Trading Terminal](trading-terminal.md) for multi-chart analysis, drawings, market depth, and order entry.
 * [Flow Visual Strategy Builder](flow-visual-strategy-builder.md) for validated node graphs and schedule, webhook, price-alert, and order-update triggers.
