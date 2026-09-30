@@ -79,7 +79,7 @@ After a trade is triggered by your Python strategy, you can verify it in two pla
 * Ensure your OpenAlgo instance has a stable internet connection if running on a local machine to prevent WebSocket disconnections.
 * Run only code you trust. Hosted scripts execute as the OpenAlgo operating-system user and inherit the application environment.
 * Keep one Gunicorn web worker. Strategy ownership, schedules, and live process state are process-local.
-* One open live-log page uses one long-lived server execution slot. Size an experimental gthread deployment for the expected number of simultaneous `/python` tabs and other streams.
+* On an experimental gthread installation, each open Python Strategies page keeps one live status connection, which holds one of the instance's 64 request threads. At most eight windows get live status at once; the next still works, without live updates.
 * Current main still has known threaded-shutdown risks around Unix `preexec_fn` and forced process-tree cleanup. Do not interpret process isolation as a guarantee of unattended 24x7 lifecycle recovery; after an abnormal server stop, verify that no old strategy process remains.
 
 The production default remains Gunicorn with one eventlet worker. The [gthread migration](../getting-started/gthread-migration.md) is opt-in and experimental until it is merged into the application main branch.

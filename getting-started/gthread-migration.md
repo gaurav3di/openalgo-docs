@@ -1,336 +1,299 @@
 # Migrating to gthread (Experimental)
 
-OpenAlgo is moving off the **eventlet** worker and onto Gunicorn's threaded **gthread** worker. This page explains why, what changes, how to opt in, how to verify it, and how to go back.
+OpenAlgo runs inside a web server called Gunicorn, and Gunicorn can run it in two ways. **eventlet** is the default and stays the default. **gthread** is opt-in: you choose it per installation, and nothing changes on your server until you do.
+
+This page explains what gthread is, who should try it, how to switch on Ubuntu and on Docker, how to check that it works, and how to switch back.
 
 {% hint style="warning" %}
-**This is experimental and opt-in. It is not the default.**
+**gthread is experimental and not yet in an OpenAlgo release.**
 
-If you upgrade and do nothing, OpenAlgo continues to run on eventlet exactly as before. Only set the variable described below if you are willing to test and report results.
-{% endhint %}
-
-**Branch:** [github.com/marketcalls/openalgo/tree/gthread](https://github.com/marketcalls/openalgo/tree/gthread)
-**Discussion and reports:** [issue #1722](https://github.com/marketcalls/openalgo/issues/1722)
-
-***
-
-### Why this migration is necessary
-
-OpenAlgo has always run as `gunicorn --worker-class eventlet -w 1`.
-
-**Eventlet is retired software, and Gunicorn 26 removed the eventlet worker entirely.** That pins OpenAlgo to `gunicorn>=25.0,<26` permanently, a version that will stop receiving fixes, with no upgrade path.
-
-This is not a performance project. It is about not being stranded on a dead dependency.
-
-Two options were evaluated and rejected before settling on gthread:
-
-| Option | Verdict |
-| ------ | ------- |
-| **Granian** | Rejected. Its WSGI mode cannot provide the socket that `simple_websocket` needs, so Socket.IO WebSocket transport breaks. |
-| **uvicorn / ASGI** | Deferred. Would require converting Flask to an ASGI application, a far larger change than the problem justifies today. |
-| **gthread** | Chosen. Supported by Flask-SocketIO, keeps Flask and WSGI, and changes one launch flag rather than the framework. |
-
-***
-
-### What actually changes
-
-This is the single sentence that governs the whole migration:
-
-> Under eventlet, code that does not yield is atomic relative to other greenlets. Under gthread it is not.
-
-**Eventlet** uses cooperative green threads. Your code runs uninterrupted until it chooses to yield (on I/O, or an explicit sleep). Two requests never interleave in the middle of a calculation.
-
-**gthread** uses real operating system threads. The OS can suspend a thread **anywhere**, between two lines, or between reading a dictionary and writing it back.
-
-The practical consequence is that code which was *accidentally* safe under eventlet is genuinely racy under real threads. This matters most on a server that runs all day, places real orders, and is never restarted.
-
-#### What this found
-
-These were reproduced, not theorised:
-
-* Order cancellation releasing blocked margin **twice**
-* Expired-contract settlement releasing margin twice, triggerable by leaving two browser tabs open
-* The symbol lookup going **blank during its daily refresh**, so a valid symbol briefly looks like it does not exist
-* MCP quota admitting 7 and 8 concurrent requests against a configured limit of 5
-* Sandbox catch-up and square-off sweeps each running twice
-* A Python strategy launch path that could **deadlock before the strategy started**
-
-{% hint style="info" %}
-**If you run OpenAlgo on Windows or macOS with `uv run app.py`, you have never been on eventlet.** The development server uses standard threading. Every one of the issues above has been reachable on your setup all along.
-
-The migration did not introduce them. It found them.
+It lives on the `gthread-new` branch ([pull request #2117](https://github.com/marketcalls/openalgo/pull/2117)). A normal update from `main` leaves you on eventlet with no change in behaviour. Only follow this page if you are willing to test it and report what you find.
 {% endhint %}
 
 ***
 
-### What we gain from this
+### What gthread is, and why it matters
 
-#### Strategic: the actual reason
+* **eventlet** lets one request wait while others run, but some kinds of waiting can hold everything up. Several past problems, such as "the first order works, the next one hangs the app", came from eventlet and ordinary threads meeting inside OpenAlgo. Gunicorn has also announced that it will drop eventlet in its next major version.
+* **gthread** gives every request its own thread from a fixed pool of 64, so one request waiting on a broker does not stop the others.
 
-* **Unblocks Gunicorn 26 and beyond.** Eventlet's removal currently pins OpenAlgo to `gunicorn<26` permanently.
-* **Removes a retired dependency** that no longer has active maintenance.
-* **Keeps Flask and WSGI.** No framework rewrite, unlike the ASGI route.
-* **One launch flag changes**, not the architecture.
-
-#### Correctness: the unexpected payoff
-
-* Forced a full concurrency audit that surfaced **real money-path defects**: margin released twice on cancellation, the symbol cache blanking mid-refresh, duplicate sandbox sweeps.
-* Those defects were **already live for every Windows and macOS user**, whose development server has always used real threads.
-* Locking and lifecycle rules are now **documented and enforced by tests** rather than holding by accident.
-
-#### Operational
-
-* An **explicit, tunable thread budget** instead of an unbounded pool of green threads.
-* Real OS threads are **visible to standard tooling**, `top`, `py-spy` and thread dumps all work normally, where green threads are invisible to them.
-* Diagnostics report the **live worker class, thread count and open stream counts**.
-* **No dependency change to adopt.** Gunicorn 25.3 already ships both workers.
-
-#### Risk profile
-
-* **Opt-in behind a single `.env` line**; the default is unchanged.
-* **Rollback is deleting that line and restarting**, no rebuild, no dependency change.
-
-{% hint style="info" %}
-**This is not a performance improvement.** Expect broadly similar throughput. The value is being able to move to a supported Gunicorn, plus the correctness work the migration forced. Treat any claim that gthread makes OpenAlgo faster with suspicion.
-{% endhint %}
-
-***
-
-### Who is affected by the switch itself
-
-| How you run OpenAlgo | Uses eventlet today? | Affected by this switch |
-| -------------------- | -------------------- | ----------------------- |
-| Docker | Yes | **Yes** |
-| Ubuntu server via `install.sh` (systemd + nginx) | Yes | **Yes** |
-| Ubuntu multi-instance via `install-multi.sh` | Yes | **Yes** |
-| Windows / macOS desktop (`uv run app.py`) | No, already real threads | No change |
-
-Windows and macOS desktop users do not run Gunicorn at all, so there is nothing to opt into. The concurrency fixes on the branch still benefit you.
+Both run the same OpenAlgo. Orders, strategies, Flow, the charting and scalping terminals, Telegram and WhatsApp alerts work the same way on either.
 
 ***
 
 ### Current status
 
-Being direct about readiness:
+* **Available on the `gthread-new` branch only**, until pull request #2117 is merged and released.
+* **Automated checks pass on every change to the branch**: tests on several Python versions, the web server starting on both eventlet and gthread, container builds for AMD64 and ARM64, and the frontend tests.
+* **Verified on a live instance with Upstox**: a full trading day on 29 September 2026 with no errors after login, the overnight login expiry and recovery after the next login, read-only broker calls passing under parallel load, and restarts completing in about 10 seconds.
+* **Still wanted**: other brokers, more trading days, and Docker and multi-instance installations running a full day.
 
-* **122 files changed, 41 commits**
-* **Roughly 64% of tracked migration items complete** (70 of 109 actionable)
-* Several known issues remain open and are recorded on the branch
-* Three independent audits have already found cases where an earlier fix was itself wrong
+***
 
-Progress notes live in `docs/progress/gthread/` on the branch, and every item is tracked in `docs/plans/2026-08-01-gthread-migration-tracker.csv`.
+### Who should try it now
 
-**Do not run this on a production trading account you cannot afford to babysit.**
+Try it if you:
+
+* are comfortable running a few commands over SSH and reading a log;
+* can switch at a quiet time, after 23:30 IST (see below);
+* use a broker already verified on gthread, or are happy to be the first to verify yours and report how it went.
+
+Wait for now if you run strategies that must never pause, or if you run many OpenAlgo instances on a small server: each gthread instance uses 64 request threads.
+
+***
+
+### When to switch
+
+**After 23:30 IST and before 09:00 IST, never during the trading day.** The trading day runs until 23:30 IST because of MCX's evening session. Switching restarts OpenAlgo: orders already at your broker are not touched, but strategies, the market data feed and open browser pages pause for up to a minute.
+
+The switch script refuses to restart OpenAlgo between 09:00 and 23:30 IST. It goes by the clock, so it refuses on weekends and holidays too. Add `--force` only when you are sure nothing is trading.
 
 ***
 
 ### Step 1: Get the branch
 
-The opt-in variable does nothing on code built from `main`. The worker-resolution logic only exists on the `gthread` branch, so you must switch the checkout first.
-
 {% hint style="danger" %}
-Take a backup before switching branches. On Ubuntu, `install/update.sh` backs up your databases automatically; for Docker, copy your `.env` and back up the `db/` volume yourself.
+Take a backup first. On Ubuntu, `install/update.sh` backs up your databases before it updates. On Docker, copy your `.env` and back up the `db` volume yourself.
 {% endhint %}
 
-```bash
-cd /opt/openalgo          # or wherever you cloned OpenAlgo
-git fetch origin gthread
-git checkout gthread
-git pull origin gthread
-```
-
-Your `.env` is not tracked by git and is preserved.
-
-***
-
-### Step 2: Opt in
-
-Add **one line** to your `.env`:
-
-```bash
-OPENALGO_WORKER_CLASS = 'gthread'
-```
-
-That is sufficient. A safe thread count is chosen for you.
-
-{% hint style="warning" %}
-**Do not set the thread count on its own.** `OPENALGO_GUNICORN_THREADS` does nothing without the worker class, and Gunicorn's own default of one thread would let a single live strategy log or MCP stream block the entire server.
-{% endhint %}
-
-There is no dependency change. Gunicorn 25.3, the version already pinned in OpenAlgo, ships **both** the eventlet and gthread workers.
-
-***
-
-### Step 3: Apply it
-
-#### Docker
-
-```bash
-cd /opt/openalgo
-docker compose build
-docker compose up -d
-docker compose logs -f
-```
-
-`.env` is bind-mounted into the container, so the setting **survives `docker pull`** and does not require regenerating `docker-compose.yaml`.
-
-#### Ubuntu server (systemd)
+**Ubuntu, one installation made by `install.sh`:**
 
 ```bash
 cd /var/python/openalgo
+sudo git -C /var/python/openalgo fetch origin gthread-new
+sudo git -C /var/python/openalgo checkout gthread-new
 sudo bash install/update.sh
 ```
 
-The updater rewrites `ExecStart` in your systemd unit, **backs up the previous unit first**, verifies the new one before touching dependencies, and **restores the backup automatically if the service fails to start**.
+The updater follows the branch you have checked out: it pulls it, installs its dependencies, runs the database upgrades and restarts OpenAlgo, still on eventlet. Your `.env` is not tracked by git and is kept as it is.
 
-#### Ubuntu multi-instance
+**Several instances made by `install-multi.sh`:** run the same commands inside each instance's folder, for example `/var/python/openalgo-flask/openalgo1`, one instance at a time.
 
-Each instance has its own `.env`. Set the variable per instance and re-run the updater for that instance.
+**Docker (installed with `install-docker.sh`, in `/opt/openalgo`):**
+
+```bash
+cd /opt/openalgo
+sudo git fetch origin gthread-new
+sudo git checkout gthread-new
+```
+
+The image is rebuilt in Step 2.
+
+***
+
+### Step 2: Switch
+
+#### Ubuntu, one installation
+
+```bash
+cd /var/python/openalgo
+sudo bash install/switch-worker.sh --to gthread --dry-run
+sudo bash install/switch-worker.sh --to gthread
+```
+
+The first command shows what would change without changing anything. The second:
+
+* writes `OPENALGO_WORKER_CLASS = 'gthread'` into `.env`;
+* saves a copy of your service file next to it, as `/etc/systemd/system/openalgo.service.pre-launcher-<date>`;
+* points the service at the launcher `install/openalgo-gunicorn.sh` and restarts OpenAlgo;
+* checks that the service is running, the OpenAlgo page answers, the live update channel the browser uses answers, and OpenAlgo is running on the web server `.env` asks for.
+
+If any check fails, it puts back the previous service file, restarts, checks again and shows the last lines of the log. If that restart also fails, it says so and prints the command to recover by hand; check it before you trade.
+
+The script only switches a service that `install.sh` or `install-multi.sh` wrote. If you edited the service's `ExecStart` line by hand, it leaves the service alone and tells you why.
+
+**Updating later.** Keep using `sudo bash install/update.sh`. If `.env` asks for gthread and the service does not use the launcher yet, the updater switches it at the end, with the same checks and the same automatic restore.
+
+#### Several instances
+
+Each instance has its own folder, service (`openalgo1`, `openalgo2`, ...) and `.env`, so each chooses its own web server.
+
+```bash
+# One instance
+cd /var/python/openalgo-flask/openalgo1
+sudo bash install/switch-worker.sh --service openalgo1 --to gthread
+
+# Every instance, one at a time. It stops at the first one that fails, after putting that one back.
+sudo bash install/switch-worker.sh --all --to gthread
+```
+
+At the end it tells you how many request threads the gthread instances use together, 64 each.
+
+#### Docker
+
+1. Add this line to the `.env` file next to your `docker-compose.yaml`:
+
+   ```
+   OPENALGO_WORKER_CLASS = 'gthread'
+   ```
+
+2. Give the OpenAlgo service 45 seconds to stop, in the same `docker-compose.yaml`:
+
+   ```yaml
+   services:
+     openalgo:
+       stop_grace_period: 45s
+   ```
+
+   This is required. gthread gives open requests up to 30 seconds to finish and tells running Python strategies to stop at the same moment. Docker forces a container to stop after 10 seconds unless told otherwise, which would cut that short. A normal stop is not slower: the container still stops as soon as OpenAlgo has finished.
+
+3. After 23:30 IST, rebuild and restart:
+
+   ```bash
+   docker compose up -d --build --force-recreate
+   ```
+
+   `--build` matters. Without it Docker reuses the old image, which quietly keeps running on eventlet.
+
+4. The container log shows `Starting application on port 5000 with gthread`.
+
+On Railway or another platform that sets environment variables for you, set `OPENALGO_WORKER_CLASS=gthread` there, and set the platform's stop timeout to 45 seconds if it has one. The Docker runners `install/docker-run.sh` and `install/docker-run.bat` on the branch already allow 45 seconds.
+
+***
+
+### Step 3: Check that it works
+
+1. **The system report.** Open **Admin**, then **Diagnostics**, and choose **Download .md**. Under *Runtime* it should say:
+   * *Web server:* gthread
+   * *Request threads:* 64
+   * *Started by launcher:* True
+
+   Any *Note* lines there are written for you, for example that `.env` asks for a web server this server has not switched to yet, or that almost every request slot is busy.
+
+2. **The log.** `sudo journalctl -u openalgo -n 50` shows `Starting the gthread web server with 64 request threads`. On several instances use the instance's service name, for example `-u openalgo1`. On Docker use `docker compose logs --tail 50`.
+
+3. **Your broker.** The broker check only reads (funds, positions, order book, trade book, holdings, quotes, multiquotes, depth, history and intervals) and prints a table of what passed and how long each call took. Log in to OpenAlgo and your broker first: after about 03:00 IST the broker login has expired and every call fails.
+
+   On Docker, run it on the server against the local address:
+
+   ```bash
+   cd /opt/openalgo
+   python3 scripts/gthread_broker_smoke.py --url http://127.0.0.1:5000 --repeat 3 --parallel 4
+   ```
+
+   On Ubuntu OpenAlgo has no local address of its own, so run it on the server against your domain:
+
+   ```bash
+   cd /var/python/openalgo
+   python3 scripts/gthread_broker_smoke.py --url https://your-openalgo-domain --repeat 3 --parallel 4
+   ```
+
+   It asks for your API key when you leave out `--apikey`, which keeps the key out of your shell history.
+
+   {% hint style="info" %}
+   **If every row says "answered 403"**, the check was stopped before it reached OpenAlgo, usually by Cloudflare, which turns away scripts that are not browsers. OpenAlgo has not failed. On the server, point your domain at the server itself for the run by adding a line `127.0.0.1 your-openalgo-domain` to `/etc/hosts`, run the check, then remove the line.
+   {% endhint %}
+
+   Add `--order-check` only while OpenAlgo is in analyzer (sandbox) mode. It then places one small LIMIT buy far below the market in the sandbox and cancels it straight away. In live mode it refuses.
+
+4. **The next trading day.** Keep an eye on the Diagnostics page and on the error log, `log/errors.jsonl` in your OpenAlgo folder. On Docker it lives inside the container's log volume:
+
+   ```bash
+   docker compose exec openalgo tail -n 50 /app/log/errors.jsonl
+   ```
+
+***
+
+### Switching back to eventlet
+
+* **Ubuntu, after 23:30 IST:**
+
+  ```bash
+  sudo bash install/switch-worker.sh --to eventlet
+  ```
+
+  On several instances add `--service openalgo1`, or `--all`. You can also set `OPENALGO_WORKER_CLASS = 'eventlet'` in `.env` and restart the service.
+
+* **Put the original service file back entirely:** `sudo bash install/switch-worker.sh --restore`. It also sets `.env` back to eventlet, so the next update does not switch the service over again.
+
+* **Leaving the branch**, to go back to `main` or an older release: run `sudo bash install/switch-worker.sh --restore` **first**, while the script is still there. A switched service starts OpenAlgo through `install/openalgo-gunicorn.sh`, which `main` does not have yet, so without this step the service cannot start after you leave the branch. Then:
+
+  ```bash
+  sudo git -C /var/python/openalgo checkout main
+  sudo bash install/update.sh
+  ```
+
+  If you have already left the branch and the service will not start: in `/etc/systemd/system`, copy back the file named in the comment just above the service's `ExecStart` line (it ends in `.pre-launcher-<date>`), set `OPENALGO_WORKER_CLASS = 'eventlet'` in `.env`, then run `sudo systemctl daemon-reload` and restart the service.
+
+* **Docker:** set `OPENALGO_WORKER_CLASS = 'eventlet'` in `.env` (or delete the line) and recreate the container.
 
 {% hint style="warning" %}
-Threads are per instance, so the host cost is `threads x instances`. With the default of 64 threads and 4 instances that is 256 request threads on one box. `install-multi.sh` prints the total; divide a per-host budget with `OPENALGO_GUNICORN_THREADS` if that is too high for your VPS.
+**Known issue: going back and forth.** After returning to the branch a second time (branch, then `main`, then the branch again), Historify can refuse to add new symbols to the watchlist or store data for new symbols. A fix is in progress on the branch. Until it lands, avoid returning to the branch after leaving it.
 {% endhint %}
 
 ***
 
-### Step 4: Verify it is actually running
+### Known limits
 
-Do not trust the `.env` file alone. Confirm the running process.
-
-**Docker:**
-
-```bash
-docker logs openalgo-web 2>&1 | grep "Starting application"
-# [OpenAlgo] Starting application on port 5000 with gthread (64 threads)...
-
-docker top openalgo-web | grep worker-class
-# ... gunicorn --worker-class gthread --threads 64 --workers 1 ...
-```
-
-**Ubuntu:**
-
-```bash
-systemctl cat openalgo | grep worker-class
-ps -eo args | grep "[g]unicorn"
-```
-
-**In the web UI:** the admin runtime panel reports the live worker class, configured thread count, active thread count and open stream counts. Use it to see the real numbers under load rather than guessing.
+* **A fixed budget of 64 request threads per instance.** It is not a setting. Most requests take a thread for a moment, but some hold one for as long as they are open: each browser tab keeps one live update connection, shared by every page in it, and each open Python Strategies page, agent chat and remote MCP connection holds one while it is open. Five devices with two tabs each use about 10. If the system report says almost every request slot is busy, close tabs you are not using; if it keeps happening during trading, switch back to eventlet.
+* **Stopping takes a little longer.** gthread lets open requests finish before it stops, for up to 30 seconds.
+* **The market data service** is shown in the system report as *Market data proxy*. On Ubuntu it runs as a separate process started by the web server, on gthread as on eventlet, and gthread starts it again if it stops. On Docker the container starts it and, on gthread, starts it again if it stops, after 1 second and then longer, up to 30 seconds, if it keeps stopping.
+* **The development server is not affected.** `uv run app.py`, including on Windows, ignores this setting.
 
 ***
 
-### Tuning the thread count
+### What gthread refuses that eventlet waits for
 
-The default is **64**, chosen because OpenAlgo holds a request thread for the entire life of certain connections:
+Under eventlet some kinds of waiting simply take as long as they take. gthread has a fixed number of request threads and waiting occupies one, so a few waits are cut short instead, with a message saying what happened and what to do. None of these is a setting, and none happens on eventlet.
 
-```
-required threads >=
-    active Socket.IO clients x 2       (polling holds a GET and a POST)
-  + live Python Strategy log streams   (each holds a thread until closed)
-  + live MCP streams                   (same)
-  + internal loopback reserve          (MCP, Telegram and WhatsApp re-enter the API)
-  + requests parked in broker rate limiters
-  + peak ordinary HTTP concurrency
-  + failure and reconnect headroom
-```
-
-To override:
-
-```bash
-OPENALGO_GUNICORN_THREADS = '96'
-```
-
-| Behaviour | Value |
-| --------- | ----- |
-| Default when gthread is selected | 64 |
-| Values below 16 | raised to 16, with a warning |
-| Values above 512 | permitted, with a warning about memory |
-| Non-numeric | falls back to 64, with a warning |
+* **A busy broker.** When a broker's rate limit would keep a request waiting more than about 10 seconds, the request is refused and nothing is sent to the broker. A smart order refused this way places nothing. An order that did reach the broker and then timed out is different: check your broker's order book before repeating it.
+* **Two orders for the same symbol at once.** A smart order or a sandbox order that waits more than 30 seconds for another one on the same symbol to finish is refused with a message asking you to try again. Check your positions first.
+* **Switching between live and sandbox mode.** A switch that waits more than 30 seconds for another switch still in progress is refused, and so is a sandbox reset behind one.
+* **Reloading or clearing the symbol cache** while the master contract is still downloading is refused until the download finishes.
+* **Flow workflows that wait.** A workflow whose Delay and Wait Until steps add up to more than 10 seconds runs in the background and answers at once. Up to 16 workflows waiting on a Delay, and separately up to 4 waiting on a Wait Until, can run at the same time; the next one is refused without placing any order, and the refusal appears in that workflow's execution history.
+* **Python Strategies page live status.** At most eight windows get live status at once. The next one shows "Too many windows are showing live strategy status" and still works, without live updates. An open page reconnects by itself every ten minutes.
+* **Remote MCP and the agent.** At most four remote MCP streams stay open, each for up to five minutes, and at most eight MCP tool calls run at once. At most six agent chats stream at once, and one reply ends after 15 minutes.
+* **OI Profile** spends at most 60 seconds loading the previous day's open interest for the daily change. If it runs out of time, the page says how many contracts it covered.
+* **Email.** A mail server that does not answer within 20 seconds is reported as unreachable.
+* **Sandbox square-off.** A square-off check that waits more than 120 seconds for one already running is skipped, and the next minute's check runs it.
 
 {% hint style="info" %}
-**Market data does not consume Gunicorn threads.** The options tools, charting and scalping terminals stream over a direct WebSocket to the proxy on port 8765, and all tabs share a single connection. Opening the entire tools suite adds zero request threads.
+**For API and webhook callers.** These refusals reach programs as HTTP status codes: 429 for a busy broker, the Flow caps and the other limits above, 409 for a mode switch or symbol cache reload that has to wait, 503 for the Python Strategies live status cap, and 202 when a waiting Flow workflow has been accepted to run in the background. A caller that retries on 429 should wait before it does.
 {% endhint %}
 
 ***
 
-### Rolling back
+### Brokers verified on gthread
 
-Removing the line and restarting is the entire rollback. No rebuild is needed.
+A broker moves to *Verified* once somebody has run a full trading day on gthread with it and the broker check passed.
 
-**Docker:**
+| Broker | Status |
+| --- | --- |
+| Upstox | Verified on 29 September 2026: a full trading day on a live instance, the overnight login expiry and recovery, and read-only broker calls passing under parallel load |
 
-```bash
-sed -i "/OPENALGO_WORKER_CLASS/d;/OPENALGO_GUNICORN_THREADS/d" .env
-docker compose up -d
-```
-
-**Ubuntu:**
-
-```bash
-sudo sed -i "/OPENALGO_WORKER_CLASS/d;/OPENALGO_GUNICORN_THREADS/d" /var/python/openalgo/.env
-cd /var/python/openalgo && sudo bash install/update.sh
-```
-
-To leave the branch entirely, `git checkout main` and rebuild or re-run the updater.
+All other brokers are not yet verified: aliceblue, angel, arrow, compositedge, definedge, deltaexchange, dhan, dhan_sandbox, firstock, fivepaisa, fivepaisaxts, flattrade, fyers, groww, hdfcsecurities, hdfcsky, ibulls, iifl, iiflcapital, indmoney, jainamxts, kotak, motilal, mstock, nubra, paytm, pocketful, rmoney, samco, shoonya, tradejini, tradesmart, wisdom, zebu and zerodha.
 
 ***
 
-### Troubleshooting
+### How to report a result
 
-**The log still says eventlet.**
-The image or unit was not rebuilt, or you are still on `main`. Confirm with `git rev-parse --abbrev-ref HEAD`, then rebuild.
+Open an issue at [github.com/marketcalls/openalgo/issues](https://github.com/marketcalls/openalgo/issues) titled `gthread verified: <broker>` or `gthread problem: <broker>`, and include:
 
-**A warning names an unknown worker class.**
-The value is misspelled. Only `eventlet` and `gthread` are accepted; anything else falls back to eventlet **and warns**, so a typo cannot silently leave you thinking you are testing gthread.
+* the table printed by the broker check (`--repeat 3 --parallel 4`);
+* the *Runtime* section of the system report;
+* whether you ran a full trading day, and with what (strategies, Flow, TradingView alerts, the scalping terminal);
+* anything unusual from `log/errors.jsonl`, with anything private removed.
 
-**The service will not start after `update.sh`.**
-The updater restores the previous unit automatically. Check `install/logs/` for the run log, and `journalctl -u openalgo -n 50`.
-
-**The server becomes unresponsive when a strategy is running.**
-Report it on issue #1722 with your thread count. This is exactly the failure mode the thread budget exists to prevent.
-
-**"database is locked" errors.**
-Real threads make SQLite writers genuinely collide where green threads did not. A 15-second busy timeout and a retry for stale-snapshot conflicts are already in place, please report the full entry from `log/errors.jsonl`.
-
-***
-
-### What to test and report
-
-Starting up is not evidence. What is genuinely useful:
-
-* **Your broker, through a full trading day**, login, order placement, positions, and the roughly 3:00 AM IST token rollover
-* **Live WebSocket streaming**, `/websocket/test` and the option chain tools under real market data
-* **Python strategies**, especially multi-file strategies and scheduled start/stop
-* **Sandbox mode**, order fills, square-off, expiry settlement
-* **Telegram alerts, scalping and charting terminals**
-* **Thread and stream counts from the admin runtime panel under real load**, these numbers are what will justify the final thread budget
-
-Report on [issue #1722](https://github.com/marketcalls/openalgo/issues/1722) with your **broker, operating system, deployment method and thread count**. Negative results are as valuable as positive ones.
-
-***
-
-### When does this become the default
-
-When it has been through real trading days, on real brokers, on both Docker and Ubuntu, without surprises. **There is no target date.**
-
-OpenAlgo is self-hosted, so there is no central rollback: once a change is on `main`, it reaches your machine whenever you choose to update, and it cannot be recalled. That is precisely why this ships opt-in first and why the default will not change until the evidence supports it.
+**Never post your API key, broker credentials or `.env`.**
 
 ***
 
 ### FAQ
 
 **Will this speed up OpenAlgo?**
-That is not the goal. Expect broadly similar throughput. The point is being able to move to a supported Gunicorn.
+That is not the goal. Expect similar speed. The point is a web server Gunicorn will keep supporting, and fewer ways for one slow request to hold up the rest.
 
 **Do I need to change my strategies?**
-No. Strategies run as isolated subprocesses, not inside the web worker.
+No. Python strategies run as separate processes, not inside the web server.
 
-**Does this affect the WebSocket proxy or ZeroMQ?**
-No. The proxy runs as its own process on port 8765, and the ZeroMQ bus is unchanged.
+**Does this affect the market data service or ZeroMQ?**
+No. The market data service runs as its own process on port 8765, and the ZeroMQ bus is unchanged.
 
 **Do I need Node.js or a frontend rebuild?**
-No. The branch carries a built frontend, as `main` does.
+No. The branch carries a built frontend. It is the one from `main`, so a few page updates made on the branch appear only once it is released.
 
 **Can I run one instance on gthread and another on eventlet?**
-Yes. The setting is per instance, and comparing the two on one host is a genuinely useful test.
+Yes. The setting is per instance, and comparing the two on one server is a useful test.
 
 **Is my data at risk?**
-The switch does not alter the database schema. Normal upgrade care still applies, take backups before switching branches.
+The switch does not change any database. Getting the branch runs the normal database upgrades, and Historify gains new internal ID counters, created by itself on first start. Take a backup before changing branches, as with any upgrade.
