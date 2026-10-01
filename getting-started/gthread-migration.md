@@ -5,9 +5,9 @@ OpenAlgo runs inside a web server called Gunicorn, and Gunicorn can run it in tw
 This page explains what gthread is, who should try it, how to switch on Ubuntu and on Docker, how to check that it works, and how to switch back.
 
 {% hint style="warning" %}
-**gthread is experimental and not yet in an OpenAlgo release.**
+**gthread is experimental.**
 
-It lives on the `gthread-new` branch ([pull request #2117](https://github.com/marketcalls/openalgo/pull/2117)). A normal update from `main` leaves you on eventlet with no change in behaviour. Only follow this page if you are willing to test it and report what you find.
+It is part of `main` since 30 September 2026 ([pull request #2117](https://github.com/marketcalls/openalgo/pull/2117)), and off unless you turn it on. A normal update leaves you on eventlet with no change in behaviour. Only follow this page if you are willing to test it and report what you find.
 {% endhint %}
 
 ***
@@ -23,8 +23,8 @@ Both run the same OpenAlgo. Orders, strategies, Flow, the charting and scalping 
 
 ### Current status
 
-* **Available on the `gthread-new` branch only**, until pull request #2117 is merged and released.
-* **Automated checks pass on every change to the branch**: tests on several Python versions, the web server starting on both eventlet and gthread, container builds for AMD64 and ARM64, and the frontend tests.
+* **In `main`, off by default.** An update brings the code; nothing changes until you switch.
+* **Automated checks pass on every change**: tests on several Python versions, the web server starting on both eventlet and gthread, container builds for AMD64 and ARM64, and the frontend tests.
 * **Verified on a live instance with Upstox**: a full trading day on 29 September 2026 with no errors after login, the overnight login expiry and recovery after the next login, read-only broker calls passing under parallel load, and restarts completing in about 10 seconds.
 * **Still wanted**: other brokers, more trading days, and Docker and multi-instance installations running a full day.
 
@@ -50,7 +50,7 @@ The switch script refuses to restart OpenAlgo between 09:00 and 23:30 IST. It go
 
 ***
 
-### Step 1: Get the branch
+### Step 1: Update OpenAlgo
 
 {% hint style="danger" %}
 Take a backup first. On Ubuntu, `install/update.sh` backs up your databases before it updates. On Docker, copy your `.env` and back up the `db` volume yourself.
@@ -60,21 +60,18 @@ Take a backup first. On Ubuntu, `install/update.sh` backs up your databases befo
 
 ```bash
 cd /var/python/openalgo
-sudo git -C /var/python/openalgo fetch origin gthread-new
-sudo git -C /var/python/openalgo checkout gthread-new
 sudo bash install/update.sh
 ```
 
-The updater follows the branch you have checked out: it pulls it, installs its dependencies, runs the database upgrades and restarts OpenAlgo, still on eventlet. Your `.env` is not tracked by git and is kept as it is.
+The updater pulls the latest `main`, installs its dependencies, runs the database upgrades and restarts OpenAlgo, still on eventlet. Your `.env` is not tracked by git and is kept as it is.
 
-**Several instances made by `install-multi.sh`:** run the same commands inside each instance's folder, for example `/var/python/openalgo-flask/openalgo1`, one instance at a time.
+**Several instances made by `install-multi.sh`:** run the same command inside each instance's folder, for example `/var/python/openalgo-flask/openalgo1`, one instance at a time.
 
 **Docker (installed with `install-docker.sh`, in `/opt/openalgo`):**
 
 ```bash
 cd /opt/openalgo
-sudo git fetch origin gthread-new
-sudo git checkout gthread-new
+sudo git pull
 ```
 
 The image is rebuilt in Step 2.
@@ -147,7 +144,7 @@ At the end it tells you how many request threads the gthread instances use toget
 
 4. The container log shows `Starting application on port 5000 with gthread`.
 
-On Railway or another platform that sets environment variables for you, set `OPENALGO_WORKER_CLASS=gthread` there, and set the platform's stop timeout to 45 seconds if it has one. The Docker runners `install/docker-run.sh` and `install/docker-run.bat` on the branch already allow 45 seconds.
+On Railway or another platform that sets environment variables for you, set `OPENALGO_WORKER_CLASS=gthread` there, and set the platform's stop timeout to 45 seconds if it has one. The Docker runners `install/docker-run.sh` and `install/docker-run.bat` already allow 45 seconds.
 
 ***
 
@@ -206,20 +203,11 @@ On Railway or another platform that sets environment variables for you, set `OPE
 
 * **Put the original service file back entirely:** `sudo bash install/switch-worker.sh --restore`. It also sets `.env` back to eventlet, so the next update does not switch the service over again.
 
-* **Leaving the branch**, to go back to `main` or an older release: run `sudo bash install/switch-worker.sh --restore` **first**, while the script is still there. A switched service starts OpenAlgo through `install/openalgo-gunicorn.sh`, which `main` does not have yet, so without this step the service cannot start after you leave the branch. Then:
+* **Going back to an older OpenAlgo release** (one from before 30 September 2026): run `sudo bash install/switch-worker.sh --restore` **first**, while the script is still there. A switched service starts OpenAlgo through `install/openalgo-gunicorn.sh`, which older releases do not have. A service switched with the current script still starts if you forget, on eventlet exactly as before the switch, and says so in `journalctl -u openalgo`. A service switched with an earlier copy of the script cannot start after the rollback; to give it the same safety net, run `--restore` and then switch again, after 23:30 IST.
 
-  ```bash
-  sudo git -C /var/python/openalgo checkout main
-  sudo bash install/update.sh
-  ```
-
-  If you have already left the branch and the service will not start: in `/etc/systemd/system`, copy back the file named in the comment just above the service's `ExecStart` line (it ends in `.pre-launcher-<date>`), set `OPENALGO_WORKER_CLASS = 'eventlet'` in `.env`, then run `sudo systemctl daemon-reload` and restart the service.
+  If the service already will not start after a rollback: in `/etc/systemd/system`, copy back the file named in the comment just above the service's `ExecStart` line (it ends in `.pre-launcher-<date>`), set `OPENALGO_WORKER_CLASS = 'eventlet'` in `.env`, then run `sudo systemctl daemon-reload` and restart the service.
 
 * **Docker:** set `OPENALGO_WORKER_CLASS = 'eventlet'` in `.env` (or delete the line) and recreate the container.
-
-{% hint style="warning" %}
-**Known issue: going back and forth.** After returning to the branch a second time (branch, then `main`, then the branch again), Historify can refuse to add new symbols to the watchlist or store data for new symbols. A fix is in progress on the branch. Until it lands, avoid returning to the branch after leaving it.
-{% endhint %}
 
 ***
 
@@ -290,10 +278,10 @@ No. Python strategies run as separate processes, not inside the web server.
 No. The market data service runs as its own process on port 8765, and the ZeroMQ bus is unchanged.
 
 **Do I need Node.js or a frontend rebuild?**
-No. The branch carries a built frontend. It is the one from `main`, so a few page updates made on the branch appear only once it is released.
+No. `main` carries the built frontend, so a plain update brings it.
 
 **Can I run one instance on gthread and another on eventlet?**
 Yes. The setting is per instance, and comparing the two on one server is a useful test.
 
 **Is my data at risk?**
-The switch does not change any database. Getting the branch runs the normal database upgrades, and Historify gains new internal ID counters, created by itself on first start. Take a backup before changing branches, as with any upgrade.
+The switch does not change any database. The update runs the normal database upgrades, and Historify gains internal ID counters that it checks on every start, so going back to an older release and returning is safe for its watchlist and downloads. Take a backup before any upgrade.

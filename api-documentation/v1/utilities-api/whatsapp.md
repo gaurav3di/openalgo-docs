@@ -146,7 +146,7 @@ parameter.
 | 400 | No recipient specified, `phones` is not a list, no valid phone in `phones`, an invalid `phone`, none of `message`/`image_path`/`document_path` supplied, `message` longer than 4096 characters, or an attachment path outside the allowlist |
 | 401 | Missing or invalid API key |
 | 404 | `username` is not found or is not linked to WhatsApp |
-| 409 | WhatsApp is not paired or not connected. Pair the device from the `/whatsapp` page first |
+| 409 | WhatsApp is not paired or not connected. Pair the device from the `/whatsapp` page first. When WhatsApp itself logged the device out, the `message` says so: "WhatsApp logged this device out, so alerts cannot be sent. Pair it again from the /whatsapp page in OpenAlgo." |
 | 429 | `WHATSAPP_RATE_LIMIT` exceeded, default 30 per minute |
 
 ## Notes

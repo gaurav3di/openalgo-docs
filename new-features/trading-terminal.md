@@ -20,13 +20,19 @@ Each pane retains its own symbol and chart state. Layout choice and supported ch
 
 ## Charts and History
 
-The terminal supports candles, bars, line/area variants, Heikin Ashi, Renko, Range Bars, and Line Break views. Scrolling to the left edge requests older history so analysis is not limited to the initial window.
+The terminal supports candles, bars, line and area variants, Heikin Ashi, Renko, Range Bars, Line Break, Point & Figure and Kagi. Scrolling to the left edge requests older history so analysis is not limited to the initial window.
 
-Indicators are loaded from the chart library catalog. Multiple instances can be added and configured per pane. Volume and grid display can be adjusted independently from the primary price scale.
+**Brick and line chart types.** Heikin Ashi, Renko, Range Bars, Line Break, Point & Figure and Kagi are formed by the chart from the time bars, so a brick appears the moment the tick that completes it arrives. The brick, range or reversal size starts at about 0.15 percent of the last close; change it, and the other options of the chart type, on the Price tab of the chart settings. A size you set is kept for that instrument and chart type. The volume under a brick or a Kagi line is the traded volume of the bars that formed it.
+
+**Bar replay** steps through the time bars on every chart type, so on a brick chart the bricks form as each bar is revealed. Trading is refused while a chart replays.
+
+**Indicators.** 112 built-in studies, and your own from `strategies/indicators/`. Several instances can be added and configured per pane. On a brick or line chart type, a study's **Compute on** row chooses between the chart's bricks and the underlying time bars. 29 built-in studies (the moving averages, Bollinger, Keltner, Donchian, Supertrend, ATR, RSI, MACD, Stochastic, CCI, ADX and others) have a **Timeframe** row: set it to a higher interval and the study is computed on the chart's bars folded into that interval, and a value appears only once that period closes. OpenScript studies and strategies are written, backtested and deployed from the Scripts panel; the language is documented at [openalgo.in/script](https://openalgo.in/script).
+
+Volume and grid display can be adjusted independently from the primary price scale.
 
 ## Drawing Tools
 
-One drawing rail controls the active pane and includes line, channel, Fibonacci/Gann, shape, cycle, forecast, measurement, and text tools. Drawings support styling, locking, magnet mode, undo/redo, and per-pane persistence.
+One drawing rail controls the active pane and includes line, channel, Fibonacci/Gann, shape, cycle, forecast, measurement, text and volume tools (Anchored VWAP and Fixed Range Volume Profile). Drawings support styling, locking, magnet mode, undo/redo, and per-pane persistence.
 
 The shared rail deliberately targets only the active pane. Confirm the highlighted pane before adding, editing, or removing a drawing in a multi-chart layout.
 

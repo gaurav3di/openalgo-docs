@@ -451,7 +451,7 @@ If anything fails after an upgrade, check `log/errors.jsonl` first, it contains 
 
 ### Optional: testing the gthread worker
 
-OpenAlgo currently runs on Gunicorn's **eventlet** worker, which Gunicorn has announced it will drop in its next major version. An experimental switch to Gunicorn's threaded **gthread** worker is available for testing on the `gthread-new` branch.
+OpenAlgo currently runs on Gunicorn's **eventlet** worker, which Gunicorn has announced it will drop in its next major version. An experimental switch to Gunicorn's threaded **gthread** worker is part of OpenAlgo since 30 September 2026, for those who want to test it.
 
 It is **opt-in and not the default**: a normal upgrade leaves you on eventlet with no change in behaviour.
 
